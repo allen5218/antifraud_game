@@ -1,0 +1,41 @@
+# Environment
+.env
+.env.local
+.env.*.local
+
+# Python
+__pycache__/
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+*.egg-info/
+.coverage
+htmlcov/
+.venv/
+
+# Frontend
+node_modules/
+dist/
+
+# Playwright
+/test-results/
+/playwright-report/
+/blob-report/
+/playwright/.cache/
+
+# IDE
+.vscode/*
+!.vscode/extensions.json
+.idea/
+.cursor/
+*.swp
+*~
+
+# macOS
+.DS_Store
+
+# Worktrees
+.worktrees/
+
+# Logs
+*.log

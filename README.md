@@ -1,0 +1,251 @@
+# 反詐騙訓練遊戲 🛡️
+
+互動式反詐騙情境訓練遊戲，透過 AI 出題讓玩家在模擬場景中學習辨識各類詐騙手法。
+
+## 技術架構
+
+| 層級 | 技術 |
+|------|------|
+| 後端 | FastAPI · Python 3.10 · SQLModel · Alembic |
+| AI 引擎 | Pydantic AI Agent · Anthropic Claude |
+| 前端 | React 19 · TypeScript · TanStack Router/Query |
+| UI | Tailwind CSS v4 · shadcn/ui · Framer Motion · Recharts |
+| 資料庫 | PostgreSQL 18 |
+| 部署 | Docker Compose · Traefik (反向代理 + TLS) |
+
+## 遊戲流程
+
+```
+首頁 → 前測（15題）→ 弱點雷達圖 → 開始遊戲
+                                        ↓
+              結算（等級+弱點分析）← AI 出題循環（10題）
+                    ↓
+              吉祥物商店（用分數兌換裝備）
+```
+
+### 五大詐騙類型
+1. **假投資** — 投資詐騙、龐氏騙局
+2. **假交友** — 殺豬盤、感情詐騙
+3. **假網購** — 購物詐騙、一頁式廣告
+4. **假冒身份** — 冒充公務員、親友借錢
+5. **假中獎** — 中獎通知、退稅詐騙
+
+## 快速開始
+
+### 前置需求
+- Docker & Docker Compose
+- Anthropic API Key（[取得方式](https://console.anthropic.com/settings/keys)）
+
+### 1. 設定環境變數
+
+```bash
+cp .env.example .env
+```
+
+編輯 `.env`，必須設定：
+
+| 變數 | 說明 |
+|------|------|
+| `ANTHROPIC_API_KEY` | Anthropic API 金鑰（遊戲核心功能必須） |
+| `SECRET_KEY` | JWT 簽名密鑰（正式部署必須更換） |
+| `FIRST_SUPERUSER` | 初始管理員 Email |
+| `FIRST_SUPERUSER_PASSWORD` | 初始管理員密碼（正式部署必須更換） |
+| `POSTGRES_PASSWORD` | 資料庫密碼（正式部署必須更換） |
+
+### 2. 啟動服務
+
+```bash
+# 開發模式（含 live reload）
+docker compose watch
+
+# 或：背景啟動
+docker compose up -d
+```
+
+### 3. 開始使用
+
+- 前端：http://localhost:5173
+- API 文件：http://localhost:8000/docs
+- 資料庫管理：http://localhost:8080
+
+首次啟動會自動執行資料庫遷移並建立管理員帳號。
+
+## 本機開發
+
+### 後端
+
+```bash
+cd backend
+uv sync                    # 安裝依賴
+uv run fastapi dev app/main.py  # 啟動開發伺服器
+
+# 測試
+uv run pytest              # 執行所有測試
+uv run pytest -x           # 遇錯即停
+
+# 程式碼品質
+uv run ruff check --fix .  # Lint
+uv run ruff format .       # 格式化
+uv run mypy app            # 型別檢查
+```
+
+### 前端
+
+```bash
+cd frontend
+bun install                # 安裝依賴
+bun run dev                # 啟動 Vite 開發伺服器
+bun run build              # 正式建置
+bun run lint               # Biome 檢查
+```
+
+### 資料庫遷移
+
+```bash
+# 在 backend 容器內
+docker compose exec backend bash
+alembic revision --autogenerate -m "描述變更"
+alembic upgrade head
+```
+
+### 更新前端 API Client
+
+後端 API 變更後，重新產生前端型別：
+
+```bash
+bash ./scripts/generate-client.sh
+```
+
+## 專案結構
+
+```
+├── backend/
+│   ├── app/
+│   │   ├── main.py              # FastAPI 入口
+│   │   ├── models.py            # SQLModel 資料模型
+│   │   ├── game/
+│   │   │   ├── models.py        # 遊戲資料模型（7 張表）
+│   │   │   ├── manager.py       # GameSessionManager 遊戲邏輯
+│   │   │   ├── agent.py         # Pydantic AI Agent 設定
+│   │   │   ├── schemas.py       # 遊戲 API schemas
+│   │   │   ├── seed.py          # 吉祥物商品種子資料
+│   │   │   └── tools.py         # SkillsToolset（讀取技能定義）
+│   │   └── api/routes/
+│   │       ├── game.py          # 遊戲 API 路由
+│   │       └── mascot.py        # 吉祥物商店 API 路由
+│   ├── skills/                  # AI 技能定義（掛載為 volume）
+│   │   ├── fake_investment.md
+│   │   ├── fake_romance.md
+│   │   ├── fake_shopping.md
+│   │   ├── impersonation.md
+│   │   └── fake_prize.md
+│   └── tests/
+│       ├── unit/                # 單元測試（mock AI）
+│       └── integration/         # 整合測試（需要 DB）
+├── frontend/
+│   ├── src/
+│   │   ├── routes/
+│   │   │   ├── _layout/
+│   │   │   │   ├── index.tsx    # 首頁
+│   │   │   │   └── mascot.tsx   # 吉祥物商店
+│   │   │   ├── pretest.tsx      # 前測頁面
+│   │   │   ├── pretest.result.tsx
+│   │   │   ├── game.$sessionId.tsx       # 遊戲主頁面
+│   │   │   └── game.$sessionId.result.tsx
+│   │   └── components/
+│   │       ├── Game/            # 遊戲元件
+│   │       ├── Pretest/         # 前測元件
+│   │       ├── GameResult/      # 結算元件
+│   │       ├── Mascot/          # 商店元件
+│   │       └── Home/            # 首頁元件
+├── compose.yml                  # Docker Compose 主設定
+├── compose.override.yml         # 開發覆寫設定
+└── .env.example                 # 環境變數範例
+```
+
+## 正式部署（Cloudflare Tunnel）
+
+不需要公開 IP 或設定防火牆，Cloudflare Tunnel 會建立從伺服器到 Cloudflare 的加密連線。
+
+### 1. 建立 Tunnel 並取得 Token
+
+在 [Cloudflare Zero Trust 面板](https://one.dash.cloudflare.com/) → Networks → Tunnels：
+1. 建立新 Tunnel，選擇 **Cloudflared**
+2. 複製 Tunnel Token
+3. 設定 Public Hostname 規則：
+
+   | Subdomain | Domain | Service |
+   |-----------|--------|---------|
+   | *(空)* | your-domain.com | http://frontend:80 |
+   | api | your-domain.com | http://backend:8000 |
+   | adminer | your-domain.com | http://adminer:8080 |
+
+### 2. 設定環境變數
+
+```bash
+# .env 中修改
+DOMAIN=your-domain.com
+FRONTEND_HOST=https://your-domain.com
+ENVIRONMENT=production
+SECRET_KEY=<用 python -c "import secrets; print(secrets.token_urlsafe(32))" 產生>
+POSTGRES_PASSWORD=<強密碼>
+FIRST_SUPERUSER_PASSWORD=<強密碼>
+ANTHROPIC_API_KEY=sk-ant-xxx
+
+# Cloudflare Tunnel Token
+CLOUDFLARE_TUNNEL_TOKEN=eyJhIjoixxxxx
+```
+
+### 3. 建立正式部署用 Compose 檔案
+
+建立 `compose.prod.yml`，加入 cloudflared 服務：
+
+```yaml
+services:
+  cloudflared:
+    image: cloudflare/cloudflared:latest
+    restart: always
+    command: tunnel --no-autoupdate run
+    environment:
+      - TUNNEL_TOKEN=${CLOUDFLARE_TUNNEL_TOKEN}
+    depends_on:
+      - backend
+      - frontend
+```
+
+### 4. 啟動
+
+```bash
+docker compose -f compose.yml -f compose.prod.yml up -d
+```
+
+TLS 由 Cloudflare 自動處理，不需要 Traefik 或 Let's Encrypt。
+
+### Cloudflare Access（選填）
+
+在 Zero Trust 面板為 `adminer.your-domain.com` 設定存取原則，
+限制只有特定 Email 可以存取資料庫管理介面。
+
+### API 費用估算
+
+每場遊戲約 10 次 AI 呼叫，每次約 1000-2000 tokens。
+以 Claude Sonnet 計算，每場遊戲約 US$0.03-0.06。
+
+## Skills 技能定義
+
+`backend/skills/` 目錄中的 Markdown 檔案定義了 AI 出題的知識庫。
+每個檔案對應一種詐騙類型，包含：
+- 常見手法描述
+- 真實案例
+- 防範重點
+
+技能檔案透過 Docker volume 掛載（`./backend/skills:/app/backend/skills:ro`），
+修改後**不需要重新建置映像**，只需重啟服務：
+
+```bash
+docker compose restart backend
+```
+
+## 授權
+
+基於 [Full Stack FastAPI Template](https://github.com/fastapi/full-stack-fastapi-template) 開發。
