@@ -23,7 +23,7 @@ def create_game_agent() -> Agent[GameDeps, GameResponse]:
     )
 
     agent: Agent[GameDeps, GameResponse] = Agent(
-        "anthropic:claude-haiku-4-5",
+        "google:gemini-3.5-flash",
         deps_type=GameDeps,
         output_type=GameResponse,
         toolsets=[skills_toolset],

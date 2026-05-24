@@ -7,7 +7,7 @@
 | 層級 | 技術 |
 |------|------|
 | 後端 | FastAPI · Python 3.10 · SQLModel · Alembic |
-| AI 引擎 | Pydantic AI Agent · Anthropic Claude |
+| AI 引擎 | Pydantic AI Agent · Google Gemini |
 | 前端 | React 19 · TypeScript · TanStack Router/Query |
 | UI | Tailwind CSS v4 · shadcn/ui · Framer Motion · Recharts |
 | 資料庫 | PostgreSQL 18 |
@@ -34,7 +34,7 @@
 
 ### 前置需求
 - Docker & Docker Compose
-- Anthropic API Key（[取得方式](https://console.anthropic.com/settings/keys)）
+- Google Gemini API Key（[取得方式](https://aistudio.google.com/apikey)）
 
 ### 1. 設定環境變數
 
@@ -46,7 +46,7 @@ cp .env.example .env
 
 | 變數 | 說明 |
 |------|------|
-| `ANTHROPIC_API_KEY` | Anthropic API 金鑰（遊戲核心功能必須） |
+| `GOOGLE_API_KEY` | Google Gemini API 金鑰（遊戲核心功能必須） |
 | `SECRET_KEY` | JWT 簽名密鑰（正式部署必須更換） |
 | `FIRST_SUPERUSER` | 初始管理員 Email |
 | `FIRST_SUPERUSER_PASSWORD` | 初始管理員密碼（正式部署必須更換） |
@@ -190,7 +190,7 @@ ENVIRONMENT=production
 SECRET_KEY=<用 python -c "import secrets; print(secrets.token_urlsafe(32))" 產生>
 POSTGRES_PASSWORD=<強密碼>
 FIRST_SUPERUSER_PASSWORD=<強密碼>
-ANTHROPIC_API_KEY=sk-ant-xxx
+GOOGLE_API_KEY=AIza-xxx
 
 # Cloudflare Tunnel Token
 CLOUDFLARE_TUNNEL_TOKEN=eyJhIjoixxxxx
@@ -229,7 +229,7 @@ TLS 由 Cloudflare 自動處理，不需要 Traefik 或 Let's Encrypt。
 ### API 費用估算
 
 每場遊戲約 10 次 AI 呼叫，每次約 1000-2000 tokens。
-以 Claude Sonnet 計算，每場遊戲約 US$0.03-0.06。
+以 Gemini 3.5 Flash 計算，每場遊戲成本約 US$0.01-0.03。
 
 ## Skills 技能定義
 
