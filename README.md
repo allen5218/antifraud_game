@@ -7,7 +7,7 @@
 | 層級 | 技術 |
 |------|------|
 | 後端 | FastAPI · Python 3.10 · SQLModel · Alembic |
-| AI 引擎 | Pydantic AI Agent · Google Gemini |
+| AI 引擎 | Pydantic AI Agent · Google Gemini 3.5 Flash |
 | 前端 | React 19 · TypeScript · TanStack Router/Query |
 | UI | Tailwind CSS v4 · shadcn/ui · Framer Motion · Recharts |
 | 資料庫 | PostgreSQL 18 |
@@ -230,6 +230,49 @@ TLS 由 Cloudflare 自動處理，不需要 Traefik 或 Let's Encrypt。
 
 每場遊戲約 10 次 AI 呼叫，每次約 1000-2000 tokens。
 以 Gemini 3.5 Flash 計算，每場遊戲成本約 US$0.01-0.03。
+
+## AI 模型設定
+
+遊戲使用 [Pydantic AI](https://ai.pydantic.dev/) 驅動，預設模型為 **Google Gemini 3.5 Flash**。
+模型在 `backend/app/game/agent.py` 中以 `"供應商:模型"` 字串指定：
+
+```python
+agent = Agent(
+    "google:gemini-3.5-flash",  # ← 在這裡換模型
+    ...
+)
+```
+
+### 換成同供應商的其他模型
+
+只要改字串即可，例如改用推理較強的 Pro 版：
+
+```python
+"google:gemini-3-pro-preview"
+```
+
+### 換成其他供應商
+
+本專案安裝的是**完整版 `pydantic-ai`**，已內建所有主流供應商，**換供應商不需重裝套件**，
+只要做兩件事：①改模型字串、②在 `.env` 設定對應的金鑰環境變數。
+
+| 供應商 | 模型字串範例 | 金鑰環境變數 | 取得金鑰 |
+|--------|--------------|--------------|----------|
+| Google Gemini（預設） | `google:gemini-3.5-flash` | `GOOGLE_API_KEY` | [AI Studio](https://aistudio.google.com/apikey) |
+| Anthropic Claude | `anthropic:claude-haiku-4-5` | `ANTHROPIC_API_KEY` | [Anthropic Console](https://console.anthropic.com/settings/keys) |
+| OpenAI | `openai:gpt-4o-mini` | `OPENAI_API_KEY` | [OpenAI Platform](https://platform.openai.com/api-keys) |
+| Groq | `groq:llama-3.3-70b-versatile` | `GROQ_API_KEY` | [Groq Console](https://console.groq.com/keys) |
+
+> 完整支援的供應商與模型字串請參考 [Pydantic AI 模型文件](https://ai.pydantic.dev/models/)。
+
+換供應商時，記得同步更新這幾個檔案裡的金鑰變數名稱（目前都是 `GOOGLE_API_KEY`）：
+
+- `.env` / `.env.example` — 實際金鑰與範本
+- `compose.yml` — 傳遞給容器的環境變數
+- `backend/app/core/config.py` — Settings 欄位
+
+> Pydantic AI 會**自動從環境變數讀取對應金鑰**（如 `GOOGLE_API_KEY`、`OPENAI_API_KEY`），
+> 程式中不需手動傳入。`config.py` 的欄位主要用於文件化與設定驗證。
 
 ## Skills 技能定義
 
