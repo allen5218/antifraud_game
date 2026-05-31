@@ -5,7 +5,6 @@ export function HeaderStatus() {
   const { data } = useEconomyMe()
   const cash = data?.cash ?? 0
   const streakDays = data?.streak_days ?? 0
-  const level = data?.level ?? 1
   const cashColor = cash < 0 ? "text-red-600" : "text-foreground"
 
   return (
@@ -26,7 +25,9 @@ export function HeaderStatus() {
         </span>
         <span className="flex items-center gap-1 rounded-full bg-muted px-2 py-1">
           <span>⭐</span>
-          <span className="font-medium">Lv.{level}</span>
+          <span className="font-medium">
+            Lv.{Math.min(data?.level ?? 1, 10)}
+          </span>
         </span>
       </div>
     </header>

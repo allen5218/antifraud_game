@@ -10,7 +10,8 @@
     "preview": "vite preview",
     "generate-client": "openapi-ts",
     "test": "bunx playwright test",
-    "test:ui": "bunx playwright test --ui"
+    "test:ui": "bunx playwright test --ui",
+    "test:unit": "bun test src/"
   },
   "dependencies": {
     "@hookform/resolvers": "^5.2.2",

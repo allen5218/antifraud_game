@@ -1,2 +1,6 @@
 [test]
 preload = ["./test-setup.ts"]
+# Scope bare `bun test` to src/ so Playwright specs in tests/ are not collected.
+# Unit tests: bun test src/  (or `bun run test:unit`)
+# Playwright:  bun run test
+root = "src"
