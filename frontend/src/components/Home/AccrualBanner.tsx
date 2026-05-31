@@ -1,8 +1,10 @@
-import { useEconomyStore } from "@/stores/economy"
+import { useClaimAccrual, useEconomyMe } from "@/hooks/useEconomy"
 
 export function AccrualBanner() {
-  const pending = useEconomyStore((s) => s.pendingAccrual)
-  const claim = useEconomyStore((s) => s.claimAccrual)
+  const { data } = useEconomyMe()
+  const pending = data?.pending_accrual ?? 0
+  const { mutate: claim, isPending } = useClaimAccrual()
+
   if (pending <= 0) return null
 
   return (
@@ -12,8 +14,9 @@ export function AccrualBanner() {
       </span>
       <button
         type="button"
-        onClick={claim}
-        className="rounded-full bg-green-600 px-3 py-1 text-[10px] font-bold text-white"
+        onClick={() => claim()}
+        disabled={isPending}
+        className="rounded-full bg-green-600 px-3 py-1 text-[10px] font-bold text-white disabled:opacity-50"
       >
         領取
       </button>

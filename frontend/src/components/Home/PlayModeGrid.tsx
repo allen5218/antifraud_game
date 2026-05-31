@@ -1,4 +1,4 @@
-import { useEconomyStore } from "@/stores/economy"
+import { useEconomyMe } from "@/hooks/useEconomy"
 
 const MODES = [
   { icon: "📝", label: "題組訓練", desc: "5 種詐騙類型", unlockLevel: 1 },
@@ -10,7 +10,8 @@ const MODES = [
 // TODO(Phase 2): make unlocked cards navigate to their game-start routes
 // (/quick/quiz, /quick/swipe, etc.) once those routes exist.
 export function PlayModeGrid() {
-  const level = useEconomyStore((s) => s.level)
+  const { data } = useEconomyMe()
+  const level = data?.level ?? 1
   return (
     <ul className="grid grid-cols-2 gap-2 list-none p-0 m-0">
       {MODES.map((m) => {

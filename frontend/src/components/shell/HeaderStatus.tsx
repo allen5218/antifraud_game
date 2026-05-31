@@ -1,8 +1,11 @@
 import { Link } from "@tanstack/react-router"
-import { useEconomyStore } from "@/stores/economy"
+import { useEconomyMe } from "@/hooks/useEconomy"
 
 export function HeaderStatus() {
-  const { cash, streak, level } = useEconomyStore()
+  const { data } = useEconomyMe()
+  const cash = data?.cash ?? 0
+  const streakDays = data?.streak_days ?? 0
+  const level = data?.level ?? 1
   const cashColor = cash < 0 ? "text-red-600" : "text-foreground"
 
   return (
@@ -19,7 +22,7 @@ export function HeaderStatus() {
         </Link>
         <span className="flex items-center gap-1 rounded-full bg-muted px-2 py-1">
           <span>🔥</span>
-          <span className="font-medium">{streak}</span>
+          <span className="font-medium">{streakDays}</span>
         </span>
         <span className="flex items-center gap-1 rounded-full bg-muted px-2 py-1">
           <span>⭐</span>

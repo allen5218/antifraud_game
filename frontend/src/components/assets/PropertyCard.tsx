@@ -1,7 +1,7 @@
-import type { PropertyTier } from "@/stores/economy"
+import type { PropertyTierPublic } from "@/client"
 
 interface Props {
-  tier: PropertyTier
+  tier: PropertyTierPublic
   count?: number
   locked?: boolean
   affordable?: boolean
@@ -31,7 +31,7 @@ export function PropertyCard({
         aria-hidden="true"
         className="flex h-11 w-11 items-center justify-center rounded-lg bg-muted text-2xl"
       >
-        {SVG_EMOJI[tier.svgKey]}
+        {SVG_EMOJI[tier.svg_key]}
       </div>
       <div className="flex-1">
         <h5 className="text-xs font-bold">
@@ -40,15 +40,15 @@ export function PropertyCard({
         </h5>
         {locked ? (
           <div className="text-[10px] text-red-600">
-            🔒 Lv.{tier.unlockLevel} 解鎖
+            🔒 Lv.{tier.unlock_level} 解鎖
           </div>
         ) : owned ? (
           <div className="text-[10px] font-bold text-green-600">
-            +${tier.dailyIncome}/日
+            +${tier.daily_income}/日
           </div>
         ) : (
           <div className="text-[10px] text-muted-foreground">
-            ${tier.price.toLocaleString()} · +${tier.dailyIncome}/日
+            ${tier.price.toLocaleString()} · +${tier.daily_income}/日
           </div>
         )}
       </div>

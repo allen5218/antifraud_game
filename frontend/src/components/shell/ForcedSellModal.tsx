@@ -1,18 +1,16 @@
 import { useMemo, useState } from "react"
-import { LIQUIDATION_RATIO, useEconomyStore } from "@/stores/economy"
+import { useEconomyMe, useLiquidate, useProperties } from "@/hooks/useEconomy"
+import { LIQUIDATION_RATIO } from "@/lib/economy"
 
-// NOTE (Phase 1 mock): assumes the player's total liquidatable assets can cover the deficit.
-// The "sold everything but still in debt" and "no assets owned" cases would leave this
-// non-dismissable modal with a permanently-disabled confirm button. The real bankruptcy
-// resolution (sell-all → mark bankruptcy, dismiss, keep negative cash per spec §4.5) is
-// implemented in Phase 2 when this modal is wired to the economy API. The Phase-1 DEV
-// trigger uses a solvable amount on purpose.
 export function ForcedSellModal() {
-  const cash = useEconomyStore((s) => s.cash)
-  const pending = useEconomyStore((s) => s.bankruptcyPending)
-  const owned = useEconomyStore((s) => s.ownedProperties)
-  const liquidate = useEconomyStore((s) => s.liquidateProperties)
+  const { data: me } = useEconomyMe()
+  const { data: propData } = useProperties()
+  const { mutate: liquidate } = useLiquidate()
   const [selected, setSelected] = useState<Set<string>>(new Set())
+
+  const cash = me?.cash ?? 0
+  const pending = me?.bankruptcy_pending ?? false
+  const owned = propData?.owned ?? []
 
   const deficit = Math.abs(Math.min(0, cash))
   const recovered = useMemo(
@@ -38,8 +36,9 @@ export function ForcedSellModal() {
     })
 
   const confirm = () => {
-    liquidate([...selected])
-    setSelected(new Set())
+    liquidate([...selected], {
+      onSuccess: () => setSelected(new Set()),
+    })
   }
 
   return (
