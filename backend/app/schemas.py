@@ -90,3 +90,58 @@ class AnswerResponse(BaseModel):
     mascot_popup: MascotPopup | None = None
     next_question: GameResponse | None = None
     game_over: GameOverResult | None = None
+
+
+# ── Economy ───────────────────────────────────────────────
+
+
+class EconomyMeResponse(BaseModel):
+    cash: int
+    xp: int
+    level: int
+    streak_days: int
+    pending_accrual: int
+    bankruptcy_pending: bool
+
+
+class PropertyTierPublic(BaseModel):
+    id: int
+    name: str
+    svg_key: str
+    price: int
+    daily_income: int
+    unlock_level: int
+
+
+class OwnedPropertyPublic(BaseModel):
+    id: str
+    tier: PropertyTierPublic
+    purchased_at: str
+
+
+class PropertiesListResponse(BaseModel):
+    tiers: list[PropertyTierPublic]
+    owned: list[OwnedPropertyPublic]
+
+
+class AssetSummaryResponse(BaseModel):
+    cash: int
+    property_value: int
+    daily_income: int
+    total_net_worth: int
+    owned_count: int
+
+
+class BuyPropertyResponse(BaseModel):
+    property_id: str
+    new_cash: int
+
+
+class LiquidateRequest(BaseModel):
+    property_ids: list[str]
+
+
+class LiquidateResponse(BaseModel):
+    recovered: int
+    new_cash: int
+    bankruptcy_pending: bool
