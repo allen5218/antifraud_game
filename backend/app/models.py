@@ -1,6 +1,6 @@
 import enum
 import uuid
-from datetime import datetime, timezone
+from datetime import date, datetime, timezone
 
 from pydantic import EmailStr
 from sqlalchemy import Column, DateTime
@@ -56,6 +56,23 @@ class User(UserBase, table=True):
         sa_type=DateTime(timezone=True),  # type: ignore
     )
     items: list["Item"] = Relationship(back_populates="owner", cascade_delete=True)
+
+    # ── economy fields ──
+    cash: int = Field(default=1000)
+    xp: int = Field(default=0)
+    streak_days: int = Field(default=0)
+    streak_last_day: date | None = Field(default=None)
+    pending_accrual: int = Field(default=0)
+    last_settled_at: datetime = Field(
+        default_factory=get_datetime_utc,
+        sa_type=DateTime(timezone=True),  # type: ignore
+    )
+    bankruptcy_pending: bool = Field(default=False)
+    bankruptcy_count: int = Field(default=0)
+
+    properties: list["UserProperty"] = Relationship(
+        back_populates="owner", cascade_delete=True
+    )
 
 
 # Properties to return via API, id is always required
@@ -272,3 +289,40 @@ class UserMascotItem(SQLModel, table=True):
         foreign_key="mascot_item.id", nullable=False, ondelete="CASCADE"
     )
     is_equipped: bool = Field(default=False)
+
+
+# ── Economy Models ────────────────────────────────────────────
+
+
+class PropertyTier(SQLModel, table=True):
+    __tablename__ = "property_tier"
+
+    id: int = Field(primary_key=True)
+    name: str = Field(max_length=32)
+    svg_key: str = Field(max_length=32)
+    price: int
+    daily_income: int
+    unlock_level: int = Field(default=1)
+
+
+class UserProperty(SQLModel, table=True):
+    __tablename__ = "user_property"
+
+    id: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True)
+    user_id: uuid.UUID = Field(
+        foreign_key="user.id", nullable=False, ondelete="CASCADE", index=True
+    )
+    tier_id: int = Field(
+        foreign_key="property_tier.id", nullable=False, ondelete="RESTRICT"
+    )
+    purchased_at: datetime = Field(
+        default_factory=get_datetime_utc,
+        sa_type=DateTime(timezone=True),  # type: ignore
+    )
+    sold_at: datetime | None = Field(
+        default=None,
+        sa_type=DateTime(timezone=True),  # type: ignore
+    )
+    sold_price: int | None = Field(default=None)
+
+    owner: User | None = Relationship(back_populates="properties")
