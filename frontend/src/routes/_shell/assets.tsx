@@ -1,5 +1,16 @@
 import { createFileRoute } from "@tanstack/react-router"
+import { AssetSummaryCard } from "@/components/assets/AssetSummaryCard"
+import { OwnedAndAvailableList } from "@/components/assets/OwnedAndAvailableList"
 
 export const Route = createFileRoute("/_shell/assets")({
-  component: () => <div>資產（稍後實作）</div>,
+  component: Assets,
 })
+
+function Assets() {
+  return (
+    <>
+      <AssetSummaryCard />
+      <OwnedAndAvailableList />
+    </>
+  )
+}
