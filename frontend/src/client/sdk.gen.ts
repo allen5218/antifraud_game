@@ -3,7 +3,115 @@
 import type { CancelablePromise } from './core/CancelablePromise';
 import { OpenAPI } from './core/OpenAPI';
 import { request as __request } from './core/request';
-import type { GameStartGameData, GameStartGameResponse, GameSubmitAnswerData, GameSubmitAnswerResponse, GameGetGameSessionData, GameGetGameSessionResponse, ItemsReadItemsData, ItemsReadItemsResponse, ItemsCreateItemData, ItemsCreateItemResponse, ItemsReadItemData, ItemsReadItemResponse, ItemsUpdateItemData, ItemsUpdateItemResponse, ItemsDeleteItemData, ItemsDeleteItemResponse, LoginLoginAccessTokenData, LoginLoginAccessTokenResponse, LoginTestTokenResponse, LoginRecoverPasswordData, LoginRecoverPasswordResponse, LoginResetPasswordData, LoginResetPasswordResponse, LoginRecoverPasswordHtmlContentData, LoginRecoverPasswordHtmlContentResponse, MascotListMascotItemsResponse, MascotPurchaseItemData, MascotPurchaseItemResponse, MascotToggleEquipData, MascotToggleEquipResponse, MascotGetMyMascotResponse, PretestGetPretestQuestionsResponse, PretestSubmitPretestData, PretestSubmitPretestResponse, PrivateCreateUserData, PrivateCreateUserResponse, ScoreGetMyScoreResponse, UsersReadUsersData, UsersReadUsersResponse, UsersCreateUserData, UsersCreateUserResponse, UsersReadUserMeResponse, UsersDeleteUserMeResponse, UsersUpdateUserMeData, UsersUpdateUserMeResponse, UsersUpdatePasswordMeData, UsersUpdatePasswordMeResponse, UsersRegisterUserData, UsersRegisterUserResponse, UsersReadUserByIdData, UsersReadUserByIdResponse, UsersUpdateUserData, UsersUpdateUserResponse, UsersDeleteUserData, UsersDeleteUserResponse, UtilsTestEmailData, UtilsTestEmailResponse, UtilsHealthCheckResponse } from './types.gen';
+import type { EconomyReadMeResponse, EconomyPostSettleResponse, EconomyClaimResponse, EconomyListPropertiesResponse, EconomyBuyPropertyData, EconomyBuyPropertyResponse, EconomyGetAssetsResponse, EconomyPostLiquidateData, EconomyPostLiquidateResponse, GameStartGameData, GameStartGameResponse, GameSubmitAnswerData, GameSubmitAnswerResponse, GameGetGameSessionData, GameGetGameSessionResponse, ItemsReadItemsData, ItemsReadItemsResponse, ItemsCreateItemData, ItemsCreateItemResponse, ItemsReadItemData, ItemsReadItemResponse, ItemsUpdateItemData, ItemsUpdateItemResponse, ItemsDeleteItemData, ItemsDeleteItemResponse, LoginLoginAccessTokenData, LoginLoginAccessTokenResponse, LoginTestTokenResponse, LoginRecoverPasswordData, LoginRecoverPasswordResponse, LoginResetPasswordData, LoginResetPasswordResponse, LoginRecoverPasswordHtmlContentData, LoginRecoverPasswordHtmlContentResponse, MascotListMascotItemsResponse, MascotPurchaseItemData, MascotPurchaseItemResponse, MascotToggleEquipData, MascotToggleEquipResponse, MascotGetMyMascotResponse, PretestGetPretestQuestionsResponse, PretestSubmitPretestData, PretestSubmitPretestResponse, PrivateCreateUserData, PrivateCreateUserResponse, ScoreGetMyScoreResponse, UsersReadUsersData, UsersReadUsersResponse, UsersCreateUserData, UsersCreateUserResponse, UsersReadUserMeResponse, UsersDeleteUserMeResponse, UsersUpdateUserMeData, UsersUpdateUserMeResponse, UsersUpdatePasswordMeData, UsersUpdatePasswordMeResponse, UsersRegisterUserData, UsersRegisterUserResponse, UsersReadUserByIdData, UsersReadUserByIdResponse, UsersUpdateUserData, UsersUpdateUserResponse, UsersDeleteUserData, UsersDeleteUserResponse, UtilsTestEmailData, UtilsTestEmailResponse, UtilsHealthCheckResponse } from './types.gen';
+
+export class EconomyService {
+    /**
+     * Read Me
+     * Return current user's economy state (settles accrual first).
+     * @returns EconomyMeResponse Successful Response
+     * @throws ApiError
+     */
+    public static readMe(): CancelablePromise<EconomyReadMeResponse> {
+        return __request(OpenAPI, {
+            method: 'GET',
+            url: '/api/v1/economy/me'
+        });
+    }
+    
+    /**
+     * Post Settle
+     * Settle pending accrual and return economy state.
+     * @returns EconomyMeResponse Successful Response
+     * @throws ApiError
+     */
+    public static postSettle(): CancelablePromise<EconomyPostSettleResponse> {
+        return __request(OpenAPI, {
+            method: 'POST',
+            url: '/api/v1/economy/settle'
+        });
+    }
+    
+    /**
+     * Claim
+     * Settle accrual then move pending_accrual into cash.
+     * @returns EconomyMeResponse Successful Response
+     * @throws ApiError
+     */
+    public static claim(): CancelablePromise<EconomyClaimResponse> {
+        return __request(OpenAPI, {
+            method: 'POST',
+            url: '/api/v1/economy/settle/claim'
+        });
+    }
+    
+    /**
+     * List Properties
+     * Return all property tiers and the user's owned (unsold) properties.
+     * @returns PropertiesListResponse Successful Response
+     * @throws ApiError
+     */
+    public static listProperties(): CancelablePromise<EconomyListPropertiesResponse> {
+        return __request(OpenAPI, {
+            method: 'GET',
+            url: '/api/v1/economy/properties'
+        });
+    }
+    
+    /**
+     * Buy Property
+     * Purchase one unit of the given property tier.
+     * @param data The data for the request.
+     * @param data.tierId
+     * @returns BuyPropertyResponse Successful Response
+     * @throws ApiError
+     */
+    public static buyProperty(data: EconomyBuyPropertyData): CancelablePromise<EconomyBuyPropertyResponse> {
+        return __request(OpenAPI, {
+            method: 'POST',
+            url: '/api/v1/economy/properties/{tier_id}/buy',
+            path: {
+                tier_id: data.tierId
+            },
+            errors: {
+                422: 'Validation Error'
+            }
+        });
+    }
+    
+    /**
+     * Get Assets
+     * Return a summary of the user's assets.
+     * @returns AssetSummaryResponse Successful Response
+     * @throws ApiError
+     */
+    public static getAssets(): CancelablePromise<EconomyGetAssetsResponse> {
+        return __request(OpenAPI, {
+            method: 'GET',
+            url: '/api/v1/economy/assets'
+        });
+    }
+    
+    /**
+     * Post Liquidate
+     * Liquidate the given owned properties and recover a portion of their value.
+     * @param data The data for the request.
+     * @param data.requestBody
+     * @returns LiquidateResponse Successful Response
+     * @throws ApiError
+     */
+    public static postLiquidate(data: EconomyPostLiquidateData): CancelablePromise<EconomyPostLiquidateResponse> {
+        return __request(OpenAPI, {
+            method: 'POST',
+            url: '/api/v1/economy/liquidate',
+            body: data.requestBody,
+            mediaType: 'application/json',
+            errors: {
+                422: 'Validation Error'
+            }
+        });
+    }
+}
 
 export class GameService {
     /**

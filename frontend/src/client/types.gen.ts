@@ -19,6 +19,14 @@ export type AnswerResult = {
     total_score: number;
 };
 
+export type AssetSummaryResponse = {
+    cash: number;
+    property_value: number;
+    daily_income: number;
+    total_net_worth: number;
+    owned_count: number;
+};
+
 export type Body_login_login_access_token = {
     grant_type?: (string | null);
     username: string;
@@ -26,6 +34,20 @@ export type Body_login_login_access_token = {
     scope?: string;
     client_id?: (string | null);
     client_secret?: (string | null);
+};
+
+export type BuyPropertyResponse = {
+    property_id: string;
+    new_cash: number;
+};
+
+export type EconomyMeResponse = {
+    cash: number;
+    xp: number;
+    level: number;
+    streak_days: number;
+    pending_accrual: number;
+    bankruptcy_pending: boolean;
 };
 
 export type FraudTypeResult = {
@@ -93,6 +115,16 @@ export type ItemUpdate = {
     description?: (string | null);
 };
 
+export type LiquidateRequest = {
+    property_ids: Array<(string)>;
+};
+
+export type LiquidateResponse = {
+    recovered: number;
+    new_cash: number;
+    bankruptcy_pending: boolean;
+};
+
 export type MascotPopup = {
     show: boolean;
     message: string;
@@ -105,6 +137,12 @@ export type Message = {
 export type NewPassword = {
     token: string;
     new_password: string;
+};
+
+export type OwnedPropertyPublic = {
+    id: string;
+    tier: PropertyTierPublic;
+    purchased_at: string;
 };
 
 export type PretestAnswer = {
@@ -129,6 +167,20 @@ export type PrivateUserCreate = {
     password: string;
     full_name: string;
     is_verified?: boolean;
+};
+
+export type PropertiesListResponse = {
+    tiers: Array<PropertyTierPublic>;
+    owned: Array<OwnedPropertyPublic>;
+};
+
+export type PropertyTierPublic = {
+    id: number;
+    name: string;
+    svg_key: string;
+    price: number;
+    daily_income: number;
+    unlock_level: number;
 };
 
 export type Token = {
@@ -198,6 +250,28 @@ export type WeaknessDetail = {
     label: string;
     suggestion: string;
 };
+
+export type EconomyReadMeResponse = (EconomyMeResponse);
+
+export type EconomyPostSettleResponse = (EconomyMeResponse);
+
+export type EconomyClaimResponse = (EconomyMeResponse);
+
+export type EconomyListPropertiesResponse = (PropertiesListResponse);
+
+export type EconomyBuyPropertyData = {
+    tierId: number;
+};
+
+export type EconomyBuyPropertyResponse = (BuyPropertyResponse);
+
+export type EconomyGetAssetsResponse = (AssetSummaryResponse);
+
+export type EconomyPostLiquidateData = {
+    requestBody: LiquidateRequest;
+};
+
+export type EconomyPostLiquidateResponse = (LiquidateResponse);
 
 export type GameStartGameData = {
     requestBody: GameStartRequest;

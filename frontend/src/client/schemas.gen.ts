@@ -81,6 +81,34 @@ export const AnswerResultSchema = {
     title: 'AnswerResult'
 } as const;
 
+export const AssetSummaryResponseSchema = {
+    properties: {
+        cash: {
+            type: 'integer',
+            title: 'Cash'
+        },
+        property_value: {
+            type: 'integer',
+            title: 'Property Value'
+        },
+        daily_income: {
+            type: 'integer',
+            title: 'Daily Income'
+        },
+        total_net_worth: {
+            type: 'integer',
+            title: 'Total Net Worth'
+        },
+        owned_count: {
+            type: 'integer',
+            title: 'Owned Count'
+        }
+    },
+    type: 'object',
+    required: ['cash', 'property_value', 'daily_income', 'total_net_worth', 'owned_count'],
+    title: 'AssetSummaryResponse'
+} as const;
+
 export const Body_login_login_access_tokenSchema = {
     properties: {
         grant_type: {
@@ -136,6 +164,54 @@ export const Body_login_login_access_tokenSchema = {
     type: 'object',
     required: ['username', 'password'],
     title: 'Body_login-login_access_token'
+} as const;
+
+export const BuyPropertyResponseSchema = {
+    properties: {
+        property_id: {
+            type: 'string',
+            title: 'Property Id'
+        },
+        new_cash: {
+            type: 'integer',
+            title: 'New Cash'
+        }
+    },
+    type: 'object',
+    required: ['property_id', 'new_cash'],
+    title: 'BuyPropertyResponse'
+} as const;
+
+export const EconomyMeResponseSchema = {
+    properties: {
+        cash: {
+            type: 'integer',
+            title: 'Cash'
+        },
+        xp: {
+            type: 'integer',
+            title: 'Xp'
+        },
+        level: {
+            type: 'integer',
+            title: 'Level'
+        },
+        streak_days: {
+            type: 'integer',
+            title: 'Streak Days'
+        },
+        pending_accrual: {
+            type: 'integer',
+            title: 'Pending Accrual'
+        },
+        bankruptcy_pending: {
+            type: 'boolean',
+            title: 'Bankruptcy Pending'
+        }
+    },
+    type: 'object',
+    required: ['cash', 'xp', 'level', 'streak_days', 'pending_accrual', 'bankruptcy_pending'],
+    title: 'EconomyMeResponse'
 } as const;
 
 export const FraudTypeResultSchema = {
@@ -413,6 +489,41 @@ export const ItemsPublicSchema = {
     title: 'ItemsPublic'
 } as const;
 
+export const LiquidateRequestSchema = {
+    properties: {
+        property_ids: {
+            items: {
+                type: 'string'
+            },
+            type: 'array',
+            title: 'Property Ids'
+        }
+    },
+    type: 'object',
+    required: ['property_ids'],
+    title: 'LiquidateRequest'
+} as const;
+
+export const LiquidateResponseSchema = {
+    properties: {
+        recovered: {
+            type: 'integer',
+            title: 'Recovered'
+        },
+        new_cash: {
+            type: 'integer',
+            title: 'New Cash'
+        },
+        bankruptcy_pending: {
+            type: 'boolean',
+            title: 'Bankruptcy Pending'
+        }
+    },
+    type: 'object',
+    required: ['recovered', 'new_cash', 'bankruptcy_pending'],
+    title: 'LiquidateResponse'
+} as const;
+
 export const MascotPopupSchema = {
     properties: {
         show: {
@@ -457,6 +568,25 @@ export const NewPasswordSchema = {
     type: 'object',
     required: ['token', 'new_password'],
     title: 'NewPassword'
+} as const;
+
+export const OwnedPropertyPublicSchema = {
+    properties: {
+        id: {
+            type: 'string',
+            title: 'Id'
+        },
+        tier: {
+            '$ref': '#/components/schemas/PropertyTierPublic'
+        },
+        purchased_at: {
+            type: 'string',
+            title: 'Purchased At'
+        }
+    },
+    type: 'object',
+    required: ['id', 'tier', 'purchased_at'],
+    title: 'OwnedPropertyPublic'
 } as const;
 
 export const PretestAnswerSchema = {
@@ -536,6 +666,60 @@ export const PrivateUserCreateSchema = {
     type: 'object',
     required: ['email', 'password', 'full_name'],
     title: 'PrivateUserCreate'
+} as const;
+
+export const PropertiesListResponseSchema = {
+    properties: {
+        tiers: {
+            items: {
+                '$ref': '#/components/schemas/PropertyTierPublic'
+            },
+            type: 'array',
+            title: 'Tiers'
+        },
+        owned: {
+            items: {
+                '$ref': '#/components/schemas/OwnedPropertyPublic'
+            },
+            type: 'array',
+            title: 'Owned'
+        }
+    },
+    type: 'object',
+    required: ['tiers', 'owned'],
+    title: 'PropertiesListResponse'
+} as const;
+
+export const PropertyTierPublicSchema = {
+    properties: {
+        id: {
+            type: 'integer',
+            title: 'Id'
+        },
+        name: {
+            type: 'string',
+            title: 'Name'
+        },
+        svg_key: {
+            type: 'string',
+            title: 'Svg Key'
+        },
+        price: {
+            type: 'integer',
+            title: 'Price'
+        },
+        daily_income: {
+            type: 'integer',
+            title: 'Daily Income'
+        },
+        unlock_level: {
+            type: 'integer',
+            title: 'Unlock Level'
+        }
+    },
+    type: 'object',
+    required: ['id', 'name', 'svg_key', 'price', 'daily_income', 'unlock_level'],
+    title: 'PropertyTierPublic'
 } as const;
 
 export const TokenSchema = {
