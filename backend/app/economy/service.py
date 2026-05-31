@@ -15,6 +15,7 @@ class EconomyError(str, Enum):
     LEVEL_REQUIRED = "level_required"
     BANKRUPTCY_PENDING = "bankruptcy_pending"
     PROPERTY_NOT_OWNED = "property_not_owned"
+    # Planned for spec §4.5 ("sold everything but still in debt" bankruptcy resolution); not yet raised.
     LIQUIDATION_INSUFFICIENT = "liquidation_insufficient"
 
 

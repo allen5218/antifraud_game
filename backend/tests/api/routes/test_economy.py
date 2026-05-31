@@ -202,3 +202,46 @@ def test_liquidate_clears_bankruptcy(
     # new cash = -2000 + 3000 = 1000
     assert body["new_cash"] == 1000
     assert body["bankruptcy_pending"] is False
+
+
+def test_liquidate_partial_insufficient_deficit(
+    client: TestClient,
+    normal_user_token_headers: dict[str, str],
+    db: Session,
+) -> None:
+    """POST /economy/liquidate → sells property but bankruptcy_pending stays true when recovered < deficit."""
+    user = _get_normal_user(db)
+
+    # Clear existing properties first
+    _clear_owned(db, user)
+    db.refresh(user)
+
+    # Give user one tier-1 property (price=1000, liquidates at floor(1000*0.6)=600)
+    prop = UserProperty(
+        user_id=user.id,
+        tier_id=1,
+        purchased_at=datetime.now(timezone.utc),
+    )
+    db.add(prop)
+
+    # Set user to deep bankruptcy: cash = -5000 (deficit > recovered)
+    user.cash = -5000
+    user.bankruptcy_pending = True
+    db.add(user)
+    db.commit()
+    db.refresh(prop)
+    db.refresh(user)
+
+    response = client.post(
+        _url("/liquidate"),
+        headers=normal_user_token_headers,
+        json={"property_ids": [str(prop.id)]},
+    )
+    assert response.status_code == 200
+    body = response.json()
+    # recovered = floor(1000 * 0.6) = 600
+    assert body["recovered"] == 600
+    # new cash = -5000 + 600 = -4400 (still negative)
+    assert body["new_cash"] == -4400
+    # bankruptcy_pending should remain True since cash is still < 0
+    assert body["bankruptcy_pending"] is True
