@@ -1,5 +1,18 @@
 import { createFileRoute } from "@tanstack/react-router"
+import { AccrualBanner } from "@/components/Home/AccrualBanner"
+import { PlayModeGrid } from "@/components/Home/PlayModeGrid"
+import { TodayChallengeHero } from "@/components/Home/TodayChallengeHero"
 
 export const Route = createFileRoute("/_shell/")({
-  component: () => <div>首頁（稍後實作）</div>,
+  component: Home,
 })
+
+function Home() {
+  return (
+    <>
+      <AccrualBanner />
+      <TodayChallengeHero />
+      <PlayModeGrid />
+    </>
+  )
+}
