@@ -18,7 +18,7 @@ router = APIRouter(prefix="/pretest", tags=["pretest"])
 @router.get("/questions")
 def get_pretest_questions(session: SessionDep, current_user: CurrentUser) -> Any:  # noqa: ARG001
     """每種詐騙類型隨機抽 3 題，共 15 題。回傳時不包含 is_correct 欄位。"""
-    questions = []
+    questions: list[PretestQuestion] = []
     for fraud_type in FraudType:
         statement = (
             select(PretestQuestion)

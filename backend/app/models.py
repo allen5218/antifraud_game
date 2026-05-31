@@ -165,7 +165,7 @@ class GameStatus(str, enum.Enum):
 
 
 class PretestQuestion(SQLModel, table=True):
-    __tablename__ = "pretest_question"  # type: ignore
+    __tablename__ = "pretest_question"
 
     id: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True)
     fraud_type: str = Field(max_length=32, index=True)
@@ -180,7 +180,7 @@ class PretestQuestion(SQLModel, table=True):
 
 
 class PretestResult(SQLModel, table=True):
-    __tablename__ = "pretest_result"  # type: ignore
+    __tablename__ = "pretest_result"
 
     id: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True)
     user_id: uuid.UUID = Field(
@@ -199,7 +199,7 @@ class PretestResult(SQLModel, table=True):
 
 
 class GameSession(SQLModel, table=True):
-    __tablename__ = "game_session"  # type: ignore
+    __tablename__ = "game_session"
 
     id: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True)
     user_id: uuid.UUID = Field(
@@ -230,7 +230,7 @@ class GameSession(SQLModel, table=True):
 
 
 class GameAnswer(SQLModel, table=True):
-    __tablename__ = "game_answer"  # type: ignore
+    __tablename__ = "game_answer"
 
     id: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True)
     session_id: uuid.UUID = Field(
@@ -254,7 +254,7 @@ class GameAnswer(SQLModel, table=True):
 
 
 class UserScore(SQLModel, table=True):
-    __tablename__ = "user_score"  # type: ignore
+    __tablename__ = "user_score"
 
     id: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True)
     user_id: uuid.UUID = Field(
@@ -269,7 +269,7 @@ class UserScore(SQLModel, table=True):
 
 
 class MascotItem(SQLModel, table=True):
-    __tablename__ = "mascot_item"  # type: ignore
+    __tablename__ = "mascot_item"
 
     id: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True)
     name: str = Field(max_length=64)
@@ -279,7 +279,7 @@ class MascotItem(SQLModel, table=True):
 
 
 class UserMascotItem(SQLModel, table=True):
-    __tablename__ = "user_mascot_item"  # type: ignore
+    __tablename__ = "user_mascot_item"
 
     id: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True)
     user_id: uuid.UUID = Field(
