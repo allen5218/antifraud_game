@@ -72,6 +72,7 @@ interface EconomyState {
   cash: number
   streak: number
   level: number
+  // Phase 2: drives an XP/level progress bar (HeaderStatus or me page); not yet displayed.
   xp: number
   pendingAccrual: number
   bankruptcyPending: boolean

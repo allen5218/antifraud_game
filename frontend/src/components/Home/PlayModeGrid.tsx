@@ -7,6 +7,8 @@ const MODES = [
   { icon: "🏆", label: "排行榜", desc: "Lv.5 解鎖", unlockLevel: 5 },
 ]
 
+// TODO(Phase 2): make unlocked cards navigate to their game-start routes
+// (/quick/quiz, /quick/swipe, etc.) once those routes exist.
 export function PlayModeGrid() {
   const level = useEconomyStore((s) => s.level)
   return (
