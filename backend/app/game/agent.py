@@ -49,9 +49,11 @@ def create_game_agent() -> Agent[GameDeps, GameResponse]:
 2. 根據玩家上一題的表現調整難度
 3. 選項要有 3-4 個，且不能有明顯荒謬的選項
 4. 每 3-4 題插入一題「非詐騙」陷阱題（question_type 為 "trap"）
-5. 使用已載入的 Skill 指令作為題目生成的依據
+5. 使用已載入的 Skill 指令作為題目生成的依據（手法、話術、情境）
 6. weakness_tag 從 time_pressure/authority/greed/social_proof/trust_building 中選取
-7. 陷阱題的 weakness_tag 設為 null"""
+7. 陷阱題的 weakness_tag 設為 null
+8. difficulty 分級：1=明顯詐騙特徵；2=需要仔細分辨；3=高度模擬真實情境
+9. explanation（解說）必須引用具體的詐騙／非詐騙判斷依據，不能只說對或錯"""
 
     @agent.instructions
     async def skill_instructions(ctx: RunContext[GameDeps]) -> str:
