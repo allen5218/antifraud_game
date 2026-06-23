@@ -1,5 +1,12 @@
 import { afterEach, describe, expect, it, mock } from "bun:test"
-import { cleanup, render, screen } from "@testing-library/react"
+import {
+  createMemoryHistory,
+  createRootRoute,
+  createRoute,
+  createRouter,
+  RouterProvider,
+} from "@tanstack/react-router"
+import { act, cleanup, render, screen } from "@testing-library/react"
 
 mock.module("@/hooks/useEconomy", () => ({
   useEconomyMe: () => ({
@@ -21,11 +28,28 @@ mock.module("@/hooks/useEconomy", () => ({
 
 import { PlayModeGrid } from "./PlayModeGrid"
 
+async function renderWithRouter() {
+  const rootRoute = createRootRoute({ component: () => <PlayModeGrid /> })
+  const catchAll = createRoute({
+    getParentRoute: () => rootRoute,
+    path: "$",
+    component: () => null,
+  })
+  const router = createRouter({
+    routeTree: rootRoute.addChildren([catchAll]),
+    history: createMemoryHistory({ initialEntries: ["/"] }),
+  })
+  await router.load()
+  await act(async () => {
+    render(<RouterProvider router={router} />)
+  })
+}
+
 describe("<PlayModeGrid />", () => {
   afterEach(cleanup)
 
-  it("locks cards above current level, unlocks others", () => {
-    render(<PlayModeGrid />)
+  it("locks cards above current level, unlocks others", async () => {
+    await renderWithRouter()
     // default level 3 from mock
     const unlocked = screen.getByTestId("mode-題組訓練")
     const locked = screen.getByTestId("mode-排行榜")

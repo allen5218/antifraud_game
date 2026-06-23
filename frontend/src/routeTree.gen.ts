@@ -22,12 +22,12 @@ import { Route as GameSessionIdRouteImport } from './routes/game.$sessionId'
 import { Route as ShellScenariosRouteImport } from './routes/_shell/scenarios'
 import { Route as ShellMeRouteImport } from './routes/_shell/me'
 import { Route as ShellAssetsRouteImport } from './routes/_shell/assets'
-import { Route as ShellQuickSwipeRouteImport } from './routes/_shell/quick/swipe'
 import { Route as LayoutSettingsRouteImport } from './routes/_layout/settings'
 import { Route as LayoutMascotRouteImport } from './routes/_layout/mascot'
 import { Route as LayoutItemsRouteImport } from './routes/_layout/items'
 import { Route as LayoutAdminRouteImport } from './routes/_layout/admin'
 import { Route as GameSessionIdResultRouteImport } from './routes/game.$sessionId.result'
+import { Route as ShellQuickSwipeRouteImport } from './routes/_shell/quick/swipe'
 
 const SignupRoute = SignupRouteImport.update({
   id: '/signup',
@@ -92,11 +92,6 @@ const ShellAssetsRoute = ShellAssetsRouteImport.update({
   path: '/assets',
   getParentRoute: () => ShellRoute,
 } as any)
-const ShellQuickSwipeRoute = ShellQuickSwipeRouteImport.update({
-  id: '/quick/swipe',
-  path: '/quick/swipe',
-  getParentRoute: () => ShellRoute,
-} as any)
 const LayoutSettingsRoute = LayoutSettingsRouteImport.update({
   id: '/settings',
   path: '/settings',
@@ -122,6 +117,11 @@ const GameSessionIdResultRoute = GameSessionIdResultRouteImport.update({
   path: '/result',
   getParentRoute: () => GameSessionIdRoute,
 } as any)
+const ShellQuickSwipeRoute = ShellQuickSwipeRouteImport.update({
+  id: '/quick/swipe',
+  path: '/quick/swipe',
+  getParentRoute: () => ShellRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof ShellIndexRoute
@@ -137,9 +137,9 @@ export interface FileRoutesByFullPath {
   '/assets': typeof ShellAssetsRoute
   '/me': typeof ShellMeRoute
   '/scenarios': typeof ShellScenariosRoute
-  '/quick/swipe': typeof ShellQuickSwipeRoute
   '/game/$sessionId': typeof GameSessionIdRouteWithChildren
   '/pretest/result': typeof PretestResultRoute
+  '/quick/swipe': typeof ShellQuickSwipeRoute
   '/game/$sessionId/result': typeof GameSessionIdResultRoute
 }
 export interface FileRoutesByTo {
@@ -156,9 +156,9 @@ export interface FileRoutesByTo {
   '/assets': typeof ShellAssetsRoute
   '/me': typeof ShellMeRoute
   '/scenarios': typeof ShellScenariosRoute
-  '/quick/swipe': typeof ShellQuickSwipeRoute
   '/game/$sessionId': typeof GameSessionIdRouteWithChildren
   '/pretest/result': typeof PretestResultRoute
+  '/quick/swipe': typeof ShellQuickSwipeRoute
   '/game/$sessionId/result': typeof GameSessionIdResultRoute
 }
 export interface FileRoutesById {
@@ -177,10 +177,10 @@ export interface FileRoutesById {
   '/_shell/assets': typeof ShellAssetsRoute
   '/_shell/me': typeof ShellMeRoute
   '/_shell/scenarios': typeof ShellScenariosRoute
-  '/_shell/quick/swipe': typeof ShellQuickSwipeRoute
   '/game/$sessionId': typeof GameSessionIdRouteWithChildren
   '/pretest/result': typeof PretestResultRoute
   '/_shell/': typeof ShellIndexRoute
+  '/_shell/quick/swipe': typeof ShellQuickSwipeRoute
   '/game/$sessionId/result': typeof GameSessionIdResultRoute
 }
 export interface FileRouteTypes {
@@ -199,9 +199,9 @@ export interface FileRouteTypes {
     | '/assets'
     | '/me'
     | '/scenarios'
-    | '/quick/swipe'
     | '/game/$sessionId'
     | '/pretest/result'
+    | '/quick/swipe'
     | '/game/$sessionId/result'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -218,9 +218,9 @@ export interface FileRouteTypes {
     | '/assets'
     | '/me'
     | '/scenarios'
-    | '/quick/swipe'
     | '/game/$sessionId'
     | '/pretest/result'
+    | '/quick/swipe'
     | '/game/$sessionId/result'
   id:
     | '__root__'
@@ -238,10 +238,10 @@ export interface FileRouteTypes {
     | '/_shell/assets'
     | '/_shell/me'
     | '/_shell/scenarios'
-    | '/_shell/quick/swipe'
     | '/game/$sessionId'
     | '/pretest/result'
     | '/_shell/'
+    | '/_shell/quick/swipe'
     | '/game/$sessionId/result'
   fileRoutesById: FileRoutesById
 }
@@ -349,13 +349,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ShellAssetsRouteImport
       parentRoute: typeof ShellRoute
     }
-    '/_shell/quick/swipe': {
-      id: '/_shell/quick/swipe'
-      path: '/quick/swipe'
-      fullPath: '/quick/swipe'
-      preLoaderRoute: typeof ShellQuickSwipeRouteImport
-      parentRoute: typeof ShellRoute
-    }
     '/_layout/settings': {
       id: '/_layout/settings'
       path: '/settings'
@@ -391,6 +384,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof GameSessionIdResultRouteImport
       parentRoute: typeof GameSessionIdRoute
     }
+    '/_shell/quick/swipe': {
+      id: '/_shell/quick/swipe'
+      path: '/quick/swipe'
+      fullPath: '/quick/swipe'
+      preLoaderRoute: typeof ShellQuickSwipeRouteImport
+      parentRoute: typeof ShellRoute
+    }
   }
 }
 
@@ -415,16 +415,16 @@ interface ShellRouteChildren {
   ShellAssetsRoute: typeof ShellAssetsRoute
   ShellMeRoute: typeof ShellMeRoute
   ShellScenariosRoute: typeof ShellScenariosRoute
-  ShellQuickSwipeRoute: typeof ShellQuickSwipeRoute
   ShellIndexRoute: typeof ShellIndexRoute
+  ShellQuickSwipeRoute: typeof ShellQuickSwipeRoute
 }
 
 const ShellRouteChildren: ShellRouteChildren = {
   ShellAssetsRoute: ShellAssetsRoute,
   ShellMeRoute: ShellMeRoute,
   ShellScenariosRoute: ShellScenariosRoute,
-  ShellQuickSwipeRoute: ShellQuickSwipeRoute,
   ShellIndexRoute: ShellIndexRoute,
+  ShellQuickSwipeRoute: ShellQuickSwipeRoute,
 }
 
 const ShellRouteWithChildren = ShellRoute._addFileChildren(ShellRouteChildren)
