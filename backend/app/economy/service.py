@@ -59,6 +59,11 @@ def adjust_cash(user: User, delta: int, *, reason: str) -> None:  # noqa: ARG001
     user.bankruptcy_pending = user.cash < 0
 
 
+def add_xp(user: User, amount: int, *, reason: str) -> None:  # noqa: ARG001
+    """增加 User.xp 的唯一入口（與 adjust_cash 對稱）。負值忽略。"""
+    user.xp += max(0, amount)
+
+
 def liquidate(
     user: User,
     properties: list[UserProperty],

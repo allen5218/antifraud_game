@@ -326,3 +326,25 @@ class UserProperty(SQLModel, table=True):
     sold_price: int | None = Field(default=None)
 
     owner: User | None = Relationship(back_populates="properties")
+
+
+# ── Swipe（快速模式滑卡） ────────────────────────────────────
+
+
+class SwipeCard(SQLModel, table=True):
+    __tablename__ = "swipe_card"
+
+    id: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True)
+    scenario: str
+    source_label: str = Field(max_length=64)
+    is_scam: bool
+    fraud_type: str = Field(max_length=32, index=True)
+    weakness_tags: list[str] = Field(
+        default=[], sa_column=Column(JSONB, nullable=False, server_default="[]")
+    )
+    explanation: str = ""
+    difficulty: int = Field(default=1)
+    created_at: datetime | None = Field(
+        default_factory=get_datetime_utc,
+        sa_type=DateTime(timezone=True),  # type: ignore
+    )

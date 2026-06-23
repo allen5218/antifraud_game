@@ -145,3 +145,49 @@ class LiquidateResponse(BaseModel):
     recovered: int
     new_cash: int
     bankruptcy_pending: bool
+
+
+# ── Swipe（快速模式滑卡）─────────────────────────────────────
+
+
+class SwipeCardPublic(BaseModel):
+    id: str
+    scenario: str
+    source_label: str
+    fraud_type: str
+    difficulty: int
+
+
+class SwipeAnswerRequest(BaseModel):
+    card_id: str
+    guess_is_scam: bool
+
+
+class SwipeAnswerResponse(BaseModel):
+    correct: bool
+    is_scam: bool
+    explanation: str
+    weakness_tags: list[str]
+
+
+class SwipeAnswerItem(BaseModel):
+    card_id: str
+    guess_is_scam: bool
+
+
+class SwipeCompleteRequest(BaseModel):
+    answers: list[SwipeAnswerItem]
+
+
+class WeaknessSummaryItem(BaseModel):
+    tag: str
+    count: int
+
+
+class SwipeCompleteResponse(BaseModel):
+    correct_count: int
+    total: int
+    best_streak: int
+    cash_earned: int
+    xp_earned: int
+    weakness_summary: list[WeaknessSummaryItem]
