@@ -8,6 +8,7 @@ from app.api.routes import (
     mascot,
     pretest,
     private,
+    quick,
     score,
     users,
     utils,
@@ -24,6 +25,7 @@ api_router.include_router(game.router)
 api_router.include_router(score.router)
 api_router.include_router(mascot.router)
 api_router.include_router(economy.router)
+api_router.include_router(quick.router)
 
 
 if settings.ENVIRONMENT == "local":
