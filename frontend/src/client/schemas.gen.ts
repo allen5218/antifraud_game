@@ -722,6 +722,143 @@ export const PropertyTierPublicSchema = {
     title: 'PropertyTierPublic'
 } as const;
 
+export const SwipeAnswerItemSchema = {
+    properties: {
+        card_id: {
+            type: 'string',
+            title: 'Card Id'
+        },
+        guess_is_scam: {
+            type: 'boolean',
+            title: 'Guess Is Scam'
+        }
+    },
+    type: 'object',
+    required: ['card_id', 'guess_is_scam'],
+    title: 'SwipeAnswerItem'
+} as const;
+
+export const SwipeAnswerRequestSchema = {
+    properties: {
+        card_id: {
+            type: 'string',
+            title: 'Card Id'
+        },
+        guess_is_scam: {
+            type: 'boolean',
+            title: 'Guess Is Scam'
+        }
+    },
+    type: 'object',
+    required: ['card_id', 'guess_is_scam'],
+    title: 'SwipeAnswerRequest'
+} as const;
+
+export const SwipeAnswerResponseSchema = {
+    properties: {
+        correct: {
+            type: 'boolean',
+            title: 'Correct'
+        },
+        is_scam: {
+            type: 'boolean',
+            title: 'Is Scam'
+        },
+        explanation: {
+            type: 'string',
+            title: 'Explanation'
+        },
+        weakness_tags: {
+            items: {
+                type: 'string'
+            },
+            type: 'array',
+            title: 'Weakness Tags'
+        }
+    },
+    type: 'object',
+    required: ['correct', 'is_scam', 'explanation', 'weakness_tags'],
+    title: 'SwipeAnswerResponse'
+} as const;
+
+export const SwipeCardPublicSchema = {
+    properties: {
+        id: {
+            type: 'string',
+            title: 'Id'
+        },
+        scenario: {
+            type: 'string',
+            title: 'Scenario'
+        },
+        source_label: {
+            type: 'string',
+            title: 'Source Label'
+        },
+        fraud_type: {
+            type: 'string',
+            title: 'Fraud Type'
+        },
+        difficulty: {
+            type: 'integer',
+            title: 'Difficulty'
+        }
+    },
+    type: 'object',
+    required: ['id', 'scenario', 'source_label', 'fraud_type', 'difficulty'],
+    title: 'SwipeCardPublic'
+} as const;
+
+export const SwipeCompleteRequestSchema = {
+    properties: {
+        answers: {
+            items: {
+                '$ref': '#/components/schemas/SwipeAnswerItem'
+            },
+            type: 'array',
+            title: 'Answers'
+        }
+    },
+    type: 'object',
+    required: ['answers'],
+    title: 'SwipeCompleteRequest'
+} as const;
+
+export const SwipeCompleteResponseSchema = {
+    properties: {
+        correct_count: {
+            type: 'integer',
+            title: 'Correct Count'
+        },
+        total: {
+            type: 'integer',
+            title: 'Total'
+        },
+        best_streak: {
+            type: 'integer',
+            title: 'Best Streak'
+        },
+        cash_earned: {
+            type: 'integer',
+            title: 'Cash Earned'
+        },
+        xp_earned: {
+            type: 'integer',
+            title: 'Xp Earned'
+        },
+        weakness_summary: {
+            items: {
+                '$ref': '#/components/schemas/WeaknessSummaryItem'
+            },
+            type: 'array',
+            title: 'Weakness Summary'
+        }
+    },
+    type: 'object',
+    required: ['correct_count', 'total', 'best_streak', 'cash_earned', 'xp_earned', 'weakness_summary'],
+    title: 'SwipeCompleteResponse'
+} as const;
+
 export const TokenSchema = {
     properties: {
         access_token: {
@@ -1051,4 +1188,20 @@ export const WeaknessDetailSchema = {
     type: 'object',
     required: ['tag', 'count', 'label', 'suggestion'],
     title: 'WeaknessDetail'
+} as const;
+
+export const WeaknessSummaryItemSchema = {
+    properties: {
+        tag: {
+            type: 'string',
+            title: 'Tag'
+        },
+        count: {
+            type: 'integer',
+            title: 'Count'
+        }
+    },
+    type: 'object',
+    required: ['tag', 'count'],
+    title: 'WeaknessSummaryItem'
 } as const;

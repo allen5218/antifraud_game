@@ -3,7 +3,7 @@
 import type { CancelablePromise } from './core/CancelablePromise';
 import { OpenAPI } from './core/OpenAPI';
 import { request as __request } from './core/request';
-import type { EconomyReadMeResponse, EconomyPostSettleResponse, EconomyClaimResponse, EconomyListPropertiesResponse, EconomyBuyPropertyData, EconomyBuyPropertyResponse, EconomyGetAssetsResponse, EconomyPostLiquidateData, EconomyPostLiquidateResponse, GameStartGameData, GameStartGameResponse, GameSubmitAnswerData, GameSubmitAnswerResponse, GameGetGameSessionData, GameGetGameSessionResponse, ItemsReadItemsData, ItemsReadItemsResponse, ItemsCreateItemData, ItemsCreateItemResponse, ItemsReadItemData, ItemsReadItemResponse, ItemsUpdateItemData, ItemsUpdateItemResponse, ItemsDeleteItemData, ItemsDeleteItemResponse, LoginLoginAccessTokenData, LoginLoginAccessTokenResponse, LoginTestTokenResponse, LoginRecoverPasswordData, LoginRecoverPasswordResponse, LoginResetPasswordData, LoginResetPasswordResponse, LoginRecoverPasswordHtmlContentData, LoginRecoverPasswordHtmlContentResponse, MascotListMascotItemsResponse, MascotPurchaseItemData, MascotPurchaseItemResponse, MascotToggleEquipData, MascotToggleEquipResponse, MascotGetMyMascotResponse, PretestGetPretestQuestionsResponse, PretestSubmitPretestData, PretestSubmitPretestResponse, PrivateCreateUserData, PrivateCreateUserResponse, ScoreGetMyScoreResponse, UsersReadUsersData, UsersReadUsersResponse, UsersCreateUserData, UsersCreateUserResponse, UsersReadUserMeResponse, UsersDeleteUserMeResponse, UsersUpdateUserMeData, UsersUpdateUserMeResponse, UsersUpdatePasswordMeData, UsersUpdatePasswordMeResponse, UsersRegisterUserData, UsersRegisterUserResponse, UsersReadUserByIdData, UsersReadUserByIdResponse, UsersUpdateUserData, UsersUpdateUserResponse, UsersDeleteUserData, UsersDeleteUserResponse, UtilsTestEmailData, UtilsTestEmailResponse, UtilsHealthCheckResponse } from './types.gen';
+import type { EconomyReadMeResponse, EconomyPostSettleResponse, EconomyClaimResponse, EconomyListPropertiesResponse, EconomyBuyPropertyData, EconomyBuyPropertyResponse, EconomyGetAssetsResponse, EconomyPostLiquidateData, EconomyPostLiquidateResponse, GameStartGameData, GameStartGameResponse, GameSubmitAnswerData, GameSubmitAnswerResponse, GameGetGameSessionData, GameGetGameSessionResponse, ItemsReadItemsData, ItemsReadItemsResponse, ItemsCreateItemData, ItemsCreateItemResponse, ItemsReadItemData, ItemsReadItemResponse, ItemsUpdateItemData, ItemsUpdateItemResponse, ItemsDeleteItemData, ItemsDeleteItemResponse, LoginLoginAccessTokenData, LoginLoginAccessTokenResponse, LoginTestTokenResponse, LoginRecoverPasswordData, LoginRecoverPasswordResponse, LoginResetPasswordData, LoginResetPasswordResponse, LoginRecoverPasswordHtmlContentData, LoginRecoverPasswordHtmlContentResponse, MascotListMascotItemsResponse, MascotPurchaseItemData, MascotPurchaseItemResponse, MascotToggleEquipData, MascotToggleEquipResponse, MascotGetMyMascotResponse, PretestGetPretestQuestionsResponse, PretestSubmitPretestData, PretestSubmitPretestResponse, PrivateCreateUserData, PrivateCreateUserResponse, QuickSwipeDeckData, QuickSwipeDeckResponse, QuickSwipeAnswerData, QuickSwipeAnswerResponse, QuickSwipeCompleteData, QuickSwipeCompleteResponse, ScoreGetMyScoreResponse, UsersReadUsersData, UsersReadUsersResponse, UsersCreateUserData, UsersCreateUserResponse, UsersReadUserMeResponse, UsersDeleteUserMeResponse, UsersUpdateUserMeData, UsersUpdateUserMeResponse, UsersUpdatePasswordMeData, UsersUpdatePasswordMeResponse, UsersRegisterUserData, UsersRegisterUserResponse, UsersReadUserByIdData, UsersReadUserByIdResponse, UsersUpdateUserData, UsersUpdateUserResponse, UsersDeleteUserData, UsersDeleteUserResponse, UtilsTestEmailData, UtilsTestEmailResponse, UtilsHealthCheckResponse } from './types.gen';
 
 export class EconomyService {
     /**
@@ -506,6 +506,66 @@ export class PrivateService {
         return __request(OpenAPI, {
             method: 'POST',
             url: '/api/v1/private/users/',
+            body: data.requestBody,
+            mediaType: 'application/json',
+            errors: {
+                422: 'Validation Error'
+            }
+        });
+    }
+}
+
+export class QuickService {
+    /**
+     * Swipe Deck
+     * @param data The data for the request.
+     * @param data.size
+     * @returns SwipeCardPublic Successful Response
+     * @throws ApiError
+     */
+    public static swipeDeck(data: QuickSwipeDeckData = {}): CancelablePromise<QuickSwipeDeckResponse> {
+        return __request(OpenAPI, {
+            method: 'GET',
+            url: '/api/v1/quick/swipe/deck',
+            query: {
+                size: data.size
+            },
+            errors: {
+                422: 'Validation Error'
+            }
+        });
+    }
+    
+    /**
+     * Swipe Answer
+     * @param data The data for the request.
+     * @param data.requestBody
+     * @returns SwipeAnswerResponse Successful Response
+     * @throws ApiError
+     */
+    public static swipeAnswer(data: QuickSwipeAnswerData): CancelablePromise<QuickSwipeAnswerResponse> {
+        return __request(OpenAPI, {
+            method: 'POST',
+            url: '/api/v1/quick/swipe/answer',
+            body: data.requestBody,
+            mediaType: 'application/json',
+            errors: {
+                422: 'Validation Error'
+            }
+        });
+    }
+    
+    /**
+     * Swipe Complete
+     * @param data The data for the request.
+     * @param data.requestBody
+     * @returns SwipeCompleteResponse Successful Response
+     * @throws ApiError
+     */
+    public static swipeComplete(data: QuickSwipeCompleteData): CancelablePromise<QuickSwipeCompleteResponse> {
+        return __request(OpenAPI, {
+            method: 'POST',
+            url: '/api/v1/quick/swipe/complete',
             body: data.requestBody,
             mediaType: 'application/json',
             errors: {

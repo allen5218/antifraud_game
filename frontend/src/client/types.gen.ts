@@ -183,6 +183,44 @@ export type PropertyTierPublic = {
     unlock_level: number;
 };
 
+export type SwipeAnswerItem = {
+    card_id: string;
+    guess_is_scam: boolean;
+};
+
+export type SwipeAnswerRequest = {
+    card_id: string;
+    guess_is_scam: boolean;
+};
+
+export type SwipeAnswerResponse = {
+    correct: boolean;
+    is_scam: boolean;
+    explanation: string;
+    weakness_tags: Array<(string)>;
+};
+
+export type SwipeCardPublic = {
+    id: string;
+    scenario: string;
+    source_label: string;
+    fraud_type: string;
+    difficulty: number;
+};
+
+export type SwipeCompleteRequest = {
+    answers: Array<SwipeAnswerItem>;
+};
+
+export type SwipeCompleteResponse = {
+    correct_count: number;
+    total: number;
+    best_streak: number;
+    cash_earned: number;
+    xp_earned: number;
+    weakness_summary: Array<WeaknessSummaryItem>;
+};
+
 export type Token = {
     access_token: string;
     token_type?: string;
@@ -249,6 +287,11 @@ export type WeaknessDetail = {
     count: number;
     label: string;
     suggestion: string;
+};
+
+export type WeaknessSummaryItem = {
+    tag: string;
+    count: number;
 };
 
 export type EconomyReadMeResponse = (EconomyMeResponse);
@@ -379,6 +422,24 @@ export type PrivateCreateUserData = {
 };
 
 export type PrivateCreateUserResponse = (UserPublic);
+
+export type QuickSwipeDeckData = {
+    size?: number;
+};
+
+export type QuickSwipeDeckResponse = (Array<SwipeCardPublic>);
+
+export type QuickSwipeAnswerData = {
+    requestBody: SwipeAnswerRequest;
+};
+
+export type QuickSwipeAnswerResponse = (SwipeAnswerResponse);
+
+export type QuickSwipeCompleteData = {
+    requestBody: SwipeCompleteRequest;
+};
+
+export type QuickSwipeCompleteResponse = (SwipeCompleteResponse);
 
 export type ScoreGetMyScoreResponse = (unknown);
 
