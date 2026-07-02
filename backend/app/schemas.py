@@ -191,3 +191,72 @@ class SwipeCompleteResponse(BaseModel):
     cash_earned: int
     xp_earned: int
     weakness_summary: list[WeaknessSummaryItem]
+
+
+# ── Scenario（情境模擬）──────────────────────────────────────
+
+
+class ScenarioReply(BaseModel):
+    """人格 agent 的單回合結構化輸出。"""
+
+    messages: list[str]
+    decision_point: str | None = None
+    tactics_used: list[str] = []
+
+
+class FlagItem(BaseModel):
+    tag: str | None
+    label: str
+    detail: str
+
+
+class ScenarioInboxItem(BaseModel):
+    id: str
+    fraud_type: str
+    display_name: str
+    avatar: str
+    preview: str
+    status: str
+    outcome: str | None
+    unread: bool
+
+
+class ScenarioNewRequest(BaseModel):
+    fraud_type: str
+
+
+class ScenarioMessageRequest(BaseModel):
+    text: str
+
+
+class ScenarioMessageResponse(BaseModel):
+    messages: list[str]
+    decision_point: str | None
+    turns_left: int
+
+
+class ScenarioJudgeRequest(BaseModel):
+    action: Literal["report", "comply"]
+
+
+class ScenarioJudgeResponse(BaseModel):
+    outcome: str
+    true_role: str
+    persona_name: str
+    flags: list[FlagItem]
+    cash_delta: int
+    xp_delta: int
+    new_cash: int
+    triggers_forced_sell: bool
+
+
+class ScenarioDetail(BaseModel):
+    id: str
+    fraud_type: str
+    display_name: str
+    avatar: str
+    status: str
+    outcome: str | None
+    player_turns: int
+    max_turns: int
+    history: list[dict]
