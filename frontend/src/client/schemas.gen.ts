@@ -911,6 +911,7 @@ export const ScenarioMessageRequestSchema = {
     properties: {
         text: {
             type: 'string',
+            maxLength: 2000,
             title: 'Text'
         }
     },

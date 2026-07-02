@@ -1,6 +1,6 @@
 from typing import Any, Literal
 
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
 # ── Agent 結構化輸出 ─────────────────────────────────────────
 
@@ -226,7 +226,7 @@ class ScenarioNewRequest(BaseModel):
 
 
 class ScenarioMessageRequest(BaseModel):
-    text: str
+    text: str = Field(max_length=2000)
 
 
 class ScenarioMessageResponse(BaseModel):

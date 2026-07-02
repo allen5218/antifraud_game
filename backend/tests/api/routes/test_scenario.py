@@ -173,6 +173,27 @@ def test_judge_comply_scam_loses_and_can_trigger_forced_sell(
     db.commit()
 
 
+def test_judge_misreport_legit_costs_penalty(
+    client: TestClient, db: Session, normal_user_token_headers: dict[str, str]
+) -> None:
+    user = _test_user(db)
+    sc = _make_session(db, user, role="legit")
+    cash_before, xp_before = user.cash, user.xp
+    r = client.post(
+        f"{settings.API_V1_STR}/scenario/{sc.id}/judge",
+        headers=normal_user_token_headers,
+        json={"action": "report"},
+    )
+    assert r.status_code == 200
+    data = r.json()
+    assert data["outcome"] == "lose_misreport"
+    assert data["cash_delta"] == -10
+    assert data["xp_delta"] == 0
+    db.refresh(user)
+    assert user.cash == cash_before - 10
+    assert user.xp == xp_before
+
+
 def test_judge_trust_legit_small_reward_with_signals(
     client: TestClient, db: Session, normal_user_token_headers: dict[str, str]
 ) -> None:
