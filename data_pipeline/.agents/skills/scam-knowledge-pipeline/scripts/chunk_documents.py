@@ -7,11 +7,18 @@ from common import load_env, ensure_relational_schema, ensure_vector_extension_a
 parser = argparse.ArgumentParser(description="Dry-run or create document chunks from normalized clean text.")
 parser.add_argument("--env-file")
 parser.add_argument("--source", help="Limit chunking to one source_name.")
-parser.add_argument("--chunk-size", type=int, default=900)
+parser.add_argument("--chunk-size", type=int, default=500)
+parser.add_argument("--overlap", type=int, default=100)
+parser.add_argument("--min-chars", type=int, default=80)
 parser.add_argument("--apply", action="store_true")
+parser.add_argument("--rebuild", action="store_true", help="Delete in-scope chunks before inserting.")
 args = parser.parse_args()
 load_env(args.env_file)
 dim = int(os.environ.get("EMBEDDING_DIM", "1536"))
+
+stride = args.chunk_size - args.overlap
+if stride <= 0:
+    raise SystemExit("chunk-size must be greater than overlap")
 
 def sql_literal(value):
     return "'" + value.replace("'", "''") + "'"
@@ -26,18 +33,15 @@ if not available:
 if not installed and args.apply:
     raise SystemExit("vector extension is available but not installed; ask DB owner to CREATE EXTENSION vector")
 
-chunks_exists = psql_scalar("SELECT to_regclass('document_chunks') IS NOT NULL;") == "t"
-if chunks_exists:
-    pending = run_psql(f"""
-SELECT count(*)
+eligible = run_psql(f"""
+SELECT count(*),
+       COALESCE(sum(GREATEST(CEIL(GREATEST(length(COALESCE(NULLIF(d.clean_text,''), d.body_text, '')) - {args.overlap}, 1)::numeric / {stride})::int, 1)), 0)
 FROM documents d
-WHERE NOT EXISTS (
-  SELECT 1 FROM document_chunks c WHERE c.document_id = d.id
-){source_filter_d};
+WHERE d.content_kind = 'case_narrative'
+  AND length(COALESCE(NULLIF(d.clean_text,''), d.body_text, '')) >= {args.min_chars}{source_filter_d};
 """)
-else:
-    pending = run_psql(f"SELECT count(*) FROM documents d WHERE TRUE{source_filter_d};")
-print(json.dumps({"documents_without_chunks": pending.strip(), "source": args.source, "apply": args.apply}, ensure_ascii=False))
+print(json.dumps({"eligible_docs_and_projected_chunks": eligible.strip(), "rebuild": args.rebuild,
+                  "source": args.source, "apply": args.apply}, ensure_ascii=False))
 if not args.apply:
     raise SystemExit(0)
 
@@ -60,15 +64,30 @@ CREATE INDEX IF NOT EXISTS document_chunks_embed_pending_idx
   WHERE embed_status = 'pending';
 CREATE INDEX IF NOT EXISTS document_chunks_document_id_idx
   ON document_chunks (document_id);
+""")
+
+if args.rebuild:
+    run_psql(f"""
+DELETE FROM document_chunks c USING documents d
+WHERE c.document_id = d.id{source_filter_d};
+""")
+
+run_psql(f"""
 INSERT INTO document_chunks (document_id, chunk_index, content, token_count, metadata)
-SELECT d.id, 0, LEFT(COALESCE(NULLIF(d.clean_text,''), d.body_text), {args.chunk_size}),
-       length(LEFT(COALESCE(NULLIF(d.clean_text,''), d.body_text), {args.chunk_size})),
-       jsonb_build_object('chunker', 'simple-left', 'chunk_size', {args.chunk_size})
+SELECT d.id, gs.idx,
+       substr(t.txt, gs.idx * {stride} + 1, {args.chunk_size}),
+       length(substr(t.txt, gs.idx * {stride} + 1, {args.chunk_size})),
+       jsonb_build_object('chunker', 'window', 'chunk_size', {args.chunk_size}, 'overlap', {args.overlap})
 FROM documents d
-WHERE TRUE{source_filter_d}
+CROSS JOIN LATERAL (SELECT COALESCE(NULLIF(d.clean_text,''), d.body_text, '') AS txt) t
+CROSS JOIN LATERAL generate_series(0,
+    GREATEST(CEIL(GREATEST(length(t.txt) - {args.overlap}, 1)::numeric / {stride})::int - 1, 0)) AS gs(idx)
+WHERE d.content_kind = 'case_narrative'
+  AND length(t.txt) >= {args.min_chars}{source_filter_d}
 ON CONFLICT (document_id, chunk_index) DO UPDATE SET
   content = EXCLUDED.content,
   token_count = EXCLUDED.token_count,
   metadata = EXCLUDED.metadata,
-  embed_status = CASE WHEN document_chunks.content IS DISTINCT FROM EXCLUDED.content THEN 'pending' ELSE document_chunks.embed_status END;
+  embed_status = CASE WHEN document_chunks.content IS DISTINCT FROM EXCLUDED.content
+                      THEN 'pending' ELSE document_chunks.embed_status END;
 """)
