@@ -50,6 +50,12 @@ export type EconomyMeResponse = {
     bankruptcy_pending: boolean;
 };
 
+export type FlagItem = {
+    tag: (string | null);
+    label: string;
+    detail: string;
+};
+
 export type FraudTypeResult = {
     correct: number;
     total: number;
@@ -181,6 +187,62 @@ export type PropertyTierPublic = {
     price: number;
     daily_income: number;
     unlock_level: number;
+};
+
+export type ScenarioDetail = {
+    id: string;
+    fraud_type: string;
+    display_name: string;
+    avatar: string;
+    status: string;
+    outcome: (string | null);
+    player_turns: number;
+    max_turns: number;
+    history: Array<{
+        [key: string]: unknown;
+    }>;
+};
+
+export type ScenarioInboxItem = {
+    id: string;
+    fraud_type: string;
+    display_name: string;
+    avatar: string;
+    preview: string;
+    status: string;
+    outcome: (string | null);
+    unread: boolean;
+};
+
+export type ScenarioJudgeRequest = {
+    action: 'report' | 'comply';
+};
+
+export type action = 'report' | 'comply';
+
+export type ScenarioJudgeResponse = {
+    outcome: string;
+    true_role: string;
+    persona_name: string;
+    flags: Array<FlagItem>;
+    cash_delta: number;
+    xp_delta: number;
+    new_cash: number;
+    triggers_forced_sell: boolean;
+};
+
+export type ScenarioMessageRequest = {
+    text: string;
+};
+
+export type ScenarioMessageResponse = {
+    messages: Array<(string)>;
+    decision_point: (string | null);
+    turns_left: number;
+};
+
+export type ScenarioNewRequest = {
+    fraud_type: string;
 };
 
 export type SwipeAnswerItem = {
@@ -440,6 +502,34 @@ export type QuickSwipeCompleteData = {
 };
 
 export type QuickSwipeCompleteResponse = (SwipeCompleteResponse);
+
+export type ScenarioInboxResponse = (Array<ScenarioInboxItem>);
+
+export type ScenarioCreateScenarioData = {
+    requestBody: ScenarioNewRequest;
+};
+
+export type ScenarioCreateScenarioResponse = (ScenarioInboxItem);
+
+export type ScenarioReadScenarioData = {
+    scenarioId: string;
+};
+
+export type ScenarioReadScenarioResponse = (ScenarioDetail);
+
+export type ScenarioSendMessageData = {
+    requestBody: ScenarioMessageRequest;
+    scenarioId: string;
+};
+
+export type ScenarioSendMessageResponse = (ScenarioMessageResponse);
+
+export type ScenarioJudgeScenarioData = {
+    requestBody: ScenarioJudgeRequest;
+    scenarioId: string;
+};
+
+export type ScenarioJudgeScenarioResponse = (ScenarioJudgeResponse);
 
 export type ScoreGetMyScoreResponse = (unknown);
 

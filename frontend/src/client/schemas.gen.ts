@@ -214,6 +214,33 @@ export const EconomyMeResponseSchema = {
     title: 'EconomyMeResponse'
 } as const;
 
+export const FlagItemSchema = {
+    properties: {
+        tag: {
+            anyOf: [
+                {
+                    type: 'string'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Tag'
+        },
+        label: {
+            type: 'string',
+            title: 'Label'
+        },
+        detail: {
+            type: 'string',
+            title: 'Detail'
+        }
+    },
+    type: 'object',
+    required: ['tag', 'label', 'detail'],
+    title: 'FlagItem'
+} as const;
+
 export const FraudTypeResultSchema = {
     properties: {
         correct: {
@@ -720,6 +747,218 @@ export const PropertyTierPublicSchema = {
     type: 'object',
     required: ['id', 'name', 'svg_key', 'price', 'daily_income', 'unlock_level'],
     title: 'PropertyTierPublic'
+} as const;
+
+export const ScenarioDetailSchema = {
+    properties: {
+        id: {
+            type: 'string',
+            title: 'Id'
+        },
+        fraud_type: {
+            type: 'string',
+            title: 'Fraud Type'
+        },
+        display_name: {
+            type: 'string',
+            title: 'Display Name'
+        },
+        avatar: {
+            type: 'string',
+            title: 'Avatar'
+        },
+        status: {
+            type: 'string',
+            title: 'Status'
+        },
+        outcome: {
+            anyOf: [
+                {
+                    type: 'string'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Outcome'
+        },
+        player_turns: {
+            type: 'integer',
+            title: 'Player Turns'
+        },
+        max_turns: {
+            type: 'integer',
+            title: 'Max Turns'
+        },
+        history: {
+            items: {
+                additionalProperties: true,
+                type: 'object'
+            },
+            type: 'array',
+            title: 'History'
+        }
+    },
+    type: 'object',
+    required: ['id', 'fraud_type', 'display_name', 'avatar', 'status', 'outcome', 'player_turns', 'max_turns', 'history'],
+    title: 'ScenarioDetail'
+} as const;
+
+export const ScenarioInboxItemSchema = {
+    properties: {
+        id: {
+            type: 'string',
+            title: 'Id'
+        },
+        fraud_type: {
+            type: 'string',
+            title: 'Fraud Type'
+        },
+        display_name: {
+            type: 'string',
+            title: 'Display Name'
+        },
+        avatar: {
+            type: 'string',
+            title: 'Avatar'
+        },
+        preview: {
+            type: 'string',
+            title: 'Preview'
+        },
+        status: {
+            type: 'string',
+            title: 'Status'
+        },
+        outcome: {
+            anyOf: [
+                {
+                    type: 'string'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Outcome'
+        },
+        unread: {
+            type: 'boolean',
+            title: 'Unread'
+        }
+    },
+    type: 'object',
+    required: ['id', 'fraud_type', 'display_name', 'avatar', 'preview', 'status', 'outcome', 'unread'],
+    title: 'ScenarioInboxItem'
+} as const;
+
+export const ScenarioJudgeRequestSchema = {
+    properties: {
+        action: {
+            type: 'string',
+            enum: ['report', 'comply'],
+            title: 'Action'
+        }
+    },
+    type: 'object',
+    required: ['action'],
+    title: 'ScenarioJudgeRequest'
+} as const;
+
+export const ScenarioJudgeResponseSchema = {
+    properties: {
+        outcome: {
+            type: 'string',
+            title: 'Outcome'
+        },
+        true_role: {
+            type: 'string',
+            title: 'True Role'
+        },
+        persona_name: {
+            type: 'string',
+            title: 'Persona Name'
+        },
+        flags: {
+            items: {
+                '$ref': '#/components/schemas/FlagItem'
+            },
+            type: 'array',
+            title: 'Flags'
+        },
+        cash_delta: {
+            type: 'integer',
+            title: 'Cash Delta'
+        },
+        xp_delta: {
+            type: 'integer',
+            title: 'Xp Delta'
+        },
+        new_cash: {
+            type: 'integer',
+            title: 'New Cash'
+        },
+        triggers_forced_sell: {
+            type: 'boolean',
+            title: 'Triggers Forced Sell'
+        }
+    },
+    type: 'object',
+    required: ['outcome', 'true_role', 'persona_name', 'flags', 'cash_delta', 'xp_delta', 'new_cash', 'triggers_forced_sell'],
+    title: 'ScenarioJudgeResponse'
+} as const;
+
+export const ScenarioMessageRequestSchema = {
+    properties: {
+        text: {
+            type: 'string',
+            title: 'Text'
+        }
+    },
+    type: 'object',
+    required: ['text'],
+    title: 'ScenarioMessageRequest'
+} as const;
+
+export const ScenarioMessageResponseSchema = {
+    properties: {
+        messages: {
+            items: {
+                type: 'string'
+            },
+            type: 'array',
+            title: 'Messages'
+        },
+        decision_point: {
+            anyOf: [
+                {
+                    type: 'string'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Decision Point'
+        },
+        turns_left: {
+            type: 'integer',
+            title: 'Turns Left'
+        }
+    },
+    type: 'object',
+    required: ['messages', 'decision_point', 'turns_left'],
+    title: 'ScenarioMessageResponse'
+} as const;
+
+export const ScenarioNewRequestSchema = {
+    properties: {
+        fraud_type: {
+            type: 'string',
+            title: 'Fraud Type'
+        }
+    },
+    type: 'object',
+    required: ['fraud_type'],
+    title: 'ScenarioNewRequest'
 } as const;
 
 export const SwipeAnswerItemSchema = {
