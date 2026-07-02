@@ -1,0 +1,89 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "TaiwanScamCase",
+  "type": "object",
+  "additionalProperties": true,
+  "required": [
+    "source_name",
+    "source_type",
+    "source_url",
+    "fetched_at",
+    "content_hash",
+    "page_title",
+    "body_text",
+    "clean_text",
+    "raw_payload",
+    "taxonomy_code",
+    "source_category_label",
+    "matched_keywords",
+    "classification_confidence",
+    "category_evidence",
+    "extraction_notes",
+    "classification_notes",
+    "validation_status",
+    "source_verification_status"
+  ],
+  "properties": {
+    "source_name": {"type": "string", "minLength": 1},
+    "source_type": {"type": "string", "minLength": 1},
+    "source_url": {"type": "string", "minLength": 1},
+    "canonical_url": {"type": ["string", "null"]},
+    "case_key": {"type": ["string", "null"]},
+    "fetched_at": {"type": "string"},
+    "content_hash": {"type": "string", "minLength": 8},
+    "page_title": {"type": ["string", "null"]},
+    "body_text": {"type": "string"},
+    "clean_text": {"type": "string"},
+    "raw_payload": {"type": ["object", "array", "string", "null"]},
+    "taxonomy_code": {
+      "type": "string",
+      "enum": [
+        "investment_fraud",
+        "fake_online_auction_purchase",
+        "general_purchase_fraud",
+        "romance_fraud",
+        "atm_installment_cancellation_fraud"
+      ]
+    },
+    "source_category_label": {"type": ["string", "null"]},
+    "matched_keywords": {"type": "array", "items": {"type": "string"}},
+    "classification_confidence": {"type": "number", "minimum": 0, "maximum": 1},
+    "classification_method": {"type": "string", "enum": ["agent_llm", "rule", "source_taxonomy", "hybrid", "manual"]},
+    "category_evidence": {
+      "type": "object",
+      "required": [
+        "platforms",
+        "payment_methods",
+        "impersonated_roles",
+        "transaction_context",
+        "relationship_signals",
+        "atm_or_installment_signals",
+        "evidence_quotes"
+      ],
+      "properties": {
+        "platforms": {"type": "array", "items": {"type": "string"}},
+        "payment_methods": {"type": "array", "items": {"type": "string"}},
+        "impersonated_roles": {"type": "array", "items": {"type": "string"}},
+        "transaction_context": {"type": ["string", "null"]},
+        "relationship_signals": {"type": "array", "items": {"type": "string"}},
+        "atm_or_installment_signals": {"type": "array", "items": {"type": "string"}},
+        "evidence_quotes": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["text"],
+            "properties": {
+              "text": {"type": "string"},
+              "field": {"type": ["string", "null"]},
+              "confidence": {"type": ["number", "null"], "minimum": 0, "maximum": 1}
+            }
+          }
+        }
+      }
+    },
+    "extraction_notes": {"type": "array", "items": {"type": "string"}},
+    "classification_notes": {"type": "array", "items": {"type": "string"}},
+    "validation_status": {"type": "string", "enum": ["valid", "invalid", "needs_review"]},
+    "source_verification_status": {"type": "string", "enum": ["verified", "candidate", "needs_probe", "failed"]}
+  }
+}
