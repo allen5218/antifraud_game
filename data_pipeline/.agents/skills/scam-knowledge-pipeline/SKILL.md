@@ -43,6 +43,11 @@ The pipeline is skill-driven: Codex performs source inspection and LLM-assisted 
 10. Audit and recover.
     - Read `references/audit-and-recovery.md`.
     - Use `scripts/audit_pipeline.py`.
+11. Curate game cases.
+    - Read `references/curation.md` and `schemas/game_case.schema.json`.
+    - Codex adapts case_narrative documents into game_case drafts (scam + legit mirrors), then validates with `scripts/validate_game_cases.py`.
+12. Ingest game case drafts.
+    - Use `scripts/ingest_game_cases.py`; default is dry-run, `--apply` is required to write. Drafts only.
 
 For a single-source run, prefer `scripts/run_source_pipeline.sh`; it performs probe, fetch, validate, scoped ingest, scoped normalization, scoped chunking, scoped embedding, and scoped audit with dry-runs before every write stage.
 
@@ -60,6 +65,8 @@ For a single-source run, prefer `scripts/run_source_pipeline.sh`; it performs pr
 - Store full raw payload and clean text in JSONB; normalize only stable fields into relational tables.
 - Use pgvector only for clean chunks, never raw JSONB or raw HTML.
 - Treat Playwright CLI as integrated inspection/fallback capability inside this skill, not as a separate skill dependency.
+- game_cases writes are draft-only; status promotion (reviewed/published) happens manually in Supabase Studio, never from this skill.
+- Game case narratives must be de-identified (no names, phone numbers, accounts, URLs, or real brand/app names).
 
 ## Resource Routing
 
@@ -77,6 +84,8 @@ For a single-source run, prefer `scripts/run_source_pipeline.sh`; it performs pr
 - Chunking and pgvector: `references/vectorization.md`
 - Failures and audit: `references/audit-and-recovery.md`
 - Regression source checklist: `references/regression-checklist.md`
+- Game case curation: `references/curation.md`
+- Game case contract: `schemas/game_case.schema.json`
 
 ## Completion Criteria
 
