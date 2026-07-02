@@ -9,6 +9,7 @@ from app.api.routes import (
     pretest,
     private,
     quick,
+    scenario,
     score,
     users,
     utils,
@@ -26,6 +27,7 @@ api_router.include_router(score.router)
 api_router.include_router(mascot.router)
 api_router.include_router(economy.router)
 api_router.include_router(quick.router)
+api_router.include_router(scenario.router)
 
 
 if settings.ENVIRONMENT == "local":

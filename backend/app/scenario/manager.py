@@ -53,7 +53,9 @@ def accumulate_tactics(seen: list[str], new: list[str]) -> list[str]:
     return result
 
 
-def build_flags(outcome: str, tactics_seen: list[str], fraud_type: str) -> list[FlagItem]:
+def build_flags(
+    outcome: str, tactics_seen: list[str], fraud_type: str
+) -> list[FlagItem]:
     """揭曉卡的破綻/警訊(scam 結局)或正當訊號(legit 結局)。"""
     if outcome in (OUTCOME_WIN_REPORT, OUTCOME_LOSE_SCAMMED):
         return [
