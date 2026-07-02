@@ -343,3 +343,28 @@ def temp_copy_sql(table, columns, rows):
         for row in rows:
             writer.writerow(row)
     return csv_path
+
+def ensure_game_cases_schema():
+    ensure_relational_schema()
+    run_psql("""
+CREATE TABLE IF NOT EXISTS game_cases (
+    id bigserial PRIMARY KEY,
+    case_key text UNIQUE NOT NULL,
+    fraud_type text NOT NULL,
+    is_scam boolean NOT NULL,
+    title text NOT NULL,
+    narrative text NOT NULL,
+    red_flags jsonb NOT NULL DEFAULT '[]'::jsonb,
+    difficulty int NOT NULL DEFAULT 2,
+    source_document_ids bigint[] NOT NULL DEFAULT '{}',
+    provenance text NOT NULL,
+    mirror_of bigint REFERENCES game_cases(id),
+    status text NOT NULL DEFAULT 'draft',
+    review_notes text,
+    created_at timestamptz NOT NULL DEFAULT now(),
+    published_at timestamptz
+);
+CREATE INDEX IF NOT EXISTS game_cases_published_idx
+  ON game_cases (fraud_type, is_scam)
+  WHERE status = 'published';
+""", quiet=True)
