@@ -30,7 +30,7 @@ if not args.apply:
 sql = f"""
 INSERT INTO documents (
   staging_id, source_name, source_type, source_url, canonical_url, page_title, body_text, clean_text,
-  content_hash, raw_payload, fetched_at, metadata, normalized_at
+  content_hash, raw_payload, fetched_at, case_stance, content_kind, metadata, normalized_at
 )
 SELECT
   s.id, s.source_name, s.source_type, s.source_url, s.canonical_url,
@@ -40,6 +40,8 @@ SELECT
   s.content_hash,
   s.raw_json->'raw_payload',
   s.fetched_at,
+  COALESCE(NULLIF(s.raw_json->>'case_stance',''), 'scam'),
+  COALESCE(NULLIF(s.raw_json->>'content_kind',''), 'case_narrative'),
   s.raw_json - 'body_text' - 'clean_text' - 'raw_payload',
   now()
 FROM staging_documents s
@@ -50,6 +52,8 @@ ON CONFLICT (staging_id) DO UPDATE SET
   clean_text = EXCLUDED.clean_text,
   content_hash = EXCLUDED.content_hash,
   raw_payload = EXCLUDED.raw_payload,
+  case_stance = EXCLUDED.case_stance,
+  content_kind = EXCLUDED.content_kind,
   metadata = EXCLUDED.metadata,
   normalized_at = now();
 

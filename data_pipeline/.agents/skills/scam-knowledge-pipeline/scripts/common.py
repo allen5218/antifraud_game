@@ -29,6 +29,17 @@ CATEGORY_LABELS = {
     "atm_installment_cancellation_fraud": "解除分期付款詐欺（ATM）",
 }
 
+STANCE_VALUES = {"scam", "legit", "advisory"}
+CONTENT_KINDS = {"case_narrative", "domain_list", "advisory", "statute"}
+WEAKNESS_TAGS = {"time_pressure", "authority", "greed", "social_proof", "trust_building"}
+GAME_FRAUD_TYPES = {
+    "investment_fraud": "investment",
+    "fake_online_auction_purchase": "fake-sale",
+    "general_purchase_fraud": "shopping",
+    "romance_fraud": "romance",
+    "atm_installment_cancellation_fraud": "atm",
+}
+
 def load_env(path=None):
     if not path:
         return
@@ -300,6 +311,9 @@ CREATE TABLE IF NOT EXISTS category_evidence (
     evidence_json jsonb NOT NULL DEFAULT '{}'::jsonb,
     PRIMARY KEY (document_id, category_code)
 );
+ALTER TABLE documents ADD COLUMN IF NOT EXISTS case_stance text NOT NULL DEFAULT 'scam';
+ALTER TABLE documents ADD COLUMN IF NOT EXISTS content_kind text NOT NULL DEFAULT 'case_narrative';
+ALTER TABLE fraud_categories ADD COLUMN IF NOT EXISTS game_fraud_type text;
 CREATE INDEX IF NOT EXISTS documents_source_name_idx
   ON documents (source_name);
 CREATE INDEX IF NOT EXISTS documents_content_hash_idx
@@ -311,6 +325,11 @@ CREATE INDEX IF NOT EXISTS category_evidence_category_code_idx
 """, quiet=True)
     values = ", ".join("('%s','%s')" % (code, label.replace("'", "''")) for code, label in CATEGORY_LABELS.items())
     run_psql(f"INSERT INTO fraud_categories (code, label_zh) VALUES {values} ON CONFLICT (code) DO UPDATE SET label_zh = EXCLUDED.label_zh;", quiet=True)
+    mappings = ", ".join(f"('{code}','{game}')" for code, game in GAME_FRAUD_TYPES.items())
+    run_psql(
+        f"UPDATE fraud_categories fc SET game_fraud_type = m.game FROM (VALUES {mappings}) AS m(code, game) WHERE fc.code = m.code;",
+        quiet=True,
+    )
 
 def json_array_to_pg_array_sql(json_path):
     return f"ARRAY(SELECT jsonb_array_elements_text(COALESCE({json_path}, '[]'::jsonb)))"
