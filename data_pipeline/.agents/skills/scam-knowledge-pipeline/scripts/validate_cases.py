@@ -14,7 +14,7 @@ REQUIRED = [
     "page_title", "body_text", "clean_text", "raw_payload", "taxonomy_code",
     "source_category_label", "matched_keywords", "classification_confidence",
     "category_evidence", "extraction_notes", "classification_notes",
-    "validation_status", "source_verification_status"
+    "validation_status", "source_verification_status", "case_stance", "content_kind"
 ]
 EVIDENCE_REQUIRED = [
     "platforms", "payment_methods", "impersonated_roles", "transaction_context",
@@ -39,6 +39,10 @@ def fallback_validate(record):
             errors.append(f"missing {key}")
     if record.get("taxonomy_code") not in TAXONOMY_CODES:
         errors.append("invalid taxonomy_code")
+    if record.get("case_stance") not in {"scam", "legit", "advisory"}:
+        errors.append("invalid case_stance")
+    if record.get("content_kind") not in {"case_narrative", "domain_list", "advisory", "statute"}:
+        errors.append("invalid content_kind")
     confidence = record.get("classification_confidence")
     if not isinstance(confidence, (int, float)) or not (0 <= confidence <= 1):
         errors.append("classification_confidence must be 0..1")

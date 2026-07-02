@@ -419,7 +419,9 @@ for endpoint in source.get("endpoints", []):
                 f"Classified by {classification_method}; endpoint taxonomy takes precedence over keyword rules."
             ],
             "validation_status": validation_status,
-            "source_verification_status": record_verification_status
+            "source_verification_status": record_verification_status,
+            "case_stance": source.get("default_case_stance", "scam"),
+            "content_kind": source.get("default_content_kind", "case_narrative"),
         }
         rows.append(row)
 
