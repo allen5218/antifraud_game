@@ -283,6 +283,40 @@
       "endpoints": [{"name": "channel_methods_json", "method": "GET", "url": "https://quality.data.gov.tw/dq_download_json.php?nid=52459&md5_url=8af484e71c0567c1c66ea331ac01eb18", "parser_type": "json_endpoint"}],
       "supported_taxonomy_codes": ["investment_fraud", "fake_online_auction_purchase", "general_purchase_fraud", "romance_fraud", "atm_installment_cancellation_fraud"],
       "keywords": ["投資", "假網拍", "網拍", "網購", "買賣", "交友", "解除分期", "ATM"]
+    },
+    {
+      "source_name": "tw_manual_legit_process_docs",
+      "display_name": "官方正規流程文件（手動維護）",
+      "source_type": "manual",
+      "base_url": "file://data/manual/legit_process_docs.jsonl",
+      "crawl_strategy": "manual_file",
+      "parser_type": "jsonl_file",
+      "verification_policy": "manual",
+      "verification_status": "verified",
+      "write_requires_verified": true,
+      "default_case_stance": "legit",
+      "default_content_kind": "advisory",
+      "max_records": 50,
+      "supported_taxonomy_codes": ["investment_fraud", "fake_online_auction_purchase", "general_purchase_fraud", "romance_fraud", "atm_installment_cancellation_fraud"],
+      "keywords": ["正規流程", "官方客服", "合法"],
+      "endpoints": []
+    },
+    {
+      "source_name": "tw_fsc_anti_fraud_edu_candidate",
+      "display_name": "金管會防詐宣導（爬取候選，未驗證）",
+      "source_type": "finance_education",
+      "base_url": "https://www.fsc.gov.tw/",
+      "crawl_strategy": "http_api_first",
+      "parser_type": "html_selector",
+      "verification_policy": "any_success",
+      "verification_status": "needs_probe",
+      "write_requires_verified": true,
+      "default_case_stance": "advisory",
+      "default_content_kind": "advisory",
+      "max_records": 10,
+      "supported_taxonomy_codes": ["investment_fraud"],
+      "keywords": ["防詐", "宣導", "投資"],
+      "endpoints": []
     }
   ]
 }

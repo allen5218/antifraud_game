@@ -49,3 +49,8 @@ data_pipeline/.playwright-cli/
 data_pipeline/data/
 data_pipeline/**/__pycache__/
 data_pipeline/**/.DS_Store
+
+# data_pipeline/data/manual/ 是手動維護的來源檔(非爬蟲產物),例外納管
+!data_pipeline/data/
+data_pipeline/data/*
+!data_pipeline/data/manual/
