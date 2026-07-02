@@ -5,7 +5,6 @@ fraud_type: romance
 primary_tactics: []
 difficulty: 2
 teaser: 嗨！你的照片第二張在哪裡拍的？背景好漂亮，看起來像北海岸？
-avatar: 🧗
 ---
 
 # Identity

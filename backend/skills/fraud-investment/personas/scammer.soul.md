@@ -5,7 +5,6 @@ fraud_type: investment
 primary_tactics: [authority, greed, social_proof, trust_building]
 difficulty: 2
 teaser: 同學你好～看到你對投資有興趣😄 我們群免費帶單，先跟兩天看看績效再說！
-avatar: 📈
 ---
 
 # Identity

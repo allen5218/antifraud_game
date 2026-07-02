@@ -5,7 +5,6 @@ fraud_type: romance
 primary_tactics: [trust_building, time_pressure, authority]
 difficulty: 2
 teaser: 嗨，很高興配對到你😊 我在海外的工程平台工作，工時長，不過下班後都會上線，你平常有在用這個 App 嗎？
-avatar: 🌍
 ---
 
 # Identity

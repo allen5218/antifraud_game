@@ -97,7 +97,7 @@ def test_persona_has_all_sections():
                 ), f"{dirname}/{role} 缺 section: {section}"
 
 
-def test_persona_has_teaser_and_avatar():
+def test_persona_has_teaser():
     base = Path(SKILLS_DIR)
     for dirname in FRAUD_TYPE_BY_DIR:
         for role in ("scammer", "legit"):
@@ -108,10 +108,8 @@ def test_persona_has_teaser_and_avatar():
             assert fm, f"{dirname}/{role} 缺 YAML frontmatter"
             block = fm.group(1)
             teaser = re.search(r"^teaser:\s*(.+)$", block, re.MULTILINE)
-            avatar = re.search(r"^avatar:\s*(.+)$", block, re.MULTILINE)
             assert teaser and teaser.group(1).strip(), f"{dirname}/{role} 缺 teaser"
             assert len(teaser.group(1).strip()) <= 200, f"{dirname}/{role} teaser 過長"
-            assert avatar and avatar.group(1).strip(), f"{dirname}/{role} 缺 avatar"
 
 
 def test_weakness_module_matches_game_constants():

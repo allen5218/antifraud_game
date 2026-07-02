@@ -5,7 +5,6 @@ fraud_type: atm
 primary_tactics: []
 difficulty: 2
 teaser: 您好，這裡是購物平台客服，關於您先前反映的訂單問題，我來協助您處理，請問現在方便嗎？
-avatar: 🎧
 ---
 
 # Identity

@@ -28,7 +28,6 @@ ROLE_FILENAME = {"scam": "scammer", "legit": "legit"}
 class PersonaMeta:
     name: str
     teaser: str
-    avatar: str
     primary_tactics: list[str]
 
 
@@ -44,7 +43,7 @@ def _frontmatter(text: str) -> str:
 
 
 def read_persona_meta(fraud_type: str, role: str) -> PersonaMeta:
-    """讀人格 frontmatter 的 name/teaser/avatar/primary_tactics(不進 LLM)。"""
+    """讀人格 frontmatter 的 name/teaser/primary_tactics(不進 LLM)。"""
     with open(_persona_path(fraud_type, role), encoding="utf-8") as f:
         block = _frontmatter(f.read())
 
@@ -61,7 +60,6 @@ def read_persona_meta(fraud_type: str, role: str) -> PersonaMeta:
     return PersonaMeta(
         name=field("name"),
         teaser=field("teaser"),
-        avatar=field("avatar"),
         primary_tactics=tactics,
     )
 

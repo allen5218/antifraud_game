@@ -5,7 +5,6 @@ fraud_type: investment
 primary_tactics: []
 difficulty: 2
 teaser: 您好，我是銀行理財專員，您先前預約了理財諮詢，想先了解您的投資目標與可承受風險😊
-avatar: 🏦
 ---
 
 # Identity

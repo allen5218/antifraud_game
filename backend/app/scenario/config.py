@@ -32,6 +32,15 @@ DISPLAY_NAME_POOL: dict[str, list[str]] = {
     "atm": ["客服 Peggy", "客服 Mark", "客服 Judy"],
 }
 
+# scam/legit 共用同一池,避免 avatar↔角色相關性洩題
+AVATAR_POOL: dict[str, list[str]] = {
+    "investment": ["🧑‍💼", "📊", "💹"],
+    "shopping": ["🛍️", "📦", "🧸"],
+    "fake-sale": ["🛎️", "📮", "🧑‍💻"],
+    "romance": ["🙂", "🌻", "📷"],
+    "atm": ["☎️", "🎧", "📞"],
+}
+
 # legit 結局揭曉卡的「正當訊號」文案(確定性、非 LLM)
 LEGIT_SIGNALS: dict[str, list[str]] = {
     "investment": [

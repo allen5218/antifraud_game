@@ -38,7 +38,6 @@ def test_read_persona_meta_all_ten():
             meta = read_persona_meta(ft.value, role)
             assert meta.name, (ft.value, role)
             assert meta.teaser, (ft.value, role)
-            assert meta.avatar, (ft.value, role)
     scam_meta = read_persona_meta("investment", "scam")
     assert "authority" in scam_meta.primary_tactics
     assert read_persona_meta("investment", "legit").primary_tactics == []

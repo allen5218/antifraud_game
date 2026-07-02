@@ -1,5 +1,6 @@
 from app.models import FraudType
 from app.scenario.config import (
+    AVATAR_POOL,
     DISPLAY_NAME_POOL,
     LEGIT_SIGNALS,
     MAX_TURNS,
@@ -22,10 +23,13 @@ def test_economy_covers_all_fraud_types():
 def test_name_pool_and_signals_cover_all_fraud_types():
     assert set(DISPLAY_NAME_POOL) == ALL_TYPES
     assert set(LEGIT_SIGNALS) == ALL_TYPES
+    assert set(AVATAR_POOL) == ALL_TYPES
     for names in DISPLAY_NAME_POOL.values():
         assert len(names) >= 2
     for signals in LEGIT_SIGNALS.values():
         assert len(signals) >= 2
+    for avatars in AVATAR_POOL.values():
+        assert len(avatars) >= 2
 
 
 def test_limits():

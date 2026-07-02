@@ -12,6 +12,7 @@ from app.models import FraudType, ScenarioSession, ScenarioStatus
 from app.scenario import agent as scenario_agent
 from app.scenario import manager
 from app.scenario.config import (
+    AVATAR_POOL,
     DISPLAY_NAME_POOL,
     MAX_TURNS,
     SCAM_RATIO,
@@ -44,7 +45,7 @@ def _create_session(
         fraud_type=fraud_type,
         persona_role=role,
         display_name=random.choice(DISPLAY_NAME_POOL[fraud_type]),
-        avatar=meta.avatar,
+        avatar=random.choice(AVATAR_POOL[fraud_type]),
         conversation_history=[
             {"role": "npc", "messages": [meta.teaser], "decision_point": None}
         ],

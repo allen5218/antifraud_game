@@ -5,7 +5,6 @@ fraud_type: shopping
 primary_tactics: [greed, time_pressure, trust_building]
 difficulty: 2
 teaser: 你好！這包包還有，你是有興趣嗎？我搬家急用現金所以特價，全新沒用過😊
-avatar: 👜
 ---
 
 # Identity
