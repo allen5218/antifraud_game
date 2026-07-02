@@ -39,3 +39,6 @@ dist/
 
 # Logs
 *.log
+
+# Superpowers brainstorm visual companion
+.superpowers/
