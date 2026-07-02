@@ -348,3 +348,47 @@ class SwipeCard(SQLModel, table=True):
         default_factory=get_datetime_utc,
         sa_type=DateTime(timezone=True),  # type: ignore
     )
+
+
+# ── Scenario（情境模擬） ─────────────────────────────────────
+
+
+class ScenarioStatus(str, enum.Enum):
+    ACTIVE = "active"
+    COMPLETED = "completed"
+
+
+class ScenarioSession(SQLModel, table=True):
+    __tablename__ = "scenario_session"
+
+    id: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True)
+    user_id: uuid.UUID = Field(
+        foreign_key="user.id", nullable=False, ondelete="CASCADE", index=True
+    )
+    fraud_type: str = Field(max_length=32, index=True)
+    # ground truth（scam|legit）；judge 之前絕不出現在任何 API response
+    persona_role: str = Field(max_length=8)
+    display_name: str = Field(max_length=64)
+    avatar: str = Field(max_length=16)
+    status: str = Field(default=ScenarioStatus.ACTIVE, max_length=16)
+    conversation_history: list[dict] = Field(  # type: ignore
+        default=[], sa_column=Column(JSONB, nullable=False, server_default="[]")
+    )
+    player_turns: int = Field(default=0)
+    tactics_seen: list[str] = Field(
+        default=[], sa_column=Column(JSONB, nullable=False, server_default="[]")
+    )
+    # 經濟數值於建場時自 config 複製（比照 SwipeCard 自帶資料）
+    stake_loss: int
+    reward_win: int
+    reward_legit: int
+    penalty_misreport: int
+    outcome: str | None = Field(default=None, max_length=16)
+    created_at: datetime | None = Field(
+        default_factory=get_datetime_utc,
+        sa_type=DateTime(timezone=True),  # type: ignore
+    )
+    completed_at: datetime | None = Field(
+        default=None,
+        sa_type=DateTime(timezone=True),  # type: ignore
+    )
