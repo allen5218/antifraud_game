@@ -42,3 +42,10 @@ dist/
 
 # Superpowers brainstorm visual companion
 .superpowers/
+
+# data_pipeline(爬蟲產物與憑證不進版控)
+data_pipeline/.env
+data_pipeline/.playwright-cli/
+data_pipeline/data/
+data_pipeline/**/__pycache__/
+data_pipeline/**/.DS_Store
