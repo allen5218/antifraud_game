@@ -19,7 +19,7 @@
         "properties": {
           "tag": {"type": ["string", "null"],
                   "enum": ["time_pressure", "authority", "greed", "social_proof", "trust_building", null]},
-          "text": {"type": "string", "minLength": 4}
+          "text": {"type": "string", "minLength": 2}
         }
       }
     },
