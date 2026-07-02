@@ -47,11 +47,14 @@ function ScenarioChatPage() {
   const inputLocked =
     detail.status !== "active" || turnsLeft <= 0 || sendM.isPending
 
-  const send = (text: string) => {
+  const send = (text: string, opts: { clearInput?: boolean } = {}) => {
     const trimmed = text.trim()
     if (!trimmed || inputLocked) return
-    sendM.mutate(trimmed)
-    setInput("")
+    sendM.mutate(trimmed, {
+      onSuccess: () => {
+        if (opts.clearInput) setInput("")
+      },
+    })
   }
   const judge = (action: "report" | "comply") => {
     if (judgeM.isPending) return
@@ -116,6 +119,7 @@ function ScenarioChatPage() {
                 onComply={() => judge("comply")}
                 onRefuse={() => send(REFUSE_TEXT)}
                 disabled={judgeM.isPending || sendM.isPending}
+                refuseDisabled={turnsLeft <= 0}
               />
             )
           }
@@ -130,11 +134,16 @@ function ScenarioChatPage() {
               回覆次數用完了——點右上「⚖️ 下判斷」做出決定
             </p>
           )}
+          {sendM.isError && (
+            <p className="pb-1 text-center text-[11px] text-red-600">
+              訊息沒送出,請再試一次
+            </p>
+          )}
           <form
             className="flex items-center gap-2"
             onSubmit={(e) => {
               e.preventDefault()
-              send(input)
+              send(input, { clearInput: true })
             }}
           >
             <input

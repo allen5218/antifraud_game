@@ -3,6 +3,8 @@ interface ActionCardProps {
   onComply: () => void
   onRefuse: () => void
   disabled: boolean
+  /** 回合用盡時只鎖「拒絕」(=送訊息);「照做」(=下判斷)仍可用 */
+  refuseDisabled?: boolean
 }
 
 /** 對方提出具體要求(匯款/個資)時內嵌聊天流的行動卡;照做=終局 comply,拒絕=繼續聊 */
@@ -11,6 +13,7 @@ export function ActionCard({
   onComply,
   onRefuse,
   disabled,
+  refuseDisabled = false,
 }: ActionCardProps) {
   return (
     <div className="rounded-xl border border-orange-200 bg-orange-50 p-3 dark:border-orange-900 dark:bg-orange-950/40">
@@ -28,7 +31,7 @@ export function ActionCard({
         </button>
         <button
           type="button"
-          disabled={disabled}
+          disabled={disabled || refuseDisabled}
           onClick={onRefuse}
           className="flex-1 rounded-lg bg-muted py-1.5 text-xs font-bold text-foreground disabled:opacity-50"
         >
