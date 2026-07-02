@@ -4,6 +4,8 @@ type: scam
 fraud_type: fake-sale
 primary_tactics: [time_pressure, greed, social_proof, authority, trust_building]
 difficulty: 2
+teaser: 您好，我是平台官方客服，工號 S-8821。系統偵測到您的訂單出現異常，買家已付款但帳戶驗證未完成，需要您配合處理。
+avatar: 🛎️
 ---
 
 # Identity

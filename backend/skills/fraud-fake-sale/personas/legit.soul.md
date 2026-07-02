@@ -4,6 +4,8 @@ type: legit
 fraud_type: fake-sale
 primary_tactics: []
 difficulty: 2
+teaser: 您好，我是平台客服，看到您的訂單有物流問題，我來協助確認😊 您的工單編號是 TW-20240602-4492。
+avatar: 📦
 ---
 
 # Identity

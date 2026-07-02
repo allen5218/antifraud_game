@@ -4,6 +4,8 @@ type: scam
 fraud_type: atm
 primary_tactics: [authority, time_pressure, trust_building, social_proof]
 difficulty: 2
+teaser: 您好，我是購物平台客服，編號 M-3374。您上月的訂單被系統誤設為 12 期分期，每期 NT$1,580，需要盡快協助您取消，請問現在方便嗎？
+avatar: ☎️
 ---
 
 # Identity

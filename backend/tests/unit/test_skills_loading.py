@@ -95,3 +95,30 @@ def test_persona_has_all_sections():
                 assert re.search(
                     rf"^#+\s*{re.escape(section)}\s*$", text, re.MULTILINE
                 ), f"{dirname}/{role} 缺 section: {section}"
+
+
+def test_persona_has_teaser_and_avatar():
+    base = Path(SKILLS_DIR)
+    for dirname in FRAUD_TYPE_BY_DIR:
+        for role in ("scammer", "legit"):
+            text = (base / dirname / "personas" / f"{role}.{PERSONA_EXT}").read_text(
+                encoding="utf-8"
+            )
+            fm = re.search(r"^---\n(.*?)\n---", text, re.DOTALL)
+            assert fm, f"{dirname}/{role} 缺 YAML frontmatter"
+            block = fm.group(1)
+            teaser = re.search(r"^teaser:\s*(.+)$", block, re.MULTILINE)
+            avatar = re.search(r"^avatar:\s*(.+)$", block, re.MULTILINE)
+            assert teaser and teaser.group(1).strip(), f"{dirname}/{role} 缺 teaser"
+            assert len(teaser.group(1).strip()) <= 200, f"{dirname}/{role} teaser 過長"
+            assert avatar and avatar.group(1).strip(), f"{dirname}/{role} 缺 avatar"
+
+
+def test_weakness_module_matches_game_constants():
+    from app.core.weakness import WEAKNESS_LABELS, WEAKNESS_SUGGESTIONS, WEAKNESS_TAGS
+
+    assert WEAKNESS_TAGS == {
+        "time_pressure", "authority", "greed", "social_proof", "trust_building"
+    }
+    assert set(WEAKNESS_LABELS) == WEAKNESS_TAGS
+    assert set(WEAKNESS_SUGGESTIONS) == WEAKNESS_TAGS

@@ -4,6 +4,8 @@ type: legit
 fraud_type: shopping
 primary_tactics: []
 difficulty: 2
+teaser: 你好，有興趣的話可以直接在商品頁下單，我會盡快出貨😄 有問題也可以問我。
+avatar: 📱
 ---
 
 # Identity
