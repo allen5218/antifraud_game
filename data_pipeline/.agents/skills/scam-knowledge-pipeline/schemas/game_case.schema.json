@@ -1,0 +1,31 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "GameCaseDraft",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["case_key", "fraud_type", "is_scam", "title", "narrative", "red_flags",
+               "difficulty", "source_document_ids", "provenance", "mirror_of_key"],
+  "properties": {
+    "case_key": {"type": "string", "pattern": "^[a-z0-9-]{3,64}$"},
+    "fraud_type": {"type": "string", "enum": ["investment", "shopping", "fake-sale", "romance", "atm"]},
+    "is_scam": {"type": "boolean"},
+    "title": {"type": "string", "minLength": 4, "maxLength": 64},
+    "narrative": {"type": "string"},
+    "red_flags": {
+      "type": "array", "minItems": 2,
+      "items": {
+        "type": "object", "additionalProperties": false,
+        "required": ["tag", "text"],
+        "properties": {
+          "tag": {"type": ["string", "null"],
+                  "enum": ["time_pressure", "authority", "greed", "social_proof", "trust_building", null]},
+          "text": {"type": "string", "minLength": 4}
+        }
+      }
+    },
+    "difficulty": {"type": "integer", "minimum": 1, "maximum": 3},
+    "source_document_ids": {"type": "array", "items": {"type": "integer"}},
+    "provenance": {"type": "string", "minLength": 6},
+    "mirror_of_key": {"type": ["string", "null"]}
+  }
+}
