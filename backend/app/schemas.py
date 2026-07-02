@@ -1,4 +1,4 @@
-from typing import Literal
+from typing import Any, Literal
 
 from pydantic import BaseModel
 
@@ -259,4 +259,4 @@ class ScenarioDetail(BaseModel):
     outcome: str | None
     player_turns: int
     max_turns: int
-    history: list[dict]
+    history: list[dict[str, Any]]

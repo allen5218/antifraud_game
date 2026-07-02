@@ -10,6 +10,7 @@ from __future__ import annotations
 import os
 import re
 from dataclasses import dataclass
+from typing import Any
 
 from pydantic_ai import Agent, RunContext
 
@@ -75,7 +76,7 @@ def load_persona_bundle(fraud_type: str, role: str) -> tuple[str, str]:
     return skill_text, persona_text
 
 
-def build_transcript(history: list[dict]) -> str:
+def build_transcript(history: list[dict[str, Any]]) -> str:
     """把 conversation_history 組成逐字稿(對方:/玩家: 前綴)。"""
     lines: list[str] = []
     for entry in history:
