@@ -2,7 +2,13 @@ import { Link } from "@tanstack/react-router"
 import { useEconomyMe } from "@/hooks/useEconomy"
 
 const MODES = [
-  { icon: "📝", label: "題組訓練", desc: "5 種詐騙類型", unlockLevel: 1 },
+  {
+    icon: "📝",
+    label: "題組訓練",
+    desc: "5 種詐騙類型",
+    unlockLevel: 1,
+    href: "/quick/quiz",
+  },
   {
     icon: "🃏",
     label: "滑卡劇情",
@@ -14,8 +20,6 @@ const MODES = [
   { icon: "🏆", label: "排行榜", desc: "Lv.5 解鎖", unlockLevel: 5 },
 ]
 
-// TODO(Phase 2): make remaining unlocked cards navigate to their routes
-// (/quick/quiz, etc.) once those routes exist.
 export function PlayModeGrid() {
   const { data } = useEconomyMe()
   const level = data?.level ?? 1
