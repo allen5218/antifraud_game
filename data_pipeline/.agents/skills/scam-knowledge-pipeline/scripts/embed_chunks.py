@@ -137,7 +137,10 @@ load_env(args.env_file)
 provider = args.provider or os.environ.get("EMBEDDING_PROVIDER", "fake")
 dim = args.dim or int(os.environ.get("EMBEDDING_DIM", "1536"))
 default_model = "gemini-embedding-2" if provider == "gemini" else f"{provider}-v1"
-model = os.environ.get("EMBEDDING_MODEL", default_model)
+env_model = os.environ.get("EMBEDDING_MODEL")
+if provider == "fake" and env_model and not env_model.startswith("fake"):
+    env_model = None
+model = env_model or default_model
 
 available, installed = ensure_vector_extension_available()
 if not available or not installed:

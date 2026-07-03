@@ -17,6 +17,8 @@ Use `references/sources.yaml` as the source-of-truth registry for crawl behavior
 - `pdf_link_fields`: optional list of CSV fields that may contain PDF URLs; default is `["檔案連結", "file_url", "url"]`.
 - `pdf_max_pages`, `pdf_max_chars`, `pdf_timeout_seconds`: optional controls for bounded PDF extraction.
 - `verify_tls`: optional. Use `false` only for a documented public source with a known certificate-chain problem; such sources should remain candidate until manually reviewed.
+- `default_case_stance`: optional enum (`scam` | `legit` | `advisory`). When specified, `fetch_source.py` stamps each fetched record with this stance during ingest; may be overwritten during classification phase. If absent, defaults to `scam`. **Warning:** legit or advisory sources that omit this field will be silently stamped as scam cases, adding them to the fraud example pool.
+- `default_content_kind`: optional enum (`case_narrative` | `domain_list` | `advisory` | `statute`). When specified, stamps each record's content kind; may be overwritten during classification. If absent, defaults to `case_narrative`. Follows same silent-fallback rule as `default_case_stance`.
 
 ## Endpoint-Level Fields
 
