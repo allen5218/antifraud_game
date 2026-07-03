@@ -189,6 +189,49 @@ export type PropertyTierPublic = {
     unlock_level: number;
 };
 
+export type QuizAnswerItem = {
+    case_id: number;
+    guess_is_scam: boolean;
+};
+
+export type QuizAnswerRequest = {
+    case_id: number;
+    guess_is_scam: boolean;
+};
+
+export type QuizAnswerResponse = {
+    correct: boolean;
+    is_scam: boolean;
+    red_flags: Array<QuizRedFlag>;
+    provenance: string;
+};
+
+export type QuizCasePublic = {
+    id: number;
+    fraud_type: string;
+    title: string;
+    narrative: string;
+    difficulty: number;
+};
+
+export type QuizCompleteRequest = {
+    answers: Array<QuizAnswerItem>;
+};
+
+export type QuizCompleteResponse = {
+    correct_count: number;
+    total: number;
+    best_streak: number;
+    cash_earned: number;
+    xp_earned: number;
+    weakness_summary: Array<WeaknessSummaryItem>;
+};
+
+export type QuizRedFlag = {
+    tag: (string | null);
+    text: string;
+};
+
 export type ScenarioDetail = {
     id: string;
     fraud_type: string;
@@ -502,6 +545,24 @@ export type QuickSwipeCompleteData = {
 };
 
 export type QuickSwipeCompleteResponse = (SwipeCompleteResponse);
+
+export type QuickQuizDeckData = {
+    size?: number;
+};
+
+export type QuickQuizDeckResponse = (Array<QuizCasePublic>);
+
+export type QuickQuizAnswerData = {
+    requestBody: QuizAnswerRequest;
+};
+
+export type QuickQuizAnswerResponse = (QuizAnswerResponse);
+
+export type QuickQuizCompleteData = {
+    requestBody: QuizCompleteRequest;
+};
+
+export type QuickQuizCompleteResponse = (QuizCompleteResponse);
 
 export type ScenarioInboxResponse = (Array<ScenarioInboxItem>);
 
