@@ -38,7 +38,7 @@ def _make_session(db: Session, user: User, *, role: str, **overrides) -> Scenari
     return sc
 
 
-async def _fake_reply(session, player_text):  # noqa: ANN001, ARG001
+async def _fake_reply(session, player_text, case=None):  # noqa: ANN001, ARG001
     return ScenarioReply(
         messages=["嗨嗨,考慮得怎麼樣?"],
         decision_point="先轉 5000 到合作券商鎖額度",
@@ -274,3 +274,55 @@ def test_scenario_not_found(
         headers=normal_user_token_headers,
     )
     assert r.status_code == 404
+
+
+def test_bootstrap_fills_case_id(
+    client: TestClient, db: Session, normal_user_token_headers: dict[str, str]
+) -> None:
+    # 共用 DB 可能殘留 case_id 欄位之前建立的舊場;先清空強迫 bootstrap
+    user = _test_user(db)
+    for s in db.exec(
+        select(ScenarioSession).where(ScenarioSession.user_id == user.id)
+    ).all():
+        db.delete(s)
+    db.commit()
+    r = client.get(f"{settings.API_V1_STR}/scenario/inbox", headers=normal_user_token_headers)
+    assert r.status_code == 200
+    ids = [i["id"] for i in r.json()]
+    sessions = [db.get(ScenarioSession, uuid.UUID(i)) for i in ids]
+    # 40 筆 published 覆蓋全部 5 類 × 兩種 stance → bootstrap 場必有 case_id
+    assert all(s is not None and s.case_id is not None for s in sessions)
+    # case 的 stance 必須與 persona_role 一致
+    from app.core.cases import get_case
+    for s in sessions:
+        assert s is not None and s.case_id is not None
+        case = get_case(db, s.case_id)
+        assert case is not None and case.is_scam == (s.persona_role == "scam")
+
+
+def test_judge_returns_case_provenance(
+    client: TestClient, db: Session, normal_user_token_headers: dict[str, str]
+) -> None:
+    from app.core.cases import pick_case
+    case = pick_case(db, fraud_type="investment", is_scam=True)
+    assert case is not None
+    sc = _make_session(db, _test_user(db), role="scam", case_id=case.id)
+    r = client.post(
+        f"{settings.API_V1_STR}/scenario/{sc.id}/judge",
+        headers=normal_user_token_headers,
+        json={"action": "report"},
+    )
+    assert r.status_code == 200
+    assert r.json()["case_provenance"] == case.provenance
+
+
+def test_judge_without_case_provenance_null(
+    client: TestClient, db: Session, normal_user_token_headers: dict[str, str]
+) -> None:
+    sc = _make_session(db, _test_user(db), role="legit")
+    r = client.post(
+        f"{settings.API_V1_STR}/scenario/{sc.id}/judge",
+        headers=normal_user_token_headers,
+        json={"action": "comply"},
+    )
+    assert r.json()["case_provenance"] is None

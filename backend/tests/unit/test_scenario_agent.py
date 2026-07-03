@@ -77,3 +77,24 @@ async def test_agent_returns_scenario_reply():
     assert isinstance(result.output, ScenarioReply)
     assert len(result.output.messages) == 2
     assert result.output.tactics_used == ["trust_building"]
+
+
+def test_instructions_include_case_material_when_present():
+    from app.core.cases import GameCaseRow
+    from app.scenario.agent import build_case_material
+
+    case = GameCaseRow(
+        id=1, fraud_type="investment", is_scam=True, title="帶單群",
+        narrative="某投資群組宣稱保證獲利…", red_flags=[{"tag": "greed", "text": "保證獲利"}],
+        difficulty=2, provenance="改編自:165 案例",
+    )
+    text = build_case_material(case)
+    assert "某投資群組宣稱保證獲利" in text
+    assert "保證獲利" in text
+    assert "不可照抄" in text
+
+
+def test_build_case_material_none_returns_empty():
+    from app.scenario.agent import build_case_material
+
+    assert build_case_material(None) == ""

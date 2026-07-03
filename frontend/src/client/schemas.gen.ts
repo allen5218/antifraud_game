@@ -1060,10 +1060,21 @@ export const ScenarioJudgeResponseSchema = {
         triggers_forced_sell: {
             type: 'boolean',
             title: 'Triggers Forced Sell'
+        },
+        case_provenance: {
+            anyOf: [
+                {
+                    type: 'string'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Case Provenance'
         }
     },
     type: 'object',
-    required: ['outcome', 'true_role', 'persona_name', 'flags', 'cash_delta', 'xp_delta', 'new_cash', 'triggers_forced_sell'],
+    required: ['outcome', 'true_role', 'persona_name', 'flags', 'cash_delta', 'xp_delta', 'new_cash', 'triggers_forced_sell', 'case_provenance'],
     title: 'ScenarioJudgeResponse'
 } as const;
 

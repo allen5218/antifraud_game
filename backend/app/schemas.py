@@ -248,6 +248,7 @@ class ScenarioJudgeResponse(BaseModel):
     xp_delta: int
     new_cash: int
     triggers_forced_sell: bool
+    case_provenance: str | None
 
 
 class ScenarioDetail(BaseModel):
