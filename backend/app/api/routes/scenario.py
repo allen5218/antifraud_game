@@ -7,6 +7,7 @@ from fastapi import APIRouter, HTTPException
 from sqlmodel import col, func, select
 
 from app.api.deps import CurrentUser, SessionDep
+from app.core.cases import get_case, pick_case
 from app.economy.service import add_xp, adjust_cash
 from app.models import FraudType, ScenarioSession, ScenarioStatus
 from app.scenario import agent as scenario_agent
@@ -40,10 +41,12 @@ def _create_session(
     role = "scam" if random.random() < SCAM_RATIO else "legit"
     meta = scenario_agent.read_persona_meta(fraud_type, role)
     econ = SCENARIO_ECONOMY[fraud_type]
+    case = pick_case(session, fraud_type=fraud_type, is_scam=(role == "scam"))
     sc = ScenarioSession(
         user_id=user_id,
         fraud_type=fraud_type,
         persona_role=role,
+        case_id=case.id if case else None,
         display_name=random.choice(DISPLAY_NAME_POOL[fraud_type]),
         avatar=random.choice(AVATAR_POOL[fraud_type]),
         conversation_history=[
@@ -205,7 +208,8 @@ async def send_message(
     sc.conversation_history = history  # 先入稿供 transcript 使用;失敗不 commit
 
     try:
-        reply = await scenario_agent.generate_reply(sc, payload.text)
+        case = get_case(session, sc.case_id) if sc.case_id else None
+        reply = await scenario_agent.generate_reply(sc, payload.text, case=case)
     except Exception as exc:
         raise HTTPException(502, {"code": "agent_failed"}) from exc
 
@@ -264,6 +268,7 @@ def judge_scenario(
     # scam 結局若整場沒觀察到 tactics(玩家秒判),退回人格 primary_tactics 供教學
     tactics = sc.tactics_seen or meta.primary_tactics
     flags = manager.build_flags(outcome, tactics, sc.fraud_type)
+    case = get_case(session, sc.case_id) if sc.case_id else None
 
     session.add(sc)
     session.add(current_user)
@@ -279,4 +284,5 @@ def judge_scenario(
         xp_delta=xp_delta,
         new_cash=current_user.cash,
         triggers_forced_sell=current_user.cash < 0,
+        case_provenance=case.provenance if case else None,
     )

@@ -3,7 +3,7 @@ import uuid
 from datetime import date, datetime, timezone
 
 from pydantic import EmailStr
-from sqlalchemy import Column, DateTime
+from sqlalchemy import BigInteger, Column, DateTime
 from sqlalchemy.dialects.postgresql import JSONB
 from sqlmodel import Field, Relationship, SQLModel
 
@@ -378,6 +378,8 @@ class ScenarioSession(SQLModel, table=True):
     tactics_seen: list[str] = Field(
         default=[], sa_column=Column(JSONB, nullable=False, server_default="[]")
     )
+    # G2:注入的 game_cases 素材(管線表,無 FK 約束——跨管理域引用);null = 純人格
+    case_id: int | None = Field(default=None, sa_type=BigInteger())  # type: ignore
     # 經濟數值於建場時自 config 複製（比照 SwipeCard 自帶資料）
     stake_loss: int
     reward_win: int

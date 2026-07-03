@@ -14,6 +14,7 @@ from typing import Any
 
 from pydantic_ai import Agent, RunContext
 
+from app.core.cases import GameCaseRow
 from app.models import ScenarioSession
 from app.scenario.config import MAX_TURNS
 from app.schemas import ScenarioReply
@@ -85,11 +86,31 @@ def build_transcript(history: list[dict[str, Any]]) -> str:
     return "\n".join(lines)
 
 
+def build_case_material(case: GameCaseRow | None) -> str:
+    """組 instructions 的真實案例素材段;無案例回空字串。"""
+    if case is None:
+        return ""
+    flags = "\n".join(
+        f"- {f.get('tag') or '正當訊號'}:{f.get('text', '')}" for f in case.red_flags
+    )
+    return f"""
+# 真實改編案例素材(本場劇本藍本)
+{case.narrative}
+
+紅旗/訊號參考:
+{flags}
+
+素材使用規則:以上素材改編自真實事件;以其手法與節奏為藍本推進劇情,
+化為自然的聊天對話——**不可照抄原文句子**,金額與細節可再變化。
+"""
+
+
 @dataclass
 class ScenarioDeps:
     session: ScenarioSession
     skill_text: str
     persona_text: str
+    case: GameCaseRow | None = None
 
 
 def create_scenario_agent() -> Agent[ScenarioDeps, ScenarioReply]:
@@ -111,6 +132,8 @@ def create_scenario_agent() -> Agent[ScenarioDeps, ScenarioReply]:
 # 領域知識(手法/話術參考)
 {ctx.deps.skill_text}
 
+{build_case_material(ctx.deps.case)}
+
 # 對話狀態
 - 你在這場對話中的顯示名稱:{s.display_name}(自稱時用這個名字,不要用人格設定裡的其他名字)
 - 玩家剩餘可回覆次數:{MAX_TURNS - s.player_turns}
@@ -128,14 +151,16 @@ def create_scenario_agent() -> Agent[ScenarioDeps, ScenarioReply]:
     return agent
 
 
-async def generate_reply(session: ScenarioSession, player_text: str) -> ScenarioReply:
+async def generate_reply(
+    session: ScenarioSession, player_text: str, case: GameCaseRow | None = None
+) -> ScenarioReply:
     """載入人格 → 跑 agent → 回傳結構化回覆(routes 的唯一入口;整合測試 monkeypatch 此函式)。"""
     skill_text, persona_text = load_persona_bundle(
         session.fraud_type, session.persona_role
     )
     agent = create_scenario_agent()
     deps = ScenarioDeps(
-        session=session, skill_text=skill_text, persona_text=persona_text
+        session=session, skill_text=skill_text, persona_text=persona_text, case=case
     )
     result = await agent.run(player_text, deps=deps)
     return result.output

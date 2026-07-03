@@ -272,6 +272,7 @@ export type ScenarioJudgeResponse = {
     xp_delta: number;
     new_cash: number;
     triggers_forced_sell: boolean;
+    case_provenance: (string | null);
 };
 
 export type ScenarioMessageRequest = {
