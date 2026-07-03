@@ -12,6 +12,8 @@ This skill runs a staged, auditable pipeline:
 8. Dry-run normalization, then `--apply` to write relational tables.
 9. Chunk clean text and embed into pgvector.
 10. Audit pipeline state.
+11. Curate game cases (read `references/curation.md`; agent produces draft JSONL, `validate_game_cases.py` verifies).
+12. Ingest game case drafts (`ingest_game_cases.py` dry-run by default; `--apply` writes to `game_cases` table with `draft=true`).
 
 ## File Flow
 
