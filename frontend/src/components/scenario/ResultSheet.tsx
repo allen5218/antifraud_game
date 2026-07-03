@@ -78,6 +78,11 @@ export function ResultSheet({ result, onBack, onGoAssets }: ResultSheetProps) {
               </li>
             ))}
           </ul>
+          {result.case_provenance && (
+            <p className="mt-2 rounded-lg bg-muted px-3 py-2 text-[11px] text-muted-foreground">
+              {`📎 本情境素材 ${result.case_provenance}`}
+            </p>
+          )}
           <div
             className={`mt-3 flex items-center justify-between rounded-xl px-3 py-2.5 ${
               meta.win

@@ -29,6 +29,7 @@ import { Route as ShellScenariosIndexRouteImport } from './routes/_shell/scenari
 import { Route as GameSessionIdResultRouteImport } from './routes/game.$sessionId.result'
 import { Route as ShellScenariosScenarioIdRouteImport } from './routes/_shell/scenarios/$scenarioId'
 import { Route as ShellQuickSwipeRouteImport } from './routes/_shell/quick/swipe'
+import { Route as ShellQuickQuizRouteImport } from './routes/_shell/quick/quiz'
 
 const SignupRoute = SignupRouteImport.update({
   id: '/signup',
@@ -129,6 +130,11 @@ const ShellQuickSwipeRoute = ShellQuickSwipeRouteImport.update({
   path: '/quick/swipe',
   getParentRoute: () => ShellRoute,
 } as any)
+const ShellQuickQuizRoute = ShellQuickQuizRouteImport.update({
+  id: '/quick/quiz',
+  path: '/quick/quiz',
+  getParentRoute: () => ShellRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof ShellIndexRoute
@@ -145,6 +151,7 @@ export interface FileRoutesByFullPath {
   '/me': typeof ShellMeRoute
   '/game/$sessionId': typeof GameSessionIdRouteWithChildren
   '/pretest/result': typeof PretestResultRoute
+  '/quick/quiz': typeof ShellQuickQuizRoute
   '/quick/swipe': typeof ShellQuickSwipeRoute
   '/scenarios/$scenarioId': typeof ShellScenariosScenarioIdRoute
   '/game/$sessionId/result': typeof GameSessionIdResultRoute
@@ -165,6 +172,7 @@ export interface FileRoutesByTo {
   '/me': typeof ShellMeRoute
   '/game/$sessionId': typeof GameSessionIdRouteWithChildren
   '/pretest/result': typeof PretestResultRoute
+  '/quick/quiz': typeof ShellQuickQuizRoute
   '/quick/swipe': typeof ShellQuickSwipeRoute
   '/scenarios/$scenarioId': typeof ShellScenariosScenarioIdRoute
   '/game/$sessionId/result': typeof GameSessionIdResultRoute
@@ -188,6 +196,7 @@ export interface FileRoutesById {
   '/game/$sessionId': typeof GameSessionIdRouteWithChildren
   '/pretest/result': typeof PretestResultRoute
   '/_shell/': typeof ShellIndexRoute
+  '/_shell/quick/quiz': typeof ShellQuickQuizRoute
   '/_shell/quick/swipe': typeof ShellQuickSwipeRoute
   '/_shell/scenarios/$scenarioId': typeof ShellScenariosScenarioIdRoute
   '/game/$sessionId/result': typeof GameSessionIdResultRoute
@@ -210,6 +219,7 @@ export interface FileRouteTypes {
     | '/me'
     | '/game/$sessionId'
     | '/pretest/result'
+    | '/quick/quiz'
     | '/quick/swipe'
     | '/scenarios/$scenarioId'
     | '/game/$sessionId/result'
@@ -230,6 +240,7 @@ export interface FileRouteTypes {
     | '/me'
     | '/game/$sessionId'
     | '/pretest/result'
+    | '/quick/quiz'
     | '/quick/swipe'
     | '/scenarios/$scenarioId'
     | '/game/$sessionId/result'
@@ -252,6 +263,7 @@ export interface FileRouteTypes {
     | '/game/$sessionId'
     | '/pretest/result'
     | '/_shell/'
+    | '/_shell/quick/quiz'
     | '/_shell/quick/swipe'
     | '/_shell/scenarios/$scenarioId'
     | '/game/$sessionId/result'
@@ -411,6 +423,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ShellQuickSwipeRouteImport
       parentRoute: typeof ShellRoute
     }
+    '/_shell/quick/quiz': {
+      id: '/_shell/quick/quiz'
+      path: '/quick/quiz'
+      fullPath: '/quick/quiz'
+      preLoaderRoute: typeof ShellQuickQuizRouteImport
+      parentRoute: typeof ShellRoute
+    }
   }
 }
 
@@ -435,6 +454,7 @@ interface ShellRouteChildren {
   ShellAssetsRoute: typeof ShellAssetsRoute
   ShellMeRoute: typeof ShellMeRoute
   ShellIndexRoute: typeof ShellIndexRoute
+  ShellQuickQuizRoute: typeof ShellQuickQuizRoute
   ShellQuickSwipeRoute: typeof ShellQuickSwipeRoute
   ShellScenariosScenarioIdRoute: typeof ShellScenariosScenarioIdRoute
   ShellScenariosIndexRoute: typeof ShellScenariosIndexRoute
@@ -444,6 +464,7 @@ const ShellRouteChildren: ShellRouteChildren = {
   ShellAssetsRoute: ShellAssetsRoute,
   ShellMeRoute: ShellMeRoute,
   ShellIndexRoute: ShellIndexRoute,
+  ShellQuickQuizRoute: ShellQuickQuizRoute,
   ShellQuickSwipeRoute: ShellQuickSwipeRoute,
   ShellScenariosScenarioIdRoute: ShellScenariosScenarioIdRoute,
   ShellScenariosIndexRoute: ShellScenariosIndexRoute,
