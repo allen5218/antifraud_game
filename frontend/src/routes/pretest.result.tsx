@@ -1,6 +1,5 @@
 import { createFileRoute, redirect, useNavigate } from "@tanstack/react-router"
 import { motion } from "framer-motion"
-import { useState } from "react"
 import {
   PolarAngleAxis,
   PolarGrid,
@@ -10,7 +9,6 @@ import {
   ResponsiveContainer,
 } from "recharts"
 
-import { GameService } from "@/client"
 import { isLoggedIn } from "@/hooks/useAuth"
 
 export const Route = createFileRoute("/pretest/result")({
@@ -46,7 +44,6 @@ interface PretestResult {
 
 function PretestResultPage() {
   const navigate = useNavigate()
-  const [starting, setStarting] = useState(false)
 
   // 從 sessionStorage 讀取前測結果
   const stored = sessionStorage.getItem("pretestResult")
@@ -86,17 +83,8 @@ function PretestResultPage() {
     0,
   )
 
-  const handleStartGame = async () => {
-    setStarting(true)
-    try {
-      const data: any = await GameService.startGame({
-        requestBody: { fraud_type: result.weakest_type },
-      })
-      sessionStorage.removeItem("pretestResult")
-      navigate({ to: `/game/${data.session_id}` as string })
-    } catch {
-      setStarting(false)
-    }
+  const handleStartGame = () => {
+    navigate({ to: "/quick/quiz" })
   }
 
   return (
@@ -160,10 +148,9 @@ function PretestResultPage() {
       <button
         type="button"
         onClick={handleStartGame}
-        disabled={starting}
         className="w-full max-w-xs rounded-xl bg-primary px-8 py-4 text-lg font-bold text-primary-foreground transition-transform hover:scale-[1.02] active:scale-[0.98] disabled:opacity-60"
       >
-        {starting ? "建立遊戲中..." : "開始遊戲訓練"}
+        開始題組訓練
       </button>
     </div>
   )

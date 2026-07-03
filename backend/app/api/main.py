@@ -2,7 +2,6 @@ from fastapi import APIRouter
 
 from app.api.routes import (
     economy,
-    game,
     items,
     login,
     mascot,
@@ -22,7 +21,6 @@ api_router.include_router(users.router)
 api_router.include_router(utils.router)
 api_router.include_router(items.router)
 api_router.include_router(pretest.router)
-api_router.include_router(game.router)
 api_router.include_router(score.router)
 api_router.include_router(mascot.router)
 api_router.include_router(economy.router)

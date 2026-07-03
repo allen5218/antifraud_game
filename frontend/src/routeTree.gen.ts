@@ -18,7 +18,6 @@ import { Route as ShellRouteImport } from './routes/_shell'
 import { Route as LayoutRouteImport } from './routes/_layout'
 import { Route as ShellIndexRouteImport } from './routes/_shell/index'
 import { Route as PretestResultRouteImport } from './routes/pretest.result'
-import { Route as GameSessionIdRouteImport } from './routes/game.$sessionId'
 import { Route as ShellMeRouteImport } from './routes/_shell/me'
 import { Route as ShellAssetsRouteImport } from './routes/_shell/assets'
 import { Route as LayoutSettingsRouteImport } from './routes/_layout/settings'
@@ -26,7 +25,6 @@ import { Route as LayoutMascotRouteImport } from './routes/_layout/mascot'
 import { Route as LayoutItemsRouteImport } from './routes/_layout/items'
 import { Route as LayoutAdminRouteImport } from './routes/_layout/admin'
 import { Route as ShellScenariosIndexRouteImport } from './routes/_shell/scenarios/index'
-import { Route as GameSessionIdResultRouteImport } from './routes/game.$sessionId.result'
 import { Route as ShellScenariosScenarioIdRouteImport } from './routes/_shell/scenarios/$scenarioId'
 import { Route as ShellQuickSwipeRouteImport } from './routes/_shell/quick/swipe'
 import { Route as ShellQuickQuizRouteImport } from './routes/_shell/quick/quiz'
@@ -74,11 +72,6 @@ const PretestResultRoute = PretestResultRouteImport.update({
   path: '/result',
   getParentRoute: () => PretestRoute,
 } as any)
-const GameSessionIdRoute = GameSessionIdRouteImport.update({
-  id: '/game/$sessionId',
-  path: '/game/$sessionId',
-  getParentRoute: () => rootRouteImport,
-} as any)
 const ShellMeRoute = ShellMeRouteImport.update({
   id: '/me',
   path: '/me',
@@ -114,11 +107,6 @@ const ShellScenariosIndexRoute = ShellScenariosIndexRouteImport.update({
   path: '/scenarios/',
   getParentRoute: () => ShellRoute,
 } as any)
-const GameSessionIdResultRoute = GameSessionIdResultRouteImport.update({
-  id: '/result',
-  path: '/result',
-  getParentRoute: () => GameSessionIdRoute,
-} as any)
 const ShellScenariosScenarioIdRoute =
   ShellScenariosScenarioIdRouteImport.update({
     id: '/scenarios/$scenarioId',
@@ -149,12 +137,10 @@ export interface FileRoutesByFullPath {
   '/settings': typeof LayoutSettingsRoute
   '/assets': typeof ShellAssetsRoute
   '/me': typeof ShellMeRoute
-  '/game/$sessionId': typeof GameSessionIdRouteWithChildren
   '/pretest/result': typeof PretestResultRoute
   '/quick/quiz': typeof ShellQuickQuizRoute
   '/quick/swipe': typeof ShellQuickSwipeRoute
   '/scenarios/$scenarioId': typeof ShellScenariosScenarioIdRoute
-  '/game/$sessionId/result': typeof GameSessionIdResultRoute
   '/scenarios/': typeof ShellScenariosIndexRoute
 }
 export interface FileRoutesByTo {
@@ -170,12 +156,10 @@ export interface FileRoutesByTo {
   '/settings': typeof LayoutSettingsRoute
   '/assets': typeof ShellAssetsRoute
   '/me': typeof ShellMeRoute
-  '/game/$sessionId': typeof GameSessionIdRouteWithChildren
   '/pretest/result': typeof PretestResultRoute
   '/quick/quiz': typeof ShellQuickQuizRoute
   '/quick/swipe': typeof ShellQuickSwipeRoute
   '/scenarios/$scenarioId': typeof ShellScenariosScenarioIdRoute
-  '/game/$sessionId/result': typeof GameSessionIdResultRoute
   '/scenarios': typeof ShellScenariosIndexRoute
 }
 export interface FileRoutesById {
@@ -193,13 +177,11 @@ export interface FileRoutesById {
   '/_layout/settings': typeof LayoutSettingsRoute
   '/_shell/assets': typeof ShellAssetsRoute
   '/_shell/me': typeof ShellMeRoute
-  '/game/$sessionId': typeof GameSessionIdRouteWithChildren
   '/pretest/result': typeof PretestResultRoute
   '/_shell/': typeof ShellIndexRoute
   '/_shell/quick/quiz': typeof ShellQuickQuizRoute
   '/_shell/quick/swipe': typeof ShellQuickSwipeRoute
   '/_shell/scenarios/$scenarioId': typeof ShellScenariosScenarioIdRoute
-  '/game/$sessionId/result': typeof GameSessionIdResultRoute
   '/_shell/scenarios/': typeof ShellScenariosIndexRoute
 }
 export interface FileRouteTypes {
@@ -217,12 +199,10 @@ export interface FileRouteTypes {
     | '/settings'
     | '/assets'
     | '/me'
-    | '/game/$sessionId'
     | '/pretest/result'
     | '/quick/quiz'
     | '/quick/swipe'
     | '/scenarios/$scenarioId'
-    | '/game/$sessionId/result'
     | '/scenarios/'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -238,12 +218,10 @@ export interface FileRouteTypes {
     | '/settings'
     | '/assets'
     | '/me'
-    | '/game/$sessionId'
     | '/pretest/result'
     | '/quick/quiz'
     | '/quick/swipe'
     | '/scenarios/$scenarioId'
-    | '/game/$sessionId/result'
     | '/scenarios'
   id:
     | '__root__'
@@ -260,13 +238,11 @@ export interface FileRouteTypes {
     | '/_layout/settings'
     | '/_shell/assets'
     | '/_shell/me'
-    | '/game/$sessionId'
     | '/pretest/result'
     | '/_shell/'
     | '/_shell/quick/quiz'
     | '/_shell/quick/swipe'
     | '/_shell/scenarios/$scenarioId'
-    | '/game/$sessionId/result'
     | '/_shell/scenarios/'
   fileRoutesById: FileRoutesById
 }
@@ -278,7 +254,6 @@ export interface RootRouteChildren {
   RecoverPasswordRoute: typeof RecoverPasswordRoute
   ResetPasswordRoute: typeof ResetPasswordRoute
   SignupRoute: typeof SignupRoute
-  GameSessionIdRoute: typeof GameSessionIdRouteWithChildren
 }
 
 declare module '@tanstack/react-router' {
@@ -346,13 +321,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof PretestResultRouteImport
       parentRoute: typeof PretestRoute
     }
-    '/game/$sessionId': {
-      id: '/game/$sessionId'
-      path: '/game/$sessionId'
-      fullPath: '/game/$sessionId'
-      preLoaderRoute: typeof GameSessionIdRouteImport
-      parentRoute: typeof rootRouteImport
-    }
     '/_shell/me': {
       id: '/_shell/me'
       path: '/me'
@@ -401,13 +369,6 @@ declare module '@tanstack/react-router' {
       fullPath: '/scenarios/'
       preLoaderRoute: typeof ShellScenariosIndexRouteImport
       parentRoute: typeof ShellRoute
-    }
-    '/game/$sessionId/result': {
-      id: '/game/$sessionId/result'
-      path: '/result'
-      fullPath: '/game/$sessionId/result'
-      preLoaderRoute: typeof GameSessionIdResultRouteImport
-      parentRoute: typeof GameSessionIdRoute
     }
     '/_shell/scenarios/$scenarioId': {
       id: '/_shell/scenarios/$scenarioId'
@@ -483,18 +444,6 @@ const PretestRouteChildren: PretestRouteChildren = {
 const PretestRouteWithChildren =
   PretestRoute._addFileChildren(PretestRouteChildren)
 
-interface GameSessionIdRouteChildren {
-  GameSessionIdResultRoute: typeof GameSessionIdResultRoute
-}
-
-const GameSessionIdRouteChildren: GameSessionIdRouteChildren = {
-  GameSessionIdResultRoute: GameSessionIdResultRoute,
-}
-
-const GameSessionIdRouteWithChildren = GameSessionIdRoute._addFileChildren(
-  GameSessionIdRouteChildren,
-)
-
 const rootRouteChildren: RootRouteChildren = {
   LayoutRoute: LayoutRouteWithChildren,
   ShellRoute: ShellRouteWithChildren,
@@ -503,7 +452,6 @@ const rootRouteChildren: RootRouteChildren = {
   RecoverPasswordRoute: RecoverPasswordRoute,
   ResetPasswordRoute: ResetPasswordRoute,
   SignupRoute: SignupRoute,
-  GameSessionIdRoute: GameSessionIdRouteWithChildren,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

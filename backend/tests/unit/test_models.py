@@ -2,9 +2,6 @@ import uuid
 
 from app.models import (
     FraudType,
-    GameAnswer,
-    GameSession,
-    GameStatus,
     MascotItem,
     PretestQuestion,
     PretestResult,
@@ -19,11 +16,6 @@ def test_fraud_type_enum():
     assert FraudType.FAKE_SALE == "fake-sale"
     assert FraudType.ROMANCE == "romance"
     assert FraudType.ATM == "atm"
-
-
-def test_game_status_enum():
-    assert GameStatus.IN_PROGRESS == "in_progress"
-    assert GameStatus.COMPLETED == "completed"
 
 
 def test_pretest_question_creation():
@@ -51,36 +43,6 @@ def test_pretest_result_creation():
     )
     assert r.is_correct is True
     assert r.fraud_type == "shopping"
-
-
-def test_game_session_defaults():
-    session = GameSession(
-        user_id=uuid.uuid4(),
-        fraud_type=FraudType.INVESTMENT,
-    )
-    assert session.status == GameStatus.IN_PROGRESS
-    assert session.current_step == 0
-    assert session.total_correct == 0
-    assert session.total_wrong == 0
-    assert session.score == 0
-    assert session.max_steps == 10
-
-
-def test_game_answer_creation():
-    answer = GameAnswer(
-        session_id=uuid.uuid4(),
-        step=1,
-        question_type="scenario",
-        question_text="測試題目",
-        options=[{"key": "A", "text": "選項 A"}],
-        selected_option="A",
-        correct_option="A",
-        is_correct=True,
-        ai_explanation="解說",
-        weakness_tag="greed",
-    )
-    assert answer.is_correct is True
-    assert answer.weakness_tag == "greed"
 
 
 def test_user_score_defaults():
