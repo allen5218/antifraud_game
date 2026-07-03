@@ -159,11 +159,6 @@ class FraudType(str, enum.Enum):
     ATM = "atm"
 
 
-class GameStatus(str, enum.Enum):
-    IN_PROGRESS = "in_progress"
-    COMPLETED = "completed"
-
-
 class PretestQuestion(SQLModel, table=True):
     __tablename__ = "pretest_question"
 
@@ -196,61 +191,6 @@ class PretestResult(SQLModel, table=True):
         default_factory=get_datetime_utc,
         sa_type=DateTime(timezone=True),  # type: ignore
     )
-
-
-class GameSession(SQLModel, table=True):
-    __tablename__ = "game_session"
-
-    id: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True)
-    user_id: uuid.UUID = Field(
-        foreign_key="user.id", nullable=False, ondelete="CASCADE"
-    )
-    fraud_type: str = Field(max_length=32, index=True)
-    status: str = Field(default=GameStatus.IN_PROGRESS, max_length=16)
-    current_step: int = Field(default=0)
-    total_correct: int = Field(default=0)
-    total_wrong: int = Field(default=0)
-    score: int = Field(default=0)
-    max_steps: int = Field(default=10)
-    conversation_history: list[dict] = Field(  # type: ignore
-        default=[], sa_column=Column(JSONB, nullable=False, server_default="[]")
-    )
-    created_at: datetime | None = Field(
-        default_factory=get_datetime_utc,
-        sa_type=DateTime(timezone=True),  # type: ignore
-    )
-    completed_at: datetime | None = Field(
-        default=None,
-        sa_type=DateTime(timezone=True),  # type: ignore
-    )
-
-    answers: list["GameAnswer"] = Relationship(
-        back_populates="session", cascade_delete=True
-    )
-
-
-class GameAnswer(SQLModel, table=True):
-    __tablename__ = "game_answer"
-
-    id: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True)
-    session_id: uuid.UUID = Field(
-        foreign_key="game_session.id", nullable=False, ondelete="CASCADE"
-    )
-    step: int
-    question_type: str = Field(max_length=16)
-    question_text: str = ""
-    options: list[dict] = Field(default=[], sa_column=Column(JSONB, nullable=False))  # type: ignore
-    selected_option: str = Field(max_length=4)
-    correct_option: str = Field(max_length=4)
-    is_correct: bool = False
-    ai_explanation: str = ""
-    weakness_tag: str | None = Field(default=None, max_length=32)
-    created_at: datetime | None = Field(
-        default_factory=get_datetime_utc,
-        sa_type=DateTime(timezone=True),  # type: ignore
-    )
-
-    session: GameSession | None = Relationship(back_populates="answers")
 
 
 class UserScore(SQLModel, table=True):
