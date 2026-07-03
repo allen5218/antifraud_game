@@ -260,3 +260,49 @@ class ScenarioDetail(BaseModel):
     player_turns: int
     max_turns: int
     history: list[dict[str, Any]]
+
+
+# ── Quiz(題組:判斷+紅旗揭曉)─────────────────────────────
+
+
+class QuizCasePublic(BaseModel):
+    id: int
+    fraud_type: str
+    title: str
+    narrative: str
+    difficulty: int
+
+
+class QuizAnswerRequest(BaseModel):
+    case_id: int
+    guess_is_scam: bool
+
+
+class QuizRedFlag(BaseModel):
+    tag: str | None
+    text: str
+
+
+class QuizAnswerResponse(BaseModel):
+    correct: bool
+    is_scam: bool
+    red_flags: list[QuizRedFlag]
+    provenance: str
+
+
+class QuizAnswerItem(BaseModel):
+    case_id: int
+    guess_is_scam: bool
+
+
+class QuizCompleteRequest(BaseModel):
+    answers: list[QuizAnswerItem]
+
+
+class QuizCompleteResponse(BaseModel):
+    correct_count: int
+    total: int
+    best_streak: int
+    cash_earned: int
+    xp_earned: int
+    weakness_summary: list[WeaknessSummaryItem]

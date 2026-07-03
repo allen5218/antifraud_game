@@ -3,7 +3,7 @@
 import type { CancelablePromise } from './core/CancelablePromise';
 import { OpenAPI } from './core/OpenAPI';
 import { request as __request } from './core/request';
-import type { EconomyReadMeResponse, EconomyPostSettleResponse, EconomyClaimResponse, EconomyListPropertiesResponse, EconomyBuyPropertyData, EconomyBuyPropertyResponse, EconomyGetAssetsResponse, EconomyPostLiquidateData, EconomyPostLiquidateResponse, GameStartGameData, GameStartGameResponse, GameSubmitAnswerData, GameSubmitAnswerResponse, GameGetGameSessionData, GameGetGameSessionResponse, ItemsReadItemsData, ItemsReadItemsResponse, ItemsCreateItemData, ItemsCreateItemResponse, ItemsReadItemData, ItemsReadItemResponse, ItemsUpdateItemData, ItemsUpdateItemResponse, ItemsDeleteItemData, ItemsDeleteItemResponse, LoginLoginAccessTokenData, LoginLoginAccessTokenResponse, LoginTestTokenResponse, LoginRecoverPasswordData, LoginRecoverPasswordResponse, LoginResetPasswordData, LoginResetPasswordResponse, LoginRecoverPasswordHtmlContentData, LoginRecoverPasswordHtmlContentResponse, MascotListMascotItemsResponse, MascotPurchaseItemData, MascotPurchaseItemResponse, MascotToggleEquipData, MascotToggleEquipResponse, MascotGetMyMascotResponse, PretestGetPretestQuestionsResponse, PretestSubmitPretestData, PretestSubmitPretestResponse, PrivateCreateUserData, PrivateCreateUserResponse, QuickSwipeDeckData, QuickSwipeDeckResponse, QuickSwipeAnswerData, QuickSwipeAnswerResponse, QuickSwipeCompleteData, QuickSwipeCompleteResponse, ScenarioInboxResponse, ScenarioCreateScenarioData, ScenarioCreateScenarioResponse, ScenarioReadScenarioData, ScenarioReadScenarioResponse, ScenarioSendMessageData, ScenarioSendMessageResponse, ScenarioJudgeScenarioData, ScenarioJudgeScenarioResponse, ScoreGetMyScoreResponse, UsersReadUsersData, UsersReadUsersResponse, UsersCreateUserData, UsersCreateUserResponse, UsersReadUserMeResponse, UsersDeleteUserMeResponse, UsersUpdateUserMeData, UsersUpdateUserMeResponse, UsersUpdatePasswordMeData, UsersUpdatePasswordMeResponse, UsersRegisterUserData, UsersRegisterUserResponse, UsersReadUserByIdData, UsersReadUserByIdResponse, UsersUpdateUserData, UsersUpdateUserResponse, UsersDeleteUserData, UsersDeleteUserResponse, UtilsTestEmailData, UtilsTestEmailResponse, UtilsHealthCheckResponse } from './types.gen';
+import type { EconomyReadMeResponse, EconomyPostSettleResponse, EconomyClaimResponse, EconomyListPropertiesResponse, EconomyBuyPropertyData, EconomyBuyPropertyResponse, EconomyGetAssetsResponse, EconomyPostLiquidateData, EconomyPostLiquidateResponse, GameStartGameData, GameStartGameResponse, GameSubmitAnswerData, GameSubmitAnswerResponse, GameGetGameSessionData, GameGetGameSessionResponse, ItemsReadItemsData, ItemsReadItemsResponse, ItemsCreateItemData, ItemsCreateItemResponse, ItemsReadItemData, ItemsReadItemResponse, ItemsUpdateItemData, ItemsUpdateItemResponse, ItemsDeleteItemData, ItemsDeleteItemResponse, LoginLoginAccessTokenData, LoginLoginAccessTokenResponse, LoginTestTokenResponse, LoginRecoverPasswordData, LoginRecoverPasswordResponse, LoginResetPasswordData, LoginResetPasswordResponse, LoginRecoverPasswordHtmlContentData, LoginRecoverPasswordHtmlContentResponse, MascotListMascotItemsResponse, MascotPurchaseItemData, MascotPurchaseItemResponse, MascotToggleEquipData, MascotToggleEquipResponse, MascotGetMyMascotResponse, PretestGetPretestQuestionsResponse, PretestSubmitPretestData, PretestSubmitPretestResponse, PrivateCreateUserData, PrivateCreateUserResponse, QuickSwipeDeckData, QuickSwipeDeckResponse, QuickSwipeAnswerData, QuickSwipeAnswerResponse, QuickSwipeCompleteData, QuickSwipeCompleteResponse, QuickQuizDeckData, QuickQuizDeckResponse, QuickQuizAnswerData, QuickQuizAnswerResponse, QuickQuizCompleteData, QuickQuizCompleteResponse, ScenarioInboxResponse, ScenarioCreateScenarioData, ScenarioCreateScenarioResponse, ScenarioReadScenarioData, ScenarioReadScenarioResponse, ScenarioSendMessageData, ScenarioSendMessageResponse, ScenarioJudgeScenarioData, ScenarioJudgeScenarioResponse, ScoreGetMyScoreResponse, UsersReadUsersData, UsersReadUsersResponse, UsersCreateUserData, UsersCreateUserResponse, UsersReadUserMeResponse, UsersDeleteUserMeResponse, UsersUpdateUserMeData, UsersUpdateUserMeResponse, UsersUpdatePasswordMeData, UsersUpdatePasswordMeResponse, UsersRegisterUserData, UsersRegisterUserResponse, UsersReadUserByIdData, UsersReadUserByIdResponse, UsersUpdateUserData, UsersUpdateUserResponse, UsersDeleteUserData, UsersDeleteUserResponse, UtilsTestEmailData, UtilsTestEmailResponse, UtilsHealthCheckResponse } from './types.gen';
 
 export class EconomyService {
     /**
@@ -566,6 +566,64 @@ export class QuickService {
         return __request(OpenAPI, {
             method: 'POST',
             url: '/api/v1/quick/swipe/complete',
+            body: data.requestBody,
+            mediaType: 'application/json',
+            errors: {
+                422: 'Validation Error'
+            }
+        });
+    }
+    
+    /**
+     * Quiz Deck
+     * @param data The data for the request.
+     * @param data.size
+     * @returns QuizCasePublic Successful Response
+     * @throws ApiError
+     */
+    public static quizDeck(data: QuickQuizDeckData = {}): CancelablePromise<QuickQuizDeckResponse> {
+        return __request(OpenAPI, {
+            method: 'GET',
+            url: '/api/v1/quick/quiz/deck',
+            query: {
+                size: data.size
+            },
+            errors: {
+                422: 'Validation Error'
+            }
+        });
+    }
+    
+    /**
+     * Quiz Answer
+     * @param data The data for the request.
+     * @param data.requestBody
+     * @returns QuizAnswerResponse Successful Response
+     * @throws ApiError
+     */
+    public static quizAnswer(data: QuickQuizAnswerData): CancelablePromise<QuickQuizAnswerResponse> {
+        return __request(OpenAPI, {
+            method: 'POST',
+            url: '/api/v1/quick/quiz/answer',
+            body: data.requestBody,
+            mediaType: 'application/json',
+            errors: {
+                422: 'Validation Error'
+            }
+        });
+    }
+    
+    /**
+     * Quiz Complete
+     * @param data The data for the request.
+     * @param data.requestBody
+     * @returns QuizCompleteResponse Successful Response
+     * @throws ApiError
+     */
+    public static quizComplete(data: QuickQuizCompleteData): CancelablePromise<QuickQuizCompleteResponse> {
+        return __request(OpenAPI, {
+            method: 'POST',
+            url: '/api/v1/quick/quiz/complete',
             body: data.requestBody,
             mediaType: 'application/json',
             errors: {
