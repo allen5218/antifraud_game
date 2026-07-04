@@ -46,6 +46,10 @@ dist/
 # 開發過程文件(spec/plan/交接/技術債)不進公開版控
 docs/superpowers/
 
+# 自托管 Supabase 密鑰與取得的官方 stack 不進版控(只追蹤 README + .env.example)
+deploy/**/.env
+deploy/supabase/stack/
+
 # data_pipeline(爬蟲產物與憑證不進版控)
 data_pipeline/.env
 data_pipeline/.playwright-cli/
