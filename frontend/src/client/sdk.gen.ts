@@ -511,7 +511,7 @@ export class QuickService {
      * Quiz Deck
      * @param data The data for the request.
      * @param data.size
-     * @returns QuizCasePublic Successful Response
+     * @returns QuizDeckResponse Successful Response
      * @throws ApiError
      */
     public static quizDeck(data: QuickQuizDeckData = {}): CancelablePromise<QuickQuizDeckResponse> {

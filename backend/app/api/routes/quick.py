@@ -1,4 +1,5 @@
 import uuid
+from datetime import datetime, timezone
 from typing import Any
 
 from fastapi import APIRouter, HTTPException
@@ -7,7 +8,7 @@ from sqlmodel import col, func, select
 from app.api.deps import CurrentUser, SessionDep
 from app.core.cases import get_case, list_published
 from app.economy.service import add_xp, adjust_cash
-from app.models import SwipeCard
+from app.models import QuizSession, SwipeCard
 from app.schemas import (
     QuizAnswerItem,
     QuizAnswerRequest,
@@ -15,6 +16,7 @@ from app.schemas import (
     QuizCasePublic,
     QuizCompleteRequest,
     QuizCompleteResponse,
+    QuizDeckResponse,
     QuizRedFlag,
     SwipeAnswerItem,
     SwipeAnswerRequest,
@@ -141,21 +143,28 @@ def _quiz_reward(correct_count: int, best_streak: int) -> tuple[int, int]:
     return cash, xp
 
 
-@router.get("/quiz/deck", response_model=list[QuizCasePublic])
+@router.get("/quiz/deck", response_model=QuizDeckResponse)
 def quiz_deck(session: SessionDep, current_user: CurrentUser, size: int = 5) -> Any:
-    _ = current_user
     size = max(1, min(size, 10))
     cases = list_published(session, limit=size)
-    return [
-        QuizCasePublic(
-            id=c.id,
-            fraud_type=c.fraud_type,
-            title=c.title,
-            narrative=c.narrative,
-            difficulty=c.difficulty,
-        )
-        for c in cases
-    ]
+    # 建立一次性結算 token,鎖定發出的 case_ids(結算時只認這批)
+    quiz = QuizSession(user_id=current_user.id, case_ids=[c.id for c in cases])
+    session.add(quiz)
+    session.commit()
+    session.refresh(quiz)
+    return QuizDeckResponse(
+        session_id=str(quiz.id),
+        cases=[
+            QuizCasePublic(
+                id=c.id,
+                fraud_type=c.fraud_type,
+                title=c.title,
+                narrative=c.narrative,
+                difficulty=c.difficulty,
+            )
+            for c in cases
+        ],
+    )
 
 
 @router.post("/quiz/answer", response_model=QuizAnswerResponse)
@@ -184,10 +193,25 @@ def quiz_complete(
     if not payload.answers:
         raise HTTPException(400, {"code": "empty_answers"})
 
+    # 驗證一次性結算 token:必須存在、屬於本人、且尚未結算(防跨請求重放刷獎)
+    try:
+        sid = uuid.UUID(payload.session_id)
+    except ValueError:
+        raise HTTPException(404, {"code": "quiz_session_not_found"}) from None
+    quiz = session.get(QuizSession, sid)
+    if quiz is None:
+        raise HTTPException(404, {"code": "quiz_session_not_found"})
+    if quiz.user_id != current_user.id:
+        raise HTTPException(403, {"code": "not_your_quiz_session"})
+    if quiz.completed:
+        raise HTTPException(400, {"code": "quiz_already_completed"})
+
+    # server-authoritative:只認發牌時鎖定的 case_ids;去重、上限
+    dealt = set(quiz.case_ids)
     seen: set[int] = set()
     deduped: list[QuizAnswerItem] = []
     for a in payload.answers:
-        if a.case_id in seen:
+        if a.case_id not in dealt or a.case_id in seen:
             continue
         seen.add(a.case_id)
         deduped.append(a)
@@ -195,6 +219,7 @@ def quiz_complete(
             break
 
     correct_count = 0
+    total = 0
     best_streak = 0
     streak = 0
     weakness: dict[str, int] = {}
@@ -202,6 +227,7 @@ def quiz_complete(
         case = get_case(session, a.case_id)
         if case is None:
             continue
+        total += 1
         if a.guess_is_scam == case.is_scam:
             correct_count += 1
             streak += 1
@@ -217,7 +243,11 @@ def quiz_complete(
     cash, xp = _quiz_reward(correct_count, best_streak)
     adjust_cash(current_user, cash, reason="quiz_reward")
     add_xp(current_user, xp, reason="quiz_reward")
+    # 標記已結算與加獎同一 commit 原子化——不會有「已發獎但可重放」的中間態
+    quiz.completed = True
+    quiz.completed_at = datetime.now(timezone.utc)
     session.add(current_user)
+    session.add(quiz)
     session.commit()
 
     summary = [
@@ -226,7 +256,7 @@ def quiz_complete(
     ]
     return QuizCompleteResponse(
         correct_count=correct_count,
-        total=len(deduped),
+        total=total,
         best_streak=best_streak,
         cash_earned=cash,
         xp_earned=xp,

@@ -621,6 +621,10 @@ export const QuizCasePublicSchema = {
 
 export const QuizCompleteRequestSchema = {
     properties: {
+        session_id: {
+            type: 'string',
+            title: 'Session Id'
+        },
         answers: {
             items: {
                 '$ref': '#/components/schemas/QuizAnswerItem'
@@ -630,7 +634,7 @@ export const QuizCompleteRequestSchema = {
         }
     },
     type: 'object',
-    required: ['answers'],
+    required: ['session_id', 'answers'],
     title: 'QuizCompleteRequest'
 } as const;
 
@@ -667,6 +671,25 @@ export const QuizCompleteResponseSchema = {
     type: 'object',
     required: ['correct_count', 'total', 'best_streak', 'cash_earned', 'xp_earned', 'weakness_summary'],
     title: 'QuizCompleteResponse'
+} as const;
+
+export const QuizDeckResponseSchema = {
+    properties: {
+        session_id: {
+            type: 'string',
+            title: 'Session Id'
+        },
+        cases: {
+            items: {
+                '$ref': '#/components/schemas/QuizCasePublic'
+            },
+            type: 'array',
+            title: 'Cases'
+        }
+    },
+    type: 'object',
+    required: ['session_id', 'cases'],
+    title: 'QuizDeckResponse'
 } as const;
 
 export const QuizRedFlagSchema = {

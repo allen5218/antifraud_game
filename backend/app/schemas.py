@@ -207,6 +207,12 @@ class QuizCasePublic(BaseModel):
     difficulty: int
 
 
+class QuizDeckResponse(BaseModel):
+    # 一次性結算 token:結算 /quiz/complete 時必須回傳,防跨請求重放刷獎
+    session_id: str
+    cases: list[QuizCasePublic]
+
+
 class QuizAnswerRequest(BaseModel):
     case_id: int
     guess_is_scam: bool
@@ -230,6 +236,7 @@ class QuizAnswerItem(BaseModel):
 
 
 class QuizCompleteRequest(BaseModel):
+    session_id: str
     answers: list[QuizAnswerItem]
 
 

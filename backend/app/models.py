@@ -334,3 +334,31 @@ class ScenarioSession(SQLModel, table=True):
         default=None,
         sa_type=DateTime(timezone=True),  # type: ignore
     )
+
+
+class QuizSession(SQLModel, table=True):
+    """D 題組的一次性結算 token:發牌時建立、結算時標記 completed。
+
+    防跨請求重放刷獎——同一 session 只能結算一次;結算只認發牌時鎖定的
+    case_ids(server-authoritative,客戶端無法夾帶未發出的卡)。
+    """
+
+    __tablename__ = "quiz_session"
+
+    id: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True)
+    user_id: uuid.UUID = Field(
+        foreign_key="user.id", nullable=False, ondelete="CASCADE", index=True
+    )
+    # 發牌時鎖定的 game_cases id(管線表,無 FK 約束——跨管理域引用)
+    case_ids: list[int] = Field(
+        default=[], sa_column=Column(JSONB, nullable=False, server_default="[]")
+    )
+    completed: bool = Field(default=False)
+    created_at: datetime | None = Field(
+        default_factory=get_datetime_utc,
+        sa_type=DateTime(timezone=True),  # type: ignore
+    )
+    completed_at: datetime | None = Field(
+        default=None,
+        sa_type=DateTime(timezone=True),  # type: ignore
+    )

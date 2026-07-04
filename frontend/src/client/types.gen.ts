@@ -158,6 +158,7 @@ export type QuizCasePublic = {
 };
 
 export type QuizCompleteRequest = {
+    session_id: string;
     answers: Array<QuizAnswerItem>;
 };
 
@@ -168,6 +169,11 @@ export type QuizCompleteResponse = {
     cash_earned: number;
     xp_earned: number;
     weakness_summary: Array<WeaknessSummaryItem>;
+};
+
+export type QuizDeckResponse = {
+    session_id: string;
+    cases: Array<QuizCasePublic>;
 };
 
 export type QuizRedFlag = {
@@ -468,7 +474,7 @@ export type QuickQuizDeckData = {
     size?: number;
 };
 
-export type QuickQuizDeckResponse = (Array<QuizCasePublic>);
+export type QuickQuizDeckResponse = (QuizDeckResponse);
 
 export type QuickQuizAnswerData = {
     requestBody: QuizAnswerRequest;
