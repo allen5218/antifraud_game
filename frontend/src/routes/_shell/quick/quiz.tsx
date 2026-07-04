@@ -11,7 +11,8 @@ export const Route = createFileRoute("/_shell/quick/quiz")({
 })
 
 function QuizPage() {
-  const { data: deck, isPending, refetch } = useQuizDeck()
+  const [round, setRound] = useState(0)
+  const { data: deck, isPending } = useQuizDeck(round)
   const answerM = useQuizAnswer()
   const completeM = useQuizComplete()
   const [index, setIndex] = useState(0)
@@ -41,7 +42,8 @@ function QuizPage() {
           setSummary(null)
           setAnswers([])
           setIndex(0)
-          refetch()
+          // 遞增 round → 取全新牌與 session_id,不重用已結算的舊 deck
+          setRound((r) => r + 1)
         }}
       />
     )

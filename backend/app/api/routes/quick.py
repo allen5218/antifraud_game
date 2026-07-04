@@ -193,12 +193,16 @@ def quiz_complete(
     if not payload.answers:
         raise HTTPException(400, {"code": "empty_answers"})
 
-    # 驗證一次性結算 token:必須存在、屬於本人、且尚未結算(防跨請求重放刷獎)
+    # 驗證一次性結算 token:必須存在、屬於本人、且尚未結算(防跨請求重放刷獎)。
+    # 以 SELECT ... FOR UPDATE 鎖列,讓同 session_id 的並發結算(雙擊/重試)序列化——
+    # 第二筆會阻塞到第一筆 commit(已標記 completed)後才讀到,避免 TOCTOU 雙重發獎。
     try:
         sid = uuid.UUID(payload.session_id)
     except ValueError:
         raise HTTPException(404, {"code": "quiz_session_not_found"}) from None
-    quiz = session.get(QuizSession, sid)
+    quiz = session.exec(
+        select(QuizSession).where(QuizSession.id == sid).with_for_update()
+    ).first()
     if quiz is None:
         raise HTTPException(404, {"code": "quiz_session_not_found"})
     if quiz.user_id != current_user.id:
