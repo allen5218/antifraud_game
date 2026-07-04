@@ -1,0 +1,41 @@
+# CI 專用疊層：H1 B7 退役了本機 db service（dev 統一走本機 Supabase），但 CI（test-backend /
+# playwright）仍需一個自含、可拋棄的 Postgres。此檔只在 CI 以
+#   docker compose -f compose.yml -f compose.ci.yml ...
+# （playwright 另加 -f compose.override.yml 取得 playwright/mailcatcher 服務）疊上；dev 日常不使用。
+# 用 pgvector 鏡像與自托管 Supabase（含 pgvector）對齊；app 自身 schema 無 vector，plain 亦可。
+services:
+  db:
+    image: pgvector/pgvector:pg17
+    restart: "no"
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-postgres}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-changethis}
+      POSTGRES_DB: ${POSTGRES_DB:-app}
+    ports:
+      # 供 test-backend 的 runner 端（uv run pytest）以 localhost:5432 連線
+      - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-postgres} -d ${POSTGRES_DB:-app}"]
+      interval: 5s
+      retries: 10
+      start_period: 20s
+      timeout: 5s
+
+  # 供 playwright：讓 in-compose 的 backend/prestart 以 service 名 db 連線
+  prestart:
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      - POSTGRES_SERVER=db
+      - POSTGRES_PORT=5432
+
+  backend:
+    depends_on:
+      db:
+        condition: service_healthy
+      prestart:
+        condition: service_completed_successfully
+    environment:
+      - POSTGRES_SERVER=db
+      - POSTGRES_PORT=5432

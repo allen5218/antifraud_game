@@ -43,11 +43,14 @@ services:
       - app-net
 
   cloudflared:
-    image: cloudflare/cloudflared:latest # 建議 pin 至實際 release(github.com/cloudflare/cloudflared/releases)
+    image: cloudflare/cloudflared:2025.11.1 # pin;renovate(docker-compose)會自動追新版
     command: tunnel --no-autoupdate run
     environment:
       TUNNEL_TOKEN: ${CLOUDFLARE_TUNNEL_TOKEN}
     restart: always
+    depends_on:
+      - backend
+      - frontend
     networks:
       - app-net
 

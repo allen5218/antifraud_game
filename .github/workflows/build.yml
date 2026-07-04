@@ -10,6 +10,10 @@ on:
   workflow_dispatch:
 env:
   REGISTRY: ghcr.io
+# 同一 ref 的 build 序列化,避免並行 push 競態覆蓋 latest tag(不取消進行中,讓每個完成)
+concurrency:
+  group: build-${{ github.ref }}
+  cancel-in-progress: false
 jobs:
   # 每個 image × 架構各自在原生 runner 上建置，push 成「只有 digest、沒有 tag」的 image
   build:
