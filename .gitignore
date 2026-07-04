@@ -58,8 +58,11 @@ data_pipeline/**/.DS_Store
 data_pipeline/data/*
 !data_pipeline/data/manual/
 
-# Agent / 本地工具設定(不進公開版控;root-anchored 以免誤蓋 data_pipeline/.agents G1 skill)
-/.claude/
+# Agent / 本地工具設定(不進公開版控;精確忽略本地部分,保留追蹤 .claude/skills/deploy/)
+# root-anchored 以免誤蓋 data_pipeline/.agents G1 skill
+/.claude/settings.local.json
+/.claude/worktrees/
+/.claude/skills/uv/
 /.agents/
 /.codex/
 
