@@ -10,8 +10,8 @@
 | AI 引擎 | Pydantic AI Agent · Google Gemini 3.5 Flash |
 | 前端 | React 19 · TypeScript · TanStack Router/Query |
 | UI | Tailwind CSS v4 · shadcn/ui · Framer Motion · Recharts |
-| 資料庫 | PostgreSQL 18 |
-| 部署 | Docker Compose · Traefik (反向代理 + TLS) |
+| 資料庫 | 自托管 Supabase（PostgreSQL + pgvector） |
+| 部署 | Docker Compose · Cloudflare Tunnel · GHCR 鏡像 |
 
 ## 遊戲流程
 
@@ -178,7 +178,8 @@ bash ./scripts/generate-client.sh
    |-----------|--------|---------|
    | *(空)* | your-domain.com | http://frontend:80 |
    | api | your-domain.com | http://backend:8000 |
-   | adminer | your-domain.com | http://adminer:8080 |
+
+   > `frontend` / `backend` 為 `deploy/compose.prod.yml` 內的服務名（cloudflared 與其同在 `app-net` network）。詳見 `deploy/cloudflared/README.md`。
 
 ### 2. 設定環境變數
 
@@ -196,35 +197,31 @@ GOOGLE_API_KEY=AIza-xxx
 CLOUDFLARE_TUNNEL_TOKEN=eyJhIjoixxxxx
 ```
 
-### 3. 建立正式部署用 Compose 檔案
+### 3. 起自托管 Supabase
 
-建立 `compose.prod.yml`，加入 cloudflared 服務：
+依 `deploy/supabase/README.md` 取得並啟動官方 self-host stack（Postgres + pooler），
+遊戲 backend 經共享 network `supabase_default` 連 pooler（`supavisor:5432`）。
 
-```yaml
-services:
-  cloudflared:
-    image: cloudflare/cloudflared:latest
-    restart: always
-    command: tunnel --no-autoupdate run
-    environment:
-      - TUNNEL_TOKEN=${CLOUDFLARE_TUNNEL_TOKEN}
-    depends_on:
-      - backend
-      - frontend
-```
+### 4. 啟動遊戲 compose
 
-### 4. 啟動
+正式部署用獨立的 `deploy/compose.prod.yml`（`prestart` / `backend` / `frontend` / `cloudflared`，
+拉 GHCR 鏡像、無對外 ports），由部署腳本啟動：
 
 ```bash
-docker compose -f compose.yml -f compose.prod.yml up -d
+bash deploy/scripts/deploy.sh
 ```
 
-TLS 由 Cloudflare 自動處理，不需要 Traefik 或 Let's Encrypt。
+`deploy.sh` 會 `docker compose -f deploy/compose.prod.yml --project-directory . pull && up -d`，
+`prestart` 自動跑 `alembic upgrade head`。TLS 由 Cloudflare 自動處理，不需要 Traefik 或 Let's Encrypt。
 
-### Cloudflare Access（選填）
+> 完整流程（首次設定 / 例行更新 / rollback / smoke 清單）見部署 skill `.claude/skills/deploy/SKILL.md`
+> 與 `deployment.md`。
 
-在 Zero Trust 面板為 `adminer.your-domain.com` 設定存取原則，
-限制只有特定 Email 可以存取資料庫管理介面。
+### 自架者：前端 API 域名
+
+前端的 `VITE_API_URL` 於**鏡像 build 時 baked**（非 runtime 設定）。自架時將 API 網域設在
+**GitHub repo variable `VITE_API_URL`**（Settings → Secrets and variables → Actions → Variables），
+改動後重跑 `build.yml` 重建 frontend 鏡像即可生效。
 
 ### API 費用估算
 
