@@ -3,7 +3,7 @@ name: Playwright Tests
 on:
   push:
     branches:
-    - master
+    - main
   pull_request:
     types:
     - opened
@@ -41,6 +41,23 @@ jobs:
     if: ${{ needs.changes.outputs.changed == 'true' }}
     timeout-minutes: 60
     runs-on: ubuntu-latest
+    # H1 退役本機 db 後,CI 用 compose.ci.yml 疊層起自含 pgvector postgres;
+    # COMPOSE_FILE 讓所有 docker compose 指令都疊上三個檔(compose.override 提供 playwright 服務)。
+    env:
+      COMPOSE_FILE: compose.yml:compose.override.yml:compose.ci.yml
+      DOCKER_IMAGE_BACKEND: backend
+      DOCKER_IMAGE_FRONTEND: frontend
+      DOMAIN: localhost
+      FRONTEND_HOST: http://localhost:5173
+      ENVIRONMENT: local
+      SECRET_KEY: ci-not-for-production
+      FIRST_SUPERUSER: admin@example.com
+      FIRST_SUPERUSER_PASSWORD: changethis
+      POSTGRES_SERVER: localhost
+      POSTGRES_PORT: "5432"
+      POSTGRES_DB: app
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: changethis
     strategy:
       matrix:
         shardIndex: [1, 2, 3, 4]
@@ -64,6 +81,9 @@ jobs:
     - run: bun ci
       working-directory: frontend
     - run: bash scripts/generate-client.sh
+    # compose.yml 有 env_file: .env(fresh checkout 無此檔)——建一個空的滿足 env_file
+    - name: Provide placeholder .env
+      run: touch .env
     - run: docker compose build
     - run: docker compose down -v --remove-orphans
     - name: Run Playwright tests
