@@ -45,6 +45,7 @@ jobs:
     # COMPOSE_FILE 讓所有 docker compose 指令都疊上三個檔(compose.override 提供 playwright 服務)。
     env:
       COMPOSE_FILE: compose.yml:compose.override.yml:compose.ci.yml
+      PROJECT_NAME: ci
       DOCKER_IMAGE_BACKEND: backend
       DOCKER_IMAGE_FRONTEND: frontend
       DOMAIN: localhost
@@ -53,6 +54,7 @@ jobs:
       SECRET_KEY: ci-not-for-production
       FIRST_SUPERUSER: admin@example.com
       FIRST_SUPERUSER_PASSWORD: changethis
+      EMAILS_FROM_EMAIL: noreply@example.com
       POSTGRES_SERVER: localhost
       POSTGRES_PORT: "5432"
       POSTGRES_DB: app

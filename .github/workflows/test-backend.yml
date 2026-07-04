@@ -15,6 +15,7 @@ jobs:
     # H1 退役本機 db 後,CI 用 compose.ci.yml 疊層起一個自含 pgvector postgres;
     # runner 端(uv run pytest)以 localhost:5432 連 mapped port。
     env:
+      PROJECT_NAME: ci
       DOCKER_IMAGE_BACKEND: backend
       DOCKER_IMAGE_FRONTEND: frontend
       DOMAIN: localhost
@@ -23,6 +24,8 @@ jobs:
       SECRET_KEY: ci-not-for-production
       FIRST_SUPERUSER: admin@example.com
       FIRST_SUPERUSER_PASSWORD: changethis
+      # test_recovery_password 需 emails_enabled=True(SMTP_HOST 由測試 patch;此處補 from-email)
+      EMAILS_FROM_EMAIL: noreply@example.com
       POSTGRES_SERVER: localhost
       POSTGRES_PORT: "5432"
       POSTGRES_DB: app
