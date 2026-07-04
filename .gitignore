@@ -43,6 +43,9 @@ dist/
 # Superpowers brainstorm visual companion
 .superpowers/
 
+# 開發過程文件(spec/plan/交接/技術債)不進公開版控
+docs/superpowers/
+
 # data_pipeline(爬蟲產物與憑證不進版控)
 data_pipeline/.env
 data_pipeline/.playwright-cli/
