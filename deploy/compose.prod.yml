@@ -1,0 +1,58 @@
+# 反詐騙遊戲 production 部署：拉 GHCR 預建鏡像，經 Cloudflare Tunnel 對外，連自托管 Supabase。
+services:
+  prestart:
+    image: ${DOCKER_IMAGE_BACKEND}:${TAG-latest}
+    command: bash scripts/prestart.sh
+    env_file:
+      - .env
+    environment:
+      POSTGRES_SERVER: supavisor
+      POSTGRES_PORT: 5432
+    volumes:
+      - ./backend/skills:/app/backend/skills:ro
+    networks:
+      - supabase_default
+      - app-net
+
+  backend:
+    image: ${DOCKER_IMAGE_BACKEND}:${TAG-latest}
+    restart: always
+    depends_on:
+      prestart:
+        condition: service_completed_successfully
+    env_file:
+      - .env
+    environment:
+      POSTGRES_SERVER: supavisor
+      POSTGRES_PORT: 5432
+    volumes:
+      - ./backend/skills:/app/backend/skills:ro
+    networks:
+      - supabase_default
+      - app-net
+    healthcheck:
+      test: curl -f http://localhost:8000/api/v1/utils/health-check/
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  frontend:
+    image: ${DOCKER_IMAGE_FRONTEND}:${TAG-latest}
+    restart: always
+    networks:
+      - app-net
+
+  cloudflared:
+    image: cloudflare/cloudflared:latest # 建議 pin 至實際 release(github.com/cloudflare/cloudflared/releases)
+    command: tunnel --no-autoupdate run
+    environment:
+      TUNNEL_TOKEN: ${CLOUDFLARE_TUNNEL_TOKEN}
+    restart: always
+    networks:
+      - app-net
+
+networks:
+  app-net:
+    driver: bridge
+  supabase_default:
+    external: true
