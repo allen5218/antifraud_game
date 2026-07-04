@@ -215,18 +215,38 @@ bash deploy/scripts/deploy.sh
 `prestart` 自動跑 `alembic upgrade head`。TLS 由 Cloudflare 自動處理，不需要 Traefik 或 Let's Encrypt。
 
 > 完整流程（首次設定 / 例行更新 / rollback / smoke 清單）見部署 skill `.claude/skills/deploy/SKILL.md`
-> 與 `deployment.md`。
-
-### 自架者：前端 API 域名
-
-前端的 `VITE_API_URL` 於**鏡像 build 時 baked**（非 runtime 設定）。自架時將 API 網域設在
-**GitHub repo variable `VITE_API_URL`**（Settings → Secrets and variables → Actions → Variables），
-改動後重跑 `build.yml` 重建 frontend 鏡像即可生效。
+> 與 `deployment.md`。前端 `VITE_API_URL` 的 build-time 設定見下方「CI」段。
 
 ### API 費用估算
 
 每場遊戲約 10 次 AI 呼叫，每次約 1000-2000 tokens。
 以 Gemini 3.5 Flash 計算，每場遊戲成本約 US$0.01-0.03。
+
+## CI（GitHub Actions）
+
+`.github/workflows/` 內：
+
+- **`build.yml`** — push 到 `main` 或打 `v*` tag 時，於原生 runner 各建 amd64/arm64，
+  push-by-digest 後合併成多架構 manifest，推到 GHCR：
+  - `ghcr.io/<owner>/<repo>-backend`
+  - `ghcr.io/<owner>/<repo>-frontend`（`<owner>/<repo>` = 你的 GitHub repo）
+
+  tag 為 `latest`（預設分支）+ short sha + `v*`（tag 事件）。這些鏡像即 `deploy/compose.prod.yml`
+  拉取的 `${DOCKER_IMAGE_BACKEND}` / `${DOCKER_IMAGE_FRONTEND}`。
+- **`validate.yml`** — PR 閘門：`docker compose config` 驗證 `deploy/compose.prod.yml` +
+  amd64 build（不推送）。刻意不加 paths 過濾，確保每個 PR 都回報此 required check。
+
+### 前端 API 域名（build-time baked）
+
+前端的 `VITE_API_URL` 於**鏡像 build 時 baked**進 frontend 鏡像（非 runtime 設定）。
+自架時將 API 網域設在 **GitHub repo variable `VITE_API_URL`**
+（Settings → Secrets and variables → Actions → Variables），改動後重跑 `build.yml` 重建即可生效。
+
+### Branch protection
+
+建議在 GitHub repo 設定 branch protection 的 **required checks**：`validate`、`test-backend`、
+`playwright`、`pre-commit`。Renovate 的依賴更新 PR 在全部 required check 綠燈後自動合併
+（minor / patch / digest / pin，見 `renovate.json`）。
 
 ## AI 模型設定
 
