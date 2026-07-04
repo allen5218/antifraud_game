@@ -21,12 +21,17 @@ export function useQuizAnswer() {
   })
 }
 
-/** 整輪結算(刷新經濟) */
+/** 整輪結算(刷新經濟);需帶發牌時的 session_id 防跨請求重放刷獎 */
 export function useQuizComplete() {
   const qc = useQueryClient()
   return useMutation({
-    mutationFn: (answers: { case_id: number; guess_is_scam: boolean }[]) =>
-      QuickService.quizComplete({ requestBody: { answers } }),
+    mutationFn: (vars: {
+      sessionId: string
+      answers: { case_id: number; guess_is_scam: boolean }[]
+    }) =>
+      QuickService.quizComplete({
+        requestBody: { session_id: vars.sessionId, answers: vars.answers },
+      }),
     onSuccess: () => qc.invalidateQueries({ queryKey: ["economy"] }),
   })
 }
