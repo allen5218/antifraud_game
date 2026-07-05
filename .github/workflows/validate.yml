@@ -28,7 +28,7 @@ jobs:
       # 實際建置（amd64、不推送）——抓得到 base image 等依賴更新造成的 build 破壞。
       # 重用 main 上 build.yml 的 GHA cache 以加速;arm64 仍由合併後的 build.yml 驗證。
       - name: Build backend (amd64, no push)
-        uses: docker/build-push-action@f9f3042f7e2789586610d6e8b85c8f03e5195baf # v7
+        uses: docker/build-push-action@53b7df96c91f9c12dcc8a07bcb9ccacbed38856a # v7
         with:
           context: .
           file: backend/Dockerfile
@@ -38,7 +38,7 @@ jobs:
           cache-to: type=gha,mode=max,scope=pr-validate-backend
 
       - name: Build frontend (amd64, no push)
-        uses: docker/build-push-action@f9f3042f7e2789586610d6e8b85c8f03e5195baf # v7
+        uses: docker/build-push-action@53b7df96c91f9c12dcc8a07bcb9ccacbed38856a # v7
         with:
           context: .
           file: frontend/Dockerfile
