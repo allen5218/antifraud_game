@@ -89,7 +89,10 @@ jobs:
     - run: docker compose build
     - run: docker compose down -v --remove-orphans
     - name: Run Playwright tests
-      run: docker compose run --rm playwright bunx playwright test --fail-on-flaky-tests --trace=retain-on-failure --shard=${{ matrix.shardIndex }}/${{ matrix.shardTotal }}
+      # CI 的 .env 為空（值由本 job 的 shell env 提供）；`docker compose run` 預設不帶 host env，
+      # 前端測試（frontend/tests/config.ts）在容器內讀 process.env，故以 -e 把它需要的
+      # FIRST_SUPERUSER / FIRST_SUPERUSER_PASSWORD 透傳進這一次 playwright 容器。
+      run: docker compose run --rm -e FIRST_SUPERUSER -e FIRST_SUPERUSER_PASSWORD playwright bunx playwright test --fail-on-flaky-tests --trace=retain-on-failure --shard=${{ matrix.shardIndex }}/${{ matrix.shardTotal }}
     - run: docker compose down -v --remove-orphans
     - name: Upload blob report to GitHub Actions Artifacts
       if: ${{ !cancelled() }}
