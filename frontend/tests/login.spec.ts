@@ -77,6 +77,9 @@ test("Successful log out", async ({ page }) => {
 
   await expect(page.getByText("今日挑戰")).toBeVisible()
 
+  // 登入後落地在 _shell（底部分頁,無側欄）。登出選單只存在於 template 的
+  // _layout 側欄,需先前往一個 _layout 路由(例如 /settings)才能取得 user-menu。
+  await page.goto("/settings")
   await page.getByTestId("user-menu").click()
   await page.getByRole("menuitem", { name: "Log out" }).click()
   await page.waitForURL("/login")
@@ -92,6 +95,7 @@ test("Logged-out user cannot access protected routes", async ({ page }) => {
 
   await expect(page.getByText("今日挑戰")).toBeVisible()
 
+  await page.goto("/settings")
   await page.getByTestId("user-menu").click()
   await page.getByRole("menuitem", { name: "Log out" }).click()
   await page.waitForURL("/login")
