@@ -47,22 +47,36 @@ python -c "import secrets; print(secrets.token_urlsafe(32))"
 
 ### [B] Supabase stack 金鑰(`deploy/supabase/.env`),分三類:
 
-**① 純隨機字串類**——直接產(每個各產一次):
+**最省事也最不會錯的做法:用上游 stack 自帶的官方產生器。** 它會一次產齊所有對稱金鑰,並直接寫回 `.env`(就地備份成 `.env.old`):
+
 ```bash
-openssl rand -base64 48   # JWT_SECRET(≥40 字元,是 ANON/SERVICE 的簽章根)
-openssl rand -base64 64   # SECRET_KEY_BASE
-openssl rand -base64 32   # VAULT_ENC_KEY
-openssl rand -base64 32   # PG_META_CRYPTO_KEY
-openssl rand -base64 32   # POSTGRES_PASSWORD(DB 密碼,超重要)
+cp deploy/supabase/stack/.env.example deploy/supabase/.env
+cd deploy/supabase && sh stack/utils/generate-keys.sh --update-env
+```
+
+> 用**上游 stack 自己的 `.env.example`** 當底稿(不是 repo 的 `deploy/supabase/.env.example`)——後者是精簡版,少了 `REALTIME_DB_ENC_KEY`、`S3_PROTOCOL_ACCESS_KEY_*`、`IMGPROXY_AUTO_WEBP` 等欄位,compose 會對缺失變數發警告。
+>
+> 該腳本會把金鑰印到 stdout。若不想留在 terminal / shell history,加 `>/dev/null`——金鑰仍會寫進 `.env`。
+
+它涵蓋的欄位:`JWT_SECRET`、`ANON_KEY`、`SERVICE_ROLE_KEY`、`SECRET_KEY_BASE`、`REALTIME_DB_ENC_KEY`、`VAULT_ENC_KEY`、`PG_META_CRYPTO_KEY`、`LOGFLARE_*`、`S3_PROTOCOL_*`、`MINIO_ROOT_PASSWORD`、`POSTGRES_PASSWORD`、`DASHBOARD_PASSWORD`。
+
+若要手動理解各欄位:
+
+**① 純隨機字串類**:
+```bash
+openssl rand -base64 30   # JWT_SECRET(是 ANON/SERVICE 的簽章根)
+openssl rand -base64 48   # SECRET_KEY_BASE
+openssl rand -hex 16      # VAULT_ENC_KEY(需恰好 32 字元)
+openssl rand -base64 24   # PG_META_CRYPTO_KEY
+openssl rand -hex 16      # POSTGRES_PASSWORD(DB 密碼,超重要)
 # DASHBOARD_PASSWORD 自訂強密碼(Studio 後台登入)
 ```
 
 **② 由 `JWT_SECRET` 簽出的 JWT**——`ANON_KEY`、`SERVICE_ROLE_KEY`:
-不是隨機字串,不能亂填。用官方產生器,把 `JWT_SECRET` 貼進去,取得對應的兩把 key:
-> <https://supabase.com/docs/guides/self-hosting/docker#generate-api-keys>
+不是隨機字串,不能亂填(HS256,payload `{"role":"anon"|"service_role","iss":"supabase",...}`)。上面的腳本已代勞;要手動可參考 <https://supabase.com/docs/guides/self-hosting/docker#generate-api-keys>。
 
-**③ 新版 stack 額外金鑰**——`SUPABASE_PUBLISHABLE_KEY`、`SUPABASE_SECRET_KEY`、`JWT_KEYS`、`JWT_JWKS`:
-較新 Supabase 的新版 API key 體系,產生方式**綁定你 pin 的 stack 版本**。做法:clone 官方 stack、看它自帶的 `.env.example` 與該版本的 generate-api-keys 說明照做。因遊戲不用它們,照官方該版本預設走即可。
+**③ 新版非對稱金鑰**——`SUPABASE_PUBLISHABLE_KEY`、`SUPABASE_SECRET_KEY`、`JWT_KEYS`、`JWT_JWKS`、`ANON_KEY_ASYMMETRIC`、`SERVICE_ROLE_KEY_ASYMMETRIC`:
+`generate-keys.sh` **完全不碰它們**,上游 `.env.example` 裡也是空的——那是選配的新版 API key 體系(要啟用才用 `utils/add-new-auth-keys.sh`)。**留空即為該 pin 版本的官方預設**,遊戲不使用。
 
 ---
 
@@ -144,8 +158,8 @@ TAG=latest        # prod 建議 pin 成日期或 short-sha
 | `JWT_SECRET` | 隨機 ≥40 字 | ANON/SERVICE 的簽章根 |
 | `ANON_KEY` | JWT | 由 `JWT_SECRET` 簽;官方產生器 |
 | `SERVICE_ROLE_KEY` | JWT | 由 `JWT_SECRET` 簽;官方產生器 |
-| `SUPABASE_PUBLISHABLE_KEY` / `SUPABASE_SECRET_KEY` | 新版 key | 依 stack 版本產生 |
-| `JWT_KEYS` / `JWT_JWKS` | 新版非對稱 | 依 stack 版本產生 |
+| `SUPABASE_PUBLISHABLE_KEY` / `SUPABASE_SECRET_KEY` | 新版 key | **留空**(選配,遊戲不用) |
+| `JWT_KEYS` / `JWT_JWKS` | 新版非對稱 | **留空**(選配,遊戲不用) |
 | `SECRET_KEY_BASE` | 隨機 | stack 內部 |
 | `VAULT_ENC_KEY` | 隨機 | stack 內部 |
 | `PG_META_CRYPTO_KEY` | 隨機 | stack 內部 |
@@ -161,7 +175,10 @@ TAG=latest        # prod 建議 pin 成日期或 short-sha
 
 1. **密鑰絕不進 git**:兩個 `.env` 都 gitignored,repo 只追蹤 `.env.example`。GitHub 已開 push protection,誤 commit 金鑰會被當場擋下。
 2. **Alembic 只 `upgrade head`,絕不 autogenerate**:prestart 沿用 `include_object` 白名單保護管線表(`documents` / `game_cases` / `document_chunks` 不被觸碰)。
+   **代價**:全新 DB 上這些表**不會被任何部署步驟建立**,quiz 與 scenario 會以 `relation "game_cases" does not exist` 回 500。首次部署務必先做 SKILL.md 的「內容供給」章節。
 3. **Rollback 不 downgrade DB**:`rollback.sh` 只換映像;含破壞性遷移時回退前要人工評估。故 prod 的 `TAG` 要 pin 明確版本,別用浮動 `latest`。
-4. **CORS**:子域 API 方案前後端跨源,`BACKEND_CORS_ORIGINS` 少了前端 origin → 瀏覽器全被擋。
-5. **VITE_API_URL 改了要重 build**:編進靜態 JS,runtime 改不了。
-6. **備份自理**:自托管無代管備份;升級 Supabase 版本前務必 `pg_dump`(見 `deploy/supabase/README.md`)。
+4. **絕不要刪 GHCR 的 "untagged" 版本**:多架構鏡像的各架構子 manifest 永遠 untagged,刪掉會讓**所有 tag**(含歷史 tag)變成懸空 index,`docker pull` 報 `manifest unknown`,`rollback.sh` 一併失效。回滾前先跑 `scripts/check-image.sh` 驗。
+5. **CORS**:子域 API 方案前後端跨源,`BACKEND_CORS_ORIGINS` 少了前端 origin → 瀏覽器全被擋。
+6. **VITE_API_URL 改了要重 build**:編進靜態 JS,runtime 改不了。**且 `api.<domain>` 的 DNS/Public Hostname 必須存在**,否則前端載入正常但每個 API 呼叫都失敗。
+7. **`POSTGRES_PORT` 在 supabase `.env` 有雙重身分**:既是 db 容器內部 `PGPORT`,也是 supavisor session 埠的 host 發布埠(`ports: ${POSTGRES_PORT}:5432`)。主機 5432 被佔用時改這個值即可,遊戲走容器埠 `supavisor:5432` 不受影響。
+8. **備份自理**:自托管無代管備份;升級 Supabase 版本前務必 `pg_dump`(見 `deploy/supabase/README.md`)。

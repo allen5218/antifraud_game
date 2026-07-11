@@ -36,12 +36,16 @@ cp -R /opt/supabase-src/docker/* deploy/supabase/stack/   # 官方 compose + vol
 |------|-----|
 | Docker 網路名（external，供遊戲 compose 加入） | `supabase_default`（官方 stack 專案名 `supabase` 的預設 bridge 網路） |
 | Pooler 服務名（session 模式，遊戲用） | `supavisor`（container `supabase-pooler`） |
-| Pooler 內部埠（session） | `5432`（對外 host 埠 `${POOLER_PROXY_PORT_SESSION:-54323}`） |
-| Pooler 內部埠（transaction） | `6543` |
-| Kong（API gateway，如需） | 對外 `54321` → 容器 `8000` |
+| Pooler 內部埠（session） | `5432`（對外 host 埠由 `${POSTGRES_PORT}` 決定，見下） |
+| Pooler 內部埠（transaction） | `6543`（對外 host 埠 `${POOLER_PROXY_PORT_TRANSACTION}`） |
+| Kong（API gateway，如需） | 對外 `${KONG_HTTP_PORT}` → 容器 `8000` |
 
-因此遊戲 backend 走**共享網路 + 服務名**：`POSTGRES_SERVER=supavisor`、`POSTGRES_PORT=5432`。
-（備援：若網路橋接不便，改走主機 `POSTGRES_SERVER=<host-ip>`、`POSTGRES_PORT=54323`。）
+因此遊戲 backend 走**共享網路 + 服務名**：`POSTGRES_SERVER=supavisor`、`POSTGRES_PORT=5432`（容器埠，`compose.prod.yml` 已寫死）。
+
+> ⚠️ **`POSTGRES_PORT` 一個變數兩個身分**：上游 compose 用它當 db 容器的 `PGPORT`（stack 內部服務都連 `db:${POSTGRES_PORT}`），**同時**當 supavisor session 埠的 host 發布埠（`ports: ${POSTGRES_PORT}:5432`）。
+> 若 production 主機的 `5432` 已被原生 Postgres 佔用，把 `deploy/supabase/.env` 的 `POSTGRES_PORT` 改成別的值（例：`54323`）即可——stack 內部保持一致，遊戲 backend 因為走容器埠 `supavisor:5432`，完全不受影響。
+>
+> 舊版上游曾有獨立的 `POOLER_PROXY_PORT_SESSION`，**現已移除**；填了不會有任何作用。
 
 ## 起停
 
