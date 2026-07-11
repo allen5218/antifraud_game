@@ -9,6 +9,13 @@
       "automerge": true,
       "automergeType": "pr",
       "platformAutomerge": true
+    },
+    {
+      "description": "Python 版本(backend/Dockerfile 基底映像 + GitHub Actions 的 python-version):只自動合併 patch(小版本臭蟲修正),minor/major(3.10→3.11 或 3.10→3.14 這類 feature release)一律留給人工檢視合併",
+      "matchFileNames": ["backend/Dockerfile", ".github/workflows/**"],
+      "matchDepNames": ["python"],
+      "matchUpdateTypes": ["minor", "major"],
+      "automerge": false
     }
   ],
   "docker-compose": { "enabled": true },
