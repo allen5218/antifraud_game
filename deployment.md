@@ -26,6 +26,7 @@ production 主機併存兩個 compose stack：
 - `deploy/supabase/README.md` — 自托管 Supabase 取得/pin 版本/連線契約/備份/升級。
 - `deploy/cloudflared/README.md` — 建 tunnel、取得 token、Public Hostnames ingress 映射。
 - `deploy/scripts/deploy.sh` / `rollback.sh` — 例行部署與回滾（皆帶 `--project-directory .`）。
+- `deploy/scripts/seed-game-cases.sh` + `deploy/seed/game_cases.sql` — 灌入題庫（`prestart` 不會做，見步驟 6）。
 - `deploy/compose.prod.yml` — 遊戲四服務定義。
 
 ## 首次設定（一次性）
@@ -40,10 +41,17 @@ production 主機併存兩個 compose stack：
    - Supabase 連線：`POSTGRES_SERVER=supavisor`、`POSTGRES_PORT=5432`、`POSTGRES_DB`、`POSTGRES_USER`、`POSTGRES_PASSWORD`
    - `DOMAIN`、`FRONTEND_HOST`、`ENVIRONMENT=production`、`SECRET_KEY`、`FIRST_SUPERUSER` / `FIRST_SUPERUSER_PASSWORD`、`GOOGLE_API_KEY` 等
    - `changethis` 類預設值務必更換；密鑰可用 `python -c "import secrets; print(secrets.token_urlsafe(32))"` 產生。
-5. 若 GHCR 鏡像為 private：`docker login ghcr.io`。
-6. 首次部署：`bash deploy/scripts/deploy.sh`（會 `docker compose pull` → `up -d`；`prestart` 跑
-   `alembic upgrade head` 套用遷移並建立初始資料）。
-7. 建立初始 superuser（依 `.env` 的 `FIRST_SUPERUSER` / `FIRST_SUPERUSER_PASSWORD`，由 `prestart` 初始化）。
+5. 確認鏡像可拉（**別只驗 index**）：
+   `bash .claude/skills/deploy/scripts/check-image.sh <owner>/<repo>-backend <TAG>`。
+   若鏡像為 private 需先 `docker login ghcr.io`。
+6. **灌入題庫**：`bash deploy/scripts/seed-game-cases.sh`。
+   `prestart` 只跑 `alembic upgrade head` 與 `init_db()`（建 superuser + seed pretest/swipe/mascot/property），
+   **不會建立 `game_cases`** —— 那張表被 `alembic/env_filters.py` 的 `include_object` 白名單排除。
+   跳過這步的話部署會成功、健康檢查會過，但 quiz 與 scenario 會以
+   `relation "game_cases" does not exist` 回 500。
+7. 首次部署：`bash deploy/scripts/deploy.sh`（會 `docker compose pull` → `up -d`；`prestart` 跑
+   `alembic upgrade head` 套用遷移，並依 `.env` 的 `FIRST_SUPERUSER` / `FIRST_SUPERUSER_PASSWORD`
+   建立初始 superuser）。`DOMAIN` 由腳本自 `.env` 讀取（shell 環境變數優先）。
 
 ## 例行更新
 
@@ -66,18 +74,38 @@ TAG=<前一個良好鏡像 tag> bash deploy/scripts/rollback.sh
 
 以指定 tag 重新 `up -d`。⚠️ **DB 遷移不會自動 downgrade**；若本次上線含破壞性遷移，需人工評估。
 
+⚠️ 回滾前先確認舊 tag 還拉得到：`bash .claude/skills/deploy/scripts/check-image.sh <owner>/<repo>-backend <tag>`。
+
 ## 鏡像來源（CI）
 
 backend / frontend 鏡像由 GitHub Actions `build.yml` 建置並推到 GHCR
 （`ghcr.io/<owner>/<repo>-backend`、`…-frontend`）。前端的 `VITE_API_URL` 於 **build 時 baked**
 進鏡像（見下方 README「自架者」說明與 `.env.example`）。CI/build 設定詳見 `.github/workflows/`。
 
+`build.yml` 各架構以 `push-by-digest=true` 推送**不帶 tag** 的 manifest，再由 `merge` job 建立
+OCI image index 並打上正式 tag。**tag 只掛在 index 上，各架構子 manifest 永遠 untagged。**
+
+> ⚠️ **絕不要刪除 GHCR 上的 "untagged" 版本。** 刪掉之後每一個 tag（含所有歷史 tag）都變成懸空
+> index——`GET manifests/<tag>` 仍回 200，但子 manifest 與 blob 全部 404，`docker pull` 報
+> `manifest unknown`，`rollback.sh` 一併失效。只驗 index 會誤判鏡像健康；用
+> `check-image.sh` 驗到子 manifest 那一層。復原方式是重跑 `build.yml`，但**只會修好該次 run
+> 產生的 tag**，舊 tag 永遠指向舊的懸空 index。
+
 ## 上線後 smoke 清單
+
+逐條**實際操作**，不要只看 HTTP 狀態碼——`quick/swipe/deck`、`pretest/questions`、`mascot/*`、
+`economy/*` 即使沒灌 `game_cases` 也全部回 200（它們讀的是 `init_db()` seed 的表）。
+**只有 quiz 與 scenario 會暴露題庫缺口。**
 
 - `<domain>` 前端可載入。
 - `api.<domain>/docs` 可達（Swagger）。
+- 登入初始 superuser。
 - quiz 玩一輪：判斷 → 紅旗揭曉 → 結算入帳 → 溯源顯示。
-- scenario 玩一場（需主機 `.env` 設定 `GOOGLE_API_KEY`）。
+- scenario 玩一場（需主機 `.env` 設定 `GOOGLE_API_KEY`，且 `game_cases` 有該 `fraud_type` 的
+  scam / legit 各一筆）。
+
+任一步失敗先看 `docker compose -f deploy/compose.prod.yml --project-directory . logs --tail 50 backend`；
+`relation "game_cases" does not exist` → 回步驟 6 灌題庫。
 
 ## 備份
 
