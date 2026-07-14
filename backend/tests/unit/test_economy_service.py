@@ -6,6 +6,7 @@ from app.economy.service import (
     adjust_cash,
     claim_accrual,
     liquidate,
+    reconcile_bankruptcy,
     settle_accrual,
 )
 from app.models import PropertyTier, User, UserProperty
@@ -101,3 +102,27 @@ def test_settle_accrual_no_properties_still_advances_settled_at() -> None:
     u.last_settled_at = before
     settle_accrual(u, [], tiers={}, now=datetime.now(timezone.utc))
     assert u.last_settled_at > before
+
+
+def test_reconcile_bankruptcy_clears_stale_flag() -> None:
+    """cash >= 0 但 pending=True（DB 被直接修改）→ 修正為 False。"""
+    user = make_user(cash=500, bankruptcy_pending=True)
+    assert reconcile_bankruptcy(user) is True
+    assert user.bankruptcy_pending is False
+
+
+def test_reconcile_bankruptcy_sets_missing_flag() -> None:
+    """cash < 0 但 pending=False → 修正為 True。"""
+    user = make_user(cash=-100, bankruptcy_pending=False)
+    assert reconcile_bankruptcy(user) is True
+    assert user.bankruptcy_pending is True
+
+
+def test_reconcile_bankruptcy_no_op_when_consistent() -> None:
+    user = make_user(cash=-100, bankruptcy_pending=True)
+    assert reconcile_bankruptcy(user) is False
+    assert user.bankruptcy_pending is True
+
+    user2 = make_user(cash=0, bankruptcy_pending=False)
+    assert reconcile_bankruptcy(user2) is False
+    assert user2.bankruptcy_pending is False
