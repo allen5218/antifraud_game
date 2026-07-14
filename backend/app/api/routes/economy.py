@@ -11,6 +11,7 @@ from app.economy.service import (
     adjust_cash,
     claim_accrual,
     liquidate,
+    reconcile_bankruptcy,
     settle_accrual,
 )
 from app.models import PropertyTier, UserProperty
@@ -43,8 +44,13 @@ def _owned(session: Any, user_id: uuid.UUID) -> list[UserProperty]:
 
 
 def _settle(session: Any, user: Any) -> None:
-    """Settle pending accrual for user and stage the update."""
+    """Settle pending accrual for user and stage the update.
+
+    順便修復 bankruptcy_pending 不變量——直接改 DB 造成的
+    cash >= 0 卻 pending=True 矛盾會在任何 economy 端點被讀到時自癒。
+    """
     settle_accrual(user, _owned(session, user.id), tiers=_tier_map(session))
+    reconcile_bankruptcy(user)
     session.add(user)
 
 

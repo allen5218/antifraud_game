@@ -94,6 +94,15 @@ export function useLiquidate() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["economy"] })
     },
-    onError: () => showErrorToast("變賣失敗，請重試"),
+    onError: (err: unknown) => {
+      const code = extractErrorCode(err)
+      const messages: Record<string, string> = {
+        empty_property_ids: "請先勾選要變賣的房產",
+        property_not_owned: "所選房產已變賣或不存在，請重新整理後再試",
+      }
+      showErrorToast(
+        code && messages[code] ? messages[code] : "變賣失敗，請重試",
+      )
+    },
   })
 }

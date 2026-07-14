@@ -7,6 +7,7 @@ export function ForcedSellModal() {
   const { data: propData } = useProperties()
   const { mutate: liquidate } = useLiquidate()
   const [selected, setSelected] = useState<Set<string>>(new Set())
+  const [dismissed, setDismissed] = useState(false)
 
   const cash = me?.cash ?? 0
   const pending = me?.bankruptcy_pending ?? false
@@ -23,9 +24,24 @@ export function ForcedSellModal() {
         ),
     [owned, selected],
   )
-  const canConfirm = recovered >= deficit
+  // 全部變賣也補不了缺口（含完全沒有房產）→ 提供答題還債的逃生路徑
+  const maxRecoverable = useMemo(
+    () =>
+      owned.reduce(
+        (sum, p) => sum + Math.floor(p.tier.price * LIQUIDATION_RATIO),
+        0,
+      ),
+    [owned],
+  )
+  const insufficientAssets = maxRecoverable < deficit
+  // 資產不足時允許賣掉手上有的（部分清償）；任何情況都不允許空選送出
+  const canConfirm =
+    selected.size > 0 && (recovered >= deficit || insufficientAssets)
 
-  if (!pending) return null
+  // 只有「真的破產」（flag 且現金為負）才顯示；避免 DB 手動改現金後
+  // 殘留的 bankruptcy_pending 造成 $0 缺口的空視窗
+  const isActuallyBankrupt = pending && cash < 0
+  if (!isActuallyBankrupt || dismissed) return null
 
   const toggle = (id: string) =>
     setSelected((s) => {
@@ -64,9 +80,24 @@ export function ForcedSellModal() {
             需變賣資產補足。賣價為原價 60%。
           </div>
         </div>
-        <div className="mb-2 text-[10px] text-muted-foreground">
-          選擇要變賣的房產：
-        </div>
+        {owned.length === 0 ? (
+          <div
+            data-testid="no-assets-notice"
+            className="mb-2 rounded-lg border border-border bg-muted px-2 py-2 text-[11px] text-muted-foreground"
+          >
+            你目前沒有可變賣的房產。別擔心——完成題組與滑卡訓練獲得的獎金
+            會自動用來償還欠款，還清後即可恢復正常遊戲。
+          </div>
+        ) : (
+          <div className="mb-2 text-[10px] text-muted-foreground">
+            選擇要變賣的房產：
+            {insufficientAssets && (
+              <span className="text-red-700">
+                （全部變賣仍不足，可先部分清償，剩餘欠款以答題獎金償還）
+              </span>
+            )}
+          </div>
+        )}
         <div className="flex flex-col gap-1.5">
           {owned.map((p) => {
             const sellPrice = Math.floor(p.tier.price * LIQUIDATION_RATIO)
@@ -109,14 +140,28 @@ export function ForcedSellModal() {
             已勾選回收 <b>${recovered.toLocaleString()}</b> / 缺口 $
             {deficit.toLocaleString()}
           </span>
-          <button
-            type="button"
-            disabled={!canConfirm}
-            onClick={confirm}
-            className="rounded-lg bg-red-700 px-3 py-1.5 text-xs font-bold text-white disabled:opacity-50"
-          >
-            確認變賣
-          </button>
+          <div className="flex items-center gap-2">
+            {insufficientAssets && (
+              <button
+                type="button"
+                data-testid="go-earn-btn"
+                onClick={() => setDismissed(true)}
+                className="rounded-lg border border-border bg-muted px-3 py-1.5 text-xs font-bold"
+              >
+                先去答題還債
+              </button>
+            )}
+            {owned.length > 0 && (
+              <button
+                type="button"
+                disabled={!canConfirm}
+                onClick={confirm}
+                className="rounded-lg bg-red-700 px-3 py-1.5 text-xs font-bold text-white disabled:opacity-50"
+              >
+                確認變賣
+              </button>
+            )}
+          </div>
         </div>
       </div>
     </div>

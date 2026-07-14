@@ -245,3 +245,39 @@ def test_liquidate_partial_insufficient_deficit(
     assert body["new_cash"] == -4400
     # bankruptcy_pending should remain True since cash is still < 0
     assert body["bankruptcy_pending"] is True
+
+
+def test_me_heals_stale_bankruptcy_flag(
+    client: TestClient,
+    normal_user_token_headers: dict[str, str],
+    db: Session,
+) -> None:
+    """GET /economy/me → 修復 cash >= 0 卻 bankruptcy_pending=True 的矛盾狀態。
+
+    模擬管理員直接在 DB 補現金卻忘了清 flag（正常流程走 adjust_cash 不會發生）。
+    """
+    user = _get_normal_user(db)
+    user.cash = 500
+    user.bankruptcy_pending = True  # 故意破壞不變量
+    db.add(user)
+    db.commit()
+
+    response = client.get(_url("/me"), headers=normal_user_token_headers)
+    assert response.status_code == 200
+    assert response.json()["bankruptcy_pending"] is False
+
+    db.refresh(user)
+    assert user.bankruptcy_pending is False
+
+
+def test_liquidate_empty_property_ids_returns_400(
+    client: TestClient, normal_user_token_headers: dict[str, str]
+) -> None:
+    """POST /economy/liquidate with [] → 400 code=empty_property_ids。"""
+    response = client.post(
+        _url("/liquidate"),
+        headers=normal_user_token_headers,
+        json={"property_ids": []},
+    )
+    assert response.status_code == 400
+    assert response.json()["detail"]["code"] == "empty_property_ids"

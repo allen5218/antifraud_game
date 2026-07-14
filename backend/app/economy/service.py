@@ -59,6 +59,20 @@ def adjust_cash(user: User, delta: int, *, reason: str) -> None:  # noqa: ARG001
     user.bankruptcy_pending = user.cash < 0
 
 
+def reconcile_bankruptcy(user: User) -> bool:
+    """強制修復不變量 bankruptcy_pending == (cash < 0)。
+
+    正常流程走 adjust_cash 不會壞，但直接改 DB（例如管理員手動補現金）
+    可能留下 cash >= 0 卻 bankruptcy_pending=True 的矛盾狀態，
+    讓前端強制變賣視窗永遠關不掉。回傳是否有修正。
+    """
+    expected = user.cash < 0
+    if user.bankruptcy_pending == expected:
+        return False
+    user.bankruptcy_pending = expected
+    return True
+
+
 def add_xp(user: User, amount: int, *, reason: str) -> None:  # noqa: ARG001
     """增加 User.xp 的唯一入口（與 adjust_cash 對稱）。負值忽略。"""
     user.xp += max(0, amount)

@@ -113,6 +113,62 @@ describe("<ForcedSellModal />", () => {
     expect(btn.hasAttribute("disabled")).toBe(false)
   })
 
+  it("renders null when bankruptcy_pending is true but cash >= 0 (stale flag)", () => {
+    // 模擬管理員手動補現金卻沒清 flag：不該出現 $0 缺口的空視窗
+    mock.module("@/hooks/useEconomy", () => ({
+      useEconomyMe: () => ({
+        data: { ...bankruptMeData, cash: 500 },
+      }),
+      useProperties: () => ({ data: { tiers: [], owned: mockOwned } }),
+      useLiquidate: () => ({ mutate: mockLiquidate }),
+      useClaimAccrual: () => ({ mutate: () => {}, isPending: false }),
+      useAssets: () => ({ data: null }),
+      useBuyProperty: () => ({ mutate: () => {} }),
+    }))
+    const { container } = render(<ForcedSellModal />)
+    expect(container.firstChild).toBeNull()
+  })
+
+  it("no assets: shows recovery notice and dismiss button, never a confirm button", () => {
+    mock.module("@/hooks/useEconomy", () => ({
+      useEconomyMe: () => ({ data: bankruptMeData }),
+      useProperties: () => ({ data: { tiers: [], owned: [] } }),
+      useLiquidate: () => ({ mutate: mockLiquidate }),
+      useClaimAccrual: () => ({ mutate: () => {}, isPending: false }),
+      useAssets: () => ({ data: null }),
+      useBuyProperty: () => ({ mutate: () => {} }),
+    }))
+    const { container } = render(<ForcedSellModal />)
+    expect(screen.getByTestId("no-assets-notice")).toBeTruthy()
+    // 沒有「確認變賣」按鈕 → 不可能送出空 property_ids
+    expect(screen.queryByRole("button", { name: /確認變賣/ })).toBeNull()
+    // 點「先去答題還債」關閉視窗，玩家可以繼續遊戲還債
+    fireEvent.click(screen.getByTestId("go-earn-btn"))
+    expect(container.firstChild).toBeNull()
+    expect(mockLiquidate).not.toHaveBeenCalled()
+  })
+
+  it("insufficient assets: allows partial liquidation but not empty submit", () => {
+    // deficit 22550 > 全部回收 600+3000=3600 → insufficientAssets
+    mock.module("@/hooks/useEconomy", () => ({
+      useEconomyMe: () => ({ data: bankruptMeData }),
+      useProperties: () => ({ data: { tiers: [], owned: mockOwned } }),
+      useLiquidate: () => ({ mutate: mockLiquidate }),
+      useClaimAccrual: () => ({ mutate: () => {}, isPending: false }),
+      useAssets: () => ({ data: null }),
+      useBuyProperty: () => ({ mutate: () => {} }),
+    }))
+    render(<ForcedSellModal />)
+    const btn = screen.getByRole("button", { name: /確認變賣/ })
+    // 未勾選 → 永遠 disabled
+    expect(btn.hasAttribute("disabled")).toBe(true)
+    // 勾選其一 → 允許部分清償
+    fireEvent.click(screen.getByTestId("sell-row-mock-1"))
+    expect(btn.hasAttribute("disabled")).toBe(false)
+    // 同時提供答題還債逃生路徑
+    expect(screen.getByTestId("go-earn-btn")).toBeTruthy()
+  })
+
   it("confirm calls liquidate with correct ids", () => {
     const calls: string[][] = []
     const mutateSpy = (ids: string[], _opts?: unknown) => {
