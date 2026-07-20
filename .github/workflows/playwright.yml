@@ -22,9 +22,9 @@ jobs:
     outputs:
       changed: ${{ steps.filter.outputs.changed }}
     steps:
-    - uses: actions/checkout@v6
+    - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
     # For pull requests it's not necessary to checkout the code but for the main branch it is
-    - uses: dorny/paths-filter@v3
+    - uses: dorny/paths-filter@d1c1ffe0248fe513906c8e24db8ea791d46f8590 # v3
       id: filter
       with:
         filters: |
@@ -66,18 +66,18 @@ jobs:
         shardTotal: [4]
       fail-fast: false
     steps:
-    - uses: actions/checkout@v6
-    - uses: oven-sh/setup-bun@v2
-    - uses: actions/setup-python@v6
+    - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+    - uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6 # v2
+    - uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1 # v6
       with:
         python-version: '3.10'
     - name: Setup tmate session
-      uses: mxschmitt/action-tmate@v3
+      uses: mxschmitt/action-tmate@35b54afac29c97fb54faba5b513f8fbd1882f113 # v3
       if: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.debug_enabled == 'true' }}
       with:
         limit-access-to-actor: true
     - name: Install uv
-      uses: astral-sh/setup-uv@v7
+      uses: astral-sh/setup-uv@37802adc94f370d6bfd71619e3f0bf239e1f3b78 # v7
     - run: uv sync
       working-directory: backend
     - run: bun ci
@@ -96,7 +96,7 @@ jobs:
     - run: docker compose down -v --remove-orphans
     - name: Upload blob report to GitHub Actions Artifacts
       if: ${{ !cancelled() }}
-      uses: actions/upload-artifact@v7
+      uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
       with:
         name: blob-report-${{ matrix.shardIndex }}
         path: frontend/blob-report
@@ -111,12 +111,12 @@ jobs:
     if: ${{ !cancelled() && needs.changes.outputs.changed == 'true' }}
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v6
-    - uses: oven-sh/setup-bun@v2
+    - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+    - uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6 # v2
     - name: Install dependencies
       run: bun ci
     - name: Download blob reports from GitHub Actions Artifacts
-      uses: actions/download-artifact@v8
+      uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8
       with:
         path: frontend/all-blob-reports
         pattern: blob-report-*
@@ -125,7 +125,7 @@ jobs:
       run: bunx playwright merge-reports --reporter html ./all-blob-reports
       working-directory: frontend
     - name: Upload HTML report
-      uses: actions/upload-artifact@v7
+      uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
       with:
         name: html-report--attempt-${{ github.run_attempt }}
         path: frontend/playwright-report
@@ -140,7 +140,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Decide whether the needed jobs succeeded or failed
-        uses: re-actors/alls-green@release/v1
+        uses: re-actors/alls-green@05ac9388f0aebcb5727afa17fcccfecd6f8ec5fe # release/v1
         with:
           jobs: ${{ toJSON(needs) }}
           allowed-skips: test-playwright
