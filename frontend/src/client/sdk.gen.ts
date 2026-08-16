@@ -531,7 +531,7 @@ export class QuickService {
      * Quiz Answer
      * @param data The data for the request.
      * @param data.requestBody
-     * @returns QuizAnswerResponse Successful Response
+     * @returns unknown Successful Response
      * @throws ApiError
      */
     public static quizAnswer(data: QuickQuizAnswerData): CancelablePromise<QuickQuizAnswerResponse> {

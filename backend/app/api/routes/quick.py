@@ -1,23 +1,50 @@
+import logging
 import uuid
 from datetime import datetime, timezone
+from random import shuffle
 from typing import Any
 
 from fastapi import APIRouter, HTTPException
-from sqlmodel import col, func, select
+from pydantic import ValidationError
+from sqlmodel import Session, col, func, select
 
 from app.api.deps import CurrentUser, SessionDep
-from app.core.cases import get_case, list_published
-from app.economy.service import add_xp, adjust_cash
+from app.core.cases import get_case, list_published_for_quiz
+from app.core.quiz import (
+    case_tags,
+    max_difficulty_for_level,
+    score_match,
+    score_tactics,
+    select_quiz_material,
+)
+from app.core.weakness import (
+    WEAKNESS_LABELS,
+    WEAKNESS_SUGGESTIONS,
+    WEAKNESS_TAGS,
+)
+from app.economy.levels import level_of
+from app.economy.service import add_xp, adjust_cash, lock_user
 from app.models import QuizSession, SwipeCard
 from app.schemas import (
     QuizAnswerItem,
     QuizAnswerRequest,
     QuizAnswerResponse,
-    QuizCasePublic,
     QuizCompleteRequest,
     QuizCompleteResponse,
+    QuizDeckItem,
     QuizDeckResponse,
+    QuizMatchAnswerResponse,
+    QuizMatchPairResult,
+    QuizMatchPrompt,
+    QuizMatchPublic,
+    QuizMatchTarget,
     QuizRedFlag,
+    QuizTacticsAnswerResponse,
+    QuizTacticsOption,
+    QuizTacticsPublic,
+    QuizVerdictAnswerResponse,
+    QuizVerdictPublic,
+    QuizWeaknessDetail,
     SwipeAnswerItem,
     SwipeAnswerRequest,
     SwipeAnswerResponse,
@@ -28,6 +55,7 @@ from app.schemas import (
 )
 
 router = APIRouter(prefix="/quick", tags=["quick"])
+logger = logging.getLogger(__name__)
 
 
 def _reward(correct_count: int, best_streak: int) -> tuple[int, int]:
@@ -113,6 +141,7 @@ def swipe_complete(
                 weakness[tag] = weakness.get(tag, 0) + 1
 
     cash, xp = _reward(correct_count, best_streak)
+    current_user = lock_user(session, current_user)
     adjust_cash(current_user, cash, reason="swipe_reward")
     add_xp(current_user, xp, reason="swipe_reward")
     session.add(current_user)
@@ -132,9 +161,7 @@ def swipe_complete(
     )
 
 
-# ── Quiz(題組)────────────────────────────────────────────
-
-QUIZ_MAX_ANSWERS = 10
+# ── Quiz（混合題型）───────────────────────────────────────
 
 
 def _quiz_reward(correct_count: int, best_streak: int) -> tuple[int, int]:
@@ -146,105 +173,440 @@ def _quiz_reward(correct_count: int, best_streak: int) -> tuple[int, int]:
 @router.get("/quiz/deck", response_model=QuizDeckResponse)
 def quiz_deck(session: SessionDep, current_user: CurrentUser, size: int = 5) -> Any:
     size = max(1, min(size, 10))
-    cases = list_published(session, limit=size)
-    # 建立一次性結算 token,鎖定發出的 case_ids(結算時只認這批)
-    quiz = QuizSession(user_id=current_user.id, case_ids=[c.id for c in cases])
+    cases = list_published_for_quiz(session)
+    shuffle(cases)
+    material = select_quiz_material(
+        cases,
+        size=size,
+        max_difficulty=max_difficulty_for_level(level_of(current_user.xp)),
+    )
+
+    stored_items: list[dict[str, Any]] = []
+    public_items: list[QuizDeckItem] = []
+    case_ids: list[int] = []
+
+    for case in material.verdict:
+        item_id = uuid.uuid4().hex
+        stored_items.append(
+            {
+                "item_id": item_id,
+                "type": "verdict",
+                "case_id": case.id,
+                "is_scam": case.is_scam,
+                "correct_tags": sorted(case_tags(case.red_flags)),
+            }
+        )
+        case_ids.append(case.id)
+        public_items.append(
+            QuizVerdictPublic(
+                item_id=item_id,
+                fraud_type=case.fraud_type,
+                title=case.title,
+                narrative=case.narrative,
+                difficulty=case.difficulty,
+            )
+        )
+
+    for case in material.tactics:
+        item_id = uuid.uuid4().hex
+        # 每題建立並打亂自己的 list，避免固定位置或跨題共用順序洩漏答案模式。
+        tactics_options = [
+            QuizTacticsOption(tag=tag, label=label)
+            for tag, label in WEAKNESS_LABELS.items()
+        ]
+        shuffle(tactics_options)
+        stored_items.append(
+            {
+                "item_id": item_id,
+                "type": "tactics",
+                "case_id": case.id,
+                "correct_tags": sorted(case_tags(case.red_flags)),
+            }
+        )
+        case_ids.append(case.id)
+        public_items.append(
+            QuizTacticsPublic(
+                item_id=item_id,
+                fraud_type=case.fraud_type,
+                title=case.title,
+                narrative=case.narrative,
+                difficulty=case.difficulty,
+                question="這則訊息用了哪些話術？（複選）",
+                options=tactics_options,
+            )
+        )
+
+    if material.match:
+        item_id = uuid.uuid4().hex
+        stored_pairs: list[dict[str, Any]] = []
+        prompts: list[QuizMatchPrompt] = []
+        for match_material in material.match:
+            pair_id = uuid.uuid4().hex
+            text = str(
+                match_material.case.red_flags[match_material.flag_index].get("text", "")
+            )
+            stored_pairs.append(
+                {
+                    "pair_id": pair_id,
+                    "case_id": match_material.case.id,
+                    "flag_index": match_material.flag_index,
+                    "tag": match_material.tag,
+                    "text": text,
+                }
+            )
+            case_ids.append(match_material.case.id)
+            prompts.append(
+                QuizMatchPrompt(
+                    pair_id=pair_id,
+                    text=text,
+                )
+            )
+        targets = [
+            QuizMatchTarget(tag=tag, label=WEAKNESS_LABELS[tag])
+            for tag in WEAKNESS_TAGS
+        ]
+        shuffle(prompts)
+        shuffle(targets)
+        stored_items.append(
+            {"item_id": item_id, "type": "match", "pairs": stored_pairs}
+        )
+        public_items.append(
+            QuizMatchPublic(
+                item_id=item_id,
+                question="把話術和例句配對起來",
+                match_prompts=prompts,
+                match_targets=targets,
+            )
+        )
+
+    # 公開牌序與 session 權威牌序必須一致，避免客戶端重排答案操縱 streak。
+    shuffle(public_items)
+    stored_by_item_id = {str(item["item_id"]): item for item in stored_items}
+    stored_items = [stored_by_item_id[item.item_id] for item in public_items]
+    # 一次性結算 token 同時鎖定題目索引與全部底層 case id。
+    quiz = QuizSession(user_id=current_user.id, case_ids=case_ids, items=stored_items)
+    if material.mirror_relaxed_count:
+        logger.warning(
+            "quiz 牌組 %s 放寬鏡像排除 %d 張",
+            quiz.id,
+            material.mirror_relaxed_count,
+        )
     session.add(quiz)
     session.commit()
     session.refresh(quiz)
-    return QuizDeckResponse(
-        session_id=str(quiz.id),
-        cases=[
-            QuizCasePublic(
-                id=c.id,
-                fraud_type=c.fraud_type,
-                title=c.title,
-                narrative=c.narrative,
-                difficulty=c.difficulty,
-            )
-            for c in cases
-        ],
-    )
+    return QuizDeckResponse(session_id=str(quiz.id), items=public_items)
+
+
+def _quiz_session_id(raw_session_id: str) -> uuid.UUID:
+    try:
+        return uuid.UUID(raw_session_id)
+    except ValueError:
+        raise HTTPException(404, {"code": "quiz_session_not_found"}) from None
+
+
+def _get_quiz_session(
+    session: Session,
+    *,
+    raw_session_id: str,
+    user_id: uuid.UUID,
+    for_update: bool,
+) -> QuizSession:
+    session_id = _quiz_session_id(raw_session_id)
+    statement = select(QuizSession).where(QuizSession.id == session_id)
+    if for_update:
+        statement = statement.with_for_update()
+    quiz = session.exec(statement).first()
+    if quiz is None:
+        raise HTTPException(404, {"code": "quiz_session_not_found"})
+    if quiz.user_id != user_id:
+        raise HTTPException(403, {"code": "not_your_quiz_session"})
+    return quiz
+
+
+def _quiz_items(quiz: QuizSession) -> list[dict[str, Any]]:
+    if not isinstance(quiz.items, list):
+        return []
+    return [item for item in quiz.items if isinstance(item, dict)]
+
+
+def _quiz_case_ids(quiz: QuizSession) -> set[int]:
+    if not isinstance(quiz.case_ids, list):
+        return set()
+    return {case_id for case_id in quiz.case_ids if isinstance(case_id, int)}
+
+
+def _quiz_answers(quiz: QuizSession) -> dict[str, Any]:
+    if not isinstance(quiz.answers, dict):
+        return {}
+    return {key: value for key, value in quiz.answers.items() if isinstance(key, str)}
+
+
+def _find_quiz_item(quiz: QuizSession, item_id: str) -> dict[str, Any] | None:
+    for item in _quiz_items(quiz):
+        if item.get("item_id") == item_id:
+            return item
+    return None
+
+
+def _item_case(session: Session, quiz: QuizSession, item: dict[str, Any]) -> Any | None:
+    case_id = item.get("case_id")
+    if not isinstance(case_id, int) or case_id not in _quiz_case_ids(quiz):
+        return None
+    return get_case(session, case_id)
+
+
+def _correct_match_pairs(
+    session: Session, quiz: QuizSession, item: dict[str, Any]
+) -> dict[str, str] | None:
+    stored_pairs = item.get("pairs")
+    if not isinstance(stored_pairs, list) or len(stored_pairs) != len(WEAKNESS_TAGS):
+        return None
+    correct_pairs: dict[str, str] = {}
+    used_case_ids: set[int] = set()
+    for stored_pair in stored_pairs:
+        if not isinstance(stored_pair, dict):
+            return None
+        pair_id = stored_pair.get("pair_id")
+        case_id = stored_pair.get("case_id")
+        if (
+            not isinstance(pair_id, str)
+            or not isinstance(case_id, int)
+            or pair_id in correct_pairs
+            or case_id in used_case_ids
+            or case_id not in _quiz_case_ids(quiz)
+        ):
+            return None
+        flag_index = stored_pair.get("flag_index")
+        if not isinstance(flag_index, int):
+            return None
+        # 優先採用發牌時定版的 tag。game_cases 由外部策展管線管理,
+        # 策展人可在玩家開著牌的時候調動 red_flags 順序;若這裡回頭讀即時資料,
+        # 同一個 flag_index 會指到別的話術,把答對判成答錯,
+        # 還會把錯誤的弱點寫進 weakness_summary 給出反向的教學建議。
+        frozen_tag = stored_pair.get("tag")
+        if isinstance(frozen_tag, str) and frozen_tag in WEAKNESS_TAGS:
+            correct_pairs[pair_id] = frozen_tag
+            used_case_ids.add(case_id)
+            continue
+        # 定版機制上線前發出的舊 session 沒有 tag,才回頭查 DB
+        case = get_case(session, case_id)
+        if case is None or not 0 <= flag_index < len(case.red_flags):
+            return None
+        tag = case.red_flags[flag_index].get("tag")
+        if not isinstance(tag, str) or tag not in WEAKNESS_TAGS:
+            return None
+        correct_pairs[pair_id] = tag
+        used_case_ids.add(case_id)
+    if set(correct_pairs.values()) != WEAKNESS_TAGS:
+        return None
+    return correct_pairs
+
+
+def _weakness_details(tags: set[str]) -> list[QuizWeaknessDetail]:
+    return [
+        QuizWeaknessDetail(
+            tag=tag,
+            label=WEAKNESS_LABELS.get(tag, tag),
+            suggestion=WEAKNESS_SUGGESTIONS.get(tag, "請從題目提供的話術中選擇"),
+        )
+        for tag in sorted(tags)
+    ]
 
 
 @router.post("/quiz/answer", response_model=QuizAnswerResponse)
 def quiz_answer(
     payload: QuizAnswerRequest, session: SessionDep, current_user: CurrentUser
 ) -> Any:
-    _ = current_user
-    case = get_case(session, payload.case_id)
-    if not case:
-        raise HTTPException(404, "case not found")
-    return QuizAnswerResponse(
-        correct=payload.guess_is_scam == case.is_scam,
-        is_scam=case.is_scam,
-        red_flags=[
-            QuizRedFlag(tag=f.get("tag"), text=str(f.get("text", "")))
-            for f in case.red_flags
-        ],
-        provenance=case.provenance,
+    quiz = _get_quiz_session(
+        session,
+        raw_session_id=payload.session_id,
+        user_id=current_user.id,
+        for_update=True,
     )
+    if quiz.completed:
+        raise HTTPException(400, {"code": "quiz_already_completed"})
+    item = _find_quiz_item(quiz, payload.item_id)
+    if item is None:
+        raise HTTPException(404, {"code": "quiz_item_not_found"})
+    answers = _quiz_answers(quiz)
+    if payload.item_id in answers:
+        raise HTTPException(400, {"code": "quiz_item_already_answered"})
+
+    response = _quiz_answer_response(session, quiz, item, payload)
+    raw_answer = payload.model_dump(
+        exclude={"session_id", "item_id"}, exclude_none=True
+    )
+    # JSONB 就地 mutate 不會被 ORM 偵測；必須整個重新指派。
+    quiz.answers = {**answers, payload.item_id: raw_answer}
+    session.add(quiz)
+    session.commit()
+    return response
+
+
+def _quiz_answer_response(
+    session: Session,
+    quiz: QuizSession,
+    item: dict[str, Any],
+    payload: QuizAnswerItem,
+) -> QuizAnswerResponse:
+    item_type = item.get("type")
+    if item_type == "verdict":
+        case = _item_case(session, quiz, item)
+        if case is None:
+            raise HTTPException(404, {"code": "quiz_case_not_found"})
+        correct = payload.guess_is_scam == case.is_scam
+        # 策展不變量：legit 案例的 red_flags[].tag 一律為 null。
+        weakness_tags = (
+            case_tags(case.red_flags) if not correct and case.is_scam else set()
+        )
+        return QuizVerdictAnswerResponse(
+            correct=correct,
+            is_scam=case.is_scam,
+            red_flags=[
+                QuizRedFlag(tag=flag.get("tag"), text=str(flag.get("text", "")))
+                for flag in case.red_flags
+            ],
+            provenance=case.provenance,
+            tag_details=_weakness_details(weakness_tags),
+        )
+    if item_type == "tactics":
+        case = _item_case(session, quiz, item)
+        if case is None:
+            raise HTTPException(404, {"code": "quiz_case_not_found"})
+        correct_tags = case_tags(case.red_flags)
+        tactics_result = score_tactics(correct_tags, payload.selected_tags)
+        relevant_tags = correct_tags | tactics_result.extra_tags
+        return QuizTacticsAnswerResponse(
+            correct=tactics_result.correct,
+            correct_tags=sorted(correct_tags),
+            missed_tags=sorted(tactics_result.missed_tags),
+            extra_tags=sorted(tactics_result.extra_tags),
+            tag_details=_weakness_details(relevant_tags),
+        )
+    if item_type == "match":
+        correct_pairs = _correct_match_pairs(session, quiz, item)
+        if correct_pairs is None:
+            raise HTTPException(404, {"code": "quiz_case_not_found"})
+        match_result = score_match(correct_pairs, payload.pairs)
+        return QuizMatchAnswerResponse(
+            correct=match_result.correct,
+            results=[
+                QuizMatchPairResult(
+                    pair_id=pair_id,
+                    correct_tag=tag,
+                    correct=match_result.pair_correct[pair_id],
+                )
+                for pair_id, tag in correct_pairs.items()
+            ],
+            tag_details=_weakness_details(set(match_result.incorrect_tags)),
+        )
+    raise HTTPException(404, {"code": "quiz_item_not_found"})
+
+
+def _score_quiz_item(
+    session: Session,
+    quiz: QuizSession,
+    item: dict[str, Any],
+    answer: QuizAnswerItem,
+) -> tuple[bool, list[str]] | None:
+    item_type = item.get("type")
+    if item_type == "verdict":
+        case = _item_case(session, quiz, item)
+        if case is None:
+            return None
+        correct = answer.guess_is_scam == case.is_scam
+        correct_tags = case_tags(case.red_flags)
+        # 策展不變量：legit 案例的 red_flags[].tag 一律為 null。
+        weaknesses = sorted(correct_tags) if not correct and case.is_scam else []
+        return correct, weaknesses
+    if item_type == "tactics":
+        case = _item_case(session, quiz, item)
+        if case is None:
+            return None
+        correct_tags = case_tags(case.red_flags)
+        tactics_result = score_tactics(correct_tags, answer.selected_tags)
+        return tactics_result.correct, sorted(tactics_result.missed_tags)
+    if item_type == "match":
+        correct_pairs = _correct_match_pairs(session, quiz, item)
+        if correct_pairs is None:
+            return None
+        match_result = score_match(correct_pairs, answer.pairs)
+        return match_result.correct, match_result.incorrect_tags
+    return None
+
+
+def _dealt_quiz_items(quiz: QuizSession) -> dict[str, dict[str, Any]]:
+    dealt: dict[str, dict[str, Any]] = {}
+    for item in _quiz_items(quiz):
+        item_id = item.get("item_id")
+        if isinstance(item_id, str) and item_id not in dealt:
+            dealt[item_id] = item
+    return dealt
+
+
+def _stored_quiz_answer(item_id: str, raw_answer: Any) -> QuizAnswerItem | None:
+    if not isinstance(raw_answer, dict):
+        return None
+    try:
+        return QuizAnswerItem.model_validate({"item_id": item_id, **raw_answer})
+    except ValidationError:
+        return None
 
 
 @router.post("/quiz/complete", response_model=QuizCompleteResponse)
 def quiz_complete(
     payload: QuizCompleteRequest, session: SessionDep, current_user: CurrentUser
 ) -> Any:
-    if not payload.answers:
-        raise HTTPException(400, {"code": "empty_answers"})
-
     # 驗證一次性結算 token:必須存在、屬於本人、且尚未結算(防跨請求重放刷獎)。
     # 以 SELECT ... FOR UPDATE 鎖列,讓同 session_id 的並發結算(雙擊/重試)序列化——
     # 第二筆會阻塞到第一筆 commit(已標記 completed)後才讀到,避免 TOCTOU 雙重發獎。
-    try:
-        sid = uuid.UUID(payload.session_id)
-    except ValueError:
-        raise HTTPException(404, {"code": "quiz_session_not_found"}) from None
-    quiz = session.exec(
-        select(QuizSession).where(QuizSession.id == sid).with_for_update()
-    ).first()
-    if quiz is None:
-        raise HTTPException(404, {"code": "quiz_session_not_found"})
-    if quiz.user_id != current_user.id:
-        raise HTTPException(403, {"code": "not_your_quiz_session"})
+    quiz = _get_quiz_session(
+        session,
+        raw_session_id=payload.session_id,
+        user_id=current_user.id,
+        for_update=True,
+    )
     if quiz.completed:
         raise HTTPException(400, {"code": "quiz_already_completed"})
 
-    # server-authoritative:只認發牌時鎖定的 case_ids;去重、上限
-    dealt = set(quiz.case_ids)
-    seen: set[int] = set()
-    deduped: list[QuizAnswerItem] = []
-    for a in payload.answers:
-        if a.case_id not in dealt or a.case_id in seen:
-            continue
-        seen.add(a.case_id)
-        deduped.append(a)
-        if len(deduped) >= QUIZ_MAX_ANSWERS:
-            break
+    # server-authoritative：只讀發牌時的不可變 items 與逐題首次寫入的 answers。
+    dealt = _dealt_quiz_items(quiz)
+    stored_answers = _quiz_answers(quiz)
 
     correct_count = 0
-    total = 0
+    total = len(dealt)
     best_streak = 0
     streak = 0
     weakness: dict[str, int] = {}
-    for a in deduped:
-        case = get_case(session, a.case_id)
-        if case is None:
+    for item_id, item in dealt.items():
+        answer = _stored_quiz_answer(item_id, stored_answers.get(item_id))
+        if answer is None:
+            streak = 0
             continue
-        total += 1
-        if a.guess_is_scam == case.is_scam:
+        scored = _score_quiz_item(session, quiz, item, answer)
+        if scored is None:
+            logger.warning(
+                "quiz 題目無法評分，按答錯計入：session_id=%s item_id=%s type=%s",
+                quiz.id,
+                item_id,
+                item.get("type"),
+            )
+            streak = 0
+            continue
+        correct, weakness_tags = scored
+        if correct:
             correct_count += 1
             streak += 1
             best_streak = max(best_streak, streak)
         else:
             streak = 0
-            if case.is_scam:
-                for f in case.red_flags:
-                    tag = f.get("tag")
-                    if isinstance(tag, str):
-                        weakness[tag] = weakness.get(tag, 0) + 1
+            for tag in weakness_tags:
+                weakness[tag] = weakness.get(tag, 0) + 1
 
     cash, xp = _quiz_reward(correct_count, best_streak)
+    # 全專案鎖順序約定：先鎖玩法 session（此處 quiz_session），再鎖 user。
+    # 不可反向取得，避免兩種資源交叉等待造成死鎖。
+    current_user = lock_user(session, current_user)
     adjust_cash(current_user, cash, reason="quiz_reward")
     add_xp(current_user, xp, reason="quiz_reward")
     # 標記已結算與加獎同一 commit 原子化——不會有「已發獎但可重放」的中間態

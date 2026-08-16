@@ -132,34 +132,18 @@ export type PropertyTierPublic = {
     unlock_level: number;
 };
 
-export type QuizAnswerItem = {
-    case_id: number;
-    guess_is_scam: boolean;
-};
-
 export type QuizAnswerRequest = {
-    case_id: number;
-    guess_is_scam: boolean;
-};
-
-export type QuizAnswerResponse = {
-    correct: boolean;
-    is_scam: boolean;
-    red_flags: Array<QuizRedFlag>;
-    provenance: string;
-};
-
-export type QuizCasePublic = {
-    id: number;
-    fraud_type: string;
-    title: string;
-    narrative: string;
-    difficulty: number;
+    item_id: string;
+    guess_is_scam?: (boolean | null);
+    selected_tags?: (Array<(string)> | null);
+    pairs?: ({
+    [key: string]: (string);
+} | null);
+    session_id: string;
 };
 
 export type QuizCompleteRequest = {
     session_id: string;
-    answers: Array<QuizAnswerItem>;
 };
 
 export type QuizCompleteResponse = {
@@ -173,12 +157,92 @@ export type QuizCompleteResponse = {
 
 export type QuizDeckResponse = {
     session_id: string;
-    cases: Array<QuizCasePublic>;
+    items: Array<(QuizVerdictPublic | QuizTacticsPublic | QuizMatchPublic)>;
+};
+
+export type QuizMatchAnswerResponse = {
+    type?: "match";
+    correct: boolean;
+    results: Array<QuizMatchPairResult>;
+    tag_details: Array<QuizWeaknessDetail>;
+};
+
+export type QuizMatchPairResult = {
+    pair_id: string;
+    correct_tag: string;
+    correct: boolean;
+};
+
+export type QuizMatchPrompt = {
+    pair_id: string;
+    text: string;
+};
+
+export type QuizMatchPublic = {
+    item_id: string;
+    type?: "match";
+    question: string;
+    match_prompts: Array<QuizMatchPrompt>;
+    match_targets: Array<QuizMatchTarget>;
+};
+
+export type QuizMatchTarget = {
+    tag: string;
+    label: string;
 };
 
 export type QuizRedFlag = {
     tag: (string | null);
     text: string;
+};
+
+export type QuizTacticsAnswerResponse = {
+    type?: "tactics";
+    correct: boolean;
+    correct_tags: Array<(string)>;
+    missed_tags: Array<(string)>;
+    extra_tags: Array<(string)>;
+    tag_details: Array<QuizWeaknessDetail>;
+};
+
+export type QuizTacticsOption = {
+    tag: string;
+    label: string;
+};
+
+export type QuizTacticsPublic = {
+    item_id: string;
+    type?: "tactics";
+    fraud_type: string;
+    title: string;
+    narrative: string;
+    difficulty: number;
+    question: string;
+    options: Array<QuizTacticsOption>;
+};
+
+export type QuizVerdictAnswerResponse = {
+    type?: "verdict";
+    correct: boolean;
+    is_scam: boolean;
+    red_flags: Array<QuizRedFlag>;
+    provenance: string;
+    tag_details: Array<QuizWeaknessDetail>;
+};
+
+export type QuizVerdictPublic = {
+    item_id: string;
+    type?: "verdict";
+    fraud_type: string;
+    title: string;
+    narrative: string;
+    difficulty: number;
+};
+
+export type QuizWeaknessDetail = {
+    tag: string;
+    label: string;
+    suggestion: string;
 };
 
 export type ScenarioDetail = {
@@ -480,7 +544,7 @@ export type QuickQuizAnswerData = {
     requestBody: QuizAnswerRequest;
 };
 
-export type QuickQuizAnswerResponse = (QuizAnswerResponse);
+export type QuickQuizAnswerResponse = ((QuizVerdictAnswerResponse | QuizTacticsAnswerResponse | QuizMatchAnswerResponse));
 
 export type QuickQuizCompleteData = {
     requestBody: QuizCompleteRequest;
