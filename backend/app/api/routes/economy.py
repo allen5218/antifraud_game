@@ -11,6 +11,7 @@ from app.economy.service import (
     adjust_cash,
     claim_accrual,
     liquidate,
+    lock_user,
     reconcile_bankruptcy,
     settle_accrual,
 )
@@ -43,15 +44,17 @@ def _owned(session: Any, user_id: uuid.UUID) -> list[UserProperty]:
     return list(session.exec(stmt).all())
 
 
-def _settle(session: Any, user: Any) -> None:
+def _settle(session: Any, user: Any) -> Any:
     """Settle pending accrual for user and stage the update.
 
     順便修復 bankruptcy_pending 不變量——直接改 DB 造成的
     cash >= 0 卻 pending=True 矛盾會在任何 economy 端點被讀到時自癒。
     """
+    user = lock_user(session, user)
     settle_accrual(user, _owned(session, user.id), tiers=_tier_map(session))
     reconcile_bankruptcy(user)
     session.add(user)
+    return user
 
 
 def _me_payload(user: Any) -> EconomyMeResponse:
@@ -69,7 +72,7 @@ def _me_payload(user: Any) -> EconomyMeResponse:
 @router.get("/me", response_model=EconomyMeResponse)
 def read_me(session: SessionDep, current_user: CurrentUser) -> Any:
     """Return current user's economy state (settles accrual first)."""
-    _settle(session, current_user)
+    current_user = _settle(session, current_user)
     session.commit()
     session.refresh(current_user)
     return _me_payload(current_user)
@@ -78,7 +81,7 @@ def read_me(session: SessionDep, current_user: CurrentUser) -> Any:
 @router.post("/settle", response_model=EconomyMeResponse)
 def post_settle(session: SessionDep, current_user: CurrentUser) -> Any:
     """Settle pending accrual and return economy state."""
-    _settle(session, current_user)
+    current_user = _settle(session, current_user)
     session.commit()
     session.refresh(current_user)
     return _me_payload(current_user)
@@ -87,7 +90,7 @@ def post_settle(session: SessionDep, current_user: CurrentUser) -> Any:
 @router.post("/settle/claim", response_model=EconomyMeResponse)
 def claim(session: SessionDep, current_user: CurrentUser) -> Any:
     """Settle accrual then move pending_accrual into cash."""
-    _settle(session, current_user)
+    current_user = _settle(session, current_user)
     claim_accrual(current_user)
     session.commit()
     session.refresh(current_user)
@@ -97,7 +100,7 @@ def claim(session: SessionDep, current_user: CurrentUser) -> Any:
 @router.get("/properties", response_model=PropertiesListResponse)
 def list_properties(session: SessionDep, current_user: CurrentUser) -> Any:
     """Return all property tiers and the user's owned (unsold) properties."""
-    _settle(session, current_user)
+    current_user = _settle(session, current_user)
     session.commit()
 
     tiers = _tier_map(session)
@@ -126,8 +129,7 @@ def list_properties(session: SessionDep, current_user: CurrentUser) -> Any:
 @router.post("/properties/{tier_id}/buy", response_model=BuyPropertyResponse)
 def buy_property(tier_id: int, session: SessionDep, current_user: CurrentUser) -> Any:
     """Purchase one unit of the given property tier."""
-    _settle(session, current_user)
-    session.commit()
+    current_user = _settle(session, current_user)
 
     if current_user.bankruptcy_pending:
         raise HTTPException(
@@ -170,7 +172,7 @@ def buy_property(tier_id: int, session: SessionDep, current_user: CurrentUser) -
 @router.get("/assets", response_model=AssetSummaryResponse)
 def get_assets(session: SessionDep, current_user: CurrentUser) -> Any:
     """Return a summary of the user's assets."""
-    _settle(session, current_user)
+    current_user = _settle(session, current_user)
     session.commit()
 
     tiers = _tier_map(session)
@@ -195,7 +197,7 @@ def post_liquidate(
     body: LiquidateRequest, session: SessionDep, current_user: CurrentUser
 ) -> Any:
     """Liquidate the given owned properties and recover a portion of their value."""
-    _settle(session, current_user)
+    current_user = _settle(session, current_user)
 
     if not body.property_ids:
         raise HTTPException(status_code=400, detail={"code": "empty_property_ids"})
