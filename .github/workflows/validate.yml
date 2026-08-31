@@ -16,7 +16,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
-      - uses: docker/setup-buildx-action@bb05f3f5519dd87d3ba754cc423b652a5edd6d2c # v4
+      - uses: docker/setup-buildx-action@37fe631027851001ddb9b187196cc803df7f5f0e # v4
 
       # compose.prod.yml 用 env_file: .env(fresh checkout 無此檔)——由 .env.example 建一份
       # 佔位 .env 讓 config 可解析;--project-directory . 讓 env_file/volumes 從 repo 根解析。
