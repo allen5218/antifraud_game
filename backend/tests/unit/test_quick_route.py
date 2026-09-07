@@ -13,6 +13,7 @@ from app.schemas import (
     QuizTacticsAnswerResponse,
     QuizVerdictAnswerResponse,
     QuizWeaknessDetail,
+    WeaknessSummaryItem,
 )
 
 EXPECTED_SUGGESTIONS = {
@@ -82,6 +83,18 @@ def test_quiz_complete_request_contains_only_session_id() -> None:
     request = QuizCompleteRequest(session_id="session")
 
     assert request.model_dump() == {"session_id": "session"}
+
+
+def test_weakness_summary_item_keeps_backend_provided_label() -> None:
+    item = WeaknessSummaryItem.model_validate(
+        {"tag": "authority", "label": "權威服從", "count": 1}
+    )
+
+    assert item.model_dump() == {
+        "tag": "authority",
+        "label": "權威服從",
+        "count": 1,
+    }
 
 
 @pytest.mark.parametrize(

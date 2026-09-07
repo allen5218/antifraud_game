@@ -96,11 +96,18 @@ class SwipeAnswerRequest(BaseModel):
     guess_is_scam: bool
 
 
+class QuizWeaknessDetail(BaseModel):
+    tag: str
+    label: str
+    suggestion: str
+
+
 class SwipeAnswerResponse(BaseModel):
     correct: bool
     is_scam: bool
     explanation: str
     weakness_tags: list[str]
+    tag_details: list[QuizWeaknessDetail]
 
 
 class SwipeAnswerItem(BaseModel):
@@ -114,6 +121,7 @@ class SwipeCompleteRequest(BaseModel):
 
 class WeaknessSummaryItem(BaseModel):
     tag: str
+    label: str
     count: int
 
 
@@ -274,12 +282,6 @@ class QuizAnswerRequest(QuizAnswerItem):
 class QuizRedFlag(BaseModel):
     tag: str | None
     text: str
-
-
-class QuizWeaknessDetail(BaseModel):
-    tag: str
-    label: str
-    suggestion: str
 
 
 class QuizVerdictAnswerResponse(BaseModel):

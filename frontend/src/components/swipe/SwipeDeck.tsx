@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react"
+import type { QuizWeaknessDetail } from "@/client"
 import {
   useSwipeAnswer,
   useSwipeComplete,
@@ -25,7 +26,7 @@ export function SwipeDeck() {
   const [feedback, setFeedback] = useState<{
     correct: boolean
     explanation: string
-    weaknessTags: string[]
+    weaknessDetails: QuizWeaknessDetail[]
   } | null>(null)
 
   const cards = deck.data ?? []
@@ -82,7 +83,7 @@ export function SwipeDeck() {
           setFeedback({
             correct: res.correct,
             explanation: res.explanation,
-            weaknessTags: res.weakness_tags,
+            weaknessDetails: res.tag_details,
           })
         },
       },
@@ -108,7 +109,7 @@ export function SwipeDeck() {
           <SwipeFeedback
             correct={feedback.correct}
             explanation={feedback.explanation}
-            weaknessTags={feedback.weaknessTags}
+            weaknessDetails={feedback.weaknessDetails}
           />
           <button
             type="button"

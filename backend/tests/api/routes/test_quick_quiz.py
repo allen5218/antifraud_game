@@ -599,7 +599,19 @@ def test_complete_tactics_counts_only_missed_tags(
 
     assert response.status_code == 200
     assert response.json()["correct_count"] == 0
-    assert response.json()["weakness_summary"] == [{"tag": missed, "count": 1}]
+    assert response.json()["weakness_summary"] == [
+        {
+            "tag": missed,
+            "label": {
+                "time_pressure": "時間壓力",
+                "authority": "權威服從",
+                "greed": "貪念誘惑",
+                "social_proof": "社會認同",
+                "trust_building": "信任建立",
+            }[missed],
+            "count": 1,
+        }
+    ]
 
 
 def test_complete_match_counts_each_incorrect_pair_tag(
@@ -631,7 +643,19 @@ def test_complete_match_counts_each_incorrect_pair_tag(
 
     assert response.status_code == 200
     assert response.json()["correct_count"] == 0
-    assert response.json()["weakness_summary"] == [{"tag": correct_tag, "count": 1}]
+    assert response.json()["weakness_summary"] == [
+        {
+            "tag": correct_tag,
+            "label": {
+                "time_pressure": "時間壓力",
+                "authority": "權威服從",
+                "greed": "貪念誘惑",
+                "social_proof": "社會認同",
+                "trust_building": "信任建立",
+            }[correct_tag],
+            "count": 1,
+        }
+    ]
 
 
 def test_complete_match_uses_answers_frozen_at_deal_time(

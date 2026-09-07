@@ -64,6 +64,27 @@ def _reward(correct_count: int, best_streak: int) -> tuple[int, int]:
     return cash, xp
 
 
+def _weakness_details(tags: set[str]) -> list[QuizWeaknessDetail]:
+    return [
+        QuizWeaknessDetail(
+            tag=tag,
+            label=WEAKNESS_LABELS[tag],
+            suggestion=WEAKNESS_SUGGESTIONS[tag],
+        )
+        for tag in sorted(tags & WEAKNESS_TAGS)
+    ]
+
+
+def _weakness_summary(weakness: dict[str, int]) -> list[WeaknessSummaryItem]:
+    return [
+        WeaknessSummaryItem(tag=tag, label=WEAKNESS_LABELS[tag], count=count)
+        for tag, count in sorted(
+            weakness.items(), key=lambda item: item[1], reverse=True
+        )
+        if tag in WEAKNESS_TAGS
+    ]
+
+
 @router.get("/swipe/deck", response_model=list[SwipeCardPublic])
 def swipe_deck(session: SessionDep, current_user: CurrentUser, size: int = 12) -> Any:
     _ = current_user
@@ -94,6 +115,7 @@ def swipe_answer(
         is_scam=card.is_scam,
         explanation=card.explanation,
         weakness_tags=card.weakness_tags,
+        tag_details=_weakness_details(set(card.weakness_tags)),
     )
 
 
@@ -147,10 +169,7 @@ def swipe_complete(
     session.add(current_user)
     session.commit()
 
-    summary = [
-        WeaknessSummaryItem(tag=t, count=n)
-        for t, n in sorted(weakness.items(), key=lambda kv: kv[1], reverse=True)
-    ]
+    summary = _weakness_summary(weakness)
     return SwipeCompleteResponse(
         correct_count=correct_count,
         total=len(deduped),
@@ -402,17 +421,6 @@ def _correct_match_pairs(
     return correct_pairs
 
 
-def _weakness_details(tags: set[str]) -> list[QuizWeaknessDetail]:
-    return [
-        QuizWeaknessDetail(
-            tag=tag,
-            label=WEAKNESS_LABELS.get(tag, tag),
-            suggestion=WEAKNESS_SUGGESTIONS.get(tag, "請從題目提供的話術中選擇"),
-        )
-        for tag in sorted(tags)
-    ]
-
-
 @router.post("/quiz/answer", response_model=QuizAnswerResponse)
 def quiz_answer(
     payload: QuizAnswerRequest, session: SessionDep, current_user: CurrentUser
@@ -616,10 +624,7 @@ def quiz_complete(
     session.add(quiz)
     session.commit()
 
-    summary = [
-        WeaknessSummaryItem(tag=t, count=n)
-        for t, n in sorted(weakness.items(), key=lambda kv: kv[1], reverse=True)
-    ]
+    summary = _weakness_summary(weakness)
     return QuizCompleteResponse(
         correct_count=correct_count,
         total=total,

@@ -80,7 +80,7 @@ function ScenarioChatPage() {
             {detail.display_name}
           </span>
           <span className="text-[10px] text-amber-600">
-            ● {FRAUD_TYPE_LABELS[detail.fraud_type] ?? detail.fraud_type}
+            ● {FRAUD_TYPE_LABELS[detail.fraud_type] ?? "其他類型"}
           </span>
         </span>
         {detail.status === "active" ? (

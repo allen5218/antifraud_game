@@ -19,6 +19,11 @@ const result = {
       label: "貪念誘惑",
       suggestion: "保證獲利時，先停下來查證風險",
     },
+    {
+      tag: "time_pressure",
+      label: "時間壓力",
+      suggestion: "遇到限時話術先冷靜",
+    },
   ],
 }
 
@@ -32,7 +37,7 @@ const verdictItem = {
 }
 
 describe("<QuizReveal />", () => {
-  it("shows verdict, flags with tags and provenance", () => {
+  it("shows verdict and localized flags without raw tags", () => {
     render(
       <QuizReveal
         item={verdictItem}
@@ -43,10 +48,10 @@ describe("<QuizReveal />", () => {
     )
     expect(screen.getByText(/答對了/)).toBeTruthy()
     expect(screen.getByText(/保證獲利穩賺不賠/)).toBeTruthy()
-    expect(screen.getAllByText("greed")).toHaveLength(2)
-    expect(screen.getByText("貪念誘惑")).toBeTruthy()
+    expect(screen.getAllByText("貪念誘惑")).toHaveLength(2)
     expect(screen.getByText(/先停下來查證風險/)).toBeTruthy()
     expect(screen.getByText(/改編自:司法院裁判書詐欺案件/)).toBeTruthy()
+    expect(screen.queryByText("greed")).toBeNull()
   })
 
   it("shows wrong verdict for incorrect", () => {

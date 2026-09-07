@@ -317,6 +317,7 @@ export type SwipeAnswerResponse = {
     is_scam: boolean;
     explanation: string;
     weakness_tags: Array<(string)>;
+    tag_details: Array<QuizWeaknessDetail>;
 };
 
 export type SwipeCardPublic = {
@@ -403,6 +404,7 @@ export type ValidationError = {
 
 export type WeaknessSummaryItem = {
     tag: string;
+    label: string;
     count: number;
 };
 

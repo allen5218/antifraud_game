@@ -27,12 +27,7 @@ function WeaknessDetails({ details }: { details: QuizWeaknessDetail[] }) {
       <ul className="mt-2 grid gap-2">
         {details.map((detail) => (
           <li key={detail.tag} className="rounded-xl bg-muted p-3">
-            <div className="flex flex-wrap items-center gap-1.5">
-              <span className="text-xs font-bold">{detail.label}</span>
-              <span className="rounded bg-background px-1.5 py-0.5 text-[9px] font-semibold text-muted-foreground">
-                {detail.tag}
-              </span>
-            </div>
+            <span className="text-xs font-bold">{detail.label}</span>
             <p className="mt-1 text-xs leading-relaxed text-muted-foreground">
               {detail.suggestion}
             </p>
@@ -45,6 +40,8 @@ function WeaknessDetails({ details }: { details: QuizWeaknessDetail[] }) {
 
 function VerdictReveal({ result }: { result: QuickQuizAnswerResponse }) {
   if (result.type !== "verdict") return null
+  const labelFor = (tag: string) =>
+    result.tag_details.find((detail) => detail.tag === tag)?.label ?? "其他話術"
   return (
     <>
       <p className="mt-1 text-center text-xs text-muted-foreground">
@@ -59,7 +56,7 @@ function VerdictReveal({ result }: { result: QuickQuizAnswerResponse }) {
             {flag.tag ? "🚩" : "✅"} {flag.text}
             {flag.tag && (
               <span className="ml-1 rounded bg-red-50 px-1 py-0.5 text-[9px] font-bold text-red-600 dark:bg-red-950">
-                {flag.tag}
+                {labelFor(flag.tag)}
               </span>
             )}
           </li>
@@ -76,7 +73,7 @@ function VerdictReveal({ result }: { result: QuickQuizAnswerResponse }) {
 function TacticsReveal({ result }: { result: QuickQuizAnswerResponse }) {
   if (result.type !== "tactics") return null
   const labelFor = (tag: string) =>
-    result.tag_details.find((detail) => detail.tag === tag)?.label ?? tag
+    result.tag_details.find((detail) => detail.tag === tag)?.label ?? "其他話術"
   return (
     <>
       <div className="mt-3 grid gap-2 text-xs">
@@ -124,7 +121,7 @@ function MatchReveal({
             <p
               className={`mt-1 font-bold ${pair.correct ? "text-green-600" : "text-red-600"}`}
             >
-              正解：{targets.get(pair.correct_tag) ?? pair.correct_tag}
+              正解：{targets.get(pair.correct_tag) ?? "其他話術"}
             </p>
           </li>
         ))}

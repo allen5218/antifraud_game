@@ -1299,10 +1299,17 @@ export const SwipeAnswerResponseSchema = {
             },
             type: 'array',
             title: 'Weakness Tags'
+        },
+        tag_details: {
+            items: {
+                '$ref': '#/components/schemas/QuizWeaknessDetail'
+            },
+            type: 'array',
+            title: 'Tag Details'
         }
     },
     type: 'object',
-    required: ['correct', 'is_scam', 'explanation', 'weakness_tags'],
+    required: ['correct', 'is_scam', 'explanation', 'weakness_tags', 'tag_details'],
     title: 'SwipeAnswerResponse'
 } as const;
 
@@ -1697,12 +1704,16 @@ export const WeaknessSummaryItemSchema = {
             type: 'string',
             title: 'Tag'
         },
+        label: {
+            type: 'string',
+            title: 'Label'
+        },
         count: {
             type: 'integer',
             title: 'Count'
         }
     },
     type: 'object',
-    required: ['tag', 'count'],
+    required: ['tag', 'label', 'count'],
     title: 'WeaknessSummaryItem'
 } as const;

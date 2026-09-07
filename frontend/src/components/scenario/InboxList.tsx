@@ -27,7 +27,7 @@ export function InboxList({ items, onOpen }: InboxListProps) {
                 <span className="flex items-center gap-1.5 text-sm font-bold">
                   {item.display_name}
                   <span className="rounded-md bg-primary/10 px-1.5 py-0.5 text-[10px] font-semibold text-primary">
-                    {FRAUD_TYPE_LABELS[item.fraud_type] ?? item.fraud_type}
+                    {FRAUD_TYPE_LABELS[item.fraud_type] ?? "其他類型"}
                   </span>
                 </span>
                 <span className="mt-0.5 block truncate text-xs text-muted-foreground">

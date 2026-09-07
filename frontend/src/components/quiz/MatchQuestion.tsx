@@ -46,7 +46,7 @@ export function MatchQuestion({
   }
 
   const targetLabel = (tag: string) =>
-    item.match_targets.find((target) => target.tag === tag)?.label ?? tag
+    item.match_targets.find((target) => target.tag === tag)?.label ?? "其他話術"
 
   return (
     <div className="flex h-full flex-col">
