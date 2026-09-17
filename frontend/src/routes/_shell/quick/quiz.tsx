@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router"
 import { useState } from "react"
-import type { QuizAnswerResponse, QuizCompleteResponse } from "@/client"
-import { QuizCard } from "@/components/quiz/QuizCard"
+import type { QuickQuizAnswerResponse, QuizCompleteResponse } from "@/client"
+import { QuizCard, type QuizDraftAnswer } from "@/components/quiz/QuizCard"
 import { QuizReveal } from "@/components/quiz/QuizReveal"
 import { QuizSummary } from "@/components/quiz/QuizSummary"
 import { useQuizAnswer, useQuizComplete, useQuizDeck } from "@/hooks/useQuiz"
@@ -12,22 +12,26 @@ export const Route = createFileRoute("/_shell/quick/quiz")({
 
 function QuizPage() {
   const [round, setRound] = useState(0)
-  const { data: deck, isPending } = useQuizDeck(round)
+  const { data: deck, isError: isDeckError, isPending } = useQuizDeck(round)
   const answerM = useQuizAnswer()
   const completeM = useQuizComplete()
   const [index, setIndex] = useState(0)
-  const [reveal, setReveal] = useState<QuizAnswerResponse | null>(null)
-  const [answers, setAnswers] = useState<
-    { case_id: number; guess_is_scam: boolean }[]
-  >([])
+  const [reveal, setReveal] = useState<QuickQuizAnswerResponse | null>(null)
   const [summary, setSummary] = useState<QuizCompleteResponse | null>(null)
 
+  if (isDeckError) {
+    return (
+      <p className="py-12 text-center text-xs text-destructive">
+        題目載入失敗，請稍後再試
+      </p>
+    )
+  }
   if (isPending || !deck) {
     return (
       <p className="py-12 text-center text-xs text-muted-foreground">載入中…</p>
     )
   }
-  if (deck.cases.length === 0) {
+  if (deck.items.length === 0) {
     return (
       <p className="py-12 text-center text-xs text-muted-foreground">
         題庫暫無題目
@@ -40,8 +44,10 @@ function QuizPage() {
         result={summary}
         onRestart={() => {
           setSummary(null)
-          setAnswers([])
+          setReveal(null)
           setIndex(0)
+          answerM.reset()
+          completeM.reset()
           // 遞增 round → 取全新牌與 session_id,不重用已結算的舊 deck
           setRound((r) => r + 1)
         }}
@@ -49,49 +55,58 @@ function QuizPage() {
     )
   }
 
-  const current = deck.cases[index]
-  const judge = (guessIsScam: boolean) => {
-    if (answerM.isPending) return
-    const nextAnswers = [
-      ...answers,
-      { case_id: current.id, guess_is_scam: guessIsScam },
-    ]
+  const current = deck.items[index]
+  const submitAnswer = (answer: QuizDraftAnswer) => {
+    if (answerM.isPending || reveal !== null) return
     answerM.mutate(
-      { caseId: current.id, guessIsScam },
+      {
+        session_id: deck.session_id,
+        item_id: current.item_id,
+        ...answer,
+      },
       { onSuccess: (data) => setReveal(data) },
     )
-    setAnswers(nextAnswers)
   }
   const next = () => {
-    setReveal(null)
-    if (index + 1 < deck.cases.length) {
-      setIndex(index + 1)
+    if (completeM.isPending) return
+    if (index + 1 < deck.items.length) {
+      setReveal(null)
+      setIndex((currentIndex) => currentIndex + 1)
     } else {
-      completeM.mutate(
-        { sessionId: deck.session_id, answers },
-        { onSuccess: (data) => setSummary(data) },
-      )
+      completeM.mutate(deck.session_id, {
+        onSuccess: (data) => setSummary(data),
+      })
     }
   }
 
   return (
     <div className="h-full">
       <QuizCard
-        fraudType={current.fraud_type}
-        title={current.title}
-        narrative={current.narrative}
-        difficulty={current.difficulty}
+        key={current.item_id}
+        item={current}
         index={index}
-        total={deck.cases.length}
-        onJudge={judge}
+        total={deck.items.length}
+        onSubmit={submitAnswer}
         disabled={answerM.isPending || reveal !== null}
       />
+      {answerM.isError && reveal === null && (
+        <p className="fixed inset-x-4 bottom-20 z-40 rounded-xl bg-destructive px-3 py-2 text-center text-xs font-semibold text-white shadow-lg">
+          答案送出失敗，請再試一次
+        </p>
+      )}
       {reveal && (
         <QuizReveal
+          item={current}
           result={reveal}
           onNext={next}
-          isLast={index + 1 >= deck.cases.length}
+          isLast={index + 1 >= deck.items.length}
+          disabled={completeM.isPending}
         />
+      )}
+      {completeM.isError && (
+        <p className="fixed inset-x-4 bottom-4 z-[60] rounded-xl bg-destructive px-3 py-2 text-center text-xs font-semibold text-white shadow-lg">
+          結算失敗，請再按一次「看結算」
+        </p>
       )}
     </div>
   )

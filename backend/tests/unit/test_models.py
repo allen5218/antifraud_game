@@ -5,6 +5,7 @@ from app.models import (
     MascotItem,
     PretestQuestion,
     PretestResult,
+    QuizSession,
     UserMascotItem,
     UserScore,
 )
@@ -70,3 +71,10 @@ def test_user_mascot_item_creation():
         item_id=uuid.uuid4(),
     )
     assert umi.is_equipped is False
+
+
+def test_quiz_session_items_default_to_empty_list() -> None:
+    quiz = QuizSession(user_id=uuid.uuid4())
+
+    assert quiz.items == []
+    assert quiz.answers == {}

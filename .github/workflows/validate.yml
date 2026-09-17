@@ -1,13 +1,14 @@
 name: PR validate
-# 在 PR 上驗證 deploy/compose.prod.yml + 實際建置 backend/frontend image(不推)，作為
-# Renovate auto-merge 的合併閘門。刻意不加 paths 過濾：branch protection 的 required check
-# 必須在「每個」PR 上都回報，否則 compose-only / workflow-only 的 PR 會因沒有檢查結果而永遠
-# 卡在 auto-merge。
+# 在 PR 上驗證資料管線（相關路徑才跑）、deploy/compose.prod.yml，並實際建置
+# backend/frontend image（不推），作為 Renovate auto-merge 的合併閘門。刻意不在
+# workflow trigger 加 paths 過濾：branch protection 的 required check 必須在「每個」PR
+# 都回報，否則 compose-only / workflow-only 的 PR 會因沒有檢查結果而永遠卡在 auto-merge。
 on:
   pull_request:
     branches: [main]
 permissions:
   contents: read
+  pull-requests: read
 concurrency:
   group: validate-${{ github.ref }}
   cancel-in-progress: true
@@ -16,6 +17,32 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+      # 不在 workflow trigger 使用 paths：required validate 必須在每個 PR 都回報。
+      # 只條件執行資料管線步驟，無關 PR 會跳過步驟但不會留下 Pending check。
+      - name: Check data pipeline paths
+        id: data-pipeline-paths
+        uses: dorny/paths-filter@ceb8a2b8f2d89434be7ff52d3de7ec3738c5cc9d # v4.0.3
+        with:
+          filters: |
+            changed:
+              - 'data_pipeline/**'
+              - 'deploy/seed/**'
+              - '.github/workflows/validate.yml'
+
+      - name: Test data pipeline
+        if: steps.data-pipeline-paths.outputs.changed == 'true'
+        working-directory: data_pipeline/.agents/skills/scam-knowledge-pipeline
+        run: python3 -m unittest discover -s tests
+
+      - name: Check game case lexical leakage
+        if: steps.data-pipeline-paths.outputs.changed == 'true'
+        working-directory: data_pipeline/.agents/skills/scam-knowledge-pipeline
+        run: >-
+          python3 scripts/leak_probe.py
+          --from-dump "$GITHUB_WORKSPACE/deploy/seed/game_cases.sql"
+          --probe lexical
+          --fail-over 0.75
+
       - uses: docker/setup-buildx-action@37fe631027851001ddb9b187196cc803df7f5f0e # v4
 
       # compose.prod.yml 用 env_file: .env(fresh checkout 無此檔)——由 .env.example 建一份

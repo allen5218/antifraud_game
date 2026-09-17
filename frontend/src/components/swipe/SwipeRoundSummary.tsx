@@ -1,18 +1,10 @@
-interface WeaknessItem {
-  tag: string
-  count: number
-}
+import type { SwipeCompleteResponse } from "@/client"
 
-interface SwipeResult {
-  correct_count: number
-  total: number
-  best_streak: number
-  cash_earned: number
-  xp_earned: number
-  weakness_summary: WeaknessItem[]
-}
-
-export function SwipeRoundSummary({ result }: { result: SwipeResult }) {
+export function SwipeRoundSummary({
+  result,
+}: {
+  result: SwipeCompleteResponse
+}) {
   const top = result.weakness_summary[0]
   return (
     <div className="rounded-xl border bg-card p-4">
@@ -28,7 +20,7 @@ export function SwipeRoundSummary({ result }: { result: SwipeResult }) {
       </div>
       {top && (
         <div className="mt-3 rounded-md bg-amber-50 px-3 py-2 text-xs text-amber-800">
-          這輪最常被「{top.tag}」話術騙過
+          這輪最常被「{top.label}」話術騙過
         </div>
       )}
     </div>

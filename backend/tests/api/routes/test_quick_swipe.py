@@ -15,7 +15,9 @@ def test_deck_returns_cards_without_answers(
     assert 1 <= len(cards) <= 5
     assert "is_scam" not in cards[0]
     assert "explanation" not in cards[0]
-    assert {"id", "scenario", "source_label", "fraud_type", "difficulty"} <= set(cards[0])
+    assert {"id", "scenario", "source_label", "fraud_type", "difficulty"} <= set(
+        cards[0]
+    )
 
 
 def test_answer_returns_correctness_and_explanation(
@@ -36,6 +38,51 @@ def test_answer_returns_correctness_and_explanation(
     assert data["correct"] is True
     assert data["is_scam"] is True
     assert data["explanation"]
+    assert data["tag_details"] == [
+        {
+            "tag": tag,
+            "label": {
+                "time_pressure": "時間壓力",
+                "authority": "權威服從",
+                "greed": "貪念誘惑",
+                "social_proof": "社會認同",
+                "trust_building": "信任建立",
+            }[tag],
+            "suggestion": {
+                "time_pressure": "遇到「限時」「緊急」等話術時，先深呼吸，給自己 24 小時冷靜期",
+                "authority": "不要因為對方自稱專家或官員就輕信，主動查證對方身份",
+                "greed": "記住「高報酬必伴隨高風險」，保證獲利幾乎都是詐騙",
+                "social_proof": "不要因為「很多人都在做」就跟風，獨立思考很重要",
+                "trust_building": "即使對方展示了真實資訊，也不代表整件事是真的",
+            }[tag],
+        }
+        for tag in sorted(card.weakness_tags)
+    ]
+
+
+def test_complete_returns_localized_weakness_summary(
+    client: TestClient, db, normal_user_token_headers: dict[str, str]
+) -> None:
+    from sqlmodel import select
+
+    from app.models import SwipeCard
+
+    card = db.exec(
+        select(SwipeCard).where(SwipeCard.weakness_tags.contains(["authority"]))
+    ).first()
+    r = client.post(
+        f"{settings.API_V1_STR}/quick/swipe/complete",
+        headers=normal_user_token_headers,
+        json={
+            "answers": [{"card_id": str(card.id), "guess_is_scam": not card.is_scam}]
+        },
+    )
+
+    assert r.status_code == 200
+    authority = next(
+        item for item in r.json()["weakness_summary"] if item["tag"] == "authority"
+    )
+    assert authority == {"tag": "authority", "label": "權威服從", "count": 1}
 
 
 def test_complete_revalidates_and_grants_reward(

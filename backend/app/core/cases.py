@@ -13,7 +13,10 @@ from pydantic import BaseModel
 from sqlalchemy import text
 from sqlmodel import Session
 
-_COLS = "id, fraud_type, is_scam, title, narrative, red_flags, difficulty, provenance"
+_COLS = (
+    "id, fraud_type, is_scam, title, narrative, red_flags, difficulty, provenance, "
+    "mirror_of"
+)
 
 
 class GameCaseRow(BaseModel):
@@ -25,6 +28,7 @@ class GameCaseRow(BaseModel):
     red_flags: list[dict[str, Any]]
     difficulty: int
     provenance: str
+    mirror_of: int | None = None
 
 
 def list_published(
@@ -38,6 +42,18 @@ def list_published(
     sql += " ORDER BY random() LIMIT :limit"
     rows = session.execute(text(sql), params).mappings().all()
     return [GameCaseRow(**dict(r)) for r in rows]
+
+
+def list_published_for_quiz(session: Session) -> list[GameCaseRow]:
+    """讀取混合題型候選素材；由路由在記憶體中套用跨題型唯一性規則。"""
+    rows = (
+        session.execute(
+            text(f"SELECT {_COLS} FROM game_cases WHERE status = 'published' ")
+        )
+        .mappings()
+        .all()
+    )
+    return [GameCaseRow(**dict(row)) for row in rows]
 
 
 def get_case(session: Session, case_id: int) -> GameCaseRow | None:

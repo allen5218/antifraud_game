@@ -532,91 +532,67 @@ export const PropertyTierPublicSchema = {
     title: 'PropertyTierPublic'
 } as const;
 
-export const QuizAnswerItemSchema = {
-    properties: {
-        case_id: {
-            type: 'integer',
-            title: 'Case Id'
-        },
-        guess_is_scam: {
-            type: 'boolean',
-            title: 'Guess Is Scam'
-        }
-    },
-    type: 'object',
-    required: ['case_id', 'guess_is_scam'],
-    title: 'QuizAnswerItem'
-} as const;
-
 export const QuizAnswerRequestSchema = {
     properties: {
-        case_id: {
-            type: 'integer',
-            title: 'Case Id'
+        item_id: {
+            type: 'string',
+            maxLength: 64,
+            title: 'Item Id'
         },
         guess_is_scam: {
-            type: 'boolean',
+            anyOf: [
+                {
+                    type: 'boolean'
+                },
+                {
+                    type: 'null'
+                }
+            ],
             title: 'Guess Is Scam'
+        },
+        selected_tags: {
+            anyOf: [
+                {
+                    items: {
+                        type: 'string',
+                        maxLength: 32
+                    },
+                    type: 'array',
+                    maxItems: 5
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Selected Tags'
+        },
+        pairs: {
+            anyOf: [
+                {
+                    additionalProperties: {
+                        type: 'string',
+                        maxLength: 64
+                    },
+                    propertyNames: {
+                        maxLength: 64
+                    },
+                    type: 'object',
+                    maxProperties: 5
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Pairs'
+        },
+        session_id: {
+            type: 'string',
+            title: 'Session Id'
         }
     },
     type: 'object',
-    required: ['case_id', 'guess_is_scam'],
+    required: ['item_id', 'session_id'],
     title: 'QuizAnswerRequest'
-} as const;
-
-export const QuizAnswerResponseSchema = {
-    properties: {
-        correct: {
-            type: 'boolean',
-            title: 'Correct'
-        },
-        is_scam: {
-            type: 'boolean',
-            title: 'Is Scam'
-        },
-        red_flags: {
-            items: {
-                '$ref': '#/components/schemas/QuizRedFlag'
-            },
-            type: 'array',
-            title: 'Red Flags'
-        },
-        provenance: {
-            type: 'string',
-            title: 'Provenance'
-        }
-    },
-    type: 'object',
-    required: ['correct', 'is_scam', 'red_flags', 'provenance'],
-    title: 'QuizAnswerResponse'
-} as const;
-
-export const QuizCasePublicSchema = {
-    properties: {
-        id: {
-            type: 'integer',
-            title: 'Id'
-        },
-        fraud_type: {
-            type: 'string',
-            title: 'Fraud Type'
-        },
-        title: {
-            type: 'string',
-            title: 'Title'
-        },
-        narrative: {
-            type: 'string',
-            title: 'Narrative'
-        },
-        difficulty: {
-            type: 'integer',
-            title: 'Difficulty'
-        }
-    },
-    type: 'object',
-    required: ['id', 'fraud_type', 'title', 'narrative', 'difficulty'],
-    title: 'QuizCasePublic'
 } as const;
 
 export const QuizCompleteRequestSchema = {
@@ -624,17 +600,10 @@ export const QuizCompleteRequestSchema = {
         session_id: {
             type: 'string',
             title: 'Session Id'
-        },
-        answers: {
-            items: {
-                '$ref': '#/components/schemas/QuizAnswerItem'
-            },
-            type: 'array',
-            title: 'Answers'
         }
     },
     type: 'object',
-    required: ['session_id', 'answers'],
+    required: ['session_id'],
     title: 'QuizCompleteRequest'
 } as const;
 
@@ -679,17 +648,155 @@ export const QuizDeckResponseSchema = {
             type: 'string',
             title: 'Session Id'
         },
-        cases: {
+        items: {
             items: {
-                '$ref': '#/components/schemas/QuizCasePublic'
+                oneOf: [
+                    {
+                        '$ref': '#/components/schemas/QuizVerdictPublic'
+                    },
+                    {
+                        '$ref': '#/components/schemas/QuizTacticsPublic'
+                    },
+                    {
+                        '$ref': '#/components/schemas/QuizMatchPublic'
+                    }
+                ],
+                discriminator: {
+                    propertyName: 'type',
+                    mapping: {
+                        match: '#/components/schemas/QuizMatchPublic',
+                        tactics: '#/components/schemas/QuizTacticsPublic',
+                        verdict: '#/components/schemas/QuizVerdictPublic'
+                    }
+                }
             },
             type: 'array',
-            title: 'Cases'
+            title: 'Items'
         }
     },
     type: 'object',
-    required: ['session_id', 'cases'],
+    required: ['session_id', 'items'],
     title: 'QuizDeckResponse'
+} as const;
+
+export const QuizMatchAnswerResponseSchema = {
+    properties: {
+        type: {
+            type: 'string',
+            const: 'match',
+            title: 'Type',
+            default: 'match'
+        },
+        correct: {
+            type: 'boolean',
+            title: 'Correct'
+        },
+        results: {
+            items: {
+                '$ref': '#/components/schemas/QuizMatchPairResult'
+            },
+            type: 'array',
+            title: 'Results'
+        },
+        tag_details: {
+            items: {
+                '$ref': '#/components/schemas/QuizWeaknessDetail'
+            },
+            type: 'array',
+            title: 'Tag Details'
+        }
+    },
+    type: 'object',
+    required: ['correct', 'results', 'tag_details'],
+    title: 'QuizMatchAnswerResponse'
+} as const;
+
+export const QuizMatchPairResultSchema = {
+    properties: {
+        pair_id: {
+            type: 'string',
+            title: 'Pair Id'
+        },
+        correct_tag: {
+            type: 'string',
+            title: 'Correct Tag'
+        },
+        correct: {
+            type: 'boolean',
+            title: 'Correct'
+        }
+    },
+    type: 'object',
+    required: ['pair_id', 'correct_tag', 'correct'],
+    title: 'QuizMatchPairResult'
+} as const;
+
+export const QuizMatchPromptSchema = {
+    properties: {
+        pair_id: {
+            type: 'string',
+            title: 'Pair Id'
+        },
+        text: {
+            type: 'string',
+            title: 'Text'
+        }
+    },
+    type: 'object',
+    required: ['pair_id', 'text'],
+    title: 'QuizMatchPrompt'
+} as const;
+
+export const QuizMatchPublicSchema = {
+    properties: {
+        item_id: {
+            type: 'string',
+            title: 'Item Id'
+        },
+        type: {
+            type: 'string',
+            const: 'match',
+            title: 'Type',
+            default: 'match'
+        },
+        question: {
+            type: 'string',
+            title: 'Question'
+        },
+        match_prompts: {
+            items: {
+                '$ref': '#/components/schemas/QuizMatchPrompt'
+            },
+            type: 'array',
+            title: 'Match Prompts'
+        },
+        match_targets: {
+            items: {
+                '$ref': '#/components/schemas/QuizMatchTarget'
+            },
+            type: 'array',
+            title: 'Match Targets'
+        }
+    },
+    type: 'object',
+    required: ['item_id', 'question', 'match_prompts', 'match_targets'],
+    title: 'QuizMatchPublic'
+} as const;
+
+export const QuizMatchTargetSchema = {
+    properties: {
+        tag: {
+            type: 'string',
+            title: 'Tag'
+        },
+        label: {
+            type: 'string',
+            title: 'Label'
+        }
+    },
+    type: 'object',
+    required: ['tag', 'label'],
+    title: 'QuizMatchTarget'
 } as const;
 
 export const QuizRedFlagSchema = {
@@ -713,6 +820,207 @@ export const QuizRedFlagSchema = {
     type: 'object',
     required: ['tag', 'text'],
     title: 'QuizRedFlag'
+} as const;
+
+export const QuizTacticsAnswerResponseSchema = {
+    properties: {
+        type: {
+            type: 'string',
+            const: 'tactics',
+            title: 'Type',
+            default: 'tactics'
+        },
+        correct: {
+            type: 'boolean',
+            title: 'Correct'
+        },
+        correct_tags: {
+            items: {
+                type: 'string'
+            },
+            type: 'array',
+            title: 'Correct Tags'
+        },
+        missed_tags: {
+            items: {
+                type: 'string'
+            },
+            type: 'array',
+            title: 'Missed Tags'
+        },
+        extra_tags: {
+            items: {
+                type: 'string'
+            },
+            type: 'array',
+            title: 'Extra Tags'
+        },
+        tag_details: {
+            items: {
+                '$ref': '#/components/schemas/QuizWeaknessDetail'
+            },
+            type: 'array',
+            title: 'Tag Details'
+        }
+    },
+    type: 'object',
+    required: ['correct', 'correct_tags', 'missed_tags', 'extra_tags', 'tag_details'],
+    title: 'QuizTacticsAnswerResponse'
+} as const;
+
+export const QuizTacticsOptionSchema = {
+    properties: {
+        tag: {
+            type: 'string',
+            title: 'Tag'
+        },
+        label: {
+            type: 'string',
+            title: 'Label'
+        }
+    },
+    type: 'object',
+    required: ['tag', 'label'],
+    title: 'QuizTacticsOption'
+} as const;
+
+export const QuizTacticsPublicSchema = {
+    properties: {
+        item_id: {
+            type: 'string',
+            title: 'Item Id'
+        },
+        type: {
+            type: 'string',
+            const: 'tactics',
+            title: 'Type',
+            default: 'tactics'
+        },
+        fraud_type: {
+            type: 'string',
+            title: 'Fraud Type'
+        },
+        title: {
+            type: 'string',
+            title: 'Title'
+        },
+        narrative: {
+            type: 'string',
+            title: 'Narrative'
+        },
+        difficulty: {
+            type: 'integer',
+            title: 'Difficulty'
+        },
+        question: {
+            type: 'string',
+            title: 'Question'
+        },
+        options: {
+            items: {
+                '$ref': '#/components/schemas/QuizTacticsOption'
+            },
+            type: 'array',
+            title: 'Options'
+        }
+    },
+    type: 'object',
+    required: ['item_id', 'fraud_type', 'title', 'narrative', 'difficulty', 'question', 'options'],
+    title: 'QuizTacticsPublic'
+} as const;
+
+export const QuizVerdictAnswerResponseSchema = {
+    properties: {
+        type: {
+            type: 'string',
+            const: 'verdict',
+            title: 'Type',
+            default: 'verdict'
+        },
+        correct: {
+            type: 'boolean',
+            title: 'Correct'
+        },
+        is_scam: {
+            type: 'boolean',
+            title: 'Is Scam'
+        },
+        red_flags: {
+            items: {
+                '$ref': '#/components/schemas/QuizRedFlag'
+            },
+            type: 'array',
+            title: 'Red Flags'
+        },
+        provenance: {
+            type: 'string',
+            title: 'Provenance'
+        },
+        tag_details: {
+            items: {
+                '$ref': '#/components/schemas/QuizWeaknessDetail'
+            },
+            type: 'array',
+            title: 'Tag Details'
+        }
+    },
+    type: 'object',
+    required: ['correct', 'is_scam', 'red_flags', 'provenance', 'tag_details'],
+    title: 'QuizVerdictAnswerResponse'
+} as const;
+
+export const QuizVerdictPublicSchema = {
+    properties: {
+        item_id: {
+            type: 'string',
+            title: 'Item Id'
+        },
+        type: {
+            type: 'string',
+            const: 'verdict',
+            title: 'Type',
+            default: 'verdict'
+        },
+        fraud_type: {
+            type: 'string',
+            title: 'Fraud Type'
+        },
+        title: {
+            type: 'string',
+            title: 'Title'
+        },
+        narrative: {
+            type: 'string',
+            title: 'Narrative'
+        },
+        difficulty: {
+            type: 'integer',
+            title: 'Difficulty'
+        }
+    },
+    type: 'object',
+    required: ['item_id', 'fraud_type', 'title', 'narrative', 'difficulty'],
+    title: 'QuizVerdictPublic'
+} as const;
+
+export const QuizWeaknessDetailSchema = {
+    properties: {
+        tag: {
+            type: 'string',
+            title: 'Tag'
+        },
+        label: {
+            type: 'string',
+            title: 'Label'
+        },
+        suggestion: {
+            type: 'string',
+            title: 'Suggestion'
+        }
+    },
+    type: 'object',
+    required: ['tag', 'label', 'suggestion'],
+    title: 'QuizWeaknessDetail'
 } as const;
 
 export const ScenarioDetailSchema = {
@@ -991,10 +1299,17 @@ export const SwipeAnswerResponseSchema = {
             },
             type: 'array',
             title: 'Weakness Tags'
+        },
+        tag_details: {
+            items: {
+                '$ref': '#/components/schemas/QuizWeaknessDetail'
+            },
+            type: 'array',
+            title: 'Tag Details'
         }
     },
     type: 'object',
-    required: ['correct', 'is_scam', 'explanation', 'weakness_tags'],
+    required: ['correct', 'is_scam', 'explanation', 'weakness_tags', 'tag_details'],
     title: 'SwipeAnswerResponse'
 } as const;
 
@@ -1389,12 +1704,16 @@ export const WeaknessSummaryItemSchema = {
             type: 'string',
             title: 'Tag'
         },
+        label: {
+            type: 'string',
+            title: 'Label'
+        },
         count: {
             type: 'integer',
             title: 'Count'
         }
     },
     type: 'object',
-    required: ['tag', 'count'],
+    required: ['tag', 'label', 'count'],
     title: 'WeaknessSummaryItem'
 } as const;

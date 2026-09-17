@@ -1,6 +1,6 @@
-from typing import Any, Literal
+from typing import Annotated, Any, Literal
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, StringConstraints
 
 # ── 前測 ─────────────────────────────────────────────────────
 
@@ -96,11 +96,18 @@ class SwipeAnswerRequest(BaseModel):
     guess_is_scam: bool
 
 
+class QuizWeaknessDetail(BaseModel):
+    tag: str
+    label: str
+    suggestion: str
+
+
 class SwipeAnswerResponse(BaseModel):
     correct: bool
     is_scam: bool
     explanation: str
     weakness_tags: list[str]
+    tag_details: list[QuizWeaknessDetail]
 
 
 class SwipeAnswerItem(BaseModel):
@@ -114,6 +121,7 @@ class SwipeCompleteRequest(BaseModel):
 
 class WeaknessSummaryItem(BaseModel):
     tag: str
+    label: str
     count: int
 
 
@@ -196,26 +204,79 @@ class ScenarioDetail(BaseModel):
     history: list[dict[str, Any]]
 
 
-# ── Quiz(題組:判斷+紅旗揭曉)─────────────────────────────
+# ── Quiz（混合題型）───────────────────────────────────────
 
 
-class QuizCasePublic(BaseModel):
-    id: int
+class QuizVerdictPublic(BaseModel):
+    item_id: str
+    type: Literal["verdict"] = "verdict"
     fraud_type: str
     title: str
     narrative: str
     difficulty: int
 
 
+class QuizTacticsOption(BaseModel):
+    tag: str
+    label: str
+
+
+class QuizTacticsPublic(BaseModel):
+    item_id: str
+    type: Literal["tactics"] = "tactics"
+    fraud_type: str
+    title: str
+    narrative: str
+    difficulty: int
+    question: str
+    options: list[QuizTacticsOption]
+
+
+class QuizMatchPrompt(BaseModel):
+    pair_id: str
+    text: str
+
+
+class QuizMatchTarget(BaseModel):
+    tag: str
+    label: str
+
+
+class QuizMatchPublic(BaseModel):
+    item_id: str
+    type: Literal["match"] = "match"
+    question: str
+    match_prompts: list[QuizMatchPrompt]
+    match_targets: list[QuizMatchTarget]
+
+
+QuizDeckItem = Annotated[
+    QuizVerdictPublic | QuizTacticsPublic | QuizMatchPublic,
+    Field(discriminator="type"),
+]
+
+
 class QuizDeckResponse(BaseModel):
-    # 一次性結算 token:結算 /quiz/complete 時必須回傳,防跨請求重放刷獎
+    # 一次性結算 token:answer / complete 都必須回傳，防竄改與重放
     session_id: str
-    cases: list[QuizCasePublic]
+    items: list[QuizDeckItem]
 
 
-class QuizAnswerRequest(BaseModel):
-    case_id: int
-    guess_is_scam: bool
+QuizAnswerString32 = Annotated[str, StringConstraints(max_length=32)]
+QuizAnswerString64 = Annotated[str, StringConstraints(max_length=64)]
+
+
+class QuizAnswerItem(BaseModel):
+    item_id: str = Field(max_length=64)
+    guess_is_scam: bool | None = None
+    selected_tags: list[QuizAnswerString32] | None = Field(default=None, max_length=5)
+    pairs: dict[QuizAnswerString64, QuizAnswerString64] | None = Field(
+        default=None, max_length=5
+    )
+
+
+class QuizAnswerRequest(QuizAnswerItem):
+    session_id: str
 
 
 class QuizRedFlag(BaseModel):
@@ -223,21 +284,45 @@ class QuizRedFlag(BaseModel):
     text: str
 
 
-class QuizAnswerResponse(BaseModel):
+class QuizVerdictAnswerResponse(BaseModel):
+    type: Literal["verdict"] = "verdict"
     correct: bool
     is_scam: bool
     red_flags: list[QuizRedFlag]
     provenance: str
+    tag_details: list[QuizWeaknessDetail]
 
 
-class QuizAnswerItem(BaseModel):
-    case_id: int
-    guess_is_scam: bool
+class QuizTacticsAnswerResponse(BaseModel):
+    type: Literal["tactics"] = "tactics"
+    correct: bool
+    correct_tags: list[str]
+    missed_tags: list[str]
+    extra_tags: list[str]
+    tag_details: list[QuizWeaknessDetail]
+
+
+class QuizMatchPairResult(BaseModel):
+    pair_id: str
+    correct_tag: str
+    correct: bool
+
+
+class QuizMatchAnswerResponse(BaseModel):
+    type: Literal["match"] = "match"
+    correct: bool
+    results: list[QuizMatchPairResult]
+    tag_details: list[QuizWeaknessDetail]
+
+
+QuizAnswerResponse = Annotated[
+    QuizVerdictAnswerResponse | QuizTacticsAnswerResponse | QuizMatchAnswerResponse,
+    Field(discriminator="type"),
+]
 
 
 class QuizCompleteRequest(BaseModel):
     session_id: str
-    answers: list[QuizAnswerItem]
 
 
 class QuizCompleteResponse(BaseModel):

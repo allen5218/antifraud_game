@@ -3,6 +3,8 @@ from __future__ import annotations
 from datetime import datetime, timedelta, timezone
 from enum import Enum
 
+from sqlmodel import Session
+
 from app.models import PropertyTier, User, UserProperty
 
 LIQUIDATION_RATIO = 0.6
@@ -15,6 +17,17 @@ class EconomyError(str, Enum):
     LEVEL_REQUIRED = "level_required"
     BANKRUPTCY_PENDING = "bankruptcy_pending"
     PROPERTY_NOT_OWNED = "property_not_owned"
+
+
+def lock_user(session: Session, user: User) -> User:
+    """在同一交易內對 User 列取得 FOR UPDATE 鎖並重新載入最新值。
+
+    adjust_cash/add_xp 是變更 cash/xp 的唯一入口，但它們作用在 ORM 物件上；
+    若該物件是在鎖之前載入的，並發請求會各自以過期的值計算後互相覆蓋。
+    refresh 會略過同一 Session 的 identity map，真正從已鎖定的資料列重載。
+    """
+    session.refresh(user, with_for_update=True)
+    return user
 
 
 def _aware(dt: datetime) -> datetime:

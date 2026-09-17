@@ -1,10 +1,16 @@
+import type { QuizWeaknessDetail } from "@/client"
+
 interface Props {
   correct: boolean
   explanation: string
-  weaknessTags: string[]
+  weaknessDetails: QuizWeaknessDetail[]
 }
 
-export function SwipeFeedback({ correct, explanation, weaknessTags }: Props) {
+export function SwipeFeedback({
+  correct,
+  explanation,
+  weaknessDetails,
+}: Props) {
   return (
     <div
       className={`rounded-xl border p-3 text-xs ${
@@ -17,14 +23,16 @@ export function SwipeFeedback({ correct, explanation, weaknessTags }: Props) {
         {correct ? "答對！" : "答錯"}
       </div>
       <p className="mt-1 text-muted-foreground">{explanation}</p>
-      {weaknessTags.length > 0 && (
-        <div className="mt-2 flex flex-wrap gap-1">
-          {weaknessTags.map((t) => (
-            <span
-              key={t}
-              className="rounded-full bg-muted px-2 py-0.5 text-[10px]"
-            >
-              {t}
+      {weaknessDetails.length > 0 && (
+        <div className="mt-2 grid gap-1.5">
+          {weaknessDetails.map((detail) => (
+            <span key={detail.tag} className="rounded-lg bg-muted px-2 py-1.5">
+              <span className="block text-[10px] font-bold">
+                {detail.label}
+              </span>
+              <span className="mt-0.5 block text-[10px] text-muted-foreground">
+                {detail.suggestion}
+              </span>
             </span>
           ))}
         </div>

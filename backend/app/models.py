@@ -339,8 +339,8 @@ class ScenarioSession(SQLModel, table=True):
 class QuizSession(SQLModel, table=True):
     """D 題組的一次性結算 token:發牌時建立、結算時標記 completed。
 
-    防跨請求重放刷獎——同一 session 只能結算一次;結算只認發牌時鎖定的
-    case_ids(server-authoritative,客戶端無法夾帶未發出的卡)。
+    防跨請求重放刷獎——同一 session 只能結算一次；結算只認發牌時鎖定的
+    items 與逐題首次寫入的 answers（server-authoritative）。
     """
 
     __tablename__ = "quiz_session"
@@ -352,6 +352,14 @@ class QuizSession(SQLModel, table=True):
     # 發牌時鎖定的 game_cases id(管線表,無 FK 約束——跨管理域引用)
     case_ids: list[int] = Field(
         default=[], sa_column=Column(JSONB, nullable=False, server_default="[]")
+    )
+    # 發牌時生成的最小題目描述；正解仍於結算時從 game_cases 重新推導
+    items: list[dict] = Field(  # type: ignore
+        default=[], sa_column=Column(JSONB, nullable=False, server_default="[]")
+    )
+    # 玩家第一次提交的原始答案；與不可變的發牌內容分開保存。
+    answers: dict[str, object] = Field(
+        default={}, sa_column=Column(JSONB, nullable=False, server_default="{}")
     )
     completed: bool = Field(default=False)
     created_at: datetime | None = Field(
