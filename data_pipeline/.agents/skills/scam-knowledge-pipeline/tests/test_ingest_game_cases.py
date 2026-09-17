@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 """game_cases ingest 的 dry-run 衝突與寫入計數回歸測試。"""
+
 import json
 import os
 import subprocess
@@ -24,7 +25,7 @@ BASE_RECORD = {
     "mirror_of_key": None,
 }
 
-FAKE_PSQL = r'''#!/usr/bin/env python3
+FAKE_PSQL = r"""#!/usr/bin/env python3
 import json
 import os
 import sys
@@ -40,7 +41,7 @@ elif "INSERT INTO game_cases" in sql:
     print("1" if mode == "write-one" and "shopping-scam-001" in sql else "")
 elif "legit_without_anchor" in sql or "is_scam = false" in sql:
     print("0")
-'''
+"""
 
 
 class IngestGameCasesTests(unittest.TestCase):
@@ -49,7 +50,8 @@ class IngestGameCasesTests(unittest.TestCase):
             root = Path(td)
             input_path = root / "cases.jsonl"
             input_path.write_text(
-                "\n".join(json.dumps(record, ensure_ascii=False) for record in records) + "\n",
+                "\n".join(json.dumps(record, ensure_ascii=False) for record in records)
+                + "\n",
                 encoding="utf-8",
             )
             fake_psql = root / "psql"
@@ -82,7 +84,9 @@ class IngestGameCasesTests(unittest.TestCase):
 
     def test_apply_reports_rows_returned_by_upsert(self):
         second_record = dict(BASE_RECORD, case_key="shopping-scam-002")
-        proc = self.run_ingest([BASE_RECORD, second_record], "--apply", mode="write-one")
+        proc = self.run_ingest(
+            [BASE_RECORD, second_record], "--apply", mode="write-one"
+        )
 
         self.assertEqual(proc.returncode, 0, proc.stdout + proc.stderr)
         result = json.loads(proc.stdout.strip().splitlines()[-1])

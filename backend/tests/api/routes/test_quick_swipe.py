@@ -15,7 +15,9 @@ def test_deck_returns_cards_without_answers(
     assert 1 <= len(cards) <= 5
     assert "is_scam" not in cards[0]
     assert "explanation" not in cards[0]
-    assert {"id", "scenario", "source_label", "fraud_type", "difficulty"} <= set(cards[0])
+    assert {"id", "scenario", "source_label", "fraud_type", "difficulty"} <= set(
+        cards[0]
+    )
 
 
 def test_answer_returns_correctness_and_explanation(
@@ -71,7 +73,9 @@ def test_complete_returns_localized_weakness_summary(
     r = client.post(
         f"{settings.API_V1_STR}/quick/swipe/complete",
         headers=normal_user_token_headers,
-        json={"answers": [{"card_id": str(card.id), "guess_is_scam": not card.is_scam}]},
+        json={
+            "answers": [{"card_id": str(card.id), "guess_is_scam": not card.is_scam}]
+        },
     )
 
     assert r.status_code == 200

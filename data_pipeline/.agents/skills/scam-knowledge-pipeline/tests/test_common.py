@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 """共用資料庫連線參數的回歸測試。"""
+
 import os
 import sys
 import unittest

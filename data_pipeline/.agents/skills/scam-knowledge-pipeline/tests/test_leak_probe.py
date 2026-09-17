@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 """leak_probe.py 的回歸測試——只涵蓋免 API 的部分(COPY 解析、lexical 探針、計分、CI 閘門)。"""
+
 import json
 import subprocess
 import sys
@@ -33,9 +34,21 @@ def make_dump(rows):
         lines.append(
             "\t".join(
                 [
-                    str(i), key, ftype, "t" if is_scam else "f", title, narrative,
-                    "[]", "2", "{}", "prov", r"\N", status, r"\N",
-                    "2026-07-02 16:21:25+00", "2026-07-03 05:31:15+00",
+                    str(i),
+                    key,
+                    ftype,
+                    "t" if is_scam else "f",
+                    title,
+                    narrative,
+                    "[]",
+                    "2",
+                    "{}",
+                    "prov",
+                    r"\N",
+                    status,
+                    r"\N",
+                    "2026-07-02 16:21:25+00",
+                    "2026-07-03 05:31:15+00",
                 ]
             )
         )
@@ -57,12 +70,16 @@ class TestDumpParsing(unittest.TestCase):
             path.write_text(dump, encoding="utf-8")
 
             published = leak_probe.load_from_dump(str(path))
-            self.assertEqual([c["case_key"] for c in published], ["a-scam-001", "a-legit-001"])
+            self.assertEqual(
+                [c["case_key"] for c in published], ["a-scam-001", "a-legit-001"]
+            )
             self.assertIs(published[0]["is_scam"], True)
             self.assertIs(published[1]["is_scam"], False)
             self.assertEqual(published[0]["narrative"], SCAM_TAIL)
 
-            self.assertEqual(len(leak_probe.load_from_dump(str(path), published_only=False)), 3)
+            self.assertEqual(
+                len(leak_probe.load_from_dump(str(path), published_only=False)), 3
+            )
 
     def test_missing_copy_block_is_fatal(self):
         with tempfile.TemporaryDirectory() as td:
@@ -90,12 +107,24 @@ class TestLexicalProbe(unittest.TestCase):
 
     def test_abstains_on_unresolved_narrative(self):
         """重寫成當下視角、結局未揭曉後,規則探針應該無法判定。"""
-        self.assertIsNone(leak_probe.probe_lexical({"narrative": NEUTRAL})["predicted_is_scam"])
+        self.assertIsNone(
+            leak_probe.probe_lexical({"narrative": NEUTRAL})["predicted_is_scam"]
+        )
 
     def test_tail_scope_only_reads_the_ending(self):
         narrative = LEGIT_TAIL + "x" * 400
-        self.assertIs(leak_probe.probe_lexical({"narrative": narrative}, "tail")["predicted_is_scam"], None)
-        self.assertIs(leak_probe.probe_lexical({"narrative": narrative}, "full")["predicted_is_scam"], False)
+        self.assertIs(
+            leak_probe.probe_lexical({"narrative": narrative}, "tail")[
+                "predicted_is_scam"
+            ],
+            None,
+        )
+        self.assertIs(
+            leak_probe.probe_lexical({"narrative": narrative}, "full")[
+                "predicted_is_scam"
+            ],
+            False,
+        )
 
 
 class TestScoring(unittest.TestCase):
@@ -137,9 +166,24 @@ class TestScoring(unittest.TestCase):
 
     def test_pattern_precision_flags_noisy_rules(self):
         rows = [
-            {"is_scam": True, "hits": {"scam": [{"pattern": "好規則", "matched": "x"}], "legit": []}},
-            {"is_scam": False, "hits": {"scam": [{"pattern": "噪音規則", "matched": "y"}], "legit": []}},
-            {"is_scam": True, "hits": {"scam": [{"pattern": "噪音規則", "matched": "y"}], "legit": []}},
+            {
+                "is_scam": True,
+                "hits": {"scam": [{"pattern": "好規則", "matched": "x"}], "legit": []},
+            },
+            {
+                "is_scam": False,
+                "hits": {
+                    "scam": [{"pattern": "噪音規則", "matched": "y"}],
+                    "legit": [],
+                },
+            },
+            {
+                "is_scam": True,
+                "hits": {
+                    "scam": [{"pattern": "噪音規則", "matched": "y"}],
+                    "legit": [],
+                },
+            },
         ]
         stats = leak_probe.pattern_stats(rows)
         self.assertEqual(stats["好規則"]["precision"], 1.0)
@@ -148,7 +192,9 @@ class TestScoring(unittest.TestCase):
 
 class TestLenientParse(unittest.TestCase):
     def test_strict_json_is_not_flagged_lenient(self):
-        parsed, lenient = leak_probe._lenient_parse('{"verdict": "resolved_scam", "giveaway": "圈套"}')
+        parsed, lenient = leak_probe._lenient_parse(
+            '{"verdict": "resolved_scam", "giveaway": "圈套"}'
+        )
         self.assertEqual(parsed["verdict"], "resolved_scam")
         self.assertFalse(lenient)
 
@@ -171,9 +217,16 @@ class TestCli(unittest.TestCase):
             path = Path(td) / "dump.sql"
             path.write_text(make_dump(rows), encoding="utf-8")
             return subprocess.run(
-                [sys.executable, str(SKILL / "scripts" / "leak_probe.py"),
-                 "--from-dump", str(path), *extra],
-                capture_output=True, text=True, cwd=str(SKILL / "scripts"),
+                [
+                    sys.executable,
+                    str(SKILL / "scripts" / "leak_probe.py"),
+                    "--from-dump",
+                    str(path),
+                    *extra,
+                ],
+                capture_output=True,
+                text=True,
+                cwd=str(SKILL / "scripts"),
             )
 
     LEAKY = [
@@ -203,7 +256,9 @@ class TestCli(unittest.TestCase):
         self.assertEqual(summary["lexical"]["leak_rate"], 0.5)
 
     def test_llm_probe_requires_api_key(self):
-        proc = self.run_cli(self.CLEAN, "--probe", "genre", "--api-key-env", "DEFINITELY_UNSET_KEY")
+        proc = self.run_cli(
+            self.CLEAN, "--probe", "genre", "--api-key-env", "DEFINITELY_UNSET_KEY"
+        )
         self.assertEqual(proc.returncode, 1)
         self.assertIn("DEFINITELY_UNSET_KEY", proc.stdout + proc.stderr)
 

@@ -26,6 +26,7 @@
   # CI 閘門:洩題率超過 0.75 就 fail
   python3 scripts/leak_probe.py --from-db --fail-over 0.75
 """
+
 import argparse
 import json
 import os
@@ -42,12 +43,24 @@ from common import fetch_url, load_env, psql_scalar, read_jsonl
 # 注意「逃過一劫」那一組:詐騙題不一定以壞結局收尾,有些寫成「幸好及時收手」。
 # 它們一樣洩題(讀者照樣秒懂),只是方向不同——漏掉這組會低估洩題率。
 SCAM_ENDING_PATTERNS = [
-    ("事後才知", r"(事後|後來|這才|之後)[^。,,]{0,8}(知道|發現|驚覺|想起|明白|察覺|才懂|醒悟)"),
+    (
+        "事後才知",
+        r"(事後|後來|這才|之後)[^。,,]{0,8}(知道|發現|驚覺|想起|明白|察覺|才懂|醒悟)",
+    ),
     ("點破騙局", r"(圈套|騙局|上當|受騙|詐騙集團|詐團|人間蒸發|求償無門|血本無歸)"),
-    ("對方消失", r"(封鎖我|已讀不回|失聯|聯繫不上|找不到人|再也(沒有|沒)|網站[^。,,]{0,6}關閉)"),
-    ("損失已成", r"(被轉走|拿不回|遲遲沒|始終沒收到|根本沒收到|對不上|沒收到貨|沒有出貨)"),
+    (
+        "對方消失",
+        r"(封鎖我|已讀不回|失聯|聯繫不上|找不到人|再也(沒有|沒)|網站[^。,,]{0,6}關閉)",
+    ),
+    (
+        "損失已成",
+        r"(被轉走|拿不回|遲遲沒|始終沒收到|根本沒收到|對不上|沒收到貨|沒有出貨)",
+    ),
     ("原來如此", r"原來[^。,,]{0,10}(就是|是這|手法|詐騙)"),
-    ("逃過一劫", r"(幸好|所幸|還好)[^。,,]{0,12}(收手|沒|阻止|停下|掛掉|查證|想起|發現)"),
+    (
+        "逃過一劫",
+        r"(幸好|所幸|還好)[^。,,]{0,12}(收手|沒|阻止|停下|掛掉|查證|想起|發現)",
+    ),
     ("沒讓得逞", r"(沒讓對方得逞|沒有照做|沒有上當|沒有匯|差點就|及時收手|立刻阻止)"),
 ]
 LEGIT_ENDING_PATTERNS = [
@@ -214,7 +227,10 @@ def probe_lexical(case, scope="full"):
 RESPONSE_SCHEMA = {
     "type": "OBJECT",
     "properties": {
-        "verdict": {"type": "STRING", "enum": ["resolved_scam", "resolved_legit", "unresolved"]},
+        "verdict": {
+            "type": "STRING",
+            "enum": ["resolved_scam", "resolved_legit", "unresolved"],
+        },
         "confidence": {"type": "NUMBER"},
         "giveaway": {"type": "STRING"},
         "reason": {"type": "STRING"},
@@ -238,7 +254,11 @@ def _lenient_parse(text):
         if not m:
             return None, False
         g = GIVEAWAY_RE.search(text)
-        return {"verdict": m.group(1), "giveaway": g.group(1) if g else "", "reason": ""}, True
+        return {
+            "verdict": m.group(1),
+            "giveaway": g.group(1) if g else "",
+            "reason": "",
+        }, True
 
 
 def _gemini_json(system, user, *, model, api_key, retries=1):
@@ -314,7 +334,12 @@ def score(rows):
     n = len(scored)
     base = {"total": total, "errors": errors, "scored": n}
     if n == 0:
-        return {**base, "leak_rate": None, "accuracy_when_decided": None, "coverage": None}
+        return {
+            **base,
+            "leak_rate": None,
+            "accuracy_when_decided": None,
+            "coverage": None,
+        }
     correct = sum(1 for r in scored if r["predicted_is_scam"] == r["is_scam"])
     undecided = sum(1 for r in scored if r["predicted_is_scam"] is None)
     decided = n - undecided
@@ -334,7 +359,9 @@ def group_score(rows, key):
     groups = {}
     for r in rows:
         groups.setdefault(r[key], []).append(r)
-    return {str(k): score(v) for k, v in sorted(groups.items(), key=lambda kv: str(kv[0]))}
+    return {
+        str(k): score(v) for k, v in sorted(groups.items(), key=lambda kv: str(kv[0]))
+    }
 
 
 def pattern_stats(rows):
@@ -346,7 +373,9 @@ def pattern_stats(rows):
             continue
         for side, expected in (("scam", True), ("legit", False)):
             for h in hits[side]:
-                s = stats.setdefault(h["pattern"], {"fired": 0, "aligned": 0, "side": side})
+                s = stats.setdefault(
+                    h["pattern"], {"fired": 0, "aligned": 0, "side": side}
+                )
                 s["fired"] += 1
                 s["aligned"] += int(r["is_scam"] == expected)
     for s in stats.values():
@@ -384,24 +413,36 @@ def print_report(name, rows, *, show_patterns=False, detail_limit=0):
     print("\n  ── 依 is_scam ──")
     for label, sub in group_score(rows, "is_scam").items():
         tag = "詐騙題" if label == "True" else "正當題"
-        print(f"    {tag}({sub['total']:>2} 題)  洩題率 {sub['leak_rate']:>6.1%}  {_bar(sub['leak_rate'])}")
+        print(
+            f"    {tag}({sub['total']:>2} 題)  洩題率 {sub['leak_rate']:>6.1%}  {_bar(sub['leak_rate'])}"
+        )
 
     print("\n  ── 依 fraud_type ──")
     for label, sub in group_score(rows, "fraud_type").items():
-        print(f"    {label:<12}({sub['total']:>2} 題)  洩題率 {sub['leak_rate']:>6.1%}  {_bar(sub['leak_rate'])}")
+        print(
+            f"    {label:<12}({sub['total']:>2} 題)  洩題率 {sub['leak_rate']:>6.1%}  {_bar(sub['leak_rate'])}"
+        )
 
     if show_patterns:
         stats = pattern_stats(rows)
         if stats:
             print("\n  ── 各規則命中狀況(precision 低的是噪音規則,該汰換)──")
             for pat, st in stats.items():
-                print(f"    {pat:<10} 命中 {st['fired']:>2} 題  方向正確率 {st['precision']:>6.1%}")
+                print(
+                    f"    {pat:<10} 命中 {st['fired']:>2} 題  方向正確率 {st['precision']:>6.1%}"
+                )
 
     if detail_limit:
         print(f"\n  ── 逐題明細(前 {detail_limit} 題,giveaway = 洩題的那句話)──")
         for r in rows[:detail_limit]:
-            mark = "✓" if r["predicted_is_scam"] == r["is_scam"] else ("?" if r["predicted_is_scam"] is None else "✗")
-            print(f"    {mark} {str(r['case_key']):<26} 實際={'scam ' if r['is_scam'] else 'legit'}")
+            mark = (
+                "✓"
+                if r["predicted_is_scam"] == r["is_scam"]
+                else ("?" if r["predicted_is_scam"] is None else "✗")
+            )
+            print(
+                f"    {mark} {str(r['case_key']):<26} 實際={'scam ' if r['is_scam'] else 'legit'}"
+            )
             if r["giveaway"]:
                 print(f"        洩題句:{r['giveaway'][:70]}")
     return s
@@ -415,14 +456,18 @@ def main():
     )
     src = p.add_mutually_exclusive_group(required=True)
     src.add_argument("--from-db", action="store_true", help="從 DB 讀(需 DATABASE_URL)")
-    src.add_argument("--from-dump", metavar="PATH", help="從 pg_dump 種子檔讀(免 DB、免 API)")
+    src.add_argument(
+        "--from-dump", metavar="PATH", help="從 pg_dump 種子檔讀(免 DB、免 API)"
+    )
     src.add_argument("--input", metavar="PATH", help="從策展草稿 JSONL 讀")
     p.add_argument(
         "--probe",
         default="lexical",
         help="逗號分隔:lexical(免費) / genre(LLM) / title(LLM) / all。預設 lexical",
     )
-    p.add_argument("--all-statuses", action="store_true", help="含 draft(預設只看 published)")
+    p.add_argument(
+        "--all-statuses", action="store_true", help="含 draft(預設只看 published)"
+    )
     p.add_argument("--model", default="gemini-3.5-flash", help="LLM 探針用的模型")
     p.add_argument("--api-key-env", default="GOOGLE_API_KEY")
     p.add_argument("--env-file", help="載入 .env(不覆蓋既有環境變數)")
@@ -460,7 +505,9 @@ def main():
     needs_llm = any(x in probes for x in ("genre", "title"))
     api_key = os.environ.get(args.api_key_env, "")
     if needs_llm and not api_key:
-        raise SystemExit(f"LLM 探針需要環境變數 {args.api_key_env}(或用 --env-file 載入)")
+        raise SystemExit(
+            f"LLM 探針需要環境變數 {args.api_key_env}(或用 --env-file 載入)"
+        )
 
     scam_n = sum(1 for c in cases if c["is_scam"])
     print(f"題數:{len(cases)}(詐騙 {scam_n} / 正當 {len(cases) - scam_n})")
@@ -480,7 +527,11 @@ def main():
                 probed = list(
                     pool.map(
                         lambda c: probe_llm(
-                            c, system=system, field=field, model=args.model, api_key=api_key
+                            c,
+                            system=system,
+                            field=field,
+                            model=args.model,
+                            api_key=api_key,
                         ),
                         cases,
                     )
@@ -496,20 +547,28 @@ def main():
 
         results[probe] = rows
         summary[probe] = print_report(
-            label, rows, show_patterns=probe.startswith("lexical"), detail_limit=args.detail
+            label,
+            rows,
+            show_patterns=probe.startswith("lexical"),
+            detail_limit=args.detail,
         )
 
     if args.json_output:
         with open(args.json_output, "w", encoding="utf-8") as f:
             json.dump(
-                {"summary": summary, "results": results}, f, ensure_ascii=False, indent=2
+                {"summary": summary, "results": results},
+                f,
+                ensure_ascii=False,
+                indent=2,
             )
         print(f"\n逐題結果已寫入 {args.json_output}")
 
     exit_code = 0
     if args.fail_over is not None:
         breached = {
-            k: v["leak_rate"] for k, v in summary.items() if v.get("leak_rate", 0) > args.fail_over
+            k: v["leak_rate"]
+            for k, v in summary.items()
+            if v.get("leak_rate", 0) > args.fail_over
         }
         if breached:
             print(f"\n✗ 洩題率超過門檻 {args.fail_over}: {breached}", file=sys.stderr)
