@@ -68,7 +68,7 @@ function PretestResultPage() {
 
   const radarData = Object.entries(result.results_by_type).map(
     ([type, res]) => ({
-      type: FRAUD_TYPE_LABELS[type] ?? type,
+      type: FRAUD_TYPE_LABELS[type] ?? "其他類型",
       score: res.total > 0 ? Math.round((res.correct / res.total) * 100) : 0,
       fullMark: 100,
     }),
@@ -138,7 +138,7 @@ function PretestResultPage() {
       >
         <p className="text-sm text-muted-foreground">你最需要加強的類型是</p>
         <p className="mt-1 text-xl font-bold text-orange-600 dark:text-orange-400">
-          {FRAUD_TYPE_LABELS[result.weakest_type] ?? result.weakest_type}
+          {FRAUD_TYPE_LABELS[result.weakest_type] ?? "其他類型"}
         </p>
         <p className="mt-2 text-sm text-muted-foreground">
           接下來的遊戲將針對這個類型進行強化訓練

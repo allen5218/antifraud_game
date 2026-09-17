@@ -30,7 +30,7 @@ export function QuizSummary({ result, onRestart }: QuizSummaryProps) {
                 key={w.tag}
                 className="rounded-md bg-red-50 px-2 py-0.5 text-xs font-semibold text-red-600 dark:bg-red-950"
               >
-                {w.tag} ×{w.count}
+                {w.label} ×{w.count}
               </li>
             ))}
           </ul>

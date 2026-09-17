@@ -8,7 +8,7 @@ from sqlmodel import col, func, select
 
 from app.api.deps import CurrentUser, SessionDep
 from app.core.cases import get_case, pick_case
-from app.economy.service import add_xp, adjust_cash
+from app.economy.service import add_xp, adjust_cash, lock_user
 from app.models import FraudType, ScenarioSession, ScenarioStatus
 from app.scenario import agent as scenario_agent
 from app.scenario import manager
@@ -257,6 +257,7 @@ def judge_scenario(
         penalty_misreport=sc.penalty_misreport,
     )
     cash_delta, xp_delta = manager.outcome_deltas(outcome, econ)
+    current_user = lock_user(session, current_user)
     adjust_cash(current_user, cash_delta, reason=outcome)
     add_xp(current_user, xp_delta, reason=outcome)
 

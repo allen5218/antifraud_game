@@ -12,12 +12,13 @@ describe("<SwipeRoundSummary />", () => {
           best_streak: 6,
           cash_earned: 240,
           xp_earned: 80,
-          weakness_summary: [{ tag: "authority", count: 2 }],
+          weakness_summary: [{ tag: "authority", label: "權威服從", count: 2 }],
         }}
       />,
     )
     expect(screen.getByText(/\+\$240/)).toBeTruthy()
     expect(screen.getByText(/\+80 XP/)).toBeTruthy()
-    expect(screen.getByText(/authority/)).toBeTruthy()
+    expect(screen.getByText(/權威服從/)).toBeTruthy()
+    expect(screen.queryByText(/authority/)).toBeNull()
   })
 })

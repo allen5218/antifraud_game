@@ -14,7 +14,7 @@ describe("<QuizSummary />", () => {
           best_streak: 3,
           cash_earned: 176,
           xp_earned: 80,
-          weakness_summary: [{ tag: "authority", count: 2 }],
+          weakness_summary: [{ tag: "authority", label: "權威服從", count: 2 }],
         }}
         onRestart={() => {}}
       />,
@@ -22,6 +22,7 @@ describe("<QuizSummary />", () => {
     expect(screen.getByText(/4 \/ 5/)).toBeTruthy()
     expect(screen.getByText(/\+\$176/)).toBeTruthy()
     expect(screen.getByText(/\+80 XP/)).toBeTruthy()
-    expect(screen.getByText(/authority/)).toBeTruthy()
+    expect(screen.getByText(/權威服從 ×2/)).toBeTruthy()
+    expect(screen.queryByText(/authority/)).toBeNull()
   })
 })

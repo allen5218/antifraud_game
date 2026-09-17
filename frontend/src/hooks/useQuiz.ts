@@ -1,5 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
-import { QuickService } from "@/client"
+import { QuickService, type QuizAnswerRequest } from "@/client"
 
 /**
  * 題組牌組(預設 5 題)。每副牌對應一個一次性結算 session,故 query key 帶
@@ -16,26 +16,23 @@ export function useQuizDeck(round = 0, size = 5) {
   })
 }
 
-/** 單題判定(揭曉紅旗與溯源) */
+/** 單題首次作答；成功後才取得具約束力的揭曉內容。 */
 export function useQuizAnswer() {
   return useMutation({
-    mutationFn: (vars: { caseId: number; guessIsScam: boolean }) =>
+    mutationFn: (requestBody: QuizAnswerRequest) =>
       QuickService.quizAnswer({
-        requestBody: { case_id: vars.caseId, guess_is_scam: vars.guessIsScam },
+        requestBody,
       }),
   })
 }
 
-/** 整輪結算(刷新經濟);需帶發牌時的 session_id 防跨請求重放刷獎 */
+/** 整輪結算；答案已逐題寫入，結算只帶一次性 session_id。 */
 export function useQuizComplete() {
   const qc = useQueryClient()
   return useMutation({
-    mutationFn: (vars: {
-      sessionId: string
-      answers: { case_id: number; guess_is_scam: boolean }[]
-    }) =>
+    mutationFn: (sessionId: string) =>
       QuickService.quizComplete({
-        requestBody: { session_id: vars.sessionId, answers: vars.answers },
+        requestBody: { session_id: sessionId },
       }),
     onSuccess: () => qc.invalidateQueries({ queryKey: ["economy"] }),
   })
