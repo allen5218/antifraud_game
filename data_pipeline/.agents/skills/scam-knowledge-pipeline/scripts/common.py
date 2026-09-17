@@ -198,9 +198,11 @@ def fetch_url(url, method="GET", json_body=None, timeout=30, verify_tls=True, ma
 def db_args():
     url = os.environ.get("DATABASE_URL")
     base = ["psql", "-v", "ON_ERROR_STOP=1", "-X"]
-    if url:
-        return base + [url]
-    return base
+    if not url:
+        raise SystemExit(
+            "未設定 DATABASE_URL；請用 --env-file 指定環境檔，或先設定 DATABASE_URL 環境變數"
+        )
+    return base + [url]
 
 def run_psql(sql, quiet=False):
     args = db_args() + ["-c", sql]
