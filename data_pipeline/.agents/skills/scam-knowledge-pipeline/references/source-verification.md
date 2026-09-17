@@ -20,4 +20,17 @@ Unverified sources may be fetched for dry-run inspection only. They must not be 
 
 Store verification result with fetched/classified records as `source_verification_status: "verified"` before production apply.
 
+新增來源在無外網 sandbox 中維持 `needs_probe`。請在可連外主機逐一執行：
+
+```bash
+cd data_pipeline/.agents/skills/scam-knowledge-pipeline
+uv run python3 scripts/probe_source.py --source tw_cofacts_scam_messages --out data/probes/tw_cofacts_scam_messages.json
+uv run python3 scripts/probe_source.py --source tw_cofacts_legit_lookalikes --out data/probes/tw_cofacts_legit_lookalikes.json
+uv run python3 scripts/probe_source.py --source tw_fsc_antifraud_press --out data/probes/tw_fsc_antifraud_press.json
+```
+
+live capture 已確認 Cofacts 具有 edge `cursor`、`pageInfo.lastCursor` 與 `replyRequestCount`；仍保留 `pageInfo.endCursor`／edge cursor 容錯。解析器在主 query schema error 時降級為不含選填欄位的單頁 query，probe 不會把 HTTP 200 的 GraphQL `errors` 或單頁 fallback 誤判成 verified。fallback 輸出只作 `candidate`／`needs_review`，並記錄只能取得前 50 筆、無 cursor 分頁，不可 production apply。FSC live capture 已確認列表為 URL-encoded POST form（`page`、`pagesize`、`keyword`），新聞稿全文 selector 為 `div.maincontent`；主機仍須確認多頁 POST 與現場內容持續相容。
+
+Cofacts 授權邊界：使用者回報的原始訊息 `node.text` 是 CC0；社群查證回應屬 CC BY-SA 4.0。probe/fetch 不得把 `articleReplies` 回應內文加入 query 或入庫。
+
 For multi-endpoint sources, do not require every endpoint to be healthy unless `verification_policy` is `all_endpoints`. Use endpoint-level results to decide which records are eligible for validation and ingest.

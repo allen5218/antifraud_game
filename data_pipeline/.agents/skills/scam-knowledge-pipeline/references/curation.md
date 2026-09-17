@@ -2,7 +2,7 @@
 
 ## 目的
 
-本文件規範如何從 `documents`（`case_narrative`）改編出遊戲可直接使用的
+本文件規範如何從 `documents`（`case_narrative`／`message_sample`）改編出遊戲可直接使用的
 `game_cases` 草稿，以及如何為每一筆 scam 案例產生對應的「合法雙胞胎」
 （鏡像翻寫，`case_stance='legit'`）。策展是**人工／Codex 協作的內容產製層**，
 不是自動化爬蟲流程；本規範是內容作者（Task 5 起）撰寫草稿時必須嚴格遵守的
@@ -10,8 +10,8 @@
 
 策展流程的輸入與輸出：
 
-- 輸入：`documents` 表中 `content_kind='case_narrative'` 且 `case_stance='scam'`
-  的既有案例，以及 `tw_manual_legit_process_docs` 來源的 5 筆官方正規流程
+- 輸入：`documents` 表中 `content_kind IN ('case_narrative','message_sample')`
+  且 `case_stance='scam'` 的既有素材，以及 `tw_manual_legit_process_docs` 來源的 5 筆官方正規流程
   錨定文件（`case_stance='legit'`、`content_kind='advisory'`，document id 見
   `references/sources.yaml` 對應來源的入庫紀錄）。
 - 輸出：`game_cases` 草稿 JSONL，符合 `schemas/game_case.schema.json`，每筆
@@ -19,9 +19,10 @@
 
 ## 改編規則（scam）
 
-1. 只取 `content_kind='case_narrative'` 且 `case_stance='scam'` 的
-   `documents` 作為改編來源；不得改編 `advisory`、`domain_list`、`statute`
-   內容作為案例敘事。
+1. 只取 `content_kind IN ('case_narrative','message_sample')` 且
+   `case_stance='scam'` 的 `documents` 作為改編來源；不得把 `advisory`、
+   `domain_list`、`statute` 直接改寫成案例敘事。`message_sample` 必須以玩家
+   「正在讀這則訊息」的當下視角改編，不補寫素材沒有提供的受害結果。
 2. `narrative` 為 150–600 字繁體中文，保留原始手法節奏（接觸→建立信任→
    拋出誘餌→提出要求），讓玩家能從敘事節奏中學習辨識套路，同時保留至少
    兩個可識破的紅旗訊號。
@@ -38,6 +39,34 @@
    編號／代碼／帳號一律省略或改寫）——`validate_game_cases.py` 的
    `account_number` pattern（`\d{10,16}`）會直接 reject 含此類數字的草稿，
    撰寫時務必先自我檢查，避免整批被拒。
+
+## 素材類型與授權
+
+- `case_narrative`：描述單一事件經過，可抽取接觸、建立信任、誘餌與要求等
+  節奏，但改編後仍須停在決策當下，不能沿用事後揭曉結局。
+- `message_sample`：民眾實際收到或看到的訊息原文，不是完整案例敘事。可改編
+  為 verdict／tactics 題，讓玩家以「此刻正在讀訊息」的視角辨識話術；不得
+  擅自補寫受害者已匯款、已受損等後果。
+- `advisory`：主管機關宣導、統計、排名與話術彙整，不直接改成案例敘事。
+  它可作為 legit 題中「機制合法」或「正規機構不會要求什麼」的權威錨點，
+  並在 `provenance` 寫明文件與出處。
+- `domain_list`／`statute`：只作查證或背景依據，不直接改成玩家情境。
+
+Cofacts 的授權必須按資料層分開：使用者回報的**原始訊息文字**以 CC0 提交；
+社群撰寫的**查證回應**是 CC BY-SA 4.0 的編輯性資料，要求姓名標示與相同方式
+分享。本 pipeline 只擷取 CC0 的 `node.text`，絕不擷取 `articleReplies` 回應內文，
+並以 `https://cofacts.tw/article/<id>` 留存 provenance。
+
+Cofacts 原文在 staging／documents 內部資料保留以便稽核，但常含真實姓名、
+電話、帳號與網址；改編成 `game_cases` 時必須全部去識別化。既有
+`validate_game_cases.py` PII 規則仍是 hard gate，不得因 CC0 而放寬。
+
+`tw_cofacts_legit_lookalikes` 的 `NOT_RUMOR` 不代表訊息本身正當；在「詐騙」
+分類下，它也可能表示查證確認內容所述確實是詐騙。因此此來源全部以
+`case_stance='advisory'`、`content_kind='advisory'` 入庫，並帶
+`metadata.candidate_for='legit_lookalike'`、`metadata.review_required=true`。
+只有人工確認為真正正當訊息，且其機制另有權威來源可查證時，才能改寫成
+legit 題；不得直接把 `NOT_RUMOR` 當成 legit 標籤。
 
 ## 鏡像翻寫規則（legit）
 

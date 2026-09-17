@@ -1,9 +1,11 @@
 #!/usr/bin/env python3
 import csv
 import hashlib
+import html
 import io
 import json
 import os
+import re
 import shlex
 import shutil
 import ssl
@@ -11,8 +13,10 @@ import subprocess
 import sys
 import tempfile
 from pathlib import Path
+from html.parser import HTMLParser
 from urllib.request import Request, urlopen
 from urllib.error import URLError, HTTPError
+from urllib.parse import urlencode
 
 ROOT = Path(__file__).resolve().parents[1]
 TAXONOMY_CODES = {
@@ -32,7 +36,13 @@ CATEGORY_LABELS = {
 }
 
 STANCE_VALUES = {"scam", "legit", "advisory"}
-CONTENT_KINDS = {"case_narrative", "domain_list", "advisory", "statute"}
+CONTENT_KINDS = {
+    "case_narrative",
+    "message_sample",
+    "domain_list",
+    "advisory",
+    "statute",
+}
 WEAKNESS_TAGS = {
     "time_pressure",
     "authority",
@@ -103,18 +113,113 @@ def content_hash(obj):
     return "sha256:" + hashlib.sha256(payload.encode("utf-8")).hexdigest()
 
 
+class _TextHTMLParser(HTMLParser):
+    """將 HTML 轉成保留段落邊界的純文字。"""
+
+    BLOCK_TAGS = {
+        "address",
+        "article",
+        "aside",
+        "blockquote",
+        "br",
+        "dd",
+        "div",
+        "dl",
+        "dt",
+        "figcaption",
+        "figure",
+        "footer",
+        "h1",
+        "h2",
+        "h3",
+        "h4",
+        "h5",
+        "h6",
+        "header",
+        "hr",
+        "li",
+        "main",
+        "nav",
+        "ol",
+        "p",
+        "pre",
+        "section",
+        "table",
+        "tbody",
+        "td",
+        "tfoot",
+        "th",
+        "thead",
+        "tr",
+        "ul",
+    }
+    SKIP_TAGS = {"script", "style", "noscript", "template"}
+
+    def __init__(self):
+        super().__init__(convert_charrefs=True)
+        self.parts = []
+        self.skip_depth = 0
+
+    def _newline(self):
+        if self.parts and self.parts[-1] != "\n":
+            self.parts.append("\n")
+
+    def handle_starttag(self, tag, attrs):
+        tag = tag.lower()
+        if tag in self.SKIP_TAGS:
+            self.skip_depth += 1
+        elif not self.skip_depth and tag in self.BLOCK_TAGS:
+            self._newline()
+
+    def handle_startendtag(self, tag, attrs):
+        if not self.skip_depth and tag.lower() in self.BLOCK_TAGS:
+            self._newline()
+
+    def handle_endtag(self, tag):
+        tag = tag.lower()
+        if tag in self.SKIP_TAGS:
+            self.skip_depth = max(0, self.skip_depth - 1)
+        elif not self.skip_depth and tag in self.BLOCK_TAGS:
+            self._newline()
+
+    def handle_data(self, data):
+        if not self.skip_depth:
+            self.parts.append(data)
+
+
+def _html_to_text(value):
+    parser = _TextHTMLParser()
+    parser.feed(value)
+    parser.close()
+    return "".join(parser.parts)
+
+
 def clean_text(value):
+    """正規化純文字；若輸入含 HTML，移除標籤、還原實體並保留段落換行。"""
     if value is None:
         return ""
     if not isinstance(value, str):
         value = json.dumps(value, ensure_ascii=False, sort_keys=True)
+    if re.search(r"</?[A-Za-z][^>]*>", value):
+        value = _html_to_text(value)
+    else:
+        value = html.unescape(value)
     return "\n".join(
-        part.strip() for part in value.replace("\r", "\n").split("\n") if part.strip()
+        " ".join(part.split())
+        for part in value.replace("\r", "\n").split("\n")
+        if part.strip()
     )
 
 
 def _fetch_url_with_curl(
-    url, method="GET", json_body=None, timeout=30, verify_tls=True, max_bytes=None
+    url,
+    method="GET",
+    json_body=None,
+    timeout=30,
+    verify_tls=True,
+    max_bytes=None,
+    headers=None,
+    form_body=None,
 ):
     header_fd, header_path = tempfile.mkstemp(prefix="scam-fetch-", suffix=".headers")
     body_fd, body_path = tempfile.mkstemp(prefix="scam-fetch-", suffix=".body")
@@ -143,6 +248,8 @@ def _fetch_url_with_curl(
             cmd.append("-k")
         if method.upper() != "GET":
             cmd.extend(["-X", method.upper()])
+        for name, value in (headers or {}).items():
+            cmd.extend(["-H", f"{name}: {value}"])
         if json_body is not None:
             data_fd, data_path = tempfile.mkstemp(prefix="scam-fetch-", suffix=".json")
             os.close(data_fd)
@@ -157,6 +264,10 @@ def _fetch_url_with_curl(
                     f"@{data_path}",
                 ]
             )
+        elif form_body is not None:
+            cmd.extend(["-H", "Content-Type: application/x-www-form-urlencoded"])
+            for name, value in form_body.items():
+                cmd.extend(["--data-urlencode", f"{name}={value}"])
         cmd.append(url)
 
         proc = subprocess.run(
@@ -213,14 +324,27 @@ def _fetch_url_with_curl(
 
 
 def _fetch_url_with_urllib(
-    url, method="GET", json_body=None, timeout=30, verify_tls=True, max_bytes=None
+    url,
+    method="GET",
+    json_body=None,
+    timeout=30,
+    verify_tls=True,
+    max_bytes=None,
+    headers=None,
+    form_body=None,
 ):
-    headers = {"User-Agent": "Codex scam-knowledge-pipeline/1.0"}
+    request_headers = {
+        "User-Agent": "Codex scam-knowledge-pipeline/1.0",
+        **(headers or {}),
+    }
     data = None
     if json_body is not None:
         data = json.dumps(json_body, ensure_ascii=False).encode("utf-8")
-        headers["Content-Type"] = "application/json"
-    req = Request(url, data=data, method=method.upper(), headers=headers)
+        request_headers.setdefault("Content-Type", "application/json")
+    elif form_body is not None:
+        data = urlencode(form_body).encode("utf-8")
+        request_headers.setdefault("Content-Type", "application/x-www-form-urlencoded")
+    req = Request(url, data=data, method=method.upper(), headers=request_headers)
     context = None if verify_tls else ssl._create_unverified_context()
     try:
         with urlopen(req, timeout=timeout, context=context) as resp:
@@ -263,14 +387,21 @@ def _fetch_url_with_urllib(
 
 
 def fetch_url(
-    url, method="GET", json_body=None, timeout=30, verify_tls=True, max_bytes=None
+    url,
+    method="GET",
+    json_body=None,
+    timeout=30,
+    verify_tls=True,
+    max_bytes=None,
+    headers=None,
+    form_body=None,
 ):
     if shutil.which("curl"):
         return _fetch_url_with_curl(
-            url, method, json_body, timeout, verify_tls, max_bytes
+            url, method, json_body, timeout, verify_tls, max_bytes, headers, form_body
         )
     return _fetch_url_with_urllib(
-        url, method, json_body, timeout, verify_tls, max_bytes
+        url, method, json_body, timeout, verify_tls, max_bytes, headers, form_body
     )
 
 

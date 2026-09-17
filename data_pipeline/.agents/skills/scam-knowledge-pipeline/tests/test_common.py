@@ -15,6 +15,16 @@ import common  # noqa: E402
 
 
 class DatabaseArgsTests(unittest.TestCase):
+    def test_message_sample_is_a_supported_content_kind(self):
+        self.assertIn("message_sample", common.CONTENT_KINDS)
+
+    def test_clean_text_removes_html_and_preserves_block_breaks(self):
+        raw = (
+            "<p>第一段&nbsp;內容</p><div>第二段<br>換行</div><script>不應保留</script>"
+        )
+
+        self.assertEqual(common.clean_text(raw), "第一段 內容\n第二段\n換行")
+
     def test_missing_database_url_fails_with_connection_guidance(self):
         with patch.dict(os.environ, {}, clear=True):
             with self.assertRaises(SystemExit) as caught:
