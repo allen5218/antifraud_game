@@ -51,8 +51,11 @@ services:
     depends_on:
       - backend
       - frontend
+    # 同時加入 Supabase 網路，讓同一條 Cloudflare Tunnel 能把
+    # supabase.<domain> 路由到內部 Kong，不必將 Kong port 發布到主機。
     networks:
       - app-net
+      - supabase_default
 
 networks:
   app-net:
