@@ -66,7 +66,15 @@ def fallback_validate(record):
         and record.get("case_stance") == "advisory"
         and record.get("content_kind") == "advisory"
     )
-    if taxonomy_code not in TAXONOMY_CODES and not empty_advisory_taxonomy:
+    empty_cofacts_message_taxonomy = (
+        taxonomy_code is None
+        and record.get("source_name") == "tw_cofacts_scam_messages"
+        and record.get("case_stance") == "scam"
+        and record.get("content_kind") == "message_sample"
+    )
+    if taxonomy_code not in TAXONOMY_CODES and not (
+        empty_advisory_taxonomy or empty_cofacts_message_taxonomy
+    ):
         errors.append("invalid taxonomy_code")
     if record.get("case_stance") not in {"scam", "legit", "advisory"}:
         errors.append("invalid case_stance")

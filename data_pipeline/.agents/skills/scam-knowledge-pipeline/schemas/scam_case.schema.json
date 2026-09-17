@@ -95,10 +95,23 @@
     {
       "if": {"properties": {"taxonomy_code": {"type": "null"}}, "required": ["taxonomy_code"]},
       "then": {
-        "properties": {
-          "case_stance": {"const": "advisory"},
-          "content_kind": {"const": "advisory"}
-        }
+        "anyOf": [
+          {
+            "properties": {
+              "case_stance": {"const": "advisory"},
+              "content_kind": {"const": "advisory"}
+            },
+            "required": ["case_stance", "content_kind"]
+          },
+          {
+            "properties": {
+              "source_name": {"const": "tw_cofacts_scam_messages"},
+              "case_stance": {"const": "scam"},
+              "content_kind": {"const": "message_sample"}
+            },
+            "required": ["source_name", "case_stance", "content_kind"]
+          }
+        ]
       }
     }
   ]

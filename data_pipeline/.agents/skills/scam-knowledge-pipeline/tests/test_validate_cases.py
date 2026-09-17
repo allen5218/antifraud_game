@@ -120,6 +120,22 @@ class StanceFieldTests(unittest.TestCase):
         code, out, _ = run_validate([invalid])
         self.assertEqual((code, out["rejected"]), (1, 1))
 
+    def test_cofacts_scam_message_may_keep_empty_taxonomy(self):
+        record = dict(
+            BASE_RECORD,
+            source_name="tw_cofacts_scam_messages",
+            taxonomy_code=None,
+            source_category_label=None,
+            classification_confidence=0,
+            classification_method="manual",
+            case_stance="scam",
+            content_kind="message_sample",
+        )
+
+        code, out, _ = run_validate([record])
+
+        self.assertEqual((code, out["valid"], out["rejected"]), (0, 1, 0))
+
     def test_case_narrative_shorter_than_150_chars_is_rejected_and_counted(self):
         rec = dict(BASE_RECORD, clean_text="短" * 149)
 

@@ -335,17 +335,126 @@ class FetchSourceTests(unittest.TestCase):
         )
 
         self.assertEqual(proc.returncode, 0, proc.stderr)
-        self.assertEqual(len(rows), 1)
-        self.assertEqual(rows[0]["content_kind"], "message_sample")
-        self.assertEqual(rows[0]["case_stance"], "scam")
-        self.assertEqual(
-            rows[0]["source_url"], "https://cofacts.tw/article/21lg156mv9n3s"
+        self.assertEqual(len(rows), 2)
+        row = next(
+            row
+            for row in rows
+            if row["source_url"] == "https://cofacts.tw/article/21lg156mv9n3s"
         )
-        self.assertNotIn("22:29", rows[0]["clean_text"])
-        self.assertNotIn("5G", rows[0]["clean_text"])
-        self.assertNotIn("已讀", rows[0]["clean_text"])
-        self.assertNotIn(
-            "articleReplies", rows[0]["raw_payload"]["endpoint"]["json"]["query"]
+        self.assertEqual(row["content_kind"], "message_sample")
+        self.assertEqual(row["case_stance"], "scam")
+        self.assertEqual(row["source_url"], "https://cofacts.tw/article/21lg156mv9n3s")
+        self.assertNotIn("22:29", row["clean_text"])
+        self.assertNotIn("5G", row["clean_text"])
+        self.assertNotIn("已讀", row["clean_text"])
+        self.assertIn("articleReplies", row["raw_payload"]["endpoint"]["json"]["query"])
+
+    def test_cofacts_unclassified_scam_message_is_kept_with_null_taxonomy(self):
+        body = json.dumps(
+            {
+                "data": {
+                    "ListArticles": {
+                        "edges": [
+                            {
+                                "cursor": "page-edge",
+                                "node": {
+                                    "id": "oral-message",
+                                    "text": "您好，這裡是客服中心，請您今天之內依照專員指示完成驗證，否則帳號服務將暫時停止使用。",
+                                    "createdAt": "2026-09-17T01:00:00.000Z",
+                                    "lastRequestedAt": "2026-09-17T02:00:00.000Z",
+                                },
+                            }
+                        ],
+                        "pageInfo": {
+                            "hasNextPage": False,
+                            "lastCursor": "dataset-tail",
+                        },
+                    }
+                }
+            },
+            ensure_ascii=False,
+        )
+
+        proc, rows = run_fetch(
+            "tw_cofacts_scam_messages",
+            {
+                "api.cofacts.tw/graphql": {
+                    "content_type": "application/json",
+                    "body": body,
+                }
+            },
+        )
+
+        self.assertEqual(proc.returncode, 0, proc.stderr)
+        self.assertEqual(len(rows), 1)
+        self.assertIsNone(rows[0]["taxonomy_code"])
+        self.assertEqual(rows[0]["validation_status"], "valid")
+        summary = json.loads(proc.stdout.strip().splitlines()[-1])
+        self.assertEqual(summary["filter_drop_counts"]["unclassified"], 0)
+
+    def test_cofacts_replies_are_metadata_only_and_never_main_content(self):
+        reply_text = "社群查證者的 CC BY-SA 回應原文，不可進入遊戲題目素材。"
+        message_text = "您好，請依照客服專員指示完成帳號安全驗證，並在今天期限前立即回覆完整資料，以免帳號服務遭到中斷。"
+        body = json.dumps(
+            {
+                "data": {
+                    "ListArticles": {
+                        "edges": [
+                            {
+                                "cursor": "reply-page-edge",
+                                "node": {
+                                    "id": "message-with-reply",
+                                    "text": message_text,
+                                    "createdAt": "2026-09-17T01:00:00.000Z",
+                                    "lastRequestedAt": "2026-09-17T02:00:00.000Z",
+                                    "articleReplies": [
+                                        {
+                                            "reply": {
+                                                "id": "reply-1",
+                                                "type": "RUMOR",
+                                                "text": reply_text,
+                                                "reference": "https://example.test/reference",
+                                                "createdAt": "2026-09-17T03:00:00.000Z",
+                                            }
+                                        }
+                                    ],
+                                },
+                            }
+                        ],
+                        "pageInfo": {"hasNextPage": False},
+                    }
+                }
+            },
+            ensure_ascii=False,
+        )
+
+        proc, rows = run_fetch(
+            "tw_cofacts_scam_messages",
+            {
+                "api.cofacts.tw/graphql": {
+                    "content_type": "application/json",
+                    "body": body,
+                }
+            },
+        )
+
+        self.assertEqual(proc.returncode, 0, proc.stderr)
+        self.assertEqual(len(rows), 1)
+        row = rows[0]
+        self.assertEqual(row["clean_text"], message_text)
+        self.assertEqual(row["body_text"], message_text)
+        self.assertNotIn(reply_text, row["clean_text"])
+        self.assertNotIn(reply_text, row["body_text"])
+        self.assertEqual(
+            row["raw_payload"]["record"]["cofacts_replies"]["license"],
+            {
+                "license": "CC BY-SA 4.0",
+                "attribution_required": True,
+                "verbatim_in_seed": False,
+            },
+        )
+        self.assertEqual(
+            row["metadata"]["cofacts_replies"]["items"][0]["text"], reply_text
         )
 
     def test_cofacts_graphql_schema_error_retries_with_safe_query(self):
@@ -369,12 +478,14 @@ class FetchSourceTests(unittest.TestCase):
         )
 
         self.assertEqual(proc.returncode, 0, proc.stderr)
-        self.assertEqual(len(rows), 1)
-        self.assertEqual(rows[0]["content_kind"], "message_sample")
-        self.assertEqual(rows[0]["validation_status"], "needs_review")
-        self.assertEqual(rows[0]["source_verification_status"], "candidate")
+        self.assertEqual(len(rows), 2)
+        self.assertTrue(all(row["content_kind"] == "message_sample" for row in rows))
+        self.assertTrue(all(row["validation_status"] == "needs_review" for row in rows))
+        self.assertTrue(
+            all(row["source_verification_status"] == "candidate" for row in rows)
+        )
 
-    def test_cofacts_uses_live_shape_and_pages_until_filtered_limit(self):
+    def test_cofacts_uses_last_edge_cursor_instead_of_dataset_last_cursor(self):
         live_page = self.fixture("live_capture/cofacts_page1.json")
         valid_edges = [
             {
@@ -409,7 +520,7 @@ class FetchSourceTests(unittest.TestCase):
                     "content_type": "application/json",
                     "bodies": [live_page, second_page],
                     "body": live_page,
-                    "expected_cursors": [None, "WzE0ODIwOTMxMjAwMDAsNTEzNDkwXQ=="],
+                    "expected_cursors": [None, "WzE3ODk0NTk0OTUzMDgsMTAzNzE1N10="],
                 }
             },
         )
@@ -422,6 +533,34 @@ class FetchSourceTests(unittest.TestCase):
             set(summary["filter_drop_counts"]),
             {"length", "ocr_too_short", "url_heavy", "duplicate", "unclassified"},
         )
+
+    def test_cofacts_empty_edges_stop_without_following_dataset_last_cursor(self):
+        body = json.dumps(
+            {
+                "data": {
+                    "ListArticles": {
+                        "edges": [],
+                        "pageInfo": {"lastCursor": "dataset-tail"},
+                    }
+                }
+            },
+            ensure_ascii=False,
+        )
+
+        proc, rows = run_fetch(
+            "tw_cofacts_scam_messages",
+            {
+                "api.cofacts.tw/graphql": {
+                    "content_type": "application/json",
+                    "body": body,
+                }
+            },
+        )
+
+        self.assertEqual(proc.returncode, 0, proc.stderr)
+        self.assertEqual(rows, [])
+        summary = json.loads(proc.stdout.strip().splitlines()[-1])
+        self.assertEqual(summary["pages_fetched"], 1)
 
     def test_cofacts_later_invalid_json_keeps_partial_records_as_candidate(self):
         first_page = json.dumps(

@@ -100,6 +100,12 @@ KEYWORD_RULES = {
     ],
 }
 
+COFACTS_REPLIES_LICENSE = {
+    "license": "CC BY-SA 4.0",
+    "attribution_required": True,
+    "verbatim_in_seed": False,
+}
+
 
 def text_has_any_keyword(text, keywords):
     lowered = text.lower()
@@ -153,6 +159,24 @@ def should_drop_unclassified(source, endpoint, classification_method, confidence
         )
     )
     return classification_method == "manual" or confidence < min_confidence
+
+
+def allows_empty_taxonomy(
+    source, case_stance, content_kind, classification_method, confidence
+):
+    unclassified = classification_method == "manual" and confidence == 0
+    return unclassified and (
+        (
+            source.get("allow_unclassified_advisory")
+            and case_stance == "advisory"
+            and content_kind == "advisory"
+        )
+        or (
+            source.get("allow_unclassified_message_sample")
+            and case_stance == "scam"
+            and content_kind == "message_sample"
+        )
+    )
 
 
 def quote_snippets(text, keywords, limit=3):
@@ -411,13 +435,20 @@ def prepare_record(source, endpoint, record):
         prepared["clean_text"] = message
         prepared["body_text"] = clean_text(record.get("text"))
         prepared["source_url"] = f"https://cofacts.tw/article/{record.get('id', '')}"
+        metadata = dict(prepared.get("_metadata") or {})
+        if isinstance(record.get("cofacts_replies"), dict):
+            metadata["cofacts_replies"] = record["cofacts_replies"]
         if source_name == "tw_cofacts_legit_lookalikes":
             prepared["_case_stance"] = "advisory"
             prepared["_content_kind"] = "advisory"
-            prepared["_metadata"] = {
-                "candidate_for": "legit_lookalike",
-                "review_required": True,
-            }
+            metadata.update(
+                {
+                    "candidate_for": "legit_lookalike",
+                    "review_required": True,
+                }
+            )
+        if metadata:
+            prepared["_metadata"] = metadata
     return prepared
 
 
@@ -451,9 +482,20 @@ def parse_json_records(body, source, endpoint):
                         edge.get("node"), dict
                     ):
                         continue
-                    records.append(
-                        {**edge["node"], "_cofacts_cursor": edge.get("cursor")}
-                    )
+                    node = dict(edge["node"])
+                    article_replies = node.pop("articleReplies", None)
+                    if isinstance(article_replies, list):
+                        replies = [
+                            dict(item["reply"])
+                            for item in article_replies
+                            if isinstance(item, dict)
+                            and isinstance(item.get("reply"), dict)
+                        ]
+                        node["cofacts_replies"] = {
+                            "items": replies,
+                            "license": dict(COFACTS_REPLIES_LICENSE),
+                        }
+                    records.append({**node, "_cofacts_cursor": edge.get("cursor")})
                 return records
             records = []
             for key in ("news", "marquee", "videos", "charts"):
@@ -1143,9 +1185,9 @@ def fetch_cofacts_records(source, endpoint, max_records, since=None, known_ids=N
                 reached_boundary = True
         page_info = article_list.get("pageInfo") or {}
         edges = article_list.get("edges") or []
-        if "lastCursor" in page_info:
-            next_cursor = page_info.get("lastCursor")
-        elif "endCursor" in page_info:
+        if not edges:
+            break
+        if page_info.get("endCursor"):
             next_cursor = page_info.get("endCursor")
         else:
             next_cursor = (
@@ -1369,12 +1411,12 @@ for endpoint in source.get("endpoints", []):
         content_kind = infer_content_kind(
             source, record, record_title(record, endpoint, source), clean_record_text
         )
-        allow_empty_taxonomy = (
-            source.get("allow_unclassified_advisory")
-            and case_stance == "advisory"
-            and content_kind == "advisory"
-            and classification_method == "manual"
-            and confidence == 0
+        allow_empty_taxonomy = allows_empty_taxonomy(
+            source,
+            case_stance,
+            content_kind,
+            classification_method,
+            confidence,
         )
         if allow_empty_taxonomy:
             taxonomy_code = None
