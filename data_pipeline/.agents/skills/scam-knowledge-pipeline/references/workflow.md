@@ -1,4 +1,4 @@
-# Workflow
+# 工作流程
 
 This skill runs a staged, auditable pipeline:
 
@@ -12,8 +12,18 @@ This skill runs a staged, auditable pipeline:
 8. Dry-run normalization, then `--apply` to write relational tables.
 9. Chunk clean text and embed into pgvector.
 10. Audit pipeline state.
-11. Curate game cases (read `references/curation.md`; agent produces draft JSONL, `validate_game_cases.py` verifies).
-12. Ingest game case drafts (`ingest_game_cases.py` dry-run by default; `--apply` writes to `game_cases` table with `draft=true`).
+11. 策展 game cases（閱讀 `references/curation.md`；產生 draft JSONL，再由
+    `validate_game_cases.py` 驗證）。
+12. 以 `ingest_game_cases.py` 入庫草稿；預設 dry-run，只有 `--apply` 才寫入
+    `status='draft'`。
+12.5. 驗收新題型資料：
+    - 執行 `validate_game_cases.py`。
+    - 執行 `leak_probe.py --probe lexical,match --tag-balance`。
+    - 有 API 金鑰時另跑 `--probe genre,title`。
+13. 人工審核草稿，再由操作者手動或在使用者明確授權下把狀態升為
+    `reviewed`／`published`。
+14. 先 dry-run `export_published_seed.py` 查看統計，確認後以 `--output PATH`
+    匯出只含 published 的種子檔。
 
 ## File Flow
 

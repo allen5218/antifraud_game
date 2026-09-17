@@ -1,8 +1,10 @@
 #!/usr/bin/env python3
 import csv
 import hashlib
+import io
 import json
 import os
+import shlex
 import shutil
 import ssl
 import subprocess
@@ -272,20 +274,44 @@ def fetch_url(
     )
 
 
-def db_args():
+def _database_url():
     url = os.environ.get("DATABASE_URL")
-    base = ["psql", "-v", "ON_ERROR_STOP=1", "-X"]
     if not url:
         raise SystemExit(
             "未設定 DATABASE_URL；請用 --env-file 指定環境檔，或先設定 DATABASE_URL 環境變數"
         )
-    return base + [url]
+    return url
+
+
+def _command_from_env(name, default):
+    value = os.environ.get(name, default)
+    command = shlex.split(value)
+    if not command:
+        raise SystemExit(f"{name} 不可為空字串")
+    return command
+
+
+def db_args():
+    return _command_from_env("PSQL_BIN", "psql") + [
+        "-v",
+        "ON_ERROR_STOP=1",
+        "-X",
+        _database_url(),
+    ]
+
+
+def pg_dump_args(*options):
+    return _command_from_env("PG_DUMP_BIN", "pg_dump") + [
+        *options,
+        _database_url(),
+    ]
 
 
 def run_psql(sql, quiet=False):
-    args = db_args() + ["-c", sql]
+    args = db_args()
     if quiet:
-        args.insert(3, "-q")
+        args.insert(len(args) - 1, "-q")
+    args += ["-c", sql]
     proc = subprocess.run(
         args, text=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE
     )
@@ -296,8 +322,38 @@ def run_psql(sql, quiet=False):
 
 
 def run_psql_file(path):
+    sql = Path(path).read_text(encoding="utf-8")
     proc = subprocess.run(
-        db_args() + ["-f", str(path)],
+        db_args(),
+        text=True,
+        input=sql,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE,
+    )
+    if proc.returncode != 0:
+        sys.stderr.write(proc.stderr)
+        raise SystemExit(proc.returncode)
+    return proc.stdout
+
+
+def run_pg_dump(*options):
+    proc = subprocess.run(
+        pg_dump_args(*options),
+        text=True,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE,
+    )
+    if proc.returncode != 0:
+        sys.stderr.write(proc.stderr)
+        raise SystemExit(proc.returncode)
+    return proc.stdout
+
+
+def psql_copy_stdout(sql):
+    args = db_args()
+    args.insert(len(args) - 1, "-q")
+    proc = subprocess.run(
+        args + ["-c", sql],
         text=True,
         stdout=subprocess.PIPE,
         stderr=subprocess.PIPE,
@@ -453,17 +509,24 @@ def json_array_to_pg_array_sql(json_path):
     )
 
 
-def temp_copy_sql(table, columns, rows):
-    fd, csv_path = tempfile.mkstemp(prefix="scam-pipeline-", suffix=".csv")
-    os.close(fd)
-    with open(csv_path, "w", encoding="utf-8", newline="") as f:
-        writer = csv.DictWriter(
-            f, fieldnames=columns, delimiter="\t", extrasaction="ignore"
-        )
-        writer.writeheader()
-        for row in rows:
-            writer.writerow(row)
-    return csv_path
+def copy_from_rows_sql(table, columns, rows):
+    """建立可直接從 psql stdin 執行的 COPY 區塊，不依賴 client 本機路徑。"""
+    buffer = io.StringIO(newline="")
+    writer = csv.DictWriter(
+        buffer,
+        fieldnames=columns,
+        delimiter="\t",
+        extrasaction="ignore",
+        lineterminator="\n",
+    )
+    writer.writeheader()
+    writer.writerows(rows)
+    column_sql = ", ".join(columns)
+    return (
+        f"COPY {table} ({column_sql}) FROM STDIN "
+        "WITH (FORMAT csv, HEADER true, DELIMITER E'\\t');\n"
+        f"{buffer.getvalue()}\\.\n"
+    )
 
 
 def ensure_game_cases_schema():

@@ -3,6 +3,7 @@
 
 import os
 import sys
+import tempfile
 import unittest
 from pathlib import Path
 from unittest.mock import patch
@@ -22,6 +23,79 @@ class DatabaseArgsTests(unittest.TestCase):
         message = str(caught.exception)
         self.assertIn("DATABASE_URL", message)
         self.assertIn("--env-file", message)
+
+    def test_psql_bin_supports_command_with_arguments(self):
+        with patch.dict(
+            os.environ,
+            {
+                "DATABASE_URL": "postgresql://db/example",
+                "PSQL_BIN": "docker exec -i pg psql",
+            },
+            clear=True,
+        ):
+            self.assertEqual(
+                common.db_args(),
+                [
+                    "docker",
+                    "exec",
+                    "-i",
+                    "pg",
+                    "psql",
+                    "-v",
+                    "ON_ERROR_STOP=1",
+                    "-X",
+                    "postgresql://db/example",
+                ],
+            )
+
+    def test_pg_dump_bin_supports_command_with_arguments(self):
+        with patch.dict(
+            os.environ,
+            {
+                "DATABASE_URL": "postgresql://db/example",
+                "PG_DUMP_BIN": "docker exec -i pg pg_dump",
+            },
+            clear=True,
+        ):
+            self.assertEqual(
+                common.pg_dump_args(),
+                [
+                    "docker",
+                    "exec",
+                    "-i",
+                    "pg",
+                    "pg_dump",
+                    "postgresql://db/example",
+                ],
+            )
+
+    def test_run_psql_file_pipes_contents_through_stdin(self):
+        with tempfile.TemporaryDirectory() as td:
+            sql_path = Path(td) / "input.sql"
+            sql_path.write_text("SELECT 1;\n", encoding="utf-8")
+            with patch.dict(
+                os.environ, {"DATABASE_URL": "postgresql://db/example"}, clear=True
+            ):
+                with patch("common.subprocess.run") as run:
+                    run.return_value.returncode = 0
+                    run.return_value.stdout = "ok"
+                    run.return_value.stderr = ""
+                    result = common.run_psql_file(sql_path)
+
+            self.assertEqual(result, "ok")
+            args, kwargs = run.call_args
+            self.assertNotIn("-f", args[0])
+            self.assertEqual(kwargs["input"], "SELECT 1;\n")
+
+    def test_copy_from_rows_sql_uses_inline_stdin_instead_of_local_path(self):
+        sql = common.copy_from_rows_sql(
+            "tmp_rows",
+            ["id", "text"],
+            [{"id": "1", "text": "含有\t定位字元"}],
+        )
+        self.assertIn("COPY tmp_rows (id, text) FROM STDIN", sql)
+        self.assertIn("\\.\n", sql)
+        self.assertNotIn("\\copy", sql)
 
 
 if __name__ == "__main__":

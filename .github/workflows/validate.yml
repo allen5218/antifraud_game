@@ -34,13 +34,16 @@ jobs:
         working-directory: data_pipeline/.agents/skills/scam-knowledge-pipeline
         run: python3 -m unittest discover -s tests
 
-      - name: Check game case lexical leakage
+      - name: Check game case leakage and tag balance
         if: steps.data-pipeline-paths.outputs.changed == 'true'
         working-directory: data_pipeline/.agents/skills/scam-knowledge-pipeline
+        # 暫時沿用現有題庫最低值 social_proof=2；題庫擴充後應調高到策展目標 6。
         run: >-
           python3 scripts/leak_probe.py
           --from-dump "$GITHUB_WORKSPACE/deploy/seed/game_cases.sql"
-          --probe lexical
+          --probe lexical,match
+          --tag-balance
+          --min-tag-count 2
           --fail-over 0.75
 
       - uses: docker/setup-buildx-action@37fe631027851001ddb9b187196cc803df7f5f0e # v4

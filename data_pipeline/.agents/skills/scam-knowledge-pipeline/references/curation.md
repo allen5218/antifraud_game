@@ -45,10 +45,10 @@
    管道聯繫、書面契約或系統內留存紀錄、不催促決策、可主動查證、絕不要求
    私人轉帳或到 ATM 操作）。玩家應該要能感受到場景的表面相似度，但透過
    細節判斷出這是正當流程而非詐騙。
-2. 錨定 `tw_manual_legit_process_docs` 來源的官方流程文件：`legit` 草稿的
-   `source_document_ids` 必須引用該來源對應 fraud_type 的 document id
-   （5 筆錨定文件與 5 個 `taxonomy_code` 一一對應），並填寫 `mirror_of_key`
-   指向被鏡像的 scam 草稿之 `case_key`，建立可追溯的配對關係。
+2. `source_document_ids` 可引用官方流程文件；若引用的是尚未入庫的法規或
+   公會文件，必須在 `provenance` 寫明可查證的文件名稱與出處，且
+   `mirror_of_key` 必填。驗證器維持「`mirror_of_key` 或
+   `source_document_ids` 至少一個」的機器規則。
 3. `red_flags` 改為「正當訊號」：每筆 `tag` 一律為 `null`（`legit` 案例不
    對應任何弱點誘因），`text` 描述可查證的合法行為（例如「客服僅透過站內
    工單聯繫，並提供可查詢的工單編號」）。`red_flags` 仍需至少 2 筆，維持
@@ -80,21 +80,61 @@
 5. 寫完必須跑 `scripts/leak_probe.py` 驗收（見下節）——上面第 1~4 條和
    「鏡像翻寫規則」第 4 條在此之前都只是宣告，沒有任何東西在執行它們。
 
+## 新題型適配
+
+同一批 `game_cases` 會產生三種 quiz 題型，策展時必須同時滿足：
+
+1. **verdict**：顯示 `title` 與 `narrative`，讓玩家判斷是不是詐騙。敘事必須
+   停在決策當下，標題與敘事都不得揭曉答案。標題限 4–32 字，避免
+   「詐騙、騙局、陷阱、假冒、假、安心、保障、正規、官方、透明、可查證、
+   卡住、出狀況」等方向性詞彙。
+2. **tactics**：只從 scam 案例出題，正解是 `red_flags[].tag` 的去重集合，
+   而且集合必須完全相等才得分。每筆 scam 必須至少有 2 個不同 tag；所有
+   實際使用的話術都要完整標記，不能漏標或用近似 tag 代替。
+3. **match**：直接顯示 scam 的 `red_flags[].text`，讓玩家配對五種話術。
+   每句限 8–40 字，必須能脫離 narrative 獨立閱讀，只描述一個主要話術，
+   且不得直接寫出該話術名稱或明顯同義詞。例如不要寫「營造從眾氣氛」，
+   應改寫為可觀察行為，如「直播留言由多個帳號輪流曬出成交截圖」。
+
+`red_flags[].text` 應描述玩家實際看到或聽到的話、行為與流程，不寫
+「這是權威手法」「藉此建立信任」等分析結論。同一句若同時含有其他 tag 的
+強烈訊號，match 題會產生誤導；寫作時應拆句或選定單一主要訊號，並用
+`leak_probe.py --probe match` 檢查 own-tag 與 cross-tag 命中。
+
+驗證器會 hard reject 分析式洩題詞（例如「急迫、權威、官方、主管機關、
+從眾、信任」）。「催促、假冒、高報酬、很多人、感情」等具體行為或誘因仍由
+match 報表標示，但不一律 hard reject，避免把案例必要事實也禁掉。完整清單與
+hard/report 分流以 `scripts/leak_probe.py` 的 `TAG_TELL_WORDS` 與
+`HARD_TAG_TELL_WORDS` 為準。
+
+published 題庫的內容目標是每個 tag 至少 6 筆，且至少涵蓋 3 種
+`fraud_type`。這是策展目標，不代表可以為了補數量而錯標；每次驗收都要搭配
+`--tag-balance` 查看實際分布。
+
+legit 可填選填的 `surface_tag`，表示案例刻意帶有哪一種「表面紅旗」；
+`red_flags[].tag` 仍全部為 `null`。內容必須同時呈現表面可疑訊號與合法機制，
+例如確有期限但期限能在官方頁面查到。正當機制必須可查證，引用法規、
+主管機關或公會文件，並把文件名稱與出處寫進 `provenance`。
+
+同批輸入中，legit 的 `mirror_of_key` 若指向同批 scam 草稿，兩者 `title`
+必須完全相同，避免玩家只看標題就分辨立場。
+
 ## 產出與入庫
 
 - 草稿寫成 JSONL（契約見 `schemas/game_case.schema.json`），每筆案例（無論
   scam 或 legit）都要能通過 `scripts/validate_game_cases.py` 的 schema 驗證
   與語意檢查（敘事長度、`weakness_tag` 合法性、去識別化 PII pattern、
   `case_key` 不重複）。
-- 通過 schema 驗證後，再跑 `scripts/leak_probe.py --input <草稿.jsonl>`
+- 通過 schema 驗證後，再跑
+  `scripts/leak_probe.py --input <草稿.jsonl> --probe lexical,match --tag-balance`
   量測體裁洩題率：**50% 代表完全沒洩（等同擲硬幣），接近 100% 代表題目在送分。**
-  預設的 `lexical` 探針免 API、可進 CI；加 `--probe genre` 會用 LLM 探針
+  `lexical` 與 `match` 探針免 API、可進 CI；加 `--probe genre,title` 會用 LLM 探針
   （明令禁止使用反詐知識、只依敘事形式判斷）並回報是哪一句洩的。
   入庫門檻建議 `--fail-over 0.75`。
 - 驗證通過後使用 `scripts/ingest_game_cases.py --apply` 入庫，寫入一律為
   `status='draft'`；`--apply` 之前務必先跑一次 dry-run 檢視筆數與
   `missing_sources`（`source_document_ids` 若指向不存在的 `documents.id`
   會直接中止入庫）。
-- `status` 升級（`draft` → `reviewed` → `published`）只能由人工在 Supabase
-  Studio 操作，此 skill 的任何腳本都不會自動升級狀態。遊戲後端只讀取
+- `status` 升級（`draft` → `reviewed` → `published`）必須經人工審核，並由
+  操作者手動執行，或在使用者明確授權下執行。遊戲後端只讀取
   `status='published'` 的案例，因此草稿入庫後仍需人工審核才會上線。
