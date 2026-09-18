@@ -46,71 +46,72 @@ export function AnimatedAcanthusEye({ className = "" }: AnimatedAcanthusEyeProps
     const fsSource = `
       precision highp float;
       varying vec2 vUv;
-      uniform sampler2D uTexture;
+      uniform sampler2D uMasterTexture;
+      uniform sampler2D uPupilTexture;
       uniform float uTime;
       uniform vec2 uCenter;
-      uniform float uRimRadius;
 
       void main() {
         vec2 coord = vUv;
+        vec4 baseColor = texture2D(uMasterTexture, coord);
+
+        // Distance from pupil center in normalized UV coordinates (1024 base)
         vec2 delta = coord - uCenter;
         float r = length(delta);
-        float theta = atan(delta.y, delta.x);
+        float r_px = r * 1024.0;
 
-        vec4 baseColor = texture2D(uTexture, coord);
-
-        // Outside the magnifying glass lens rim: render crisp original artwork
-        if (r > uRimRadius + 0.025) {
+        // Outside pupil opening: preserve master copperplate engraving with zero distortion
+        if (r_px > 82.0) {
           gl_FragColor = baseColor;
           return;
         }
 
-        // Inside the magnifying glass: continuous outward blooming flow
-        float rMin = 0.010;
-        float rMax = uRimRadius;
-        float u = clamp((r - rMin) / (rMax - rMin), 0.0, 1.0);
+        float theta = atan(delta.y, delta.x);
 
-        // Dual-phase continuous seamless outward wave
-        float speed = 0.075;
-        float p1 = fract(u - uTime * speed);
-        float p2 = fract(u - uTime * speed + 0.5);
-        float w = sin(p1 * 3.14159265);
-        w = w * w;
+        // Continuous outward blooming flow: dual-phase hypnotic zoom & curl
+        float speed = 0.09;
+        float p1 = fract(uTime * speed);
+        float p2 = fract(uTime * speed + 0.5);
 
-        // Map into the rich acanthus wreath texture band (r in [0.080, 0.155])
-        float wMin = 0.082;
-        float wMax = 0.156;
-        float rSrc1 = wMin + p1 * (wMax - wMin);
-        float rSrc2 = wMin + p2 * (wMax - wMin);
+        float s_base = 5.0;
+        float scale_factor = 2.3;
+        float s1 = s_base / pow(scale_factor, p1);
+        float s2 = s_base / pow(scale_factor, p2);
 
-        // Natural logarithmic swirl curl
-        float th1 = theta + 0.38 * (1.0 - p1) + uTime * 0.035;
-        float th2 = theta + 0.38 * (1.0 - p2) + uTime * 0.035;
+        float rot1 = -0.38 * p1 - uTime * 0.05;
+        float rot2 = -0.38 * p2 - uTime * 0.05;
 
-        vec2 uv1 = uCenter + vec2(rSrc1 * cos(th1), rSrc1 * sin(th1));
-        vec2 uv2 = uCenter + vec2(rSrc2 * cos(th2), rSrc2 * sin(th2));
+        // Normalized distance in 512x512 pupil texture
+        vec2 pupilCenter = vec2(0.5, 0.5);
+        float r_pupil_1 = (r_px * s1) / 512.0;
+        float r_pupil_2 = (r_px * s2) / 512.0;
 
-        vec4 col1 = texture2D(uTexture, uv1);
-        vec4 col2 = texture2D(uTexture, uv2);
-        vec4 flowColor = mix(col2, col1, w);
+        vec2 uv1 = pupilCenter + vec2(r_pupil_1 * cos(theta + rot1), r_pupil_1 * sin(theta + rot1));
+        vec2 uv2 = pupilCenter + vec2(r_pupil_2 * cos(theta + rot2), r_pupil_2 * sin(theta + rot2));
 
-        // Smooth radial blend envelope (seamless transition into outer frame)
-        float envIn = smoothstep(0.006, 0.028, r);
-        float envOut = 1.0 - smoothstep(uRimRadius - 0.018, uRimRadius + 0.012, r);
-        float blendFactor = envIn * envOut;
+        vec4 col1 = texture2D(uPupilTexture, uv1);
+        vec4 col2 = texture2D(uPupilTexture, uv2);
 
-        vec4 finalColor = mix(baseColor, flowColor, blendFactor);
+        // Dual-phase bell curve crossfade
+        float w1 = pow(sin(p1 * 3.14159265), 1.2);
+        float w2 = pow(sin(p2 * 3.14159265), 1.2);
 
-        // Specular optical sweep arc on antique convex glass
-        float sweepAngle = theta - uTime * 0.3;
-        float sweepGlint = smoothstep(0.88, 0.98, sin(sweepAngle)) *
-                           smoothstep(uRimRadius * 0.5, uRimRadius * 0.92, r) *
-                           envOut;
-        finalColor.rgb += vec3(sweepGlint * 0.3);
+        // Stroke-preserving blend between dual-phase blooming layers
+        float a1 = col1.a * w1;
+        float a2 = col2.a * w2;
+        float flowAlpha = max(a1, a2);
+        flowAlpha = clamp(flowAlpha * 1.35, 0.0, 1.0);
 
-        // Center breathing crystal focal dot
-        float coreStar = smoothstep(0.007, 0.0015, r) * (0.85 + 0.15 * sin(uTime * 1.8));
-        finalColor.rgb += vec3(coreStar);
+        // Ultra-soft seamless edge fade under the surrounding acanthus leaves
+        // Leaves start at ~36-40px and become fully solid by ~65-76px
+        float fade = 1.0 - smoothstep(46.0, 76.0, r_px);
+        fade = fade * fade * (3.0 - 2.0 * fade);
+        flowAlpha *= fade;
+
+        // Composite: static wreath leaves sit ON TOP of blooming petals
+        vec4 finalColor;
+        finalColor.rgb = vec3(1.0);
+        finalColor.a = clamp(baseColor.a + flowAlpha * (1.0 - baseColor.a), 0.0, 1.0);
 
         gl_FragColor = finalColor;
       }
@@ -156,32 +157,55 @@ export function AnimatedAcanthusEye({ className = "" }: AnimatedAcanthusEyeProps
     gl.vertexAttribPointer(aPosLoc, 2, gl.FLOAT, false, 0, 0)
 
     // Uniform locations
-    const uTexLoc = gl.getUniformLocation(program, "uTexture")
+    const uMasterTexLoc = gl.getUniformLocation(program, "uMasterTexture")
+    const uPupilTexLoc = gl.getUniformLocation(program, "uPupilTexture")
     const uTimeLoc = gl.getUniformLocation(program, "uTime")
     const uCenterLoc = gl.getUniformLocation(program, "uCenter")
-    const uRimRadiusLoc = gl.getUniformLocation(program, "uRimRadius")
 
-    // Center in normalized UV coords (506/1024, 500/1024)
-    gl.uniform2f(uCenterLoc, 506.0 / 1024.0, 500.0 / 1024.0)
-    // Rim radius in normalized coords (160 / 1024)
-    gl.uniform1f(uRimRadiusLoc, 160.0 / 1024.0)
-    gl.uniform1i(uTexLoc, 0)
+    // Center in normalized UV coords (505/1024, 500/1024)
+    gl.uniform2f(uCenterLoc, 505.0 / 1024.0, 500.0 / 1024.0)
+    gl.uniform1i(uMasterTexLoc, 0)
+    gl.uniform1i(uPupilTexLoc, 1)
 
-    // Load master artwork image texture
-    const texture = gl.createTexture()
-    const img = new Image()
-    img.src = "/assets/images/brand-hero-master.png"
-    img.crossOrigin = "anonymous"
+    // Load master texture and pupil rosette texture
+    let loadedCount = 0
+    const onTextureLoaded = () => {
+      loadedCount++
+      if (loadedCount === 2) {
+        setIsLoaded(true)
+        render()
+      }
+    }
 
-    img.onload = () => {
-      gl.bindTexture(gl.TEXTURE_2D, texture)
+    const masterTexture = gl.createTexture()
+    const masterImg = new Image()
+    masterImg.src = "/assets/images/brand-hero-master.png"
+    masterImg.crossOrigin = "anonymous"
+    masterImg.onload = () => {
+      gl.activeTexture(gl.TEXTURE0)
+      gl.bindTexture(gl.TEXTURE_2D, masterTexture)
       gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE)
       gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE)
       gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR)
       gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR)
-      gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, img)
-      setIsLoaded(true)
-      render()
+      gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, masterImg)
+      onTextureLoaded()
+    }
+
+    const pupilTexture = gl.createTexture()
+    const pupilImg = new Image()
+    pupilImg.src = "/assets/images/acanthus-pupil-texture.png"
+    pupilImg.crossOrigin = "anonymous"
+    pupilImg.onload = () => {
+      gl.activeTexture(gl.TEXTURE1)
+      gl.bindTexture(gl.TEXTURE_2D, pupilTexture)
+      gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE)
+      gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE)
+      gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR_MIPMAP_LINEAR)
+      gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR)
+      gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, pupilImg)
+      gl.generateMipmap(gl.TEXTURE_2D)
+      onTextureLoaded()
     }
 
     const updateCanvasDPI = () => {
@@ -202,6 +226,12 @@ export function AnimatedAcanthusEye({ className = "" }: AnimatedAcanthusEyeProps
       const elapsed = (performance.now() - startTime) / 1000.0
       gl.uniform1f(uTimeLoc, elapsed)
 
+      gl.activeTexture(gl.TEXTURE0)
+      gl.bindTexture(gl.TEXTURE_2D, masterTexture)
+
+      gl.activeTexture(gl.TEXTURE1)
+      gl.bindTexture(gl.TEXTURE_2D, pupilTexture)
+
       gl.clearColor(0.0, 0.0, 0.0, 0.0)
       gl.clear(gl.COLOR_BUFFER_BIT)
       gl.drawArrays(gl.TRIANGLES, 0, 6)
@@ -215,7 +245,8 @@ export function AnimatedAcanthusEye({ className = "" }: AnimatedAcanthusEyeProps
       gl.deleteProgram(program)
       gl.deleteShader(vs)
       gl.deleteShader(fs)
-      gl.deleteTexture(texture)
+      gl.deleteTexture(masterTexture)
+      gl.deleteTexture(pupilTexture)
       gl.deleteBuffer(posBuffer)
     }
   }, [])
