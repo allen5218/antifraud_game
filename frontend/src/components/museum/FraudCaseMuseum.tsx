@@ -1,4 +1,5 @@
 import { useState } from "react"
+import { FileText, Landmark, X } from "lucide-react"
 
 export interface RealCase {
   id: string
@@ -87,54 +88,57 @@ export function FraudCaseMuseum({ isOpen, onClose }: FraudCaseMuseumProps) {
 
   return (
     <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-md flex items-center justify-center p-4 animate-in fade-in duration-200">
-      <div className="bg-slate-900 text-white rounded-2xl border border-blue-500/30 w-full max-w-xl overflow-hidden shadow-2xl flex flex-col max-h-[90vh]">
+      <div className="bg-slate-900 text-white rounded-2xl border border-white/20 w-full max-w-xl overflow-hidden shadow-[0_0_30px_rgba(255,255,255,0.08)] flex flex-col max-h-[90vh]">
         {/* Header */}
-        <div className="p-4 bg-gradient-to-r from-blue-900/60 to-slate-900 border-b border-blue-500/20 flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <span className="text-2xl">🏛️</span>
+        <div className="p-4 bg-slate-950/80 border-b border-white/10 flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <div className="flex h-9 w-9 items-center justify-center rounded-xl border border-white/20 bg-white/5 text-white shadow-[0_0_10px_rgba(255,255,255,0.05)]">
+              <Landmark className="w-4 h-4" />
+            </div>
             <div>
-              <h2 className="text-lg font-bold text-blue-400">真實防詐案件展覽館 (Case Museum)</h2>
+              <h2 className="text-base font-bold text-white tracking-wide">真實防詐案件展覽館</h2>
               <p className="text-xs text-slate-400">司法院裁判書與 165 官方起訴案情實錄</p>
             </div>
           </div>
           <button
             onClick={onClose}
-            className="w-8 h-8 rounded-full bg-slate-800 hover:bg-slate-700 flex items-center justify-center text-slate-300 text-sm"
+            className="w-8 h-8 rounded-full bg-white/5 border border-white/10 hover:bg-white/10 flex items-center justify-center text-slate-300 transition-colors"
           >
-            ✕
+            <X className="w-4 h-4" />
           </button>
         </div>
 
         {/* Case List Grid */}
-        <div className="p-4 overflow-y-auto space-y-3 flex-1">
+        <div className="p-4 overflow-y-auto space-y-2.5 flex-1">
           {REAL_CASES.map((c) => (
             <div
               key={c.id}
               onClick={() => setSelectedCase(c)}
               className={`p-3.5 rounded-xl border transition-all cursor-pointer flex items-center justify-between ${
                 c.unlocked
-                  ? "bg-slate-800/70 border-blue-500/30 hover:border-blue-400 hover:bg-slate-800"
-                  : "bg-slate-900/40 border-slate-800 opacity-60"
+                  ? "bg-white/5 border-white/15 hover:border-white/40 hover:bg-white/10 shadow-[0_0_15px_rgba(255,255,255,0.03)]"
+                  : "bg-slate-900/40 border-white/5 opacity-50 cursor-not-allowed"
               }`}
             >
               <div className="space-y-1 pr-2">
                 <div className="flex items-center gap-2">
-                  <span className="text-xs bg-blue-500/20 text-blue-300 px-2 py-0.5 rounded font-medium">
+                  <span className="text-[10px] bg-white/10 text-slate-200 border border-white/15 px-2 py-0.5 rounded font-medium">
                     {c.type}
                   </span>
-                  <span className="text-[11px] text-slate-400">{c.date}</span>
+                  <span className="text-[11px] text-slate-400 font-mono">{c.date}</span>
                 </div>
                 <h3 className="font-bold text-sm text-slate-100">{c.title}</h3>
                 <p className="text-xs text-slate-400 line-clamp-1">{c.summary}</p>
               </div>
               <div className="text-right whitespace-nowrap">
                 {c.unlocked ? (
-                  <span className="text-xs bg-emerald-500/20 text-emerald-400 px-2.5 py-1 rounded-lg font-bold">
-                    🔍 檢視證據
+                  <span className="inline-flex items-center gap-1 text-xs bg-white/10 text-white border border-white/20 px-2.5 py-1 rounded-lg font-medium shadow-sm">
+                    <FileText className="w-3.5 h-3.5" />
+                    檢視卷證
                   </span>
                 ) : (
-                  <span className="text-xs bg-slate-800 text-slate-500 px-2.5 py-1 rounded-lg">
-                    🔒 未解鎖
+                  <span className="text-xs bg-white/5 text-slate-500 border border-white/5 px-2.5 py-1 rounded-lg">
+                    未解鎖
                   </span>
                 )}
               </div>
@@ -144,25 +148,25 @@ export function FraudCaseMuseum({ isOpen, onClose }: FraudCaseMuseumProps) {
 
         {/* Detail Modal Layer */}
         {selectedCase && (
-          <div className="p-4 bg-slate-950 border-t border-slate-800 space-y-3 animate-in slide-in-from-bottom duration-200">
+          <div className="p-4 bg-slate-950 border-t border-white/10 space-y-3 animate-in slide-in-from-bottom duration-200">
             <div className="flex items-center justify-between">
-              <span className="text-xs text-blue-400 font-bold">{selectedCase.source}</span>
+              <span className="text-xs text-slate-300 font-semibold">{selectedCase.source}</span>
               <button
                 onClick={() => setSelectedCase(null)}
                 className="text-xs text-slate-400 hover:text-white"
               >
-                收起 ▲
+                收起
               </button>
             </div>
             <p className="text-xs text-slate-200 leading-relaxed">{selectedCase.summary}</p>
-            <div className="bg-amber-950/40 border border-amber-500/30 p-2.5 rounded-lg text-xs text-amber-300 font-medium">
-              💡 {selectedCase.evidenceKey}
+            <div className="bg-white/5 border border-white/15 p-2.5 rounded-lg text-xs text-slate-200 font-medium">
+              查核要點：{selectedCase.evidenceKey}
             </div>
           </div>
         )}
 
-        <div className="p-3 bg-slate-950 text-center text-[11px] text-slate-500 border-t border-slate-800">
-          🏆 每解鎖一份真實裁判案例，解鎖 +2% 全局房產收益加成！
+        <div className="p-3 bg-slate-950 text-center text-[11px] text-slate-400 border-t border-white/10">
+          每解鎖一份真實裁判案例，獲得 +2% 全域房產收益加成
         </div>
       </div>
     </div>

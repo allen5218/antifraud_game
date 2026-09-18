@@ -1,4 +1,5 @@
 import { useMemo, useState } from "react"
+import { AlertTriangle, Building2 } from "lucide-react"
 import { useEconomyMe, useLiquidate, useProperties } from "@/hooks/useEconomy"
 import { LIQUIDATION_RATIO } from "@/lib/economy"
 
@@ -69,9 +70,10 @@ export function ForcedSellModal() {
       <div className="w-full rounded-t-2xl bg-background p-4">
         <h3
           id="forced-sell-title"
-          className="mb-1 flex items-center gap-1 text-sm font-extrabold text-red-700"
+          className="mb-1 flex items-center gap-1.5 text-sm font-extrabold text-red-600"
         >
-          ⚠️ 你被詐騙了
+          <AlertTriangle className="w-4 h-4 text-red-600" />
+          <span>遭遇詐騙扣款</span>
         </h3>
         <p className="mb-2 text-[11px] text-muted-foreground">
           在「真實情境」的對話中，你匯了款項到對方指定帳戶。
@@ -120,9 +122,7 @@ export function ForcedSellModal() {
                   onChange={() => toggle(p.id)}
                   className="h-4 w-4"
                 />
-                <span aria-hidden="true" className="text-xl">
-                  🏠
-                </span>
+                <Building2 className="w-5 h-5 text-slate-400 shrink-0" />
                 <div className="flex-1">
                   <div className="text-xs font-bold">{name}</div>
                   <div className="text-[10px]">

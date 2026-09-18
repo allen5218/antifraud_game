@@ -57,28 +57,24 @@ export function ChapterBanner() {
     <div className="space-y-3">
 
       {/* 主章節進度卡片 */}
-      <div className="relative overflow-hidden rounded-2xl border border-indigo-500/30 bg-gradient-to-br from-indigo-950/80 via-slate-900 to-slate-950 p-4 shadow-[0_4px_25px_rgba(0,0,0,0.5)] backdrop-blur-xl">
-        {/* Glow Decorator */}
-        <div className="absolute -left-10 -top-10 h-32 w-32 rounded-full bg-indigo-500/10 blur-2xl" />
-        <div className="absolute -right-10 -bottom-10 h-32 w-32 rounded-full bg-emerald-500/10 blur-2xl" />
-
+      <div className="relative overflow-hidden rounded-2xl border border-white/20 bg-slate-900/80 p-4 shadow-[0_0_20px_rgba(255,255,255,0.06)] backdrop-blur-xl transition-all hover:border-white/30">
         <div className="relative">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
-              <span className="flex h-6 items-center rounded-full border border-indigo-400/30 bg-indigo-500/20 px-2.5 text-[10px] font-black uppercase tracking-wider text-indigo-300">
-                🎯 主線任務
+              <span className="flex h-6 items-center rounded-full border border-white/20 bg-white/5 px-2.5 text-[10px] font-bold uppercase tracking-wider text-slate-300">
+                主線任務
               </span>
-              <span className="text-[10px] font-mono font-bold text-slate-400">
+              <span className="text-[10px] font-mono font-semibold text-slate-400">
                 CH.{currentChapter?.chapter_number ?? 1}
               </span>
             </div>
-            <span className="text-xs font-mono font-bold text-emerald-400 bg-emerald-950/60 border border-emerald-500/30 px-2 py-0.5 rounded-full">
+            <span className="text-xs font-mono font-semibold text-slate-300 bg-white/5 border border-white/15 px-2.5 py-0.5 rounded-full">
               通關 {status.completed_chapters} / 5 章
             </span>
           </div>
 
-          <div className="mt-2.5 text-base font-black tracking-wide text-slate-100 flex items-center gap-2">
-            <span>{currentChapter?.title ?? "全章節已通關"}</span>
+          <div className="mt-2.5 text-base font-bold tracking-wide text-white">
+            {currentChapter?.title ?? "全章節已通關"}
           </div>
           <p className="mt-1 text-xs leading-relaxed text-slate-400 font-medium">
             {currentChapter?.description}
@@ -87,45 +83,45 @@ export function ChapterBanner() {
           {/* 晉級條件檢核雙卡 */}
           {currentChapter && !currentChapter.is_completed && (
             <div className="mt-3.5 grid grid-cols-2 gap-2 text-xs">
-              <div className="flex flex-col justify-between rounded-xl border border-slate-800 bg-slate-900/90 p-3 backdrop-blur-md transition-all hover:border-slate-700">
-                <div className="text-[10px] font-bold text-slate-400 flex items-center justify-between">
+              <div className="flex flex-col justify-between rounded-xl border border-white/10 bg-white/5 p-3 backdrop-blur-md transition-all hover:border-white/20">
+                <div className="text-[10px] font-semibold text-slate-400 flex items-center justify-between">
                   <span>測驗刷題</span>
                   {currentChapter.quiz_completed && (
-                    <span className="text-emerald-400 font-extrabold">✓ 已完成</span>
+                    <span className="text-emerald-400 font-bold">已完成</span>
                   )}
                 </div>
                 <div className="mt-2 flex items-center justify-between">
-                  <span className="font-bold text-slate-200">題组訓練</span>
+                  <span className="font-semibold text-slate-200">題組訓練</span>
                   {currentChapter.quiz_completed ? (
-                    <span className="h-2 w-2 rounded-full bg-emerald-400 shadow-[0_0_8px_#34d399]" />
+                    <span className="h-2 w-2 rounded-full bg-emerald-400 shadow-[0_0_8px_rgba(52,211,153,0.6)]" />
                   ) : (
                     <Link
                       to="/quick/quiz"
-                      className="inline-flex items-center gap-0.5 rounded-lg bg-indigo-600/90 border border-indigo-400/40 px-2.5 py-1 text-[11px] font-black text-white shadow-md hover:bg-indigo-500"
+                      className="inline-flex items-center rounded-lg border border-white/25 bg-white/10 px-2.5 py-1 text-[11px] font-bold text-white shadow-sm hover:bg-white/20"
                     >
-                      去訓練 ⚡
+                      去訓練
                     </Link>
                   )}
                 </div>
               </div>
 
-              <div className="flex flex-col justify-between rounded-xl border border-slate-800 bg-slate-900/90 p-3 backdrop-blur-md transition-all hover:border-slate-700">
-                <div className="text-[10px] font-bold text-slate-400 flex items-center justify-between">
+              <div className="flex flex-col justify-between rounded-xl border border-white/10 bg-white/5 p-3 backdrop-blur-md transition-all hover:border-white/20">
+                <div className="text-[10px] font-semibold text-slate-400 flex items-center justify-between">
                   <span>真實偵查</span>
                   {currentChapter.scenario_completed && (
-                    <span className="text-emerald-400 font-extrabold">✓ 已完成</span>
+                    <span className="text-emerald-400 font-bold">已完成</span>
                   )}
                 </div>
                 <div className="mt-2 flex items-center justify-between">
-                  <span className="font-bold text-slate-200">情境查證</span>
+                  <span className="font-semibold text-slate-200">情境查證</span>
                   {currentChapter.scenario_completed ? (
-                    <span className="h-2 w-2 rounded-full bg-emerald-400 shadow-[0_0_8px_#34d399]" />
+                    <span className="h-2 w-2 rounded-full bg-emerald-400 shadow-[0_0_8px_rgba(52,211,153,0.6)]" />
                   ) : (
                     <Link
                       to="/scenarios"
-                      className="inline-flex items-center gap-0.5 rounded-lg bg-emerald-600/90 border border-emerald-400/40 px-2.5 py-1 text-[11px] font-black text-white shadow-md hover:bg-emerald-500"
+                      className="inline-flex items-center rounded-lg border border-white/25 bg-white/10 px-2.5 py-1 text-[11px] font-bold text-white shadow-sm hover:bg-white/20"
                     >
-                      去查證 🔍
+                      去查證
                     </Link>
                   )}
                 </div>
@@ -134,11 +130,11 @@ export function ChapterBanner() {
           )}
 
           {/* 倍率資訊列 */}
-          <div className="mt-3.5 flex items-center justify-between rounded-xl border border-slate-800/80 bg-slate-950/60 px-3 py-2 text-xs">
-            <span className="flex items-center gap-1.5 text-slate-400 font-medium">
-              <span>⚡</span> 當前全域收益加成
+          <div className="mt-3.5 flex items-center justify-between rounded-xl border border-white/10 bg-white/5 px-3 py-2 text-xs">
+            <span className="text-slate-400 font-medium">
+              當前全域收益加成
             </span>
-            <span className="font-mono font-black text-amber-400 text-sm">
+            <span className="font-mono font-bold text-white text-sm">
               +{multiplierPercent}% <span className="text-[10px] text-slate-500">(x{status.income_multiplier.toFixed(2)})</span>
             </span>
           </div>
