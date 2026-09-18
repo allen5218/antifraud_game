@@ -34,16 +34,32 @@ const MOCK_ASSETS = {
 }
 
 const MOCK_PROPERTIES = {
+  tiers: [
+    { id: 1, name: "雅房", price: 1000, daily_income: 5, unlock_level: 1, icon: "🚪" },
+    { id: 2, name: "獨立套房", price: 5000, daily_income: 35, unlock_level: 1, icon: "🛋️" },
+    { id: 3, name: "兩房公寓", price: 25000, daily_income: 250, unlock_level: 2, icon: "🏢" },
+    { id: 4, name: "三房電梯大廈", price: 100000, daily_income: 1200, unlock_level: 3, icon: "🏙️" },
+    { id: 5, name: "獨棟別墅", price: 300000, daily_income: 4200, unlock_level: 5, icon: "🏡" },
+    { id: 6, name: "頂級豪宅", price: 1000000, daily_income: 15000, unlock_level: 10, icon: "🏰" },
+  ],
   available_tiers: [
-    { id: 1, name: "雅房", cost: 1000, daily_income: 5, level_required: 1, icon: "🚪" },
-    { id: 2, name: "獨立套房", cost: 5000, daily_income: 35, level_required: 1, icon: "🛋️" },
-    { id: 3, name: "兩房公寓", cost: 25000, daily_income: 250, level_required: 2, icon: "🏢" },
-    { id: 4, name: "三房電梯大廈", cost: 100000, daily_income: 1200, level_required: 3, icon: "🏙️" },
-    { id: 5, name: "獨棟別墅", cost: 300000, daily_income: 4200, level_required: 5, icon: "🏡" },
-    { id: 6, name: "頂級豪宅", cost: 1000000, daily_income: 15000, level_required: 10, icon: "🏰" },
+    { id: 1, name: "雅房", price: 1000, daily_income: 5, unlock_level: 1, icon: "🚪" },
+    { id: 2, name: "獨立套房", price: 5000, daily_income: 35, unlock_level: 1, icon: "🛋️" },
+    { id: 3, name: "兩房公寓", price: 25000, daily_income: 250, unlock_level: 2, icon: "🏢" },
+    { id: 4, name: "三房電梯大廈", price: 100000, daily_income: 1200, unlock_level: 3, icon: "🏙️" },
+    { id: 5, name: "獨棟別墅", price: 300000, daily_income: 4200, unlock_level: 5, icon: "🏡" },
+    { id: 6, name: "頂級豪宅", price: 1000000, daily_income: 15000, unlock_level: 10, icon: "🏰" },
   ],
   owned: [
-    { id: "prop_1", tier_id: 3, name: "兩房公寓", purchase_price: 25000, daily_income: 250, purchased_at: "2026-09-18" },
+    {
+      id: "prop_1",
+      tier_id: 3,
+      name: "兩房公寓",
+      purchase_price: 25000,
+      daily_income: 250,
+      purchased_at: "2026-09-18",
+      tier: { id: 3, name: "兩房公寓", price: 25000, daily_income: 250, unlock_level: 2, icon: "🏢" },
+    },
   ],
 }
 

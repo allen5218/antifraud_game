@@ -19,7 +19,8 @@ export function ForcedSellModal() {
       owned
         .filter((p: any) => selected.has(p.id))
         .reduce(
-          (sum: number, p: any) => sum + Math.floor(p.tier.price * LIQUIDATION_RATIO),
+          (sum: number, p: any) =>
+            sum + Math.floor((p.tier?.price ?? p.purchase_price ?? 0) * LIQUIDATION_RATIO),
           0,
         ),
     [owned, selected],
@@ -28,7 +29,8 @@ export function ForcedSellModal() {
   const maxRecoverable = useMemo(
     () =>
       owned.reduce(
-        (sum: number, p: any) => sum + Math.floor(p.tier.price * LIQUIDATION_RATIO),
+        (sum: number, p: any) =>
+          sum + Math.floor((p.tier?.price ?? p.purchase_price ?? 0) * LIQUIDATION_RATIO),
         0,
       ),
     [owned],
@@ -100,7 +102,9 @@ export function ForcedSellModal() {
         )}
         <div className="flex flex-col gap-1.5">
           {owned.map((p: any) => {
-            const sellPrice = Math.floor(p.tier.price * LIQUIDATION_RATIO)
+            const price = p.tier?.price ?? p.purchase_price ?? 0
+            const name = p.tier?.name ?? p.name ?? "房產"
+            const sellPrice = Math.floor(price * LIQUIDATION_RATIO)
             const isSel = selected.has(p.id)
             return (
               <label
@@ -120,10 +124,10 @@ export function ForcedSellModal() {
                   🏠
                 </span>
                 <div className="flex-1">
-                  <div className="text-xs font-bold">{p.tier.name}</div>
+                  <div className="text-xs font-bold">{name}</div>
                   <div className="text-[10px]">
                     <s className="text-muted-foreground">
-                      原價 ${p.tier.price.toLocaleString()}
+                      原價 ${price.toLocaleString()}
                     </s>
                     {" · "}
                     <span className="font-bold text-red-700">
