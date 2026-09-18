@@ -44,7 +44,7 @@ export const Route = createFileRoute("/login")({
   head: () => ({
     meta: [
       {
-        title: "Log In - FastAPI Template",
+        title: "登入 - 反詐大師",
       },
     ],
   }),
@@ -75,7 +75,7 @@ function Login() {
           className="flex flex-col gap-6"
         >
           <div className="flex flex-col items-center gap-2 text-center">
-            <h1 className="text-2xl font-bold">Login to your account</h1>
+            <h1 className="text-2xl font-bold">登入反詐大師</h1>
           </div>
 
           <div className="grid gap-4">
@@ -109,7 +109,7 @@ function Login() {
                       to="/recover-password"
                       className="ml-auto text-sm underline-offset-4 hover:underline"
                     >
-                      Forgot your password?
+                      忘記密碼?
                     </RouterLink>
                   </div>
                   <FormControl>
@@ -125,7 +125,7 @@ function Login() {
             />
 
             <LoadingButton type="submit" loading={loginMutation.isPending}>
-              Log In
+              登入
             </LoadingButton>
 
             <button
@@ -134,16 +134,16 @@ function Login() {
                 localStorage.setItem("access_token", "demo_token_123")
                 window.location.href = "/"
               }}
-              className="w-full py-2.5 px-4 bg-emerald-600 hover:bg-emerald-500 text-white font-bold rounded-lg shadow-md transition-all flex items-center justify-center gap-2"
+              className="w-full py-2.5 px-4 bg-slate-800 hover:bg-slate-700 text-white font-semibold rounded-lg border border-slate-700 transition-all flex items-center justify-center gap-2 text-sm"
             >
-              🚀 免登入本機體驗模式 (Guest Demo Mode)
+              免登入體驗模式 (Guest Demo)
             </button>
           </div>
 
           <div className="text-center text-sm">
-            Don't have an account yet?{" "}
+            還沒有帳號?{" "}
             <RouterLink to="/signup" className="underline underline-offset-4">
-              Sign up
+              註冊
             </RouterLink>
           </div>
         </form>

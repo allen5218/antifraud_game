@@ -1,0 +1,47 @@
+<svg viewBox="0 0 540 180" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <filter id="logo-glow" x="-20%" y="-20%" width="140%" height="140%">
+      <feGaussianBlur stdDeviation="2.5" result="blur" />
+      <feMerge>
+        <feMergeNode in="blur" />
+        <feMergeNode in="SourceGraphic" />
+      </feMerge>
+    </filter>
+  </defs>
+
+  <!-- Icon Section -->
+  <g transform="translate(10, 5) scale(0.65)" filter="url(#logo-glow)" stroke="#ffffff" stroke-linecap="round" stroke-linejoin="round">
+    <!-- Magnifying Glass Pupil (Center at 200, 125) -->
+    <circle cx="200" cy="125" r="44" stroke-width="3.5" />
+    <circle cx="200" cy="125" r="38" stroke-width="1.5" stroke-dasharray="3 4" opacity="0.75" />
+    <circle cx="200" cy="125" r="18" fill="#ffffff" fill-opacity="0.15" stroke-width="2.5" />
+    <circle cx="192" cy="117" r="4.5" fill="#ffffff" stroke="none" />
+    <ellipse cx="212" cy="135" rx="2" ry="3" fill="#ffffff" fill-opacity="0.6" stroke="none" transform="rotate(-30 212 135)" />
+
+    <!-- Magnifying Glass Handle -->
+    <path d="M232 156 L268 196" stroke-width="4.5" />
+    <path d="M268 196 C276 205 288 202 291 193 C294 184 285 178 277 181 C272 183 268 189 270 193" stroke-width="2.2" />
+
+    <!-- Upper Eyelid -->
+    <path d="M55 135 C95 72 145 46 200 46 C255 46 305 72 345 135" stroke-width="3.5" />
+    <path d="M80 130 C115 82 155 62 200 62 C245 62 285 82 320 130" stroke-width="1.8" opacity="0.8" />
+    <path d="M115 105 C118 82 135 68 152 74 C144 82 140 92 138 98" stroke-width="2.2" />
+    <path d="M160 74 C172 50 192 42 208 50 C198 58 192 68 190 74" stroke-width="2.2" />
+    <path d="M210 50 C226 42 246 50 258 74 C248 76 240 86 238 94" stroke-width="2.2" />
+    <path d="M262 78 C278 86 288 98 292 112 C285 108 276 104 268 104" stroke-width="2.2" />
+    <path d="M55 135 C42 142 34 132 38 120 C43 108 58 110 60 122 C61 128 56 132 50 130" stroke-width="2.2" />
+    <path d="M345 135 C358 142 368 132 364 118 C359 104 344 106 340 118 C338 124 342 130 348 128" stroke-width="2.2" />
+
+    <!-- Lower Eyelid -->
+    <path d="M60 142 C100 198 150 216 200 216 C250 216 300 198 340 142" stroke-width="3.2" />
+    <path d="M85 145 C120 190 158 202 200 202 C242 202 280 190 315 145" stroke-width="1.8" opacity="0.8" />
+    <path d="M112 170 C118 192 134 204 152 198 C144 190 138 180 136 174" stroke-width="2.2" />
+    <path d="M158 200 C170 220 190 226 206 218 C198 210 194 200 192 194" stroke-width="2.2" />
+    <path d="M214 218 C226 224 238 218 246 204 C240 200 234 195 230 188" stroke-width="2.2" />
+    <path d="M272 174 C284 186 298 182 306 164 C298 168 288 167 282 162" stroke-width="2.2" />
+  </g>
+
+  <!-- Brand Typography -->
+  <text x="270" y="96" font-family="'Plus Jakarta Sans', 'Noto Sans TC', sans-serif" font-weight="800" font-size="44" fill="#ffffff" letter-spacing="6">反詐大師</text>
+  <text x="272" y="126" font-family="'Plus Jakarta Sans', 'Noto Sans TC', sans-serif" font-weight="500" font-size="14" fill="#94a3b8" letter-spacing="4">洞見詐術 · 守護資產</text>
+</svg>
