@@ -106,13 +106,34 @@ COFACTS_REPLIES_LICENSE = {
     "verbatim_in_seed": False,
 }
 
+FRAUDBUSTER_CATEGORY_TAXONOMY = {
+    "金融投資": "investment_fraud",
+    "產品服務": "general_purchase_fraud",
+    "愛情交友": "romance_fraud",
+    "工作求職": None,
+    "其他詐騙": None,
+}
+
+FRAUDBUSTER_STATUS_PATTERNS = [
+    r"經內政部確認[，,]\s*非詐騙訊息",
+    r"本訊息缺乏足夠資訊辨識詐騙與否",
+    r"高風險訊息[，,]\s*請謹慎評估",
+    r"疑似詐騙訊息",
+    r"詐騙訊息[，,]\s*已通知[^\n]*?移除",
+    r"網頁已消失",
+]
+
 
 def text_has_any_keyword(text, keywords):
     lowered = text.lower()
     return any(keyword and keyword.lower() in lowered for keyword in keywords)
 
 
-def infer_taxonomy(source, endpoint, text):
+def infer_taxonomy(source, endpoint, text, record=None):
+    if isinstance(record, dict) and record.get("_taxonomy_locked"):
+        taxonomy_code = record.get("_taxonomy_code")
+        confidence = 0.95 if taxonomy_code in TAXONOMY_CODES else 0
+        return taxonomy_code, "source_taxonomy", confidence
     if endpoint.get("taxonomy_code") in TAXONOMY_CODES:
         if endpoint.get("require_taxonomy_keyword_match") or source.get(
             "require_taxonomy_keyword_match"
@@ -164,7 +185,9 @@ def should_drop_unclassified(source, endpoint, classification_method, confidence
 def allows_empty_taxonomy(
     source, case_stance, content_kind, classification_method, confidence
 ):
-    unclassified = classification_method == "manual" and confidence == 0
+    unclassified = (
+        classification_method in {"manual", "source_taxonomy"} and confidence == 0
+    )
     return unclassified and (
         (
             source.get("allow_unclassified_advisory")
@@ -173,7 +196,7 @@ def allows_empty_taxonomy(
         )
         or (
             source.get("allow_unclassified_message_sample")
-            and case_stance == "scam"
+            and case_stance in {"scam", "legit"}
             and content_kind == "message_sample"
         )
     )
@@ -643,6 +666,79 @@ def extract_fraudbuster_detail_links(body, base_url):
     return list(dict.fromkeys(urljoin(base_url, html.unescape(link)) for link in links))
 
 
+def extract_fraudbuster_list_items(body, base_url):
+    items = []
+    anchor_pattern = re.compile(
+        r"<a\b(?P<attrs>[^>]*)>(?P<body>.*?)</a>", flags=re.I | re.S
+    )
+    for match in anchor_pattern.finditer(body):
+        href_match = re.search(
+            r'href=["\']([^"\']*/accessibility/detail\?[^"\']+)["\']',
+            match.group("attrs"),
+            flags=re.I,
+        )
+        if not href_match:
+            continue
+        item_body = match.group("body")
+        image_alts = [
+            clean_text(html.unescape(value))
+            for value in re.findall(
+                r'<img\b[^>]*\balt=["\']([^"\']*)["\']', item_body, re.I
+            )
+        ]
+        category = next(
+            (alt for alt in image_alts if alt in FRAUDBUSTER_CATEGORY_TAXONOMY),
+            None,
+        )
+        item_text = strip_html(item_body)
+        status = None
+        for pattern in FRAUDBUSTER_STATUS_PATTERNS:
+            status_match = re.search(pattern, item_text, flags=re.I)
+            if status_match:
+                status = clean_text(status_match.group(0))
+                break
+        items.append(
+            {
+                "detail_url": urljoin(base_url, html.unescape(href_match.group(1))),
+                "source_category_alt": category,
+                "source_case_status": status,
+            }
+        )
+    return items
+
+
+def fraudbuster_status_outcome(status):
+    if not status:
+        return {}
+    if re.fullmatch(r"詐騙訊息[，,]\s*已通知.*移除", status):
+        return {"case_stance": "scam"}
+    if "疑似詐騙訊息" in status or "高風險訊息" in status:
+        return {"case_stance": "scam", "review_required": True}
+    if re.fullmatch(r"經內政部確認[，,]\s*非詐騙訊息", status):
+        return {"case_stance": "legit", "review_required": True}
+    if "缺乏足夠資訊辨識詐騙與否" in status:
+        return {"drop_reason": "insufficient_evidence"}
+    if status == "網頁已消失":
+        return {"drop_reason": "page_gone"}
+    return {}
+
+
+def is_fraudbuster_meta_description(text):
+    return bool(
+        re.fullmatch(
+            r"\d[\d,]*\s+Followers\s*[•·]\s*\d[\d,]*\s+Threads?\.?\s*"
+            r"See the latest conversations with\s+@\S+?\.?",
+            clean_text(text),
+            flags=re.I,
+        )
+    )
+
+
+def is_configured_message_placeholder(text, patterns):
+    cleaned = clean_text(text)
+    return any(re.fullmatch(pattern, cleaned, flags=re.I) for pattern in patterns)
+
+
 def extract_judicial_detail_links(body, base_url):
     links = re.findall(
         r'href=["\']([^"\']*(?:/LAW_Mobile_FJUD/FJUD/)?data\.aspx\?[^"\']+)["\']',
@@ -696,7 +792,54 @@ def parse_html_records(body, source, endpoint, max_records=None):
     )
     if source_name == "fraudbuster_digiat_accessibility":
         records = []
-        for detail_url in extract_fraudbuster_detail_links(body, url)[:max_details]:
+        list_items = extract_fraudbuster_list_items(body, url)
+        if not list_items:
+            list_items = [
+                {
+                    "detail_url": detail_url,
+                    "source_category_alt": None,
+                    "source_case_status": None,
+                }
+                for detail_url in extract_fraudbuster_detail_links(body, url)
+            ]
+        for item in list_items[:max_details]:
+            detail_url = item["detail_url"]
+            category = item.get("source_category_alt")
+            status = item.get("source_case_status")
+            status_outcome = fraudbuster_status_outcome(status)
+            metadata = {}
+            if category:
+                metadata["source_category_alt"] = category
+            if status:
+                metadata["source_case_status"] = status
+            if status_outcome.get("review_required"):
+                metadata["review_required"] = True
+            common_fields = {
+                "detail_url": detail_url,
+                "_metadata": metadata,
+                **(
+                    {
+                        "_taxonomy_locked": True,
+                        "_taxonomy_code": FRAUDBUSTER_CATEGORY_TAXONOMY[category],
+                        "_source_category_label": category,
+                    }
+                    if category in FRAUDBUSTER_CATEGORY_TAXONOMY
+                    else {}
+                ),
+                **(
+                    {"_case_stance": status_outcome["case_stance"]}
+                    if status_outcome.get("case_stance")
+                    else {}
+                ),
+            }
+            if status_outcome.get("drop_reason"):
+                records.append(
+                    {
+                        **common_fields,
+                        "_drop_reason": status_outcome["drop_reason"],
+                    }
+                )
+                continue
             detail = fetch_url(
                 detail_url,
                 timeout=endpoint.get(
@@ -718,12 +861,26 @@ def parse_html_records(body, source, endpoint, max_records=None):
                 if end_match:
                     text = clean_text(text[: end_match.start()])
                     break
+            min_message_chars = int(source.get("min_message_chars", 0))
+            drop_reason = (
+                "no_message_body"
+                if (
+                    not text
+                    or len(text) < min_message_chars
+                    or is_fraudbuster_meta_description(text)
+                    or is_configured_message_placeholder(
+                        text, source.get("message_placeholder_patterns", [])
+                    )
+                )
+                else None
+            )
             records.append(
                 {
-                    "detail_url": detail_url,
+                    **common_fields,
                     "html_text": text,
                     "http_status": detail.get("status"),
                     "content_type": detail.get("content_type", ""),
+                    **({"_drop_reason": drop_reason} if drop_reason else {}),
                 }
             )
         return records
@@ -1353,6 +1510,9 @@ for endpoint in source.get("endpoints", []):
         records = records[: int(max_records)]
     for index, record in enumerate(records):
         record = prepare_record(source, endpoint, record)
+        if isinstance(record, dict) and record.get("_drop_reason"):
+            fetch_stats["filter_drop_counts"][record["_drop_reason"]] += 1
+            continue
         is_cofacts = source.get("source_name") in {
             "tw_cofacts_scam_messages",
             "tw_cofacts_legit_lookalikes",
@@ -1400,7 +1560,7 @@ for endpoint in source.get("endpoints", []):
             )
         )
         taxonomy_code, classification_method, confidence = infer_taxonomy(
-            source, endpoint, text
+            source, endpoint, text, record=record
         )
         if not is_diagnostic and should_drop_unclassified(
             source, endpoint, classification_method, confidence
@@ -1447,7 +1607,12 @@ for endpoint in source.get("endpoints", []):
             "clean_text": clean_record_text,
             "raw_payload": raw_payload,
             "taxonomy_code": taxonomy_code,
-            "source_category_label": endpoint.get("source_category_label")
+            "source_category_label": (
+                record.get("_source_category_label")
+                if isinstance(record, dict)
+                else None
+            )
+            or endpoint.get("source_category_label")
             or CATEGORY_LABELS.get(taxonomy_code),
             "matched_keywords": matched_keywords,
             "classification_confidence": confidence,

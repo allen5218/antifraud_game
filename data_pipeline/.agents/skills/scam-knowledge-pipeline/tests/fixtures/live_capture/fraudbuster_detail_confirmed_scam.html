@@ -1,0 +1,875 @@
+<!DOCTYPE html>
+<html lang="zh-Hant" class="no-js">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <!-- <meta name="description" content="" /> -->
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="網詐通報查詢網為數位發展部打造的防詐平台，提供民眾即時查詢與通報可疑詐騙資訊，共同守護數位安全">
+    <meta property="og:title" content="數發部網路詐騙通報查詢網" />
+    <meta property="og:description" content="網詐通報查詢網為數位發展部打造的防詐平台，提供民眾即時查詢與通報可疑詐騙資訊，共同守護數位安全" />
+    <meta property="og:url" content="https://fraudbuster.digiat.org.tw/accessibility/" />
+    <meta property="og:site_name" content="網路詐騙通報查詢網" />
+
+    <title>網路詐騙通報查詢網 - 查詢結果</title>
+    <link href="/accessibility/resources/images/favicon.ico" rel="icon" type="image/x-icon">
+    <link href="/accessibility/resources/css/style.css" rel="stylesheet" media="screen"/>
+    <link href="/accessibility/resources/css/color.css" rel="stylesheet" media="screen"/>
+
+    <script type="text/javascript" nonce="ywNQJAjWbNk7ivpLmmLxASCm">
+	  window.fbAsyncInit = function() {
+	    FB.init({
+	      appId            : 'antifraud',
+	      status     	   : true,
+	      xfbml            : true,
+	      version          : 'v20.0'
+	    });
+	  };
+	</script>
+	<script type="text/javascript" async defer crossorigin="anonymous" src="https://connect.facebook.net/en_US/sdk.js" nonce="ywNQJAjWbNk7ivpLmmLxASCm"></script>
+	<script async src="https://www.googletagmanager.com/gtag/js?id=G-QPMWTEGRE1" nonce="ywNQJAjWbNk7ivpLmmLxASCm"></script>
+    <!-- <script type="text/javascript" th:src="@{/webjars/jquery/3.6.4/jquery.min.js}" th:nonce="${nonce}"></script>  -->
+    <script type="text/javascript" src="/accessibility/resources/js/jquery-3.7.1.min.js" nonce="ywNQJAjWbNk7ivpLmmLxASCm"></script>
+    <script type="text/javascript" src="/accessibility/resources/js/customize.js" nonce="ywNQJAjWbNk7ivpLmmLxASCm"></script>
+    <script type="text/javascript" src="/accessibility/resources/js/infiniteScroll.js" nonce="ywNQJAjWbNk7ivpLmmLxASCm"></script>
+    <script type="text/javascript" src="/accessibility/resources/js/validation/jquery.validate.min.js" nonce="ywNQJAjWbNk7ivpLmmLxASCm"></script>
+    <script type="text/javascript" src="/accessibility/resources/js/validation/additional-methods.min.js" nonce="ywNQJAjWbNk7ivpLmmLxASCm"></script>
+    <script type="text/javascript" src="/accessibility/resources/js/validation/messages_zh_TW.min.js" nonce="ywNQJAjWbNk7ivpLmmLxASCm"></script>
+    <script type="text/javascript" src="/accessibility/resources/js/validation/validate.js" nonce="ywNQJAjWbNk7ivpLmmLxASCm"></script>
+    <script type="text/javascript" src="/accessibility/resources/vendor/jquery.easing.min.js" nonce="ywNQJAjWbNk7ivpLmmLxASCm"></script>
+    <script type="text/javascript" src="/accessibility/resources/vendor/lazyload/lazyload.js" nonce="ywNQJAjWbNk7ivpLmmLxASCm"></script>
+    <!-- 鍵盤控制 -->
+    <script type="text/javascript" nonce="ywNQJAjWbNk7ivpLmmLxASCm">
+      /* ========== 彈窗 accessibility 全域工具 ========== */
+
+      // 記錄每個彈窗開啟前的焦點元素（關閉時還原）
+      var popupPrevFocus = {};
+
+      // Tab 焦點陷阱：讓 Tab / Shift+Tab 在彈窗內循環
+      function trapFocus($popup) {
+        var selector = 'a[href], button:not([disabled]), input:not([disabled]),'
+                     + ' select:not([disabled]), textarea:not([disabled]),'
+                     + ' [tabindex]:not([tabindex="-1"])';
+        var $focusable = $popup.find(selector).filter(':visible');
+        if ($focusable.length === 0) return;
+
+        var first = $focusable.first()[0];
+        var last  = $focusable.last()[0];
+
+        $popup.off('keydown.trap').on('keydown.trap', function (e) {
+          if (e.key !== 'Tab') return;
+          if (e.shiftKey && document.activeElement === first) {
+            last.focus();
+            e.preventDefault();
+          } else if (!e.shiftKey && document.activeElement === last) {
+            first.focus();
+            e.preventDefault();
+          }
+        });
+      }
+
+      // 開啟彈窗：加 active、鎖捲動、設 aria、啟動焦點陷阱
+      function openPopup(popupId, firstFocusSelector) {
+        var $popup = $('#' + popupId);
+        if ($popup.length === 0 || $popup.hasClass('active')) return;
+
+        popupPrevFocus[popupId] = document.activeElement;
+
+        $('body').addClass('modal-open');
+        $('.wrapper').attr('aria-hidden', 'true').attr('inert', '');
+
+        $popup.addClass('active').attr('aria-hidden', 'false');
+
+        if (firstFocusSelector && $(firstFocusSelector).length) {
+          $(firstFocusSelector).focus();
+        } else {
+          $popup.find('button, a[href], input, select, textarea, [tabindex]:not([tabindex="-1"])')
+              .filter(':visible').first().focus();
+        }
+
+        trapFocus($popup);
+      }
+
+      // 關閉彈窗：移除 active、解鎖捲動、還原焦點
+      function closePopup(popupId, fallbackFocusSelector) {
+        var $popup = $('#' + popupId);
+        if ($popup.length === 0 || !$popup.hasClass('active')) return;
+
+        $popup.removeClass('active').attr('aria-hidden', 'true').off('keydown.trap');
+
+        // 如果沒有其它彈窗還開著，才解除背景鎖
+        if ($('.popup.active').length === 0) {
+          $('body').removeClass('modal-open');
+          $('.wrapper').removeAttr('aria-hidden').removeAttr('inert');
+        }
+
+        // 還原焦點
+        var prev = popupPrevFocus[popupId];
+        if (prev && $(prev).is(':visible')) {
+          prev.focus();
+        } else if (fallbackFocusSelector && $(fallbackFocusSelector).length) {
+          $(fallbackFocusSelector).focus();
+        }
+        popupPrevFocus[popupId] = null;
+      }
+
+      // MutationObserver：自動同步 aria-hidden / scroll-lock / focus trap
+      // 讓其它頁面（cards.html、circular.html）仍可沿用 .addClass('active') 寫法
+      function observePopups() {
+        var observer = new MutationObserver(function (mutations) {
+          mutations.forEach(function (m) {
+            if (m.attributeName !== 'class') return;
+            var el = m.target;
+            var $el = $(el);
+            var isActive = $el.hasClass('active');
+            var wasActive = (m.oldValue || '').indexOf('active') !== -1;
+
+            if (isActive && !wasActive) {
+              // 被打開
+              popupPrevFocus[el.id] = popupPrevFocus[el.id] || document.activeElement;
+              $('body').addClass('modal-open');
+              $('.wrapper').attr('aria-hidden', 'true').attr('inert', '');
+              $el.attr('aria-hidden', 'false');
+           	  // 防呆：若呼叫端忘了 focus，這裡補上
+              if (!$.contains(el, document.activeElement)) {
+                $el.find('button, a[href], input, select, textarea, [tabindex]:not([tabindex="-1"])').filter(':visible').first().focus();
+              }
+              trapFocus($el);
+            } else if (!isActive && wasActive) {
+              // 被關閉
+              $el.attr('aria-hidden', 'true').off('keydown.trap');
+              if ($('.popup.active').length === 0) {
+                $('body').removeClass('modal-open');
+                $('.wrapper').removeAttr('aria-hidden').removeAttr('inert');
+              }
+              var prev = popupPrevFocus[el.id];
+              if (prev && $(prev).is(':visible')) {
+                setTimeout(function(){ prev.focus(); }, 0);
+              }
+
+              if (el.id === 'filterDiv') {
+                $('#filterDivBtn1, #filterDivBtn2').attr('aria-expanded', 'false');
+              }
+              if (el.id === 'privateDiv') {
+                $('#privacyLink').attr('aria-expanded', 'false');
+              }
+
+              popupPrevFocus[el.id] = null;
+            }
+          });
+        });
+        $('.popup').each(function () {
+          observer.observe(this, { attributes: true, attributeOldValue: true, attributeFilter: ['class'] });
+          // 初始化 aria-hidden
+          $(this).attr('aria-hidden', $(this).hasClass('active') ? 'false' : 'true');
+        });
+      }
+
+      // 點擊遮罩關閉彈窗（1.4.13 Dismissable）
+      $(document).on('click', '.popup', function (e) {
+        if (e.target !== this) return;            // 只在點到遮罩本身才關
+        var fallback = null;
+        if (this.id === 'alertDiv') {             // 蓋版廣告關閉時要標記已看
+          var alertKey = 'alertSeenTime';
+          var today = new Date().toISOString().slice(0, 10);
+          localStorage.setItem(alertKey, today);
+          fallback = '#ac';
+        }
+        if (this.id === 'filterDiv') {
+          $("#filterDivBtn1, #filterDivBtn2").attr("aria-expanded", "false");
+          fallback = $("#filterDivBtn1").is(":visible") ? "#filterDivBtn1" : ($("#filterDivBtn2").is(":visible") ? "#filterDivBtn2" : null);
+        }
+        if (this.id === 'privateDiv') {
+          $("#privacyLink").attr("aria-expanded", "false");
+          fallback = '#privacyLink';
+        }
+        closePopup(this.id, fallback);
+      });
+
+      $(document).ready(function() {
+
+    	// 啟動彈窗 MutationObserver
+        observePopups();
+
+    	// 檢查瀏覽器
+        var isFirefox = typeof InstallTrigger !== 'undefined';
+        var alertKey = "alertSeenTime";
+        var lastSeenDate = localStorage.getItem(alertKey);
+        var today = new Date().toISOString().slice(0, 10); // yyyy-mm-dd
+
+        $(document).keydown(function(e) {
+          if (isFirefox) {
+            if (e.altKey && e.shiftKey && e.key.toLowerCase() === 'u') {
+        	  $("#aU")[0].click();
+        	} else if (e.altKey && e.shiftKey && e.key.toLowerCase() === 'c') {
+        	  $("#ac")[0].click();
+        	} else if (e.altKey && e.shiftKey && e.key.toLowerCase() === 'z') {
+        	  $("#aZ")[0].click();
+        	//} else if (e.altKey && e.shiftKey && e.key.toLowerCase() === 's') {
+        	  //window.location.href = /*"\/accessibility\/sitemap"*/ + "";
+        	}
+          } else {
+       	    if (e.altKey && e.key.toLowerCase() === 'u') {
+           	  $("#aU")[0].click();
+           	} else if (e.altKey && e.key.toLowerCase() === 'c') {
+           	  $("#ac")[0].click();
+           	} else if (e.altKey && e.key.toLowerCase() === 'z') {
+           	  $("#aZ")[0].click();
+           	//} else if (e.altKey && e.key.toLowerCase() === 's') {
+           	  //window.location.href = /*"\/accessibility\/sitemap"*/ + "";
+           	}
+          }
+
+          // Esc 關閉彈窗（1.4.13 Dismissable）
+          if (e.key === "Escape") {
+            if ($("#filterDiv").hasClass("active")) {
+           	  $("#filterDivBtn1, #filterDivBtn2").attr("aria-expanded", "false");
+           	  var filterFallback = $("#filterDivBtn1").is(":visible") ? "#filterDivBtn1" : ($("#filterDivBtn2").is(":visible") ? "#filterDivBtn2" : null);
+			  closePopup("filterDiv", filterFallback);
+            }
+            if ($("#privateDiv").hasClass("active")) {
+              $("#privacyLink").attr("aria-expanded", "false");
+              closePopup("privateDiv", "#privacyLink");
+            }
+            if ($("#alertDiv").hasClass("active")) {
+              localStorage.setItem(alertKey, today);
+              closePopup("alertDiv", "#ac");
+            }
+            if ($("#notifyDialogDiv").hasClass("active")) {
+              closePopup("notifyDialogDiv");
+            }
+            if ($("#alreadyNotifyDialogDiv").hasClass("active")) {
+              closePopup("alreadyNotifyDialogDiv");
+            }
+          }
+        });
+
+        $(".goCenter").keydown(function(e) {
+          if (e.keyCode === 13) {
+        	$("#ac")[0].click();
+            //$('#aC').focus();
+            $('html, body')
+                .stop(true, true)
+                .animate({ scrollTop: $('.main').find('.accesskey').offset().top - 123 }, 800, 'easeOutExpo');
+          }
+        });
+
+        // 蓋板廣告
+        if (lastSeenDate !== today) {
+          let url = "\/accessibility\/ad\/popup\/detail";
+
+          $.ajax({
+            url: url,
+            type: "GET",
+            success: function(data) {
+              // console.log(data);
+              if (data && data != null) {
+            	$("._alertNews #alertImg").attr("src", data.image).attr("alt", data.title);
+                $("._alertNews #alertTitle").text(data.title);
+                $("._alertNews #alertContentDiv").html(data.content);
+                openPopup("alertDiv", "#alertTitle");
+              } else {
+                console.log("沒有資料，無法取得蓋版訊息");
+              }
+            },
+            error: function() {
+              console.log("Error: 無法取得蓋版訊息");
+            }
+          });
+        }
+
+        $("#alertBtn").click(function(e) {
+          localStorage.setItem(alertKey, today);
+          closePopup("alertDiv", "#ac");
+	  	});
+
+    	// 檢查所有複選組
+	    $('.filterGroup.checkObject').each(function () {
+	    	var $group = $(this);
+	    	var $btns = $group.find('.filterBtn');
+	    	var $btnAll = $btns.first(); // 第一個是『全部』
+	    	var $btnItems = $btns.not($btnAll);
+
+	        // 點擊『全部』
+	        $btnAll.on('click', function (e) {
+	            // 全部啟用
+	            $btnAll.addClass('is-active').attr('aria-pressed', 'true');
+	            // 其他取消
+	            $btnItems.removeClass('is-active').attr('aria-pressed', 'false');
+	        });
+
+	        // 點擊其他項目
+	        $btnItems.on('click', function (e) {
+	            let isActive = $(this).hasClass('is-active');
+
+	            // 切換自身
+	            $(this).toggleClass('is-active', !isActive);
+	            $(this).attr('aria-pressed', !isActive);
+
+	            // 如果有任一項被選中 -> 取消『全部』
+	            let hasActive = $btnItems.filter('.is-active').length > 0;
+	            if (hasActive) {
+	            	$btnAll.removeClass('is-active').attr('aria-pressed', 'false');
+	            } else {
+	            	// 沒選任何項 -> 回到『全部』
+	                $btnAll.addClass('is-active').attr('aria-pressed', 'true');
+	            }
+	        });
+	    });
+      });
+    </script>
+  </head>
+  <body>
+    <!-- popup 4 - 隱私權保護政策 -->
+    <div class="popup _cp" id="privateDiv" role="dialog" aria-modal="true" aria-labelledby="privateTitle" aria-hidden="true" tabindex="-1">
+      <section aria-labelledby="privateTitle" class="filterSection">
+        <h2 id="privateTitle" tabindex="-1">《隱私權保護政策》</h2>
+        <!-- 捲軸 -->
+        <div class="scrollZone" tabindex="0" role="region" aria-label="隱私權保護政策內容">
+          <div class="article _private">
+            <!DOCTYPE html>
+<html>
+
+    <h3>使用者條款</h3>
+    <h4>第1條　前言與適用範圍</h4>
+    <div>
+      <p>
+        歡迎使用本防詐騙通報系統（以下簡稱「本系統」）。請於使用前詳細閱讀本使用者條款（以下簡稱「本條款」）。當您註冊、登入或以其他方式使用本系統時，即表示您已閱讀、了解並同意遵守本條款及本系統公告之相關規定。若您不同意本條款，請立即停止使用本系統。
+      </p>
+    </div>
+    <h4>第2條　服務內容</h4>
+    <div>
+      <p>
+        本系統提供使用者檢舉、通報可疑詐騙案件、查詢通報進度、及相關防詐資訊之平台功能。平台可依情況提供案件處理與轉介（例如通報執法機關或合作單位）。
+      </p>
+    </div>
+    <h4>第3條　使用資格</h4>
+    <div>
+      <ol>
+        <li>本系統開放年滿十八歲之自然人或具備法人資格之代表使用。若您為未成年人，請於法定代理人同意之下使用。</li>
+        <li>使用者應保證所提供之資訊真實、正確，且同意平台為處理通報以蒐集、處理及利用相關資訊。</li>
+      </ol>
+    </div>
+    <h4>第4條　帳號與安全</h4>
+    <div>
+      <ol>
+        <li>使用者需自行負責帳號與密碼安全。帳號遭他人使用或有資安疑慮，應立即通知平台。</li>
+        <li>使用者不得將帳號借予他人使用；若因使用者管理不當而導致損失，使用者自行承擔責任（法律另有規定者除外）。</li>
+      </ol>
+    </div>
+    <h4>第5條　通報內容與責任</h4>
+    <div>
+      <ol>
+        <li>使用者於通報案件時應盡善良管理人之注意義務，不得提供虛偽、不實或誹謗之資訊。</li>
+        <li>平台有權對通報內容進行篩選、審查、編輯、刪除或拒絕顯示；對於違反法律或本條款之內容，可視情況移送司法或其他主管機關處理。</li>
+        <li>若使用者惡意提供虛假通報或濫用通報機制，平台得依情節採取警告、停權或移送司法等措施，並保留請求損害賠償之權利。</li>
+      </ol>
+    </div>
+    <h4>第6條　禁止行為</h4>
+    <div>
+      <p>使用者不得利用本系統從事下列行為（但不限於）：
+        <ul>
+          <li>提供虛假、誹謗、侵害他人隱私或其他違法資訊；</li>
+          <li>利用本系統進行騷擾、恐嚇、詐欺或其他侵害他人之行為；</li>
+          <li>未經同意蒐集、公開他人個資或通訊紀錄；</li>
+          <li>嘗試入侵、干擾或破壞本系統之服務、伺服器或資料；</li>
+          <li>其他法令禁止或平台規定之違規行為。</li>
+        </ul>
+      </p>
+    </div>
+    <h4>第7條　平台之權利與免責聲明</h4>
+    <div>
+      <ol>
+        <li>平台將以合理努力維持服務之可用性與安全性，但不保證服務完全不中斷、無錯誤或完全保護所有資訊之安全。</li>
+        <li>平台對於因系統故障、網路中斷、不可抗力或第三方行為所致之損害，不負賠償責任（法律另有規定者除外）。</li>
+        <li>平台對於通報事件之事實認定、調查結果或後續行政/司法處理結果不作保證；平台提供之建議或轉介僅為輔助性質。</li>
+      </ol>
+    </div>
+
+</html>
+          </div>
+        </div>
+        <!-- 動作按鈕 -->
+        <div class="btn_grp">
+          <button id="privateAgreeBtn" class="btn btn-back" aria-label="同意隱私權保護政策">同意</button>
+          <button id="privateCancelBtn" class="btn btn-back" aria-label="不同意隱私權保護政策">不同意</button>
+        </div>
+      </section>
+    </div>
+    <!-- 蓋版訊息 -->
+    <div class="popup _alertNews" id="alertDiv" role="dialog" aria-modal="true" aria-labelledby="alertTitle" aria-hidden="true" tabindex="-1">
+      <section aria-labelledby="alertTitle" class="infoSection">
+        <div class="infoImgBox">
+          <img src="" alt="" id="alertImg">
+        </div>
+        <h2 id="alertTitle" tabindex="-1"></h2>
+        <!-- 捲軸 -->
+        <div class="scrollZone" id="alertContentDiv" tabindex="0" role="region" aria-label="蓋版廣告內容"></div>
+        <!-- 關閉視窗 -->
+        <div class="btn_grp">
+          <button class="btn-close" id="alertBtn">我知道了</button>
+        </div>
+      </section>
+    </div>
+  	<!-- popup -->
+    <div class="popup" id="filterDiv" role="dialog" aria-modal="true" aria-labelledby="filterTitle" aria-hidden="true" tabindex="-1">
+      <section aria-labelledby="filterTitle" class="filterSection">
+        <h2 id="filterTitle">篩選案件</h2>
+        <!-- 捲軸 -->
+        <div class="scrollZone">
+          <!-- 時間篩選 -->
+
+          <!-- 詐騙類型 -->
+          <!-- checkObject 複選物件 -->
+          <fieldset class="filterGroup checkObject">
+            <legend>詐騙類型（可複選）</legend>
+            <div role="group" aria-label="詐騙類型" id="fraudTypeDiv">
+              <button type="button" class="filterBtn is-active" aria-pressed="true" aria-label="全選詐騙類型" id="allFraudType" value="all">全部</button>
+              <button type="button" class="filterBtn" aria-pressed="false" aria-label="產品服務" id="PAS" value="PAS">產品服務</button>
+              <button type="button" class="filterBtn" aria-pressed="false" aria-label="身分冒充" id="IMP" value="IMP">身分冒充</button>
+              <button type="button" class="filterBtn" aria-pressed="false" aria-label="金融投資" id="INV" value="INV">金融投資</button>
+              <button type="button" class="filterBtn" aria-pressed="false" aria-label="愛情交友" id="ROM" value="ROM">愛情交友</button>
+              <button type="button" class="filterBtn" aria-pressed="false" aria-label="意外之財" id="UM" value="UM">意外之財</button>
+              <button type="button" class="filterBtn" aria-pressed="false" aria-label="工作求職" id="JAE" value="JAE">工作求職</button>
+              <button type="button" class="filterBtn" aria-pressed="false" aria-label="威脅勒索" id="TAE" value="TAE">威脅勒索</button>
+              <button type="button" class="filterBtn" aria-pressed="false" aria-label="錢騙車手" id="MM" value="MM">錢騾車手</button>
+              <button type="button" class="filterBtn" aria-pressed="false" aria-label="慈善捐款" id="CHA" value="CHA">慈善捐款</button>
+              <button type="button" class="filterBtn" aria-pressed="false" aria-label="其他詐騙" id="OTH" value="OTH">其他詐騙</button>
+           	</div>
+          </fieldset>
+          <!-- 平台 -->
+          <fieldset class="filterGroup checkObject">
+            <legend>平台（可複選）</legend>
+            <div role="group" aria-label="詐騙平台" id="platformsDiv">
+              <button type="button" class="filterBtn is-active" aria-pressed="true" aria-label="全選平台" id="allPlatforms" value="all">全部</button>
+              <button type="button" class="filterBtn" aria-pressed="false" aria-label="FaceBook" id="FB" value="FB">FB</button>
+              <button type="button" class="filterBtn" aria-pressed="false" aria-label="Instagram" id="IG" value="IG">IG</button>
+              <button type="button" class="filterBtn" aria-pressed="false" aria-label="LINE" id="LINE" value="LINE">LINE</button>
+              <button type="button" class="filterBtn" aria-pressed="false" aria-label="YouTube" id="YT" value="YT">YouTube</button>
+              <button type="button" class="filterBtn" aria-pressed="false" aria-label="Tiktok" id="Tiktok" value="Tiktok">Tiktok</button>
+              <button type="button" class="filterBtn" aria-pressed="false" aria-label="Threads" id="Threads" value="Threads">Threads</button>
+              <button type="button" class="filterBtn" aria-pressed="false" aria-label="網頁" id="WEB" value="WEB">網頁</button>
+           	</div>
+          </fieldset>
+          <!-- 動作按鈕 -->
+          <div class="filterActions">
+          	<button id="popupResetBtn" class="btn btn-outline" aria-label="清除篩選條件">清除</button>
+          	<button id="popupSubmitBtn" class="btn btn-primary" aria-label="套用篩選條件">套用</button>
+          </div>
+        </div>
+        <!-- 關閉視窗 -->
+        <button id="popupClosePopBtn" class="btn-close" aria-label="關閉篩選條件視窗">關閉篩選條件視窗</button>
+      </section>
+    </div>
+    <!-- popup -->
+    <div class="popup" role="dialog" id="notifyDialogDiv" aria-labelledby="riskTitle1" aria-describedby="riskDesc1" aria-modal="true" aria-hidden="true" tabindex="-1">
+      <section id="notifySection" class="riskBox" tabindex="-1">
+        <div class="riskLevel" id="notifyLevelDiv">
+          <span class="riskText" id="notifySpan"></span>
+        </div>
+        <h2 id="riskTitle1" class="riskTitle">您已通報成功！</h2>
+        <p id="riskDesc1" class="riskDesc">
+          感謝您的通報！<br>
+          經 AI 初判風險等級為「<span id="notifyRiskInline">中</span>」。<br>
+          本系統會先判定個通報訊息的風險等級，並優先處理高風險案件。中低風險訊息的處理時間可能比較長，請您耐心等候。
+        </p>
+        <div class="riskActions">
+          <button id="notifyContinue1Btn" type="button" class="btn btn-next">繼續通報</button>
+          <button id="notifyFinishBtn" type="button" class="btn btn-esc">結束通報</button>
+        </div>
+      </section>
+    </div>
+    <div class="popup" role="dialog" id="alreadyNotifyDialogDiv" aria-labelledby="riskTitle2" aria-describedby="riskDesc2" aria-modal="true" aria-hidden="true" tabindex="-1">
+      <!-- 已通報 -->
+      <section class="riskBox low" tabindex="-1">
+        <div role="alert" aria-labelledby="riskTitle2" aria-describedby="riskDesc2" aria-atomic="true">
+          <h2 id="riskTitle2" class="riskTitle">您已通報成功！</h2>
+          <p id="riskDesc2" class="riskDesc">
+            該案件已曾被通報，感謝您的通報！系統顯示此案件已曾有回報，我們已將您提供的資料併入。
+          </p>
+        </div>
+        <div class="riskActions">
+          <button id="notifyContinue2Btn" type="button" class="btn btn-next">繼續通報</button>
+          <button id="notifyDetailBtn" type="button" class="btn btn-esc">查看案件詳情</button>
+        </div>
+      </section>
+    </div>
+  	<!-- 直接跳主內容區 -->
+  	<a class="goCenter" href="#aC">按Enter到主要內容區</a>
+  	<!-- wrapper Start -->
+  	<div class="wrapper">
+  	  <!-- header Start -->
+      <!DOCTYPE html>
+<html>
+
+    <header class="header">
+      <script type="text/javascript" nonce="ywNQJAjWbNk7ivpLmmLxASCm">
+	   	  $(document).ready(function(){
+	   		activeCall(".menu a");
+	      });
+
+	   	  function activeCall (selector) {
+	   		$(selector).on('click', function(){
+    		    $(this).addClass('active').siblings().removeClass('active');
+    	 	});
+		  }
+	  </script>
+      <div class="container">
+      	<a class="accesskey" href="#aU" id="aU" accesskey="U" title="上方功能區塊">:::</a>
+      	<nav class="navigation" role="navigation" aria-label="Site">
+      	  <div class="navlist">
+      	    <ul>
+      	      <li><a href="/accessibility/sitemap">網站導覽</a></li>
+      	    </ul>
+      	  </div>
+      	</nav>
+      	<section>
+      	  <h1>
+      	  	<a href="/accessibility/index?listType=H">網路詐騙通報查詢網</a>
+      	  </h1>
+      	  <!-- menu Start -->
+	      <nav class="menu" role="navigation" aria-label="Header的導航列">
+	        <ul>
+	          <li><a href="/accessibility/index?listType=H"><span class="icon _hot"></span>熱門</a></li>
+	          <li><a href="/accessibility/index?listType=N"><span class="icon _new"></span>近期</a></li>
+	          <li><a href="/accessibility/statistics/chart?type=7&amp;legend=A"><span class="icon _chart"></span>統計</a></li>
+
+	          <li>
+	          	<a href="/accessibility/member"><span class="icon _member"></span>我的</a>
+
+	          </li>
+
+	          <li><a href="/accessibility/circular" class="btn-bulletin"><span class="icon _announce"></span>我要通報</a></li>
+	          <li><a href="/accessibility/announce?page=1&amp;pageSize=10" title="佈告欄" aria-label="佈告欄"><span class="icon _notification"></span></a></li>
+	        </ul>
+	      </nav>
+      	</section>
+      	<!-- noscript -->
+      	<noscript>
+          您的瀏覽器不支援JavaScript語法，JavaScript語法並不影響內容的陳述。您可使用按鍵盤上的Ctrl鍵+ (+)鍵放大/(-)鍵縮小來改變字型大小；回到上一頁可使用瀏覽器提供的 Alt+左方向鍵(←) 快速鍵功能；列印可使用瀏覽器提供的(Ctrl+P)功能。您的瀏覽器，不支援script語法，若您的瀏覽器無法支援請點選此超連結
+          <a href="/accessibility/sitemap">網站導覽</a>
+        </noscript>
+      </div>
+    </header>
+
+</html>
+      <!-- main Start -->
+	  <main id="aC" class="main">
+	  	<!-- 任何一個section下一層都要包下一層都要包div container作對齊 -->
+	    <div class="container">
+	      <a class="accesskey" href="#ac" id="ac" accesskey="C" title="主要內容區">:::</a>
+
+    	<script type="text/javascript" nonce="ywNQJAjWbNk7ivpLmmLxASCm">
+    	  $(document).ready(function(){
+    		$("section.socialMedia  a ").on('click', function(){
+    			var pURL = encodeURIComponent($(location).attr("href").replace(/#\w/, ''));
+    			switch($(this).attr("id")){
+	                case 'fb':
+	                  shareOnFB(pURL);
+	                  break;
+	                case 'x':
+	                  pupop('https://twitter.com/share?url='.concat(pURL));
+	                  break;
+	                case 'line':
+	                  pupop("https://social-plugins.line.me/lineit/share?url=".concat(pURL));
+	                  break;
+	            }
+      	 	});
+
+    		$("#copyBtn").click(function(e) {
+  		        e.preventDefault();
+  		      	var pURL = $(location).attr("href");
+  		     	copyToClipboard(pURL);
+  		     	alert("已複製");
+  		     	$("#copyFeedback").text("網址已複製到剪貼簿");
+	  		    // 3 秒後清空避免殘留
+	  		    setTimeout(function() {
+	  		        $("#copyFeedback").text("");
+	  		    }, 3000);
+  		  	});
+
+            $("#imgPic").on("error", function(){
+            	var typeCategory01 = "INVESTMENT";
+            	// console.log(typeCategory01);
+                showDefaultPic(this, typeCategory01);
+            });
+
+ 	      });
+
+    	  async function copyToClipboard(textToCopy) {
+    		    // Navigator clipboard api needs a secure context (https)
+    		    if (navigator.clipboard && window.isSecureContext) {
+    		        await navigator.clipboard.writeText(textToCopy);
+    		    } else {
+    		        // Use the 'out of viewport hidden text area' trick
+    		        const textArea = document.createElement("textarea");
+    		        textArea.value = textToCopy;
+    		        // Move textarea out of the viewport so it's not visible
+    		        textArea.style.position = "absolute";
+    		        textArea.style.left = "-999999px";
+    		        document.body.prepend(textArea);
+    		        textArea.select();
+    		        try {
+    		            document.execCommand('copy');
+    		        } catch (error) {
+    		            console.error(error);
+    		        } finally {
+    		            textArea.remove();
+    		        }
+    		    }
+    		}
+
+    	  function unsecuredCopyToClipboard(text) {
+    		  const textArea = document.createElement("textarea");
+    		  textArea.value = text;
+    		  document.body.appendChild(textArea);
+    		  textArea.focus();
+    		  textArea.select();
+    		  try {
+    		    document.execCommand('copy');
+    		  } catch (err) {
+    		    console.error('Unable to copy to clipboard', err);
+    		  }
+    		  document.body.removeChild(textArea);
+    	  }
+
+
+    	  function pupop(url){
+    		  var width=550, /*Set the Pop-up Width*/
+              height=450, /*Set the Pop-up Height*/
+              sHeight=screen.height,
+              sWidth=screen.width,
+              left=Math.round((sWidth/2)-(width/2)),
+              top=0;
+    		  window.open(url, '_blank', 'left='+left+',top='+top+',width='+width+',height='+height+',personalbar=0,toolbar=0,scrollbars=1,resizable=1');
+		  }
+
+    	  function shareOnFB(url){
+    		  FB.ui({
+    		    display: 'popup',
+    		    method: 'share',
+    		    href: url,
+    		  }, function(response){});
+    	  }
+
+          function showDefaultPic (obj, typeCategory01) {
+              switch (typeCategory01) {
+              case 'ROMANCE':
+                $(obj).attr("src","\/accessibility\/resources\/images\/ROMANCE.png");
+                break;
+              case 'INVESTMENT':
+                $(obj).attr("src","\/accessibility\/resources\/images\/INVESTMENT.png")
+                break;
+              case 'PRODUCT_AND_SERVICE':
+                  $(obj).attr("src","\/accessibility\/resources\/images\/PRODUCT_AND_SERVICE.png")
+                break;
+              case 'UNEXPECTED_MONEY':
+                  $(obj).attr("src","\/accessibility\/resources\/images\/UNEXPECTED_MONEY.png")
+                break;
+              case 'THREAT_AND_EXTORTION':
+                  $(obj).attr("src","\/accessibility\/resources\/images\/THREAT_AND_EXTORTION.png")
+                break;
+              case 'IMPERSONATION':
+                  $(obj).attr("src","\/accessibility\/resources\/images\/IMPERSONATION.png")
+                break;
+              case 'JOBS_AND_EMPLOYMENT':
+                  $(obj).attr("src","\/accessibility\/resources\/images\/JOBS_AND_EMPLOYMENT.png")
+                break;
+              case 'MONEY_MULES':
+                  $(obj).attr("src","\/accessibility\/resources\/images\/MONEY_MULES.png")
+                  break;
+              case 'CHARITY':
+                  $(obj).attr("src","\/accessibility\/resources\/images\/CHARITY.png")
+                  break;
+              default:
+                  $(obj).attr("src","\/accessibility\/resources\/images\/OTHER.png")
+                break;
+            }
+          }
+		</script>
+		<!-- /**
+    	<section class="p_shift">
+          <a th:href="@{/index(listType=${listType},startSerialNo=${endSerialNo})}" class="back" >回上一頁</a>
+        </section>
+        <hr>*/ -->
+        <!DOCTYPE html>
+<html>
+
+  	<script type="text/javascript" nonce="ywNQJAjWbNk7ivpLmmLxASCm">
+      $(document).ready(function() {
+        $("#contectBackBtn").click(function() {
+    	  window.history.back();
+        });
+	  });
+  	</script>
+    <div class="titleSetFlex">
+
+       <h2>
+         <a href="#" id="contectBackBtn"><span>案件詳情</span></a>
+       </h2>
+
+       <nav class="menu" role="navigation" aria-label="Header的導航列">
+         <ul>
+           <li><a href="/accessibility/announce?page=1&amp;pageSize=10" title="佈告欄" aria-label="佈告欄"><span class="icon _notification"></span></a></li>
+         </ul>
+       </nav>
+     </div>
+
+</html>
+        <div id="copyFeedback" class="sr-only" role="status" aria-live="polite"></div>
+        <!-- 查詢結果 -->
+        <div class="col_84 caseDetail" role="region" aria-labelledby="caseTitle">
+          <div class="col">
+            <!-- 左側區：圖片 + 三欄資訊 -->
+            <section class="caseHeader">
+              <div class="col">
+                <div class="foto">
+                  <img src="https://digi-runner.digiat.org.tw/api/fbr/v3/m/getIssueImage/2a400830d40888b71b47a553" id="imgPic" alt="金融投資" referrerpolicy="no-referrer"/>
+
+                </div>
+
+                <!-- 網址 -->
+                <div class="article caseLink">
+                  <h3 class="a_title">網址</h3>
+                  <div>
+                    <span>https://www...373</span>
+                  </div>
+                </div>
+              </div>
+              <div class="col">
+                <ul class="caseInfoList">
+                  <li>
+                    <h3>訊息來源</h3>
+                    <div class="infoContent">
+                      <ul class="socialIcons" aria-label="出現平台">
+
+
+
+		            	  <li><img src="/accessibility/resources/images/s_Web.png" alt="Web"/></li>
+
+
+
+
+
+                      </ul>
+                      <p>1個平台</p>
+                    </div>
+                  </li>
+                  <li>
+                    <h3>案件狀態</h3>
+                    <div class="infoContent">
+                      <p class="status">
+                      	<span>
+
+
+
+			                <img src="/accessibility/resources/images/icon-alert.svg"  alt="確認非詐騙">
+
+
+
+			              <span>確認非詐騙</span>
+			            </span>
+			          </p>
+                    </div>
+                  </li>
+                  <li>
+                    <h3>查詢人數</h3>
+                    <div class="infoContent">
+                      <p class="status"><strong><span>3</span></strong>民眾通報</p>
+                    </div>
+                  </li>
+                </ul>
+              </div>
+            </section>
+
+            <!-- 內容摘要（可展開收合） -->
+            <div class="article caseSummary">
+              <h3 class="a_title">內容摘要</h3>
+              <div class="summary-content">
+                <p>債務協商、卡債問題、強制扣薪、更生清算、房子拍賣、繳款困難 歡迎使用0809-033-988免付費電話進行對話或連結線上客服進行諮詢,，</p>
+                <button class="btn-toggle _switch" aria-expanded="false" aria-controls="summaryContent" id="summaryBtn">
+                  展開更多內容
+                </button>
+              </div>
+            </div>
+  		  </div>
+
+  		  <!-- 右側區：處理進度 -->
+          <div class="col">
+            <section class="caseTimeline" aria-labelledby="timelineTitle">
+              <h3 id="timelineTitle">處理進度</h3>
+              <ol class="timeline" aria-label="案件處理流程">
+                <li>
+                  <time datetime="2026/09/13  16:19">2026/09/13  16:19</time>
+                  <p>民眾舉報，疑似詐騙訊息。</p>
+                </li>
+              </ol>
+              <ol class="timeline" aria-label="案件處理流程">
+                <li>
+                  <time datetime="2026/09/13  18:00">2026/09/13  18:00</time>
+                  <p>已通知 內政部，確認中</p>
+                </li>
+              </ol>
+              <ol class="timeline" aria-label="案件處理流程">
+                <li class="complete">
+                  <time datetime="2026/09/13  19:32">2026/09/13  19:32</time>
+                  <p>經內政部確認，這並不是詐騙訊息。</p>
+                </li>
+              </ol>
+            </section>
+          </div>
+        </div>
+
+		</div>
+	  </main>
+	  <!-- footer -->
+	  <!DOCTYPE html>
+<html>
+
+  	<footer>
+	  <script nonce="ywNQJAjWbNk7ivpLmmLxASCm">
+	    window.dataLayer = window.dataLayer || [];
+	    function gtag(){dataLayer.push(arguments);}
+	    gtag('js', new Date());
+
+	    gtag('config', 'G-QPMWTEGRE1');
+	  </script>
+	  <div class="container">
+	    <a class="accesskey" href="#aZ" id="aZ" accesskey="Z" title="頁尾網站資訊">:::</a>
+
+	    <div class="footer_logo">
+	      <div class="col">
+	        <img src="/accessibility/resources/images/logo.png" alt="數位發展部" class="img-responsive" />
+	        <ul>
+	          <li class="address"><b>單位地址</b>100057 臺北市中正區延平南路143號</li>
+              <li class="contactTel"><b>服務電話</b>0800-770-707&nbsp;&nbsp;傳真電話：02-2380-0791</li>
+              <li class="contacMail"><b>民意信箱</b><a href="https://www-mailbox.moda.gov.tw/" target="_blank" rel="noopener noreferrer">www-mailbox.moda.gov.tw（另開視窗）</a></li>
+	        </ul>
+	      </div>
+	      <div class="col">
+	        <!-- <span class="counter">累計瀏覽人次：<em>46476653</em></span> -->
+            <span class="update">更新日期：<em>2026/05/20</em></span>
+            <div class="footer_icon">
+              <a target="_blank" rel="noopener noreferrer" href="https://accessibility.moda.gov.tw/Applications/Detail?category=20241218101418"  title="無障礙網站(另開視窗)">
+                <img src="/accessibility/resources/images/basic/accessibility_aa.jpg" alt="通過AA優先等級無障礙網頁檢測,另開新視窗" />
+              </a>
+            </div>
+	      </div>
+	    </div>
+
+	    <div class="footer_info">
+	      <p class="Copyright"></p>
+          <ul class="footer_link">
+            <li><a href="/accessibility/privacy">隱私權及網站安全政策</a></li>
+            <li><a href="/accessibility/decoration">政府網站資料開放宣告</a></li>
+          </ul>
+        </div>
+	  </div>
+	</footer>
+
+</html>
+    </div>
+    <a href="#aU" class="scrollToTop">回到頁面頂端</a>
+  </body>
+</html>
