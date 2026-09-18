@@ -12,7 +12,7 @@ export function AuthLayout({ children }: AuthLayoutProps) {
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2.5">
             <img
-              src="/assets/images/brand-icon-dark.png"
+              src="/assets/images/brand-icon-dark-v1.png"
               alt="反詐大師"
               className="h-8 w-auto object-contain"
             />
@@ -35,7 +35,7 @@ export function AuthLayout({ children }: AuthLayoutProps) {
         {/* Subtle white radial glow behind logo */}
         <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,_rgba(255,255,255,0.07)_0%,_transparent_65%)] pointer-events-none" />
         <img
-          src="/assets/images/brand-hero.png"
+          src="/assets/images/brand-hero-ringless-v1.png"
           alt="反詐大師"
           className="w-[450px] max-w-xl h-auto relative z-10 drop-shadow-[0_0_40px_rgba(255,255,255,0.25)] transition-all hover:scale-[1.02] duration-700 pointer-events-none select-none"
         />
