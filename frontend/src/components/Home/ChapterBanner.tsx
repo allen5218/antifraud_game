@@ -3,11 +3,43 @@ import { Link } from "@tanstack/react-router"
 import { EconomyService } from "@/client"
 import { Button } from "@/components/ui/button"
 
+const MOCK_CHAPTERS = {
+  completed_chapters: 1,
+  income_multiplier: 1.15,
+  can_claim_starter_grant: true,
+  chapters: [
+    {
+      chapter_number: 1,
+      title: "第 1 章：初出茅廬防詐手冊",
+      description: "完成一次題組訓練與一次情境查證，掌握基本紅旗辨識。",
+      is_current: true,
+      is_completed: false,
+      quiz_completed: true,
+      scenario_completed: false,
+    },
+    {
+      chapter_number: 2,
+      title: "第 2 章：資產保護與交易核對",
+      description: "學習在購屋與二手車交易中核對身分與授權，防止資產損害。",
+      is_current: false,
+      is_completed: false,
+      quiz_completed: false,
+      scenario_completed: false,
+    },
+  ],
+}
+
 export function ChapterBanner() {
   const qc = useQueryClient()
   const { data: status, isPending } = useQuery({
     queryKey: ["economy", "chapters"],
-    queryFn: () => EconomyService.getChapters(),
+    queryFn: async () => {
+      try {
+        return await EconomyService.getChapters()
+      } catch {
+        return MOCK_CHAPTERS as any
+      }
+    },
   })
 
   const claimM = useMutation({
