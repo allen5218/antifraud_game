@@ -30,7 +30,9 @@ NEUTRAL = "對方說名額只剩三個,要我今天之內把訂金匯到指定�
 def make_dump(rows):
     """組出一個最小可解析的 pg_dump COPY 區塊。"""
     lines = ["-- fake dump", "", COPY_HEADER]
-    for i, (key, ftype, is_scam, title, narrative, status) in enumerate(rows, 1):
+    for i, row in enumerate(rows, 1):
+        key, ftype, is_scam, title, narrative, status, *rest = row
+        red_flags = rest[0] if rest else []
         lines.append(
             "\t".join(
                 [
@@ -40,7 +42,7 @@ def make_dump(rows):
                     "t" if is_scam else "f",
                     title,
                     narrative,
-                    "[]",
+                    json.dumps(red_flags, ensure_ascii=False),
                     "2",
                     "{}",
                     "prov",
@@ -76,6 +78,7 @@ class TestDumpParsing(unittest.TestCase):
             self.assertIs(published[0]["is_scam"], True)
             self.assertIs(published[1]["is_scam"], False)
             self.assertEqual(published[0]["narrative"], SCAM_TAIL)
+            self.assertEqual(published[0]["red_flags"], [])
 
             self.assertEqual(
                 len(leak_probe.load_from_dump(str(path), published_only=False)), 3
@@ -110,6 +113,72 @@ class TestLexicalProbe(unittest.TestCase):
         self.assertIsNone(
             leak_probe.probe_lexical({"narrative": NEUTRAL})["predicted_is_scam"]
         )
+
+
+class TestMatchProbe(unittest.TestCase):
+    CASES = [
+        {
+            "case_key": "s1",
+            "fraud_type": "investment",
+            "is_scam": True,
+            "red_flags": [
+                {
+                    "tag": "social_proof",
+                    "text": "直播留言營造搶購的從眾氣氛",
+                },
+                {
+                    "tag": "authority",
+                    "text": "自稱銀行專員並用感情話術要求付款",
+                },
+            ],
+        },
+        {
+            "case_key": "l1",
+            "fraud_type": "investment",
+            "is_scam": False,
+            "red_flags": [{"tag": None, "text": "正當訊號不列入 match"}],
+        },
+    ]
+
+    def test_reports_own_and_other_tag_tell_words_per_sentence(self):
+        rows = leak_probe.probe_match(self.CASES)
+        self.assertEqual(len(rows), 2)
+        self.assertEqual(rows[0]["flag_index"], 1)
+        self.assertEqual(rows[0]["own_hits"], ["從眾"])
+        self.assertEqual(rows[1]["other_hits"], {"trust_building": ["感情"]})
+
+        summary = leak_probe.match_score(rows)
+        self.assertEqual(summary["total"], 2)
+        self.assertEqual(summary["own_leaks"], 1)
+        self.assertEqual(summary["other_leaks"], 1)
+        self.assertEqual(summary["leak_rate"], 0.5)
+
+
+class TestTagBalance(unittest.TestCase):
+    def test_counts_occurrences_type_coverage_and_tactics_qualified_cases(self):
+        cases = [
+            {
+                "case_key": "s1",
+                "fraud_type": "investment",
+                "is_scam": True,
+                "red_flags": [
+                    {"tag": "authority", "text": "a"},
+                    {"tag": "authority", "text": "b"},
+                    {"tag": "greed", "text": "c"},
+                ],
+            },
+            {
+                "case_key": "s2",
+                "fraud_type": "romance",
+                "is_scam": True,
+                "red_flags": [{"tag": "authority", "text": "d"}],
+            },
+        ]
+        balance = leak_probe.tag_balance(cases)
+        self.assertEqual(balance["tags"]["authority"]["count"], 3)
+        self.assertEqual(balance["tags"]["authority"]["fraud_type_count"], 2)
+        self.assertEqual(balance["tactics_qualified"], 1)
+        self.assertEqual(balance["scam_cases"], 2)
 
     def test_tail_scope_only_reads_the_ending(self):
         narrative = LEGIT_TAIL + "x" * 400
@@ -238,6 +307,22 @@ class TestCli(unittest.TestCase):
         ("l1", "shopping", False, "另一則訊息", NEUTRAL, "published"),
     ]
 
+    MATCH = [
+        (
+            "s1",
+            "shopping",
+            True,
+            "一則訊息",
+            NEUTRAL,
+            "published",
+            [
+                {"tag": "social_proof", "text": "直播留言營造搶購的從眾氣氛"},
+                {"tag": "authority", "text": "自稱銀行專員並用感情話術要求付款"},
+            ],
+        ),
+        ("l1", "shopping", False, "另一則訊息", NEUTRAL, "published", []),
+    ]
+
     def test_reports_leak_rate_as_json(self):
         proc = self.run_cli(self.LEAKY)
         self.assertEqual(proc.returncode, 0, proc.stderr)
@@ -261,6 +346,34 @@ class TestCli(unittest.TestCase):
         )
         self.assertEqual(proc.returncode, 1)
         self.assertIn("DEFINITELY_UNSET_KEY", proc.stdout + proc.stderr)
+
+    def test_match_probe_reports_own_tag_rate_and_fail_over_uses_it(self):
+        proc = self.run_cli(self.MATCH, "--probe", "match", "--fail-over", "0.4")
+        self.assertEqual(proc.returncode, 1)
+        summary = json.loads(proc.stdout.strip().splitlines()[-1])
+        self.assertEqual(summary["match"]["leak_rate"], 0.5)
+        self.assertIn("自己 tag 洩題句數 / scam red_flag 總句數", proc.stdout)
+
+    def test_match_fail_over_handles_input_without_scam_flags(self):
+        only_legit = [("l1", "shopping", False, "另一則訊息", NEUTRAL, "published", [])]
+        proc = self.run_cli(only_legit, "--probe", "match", "--fail-over", "0.75")
+        self.assertEqual(proc.returncode, 0, proc.stderr)
+        summary = json.loads(proc.stdout.strip().splitlines()[-1])
+        self.assertIsNone(summary["match"]["leak_rate"])
+
+    def test_tag_balance_minimum_gate(self):
+        failed = self.run_cli(
+            self.MATCH, "--probe", "lexical", "--tag-balance", "--min-tag-count", "2"
+        )
+        self.assertEqual(failed.returncode, 1)
+        self.assertIn("低於門檻", failed.stderr)
+
+        passed = self.run_cli(
+            self.MATCH, "--probe", "lexical", "--tag-balance", "--min-tag-count", "0"
+        )
+        self.assertEqual(passed.returncode, 0, passed.stderr)
+        summary = json.loads(passed.stdout.strip().splitlines()[-1])
+        self.assertEqual(summary["tag_balance"]["tactics_qualified"], 1)
 
 
 if __name__ == "__main__":

@@ -724,10 +724,14 @@ export const QuizMatchPairResultSchema = {
         correct: {
             type: 'boolean',
             title: 'Correct'
+        },
+        provenance: {
+            type: 'string',
+            title: 'Provenance'
         }
     },
     type: 'object',
-    required: ['pair_id', 'correct_tag', 'correct'],
+    required: ['pair_id', 'correct_tag', 'correct', 'provenance'],
     title: 'QuizMatchPairResult'
 } as const;
 
@@ -855,6 +859,10 @@ export const QuizTacticsAnswerResponseSchema = {
             type: 'array',
             title: 'Extra Tags'
         },
+        provenance: {
+            type: 'string',
+            title: 'Provenance'
+        },
         tag_details: {
             items: {
                 '$ref': '#/components/schemas/QuizWeaknessDetail'
@@ -864,7 +872,7 @@ export const QuizTacticsAnswerResponseSchema = {
         }
     },
     type: 'object',
-    required: ['correct', 'correct_tags', 'missed_tags', 'extra_tags', 'tag_details'],
+    required: ['correct', 'correct_tags', 'missed_tags', 'extra_tags', 'provenance', 'tag_details'],
     title: 'QuizTacticsAnswerResponse'
 } as const;
 

@@ -1,0 +1,50 @@
+{
+  "data": {
+    "ListArticles": {
+      "totalCount": 8844,
+      "edges": [
+        {
+          "cursor": "cursor-1",
+          "node": {
+            "id": "21lg156mv9n3s",
+            "text": "22:29  5G  已讀\n投資老師邀請加入 LINE 群組，聲稱保證獲利，要求先匯款十萬元到指定帳戶才能開始操作。",
+            "createdAt": "2026-09-16T01:02:03.000Z",
+            "lastRequestedAt": "2026-09-17T02:03:04.000Z",
+            "replyRequestCount": 3
+          }
+        },
+        {
+          "cursor": "cursor-2",
+          "node": {
+            "id": "duplicate-content",
+            "text": "投資老師邀請加入 LINE 群組，聲稱保證獲利，要求先匯款十萬元到指定帳戶才能開始操作。",
+            "createdAt": "2026-09-15T01:02:03.000Z",
+            "lastRequestedAt": "2026-09-16T02:03:04.000Z",
+            "replyRequestCount": 1
+          }
+        },
+        {
+          "cursor": "cursor-3",
+          "node": {
+            "id": "url-only",
+            "text": "https://bad.example/path?utm_source=line https://bad2.example/",
+            "createdAt": "2026-09-14T01:02:03.000Z",
+            "lastRequestedAt": "2026-09-15T02:03:04.000Z",
+            "replyRequestCount": 1
+          }
+        },
+        {
+          "cursor": "cursor-4",
+          "node": {
+            "id": "unclassified",
+            "text": "這是一段長度足夠但只是在討論週末天氣與公園散步安排的普通訊息，沒有任何指定詐騙分類可以判斷。",
+            "createdAt": "2026-09-13T01:02:03.000Z",
+            "lastRequestedAt": "2026-09-14T02:03:04.000Z",
+            "replyRequestCount": 1
+          }
+        }
+      ],
+      "pageInfo": {"lastCursor": null}
+    }
+  }
+}

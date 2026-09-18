@@ -7,11 +7,15 @@
 玩家不需要懂反詐,只要看敘述者表態了什麼就能滿分——這是體裁層級的洩題,
 把「官方保障」之類的刻意字眼刪掉並不會修好它。
 
-三種探針(可疊加):
+四種探針(可疊加):
   lexical  純規則、免 API、可放進 CI:用結尾句式關鍵詞分類。
+  match    純規則、免 API:逐句檢查 red_flag 是否洩漏自己 tag 或誤導到其他 tag。
   genre    LLM 探針,明令禁止使用反詐知識,只問「敘述者有沒有自己把答案講出來」,
            並回報是哪一句講的。
   title    只看標題判斷(標題本身也會洩題)。
+
+另可用 --tag-balance 統計五種 tag 的出現次數、fraud_type 涵蓋與 tactics
+合格題數；--min-tag-count N 可作為 CI 最低素材量門檻。
 
 判讀:50% = 完全沒洩(等同擲硬幣);接近 100% = 題目在送分。
 重寫題庫前先跑一次留 baseline,重寫後再跑一次比較。
@@ -34,7 +38,7 @@ import re
 import sys
 from concurrent.futures import ThreadPoolExecutor
 
-from common import fetch_url, load_env, psql_scalar, read_jsonl
+from common import WEAKNESS_TAGS, fetch_url, load_env, psql_scalar, read_jsonl
 
 # ── 結尾句式關鍵詞(lexical 探針)────────────────────────────
 # 每條都是「敘事形式」的訊號,不是詐騙手法的訊號——這正是重點:
@@ -68,6 +72,25 @@ LEGIT_ENDING_PATTERNS = [
     ("我才安心", r"我才[^。,,]{0,6}(放心|確定|安心|敢|不必|沒有)"),
     ("安心結語", r"(很安心|不必擔心|不用擔心|銀貨兩訖|有保障|才放心)"),
 ]
+
+# match 題會把 red_flag.text 原文直接顯示給玩家。完整詞庫同時供報表使用；
+# hard 子集合只放「看到詞本身就等於看到分類名稱」的分析式用語。其餘詞彙
+# 常是案例不可或缺的具體行為或誘因，仍會列入報表，但不阻止草稿通過。
+TAG_TELL_WORDS = {
+    "time_pressure": ["時間壓力", "急迫", "限時", "倒數", "趕快", "催促"],
+    "authority": ["權威", "官方", "冒充", "假冒", "主管機關"],
+    "greed": ["貪念", "貪", "高報酬", "獲利", "超低價", "便宜"],
+    "social_proof": ["社會認同", "從眾", "大家都", "很多人", "跟風"],
+    "trust_building": ["信任", "取信", "建立關係", "感情"],
+}
+
+HARD_TAG_TELL_WORDS = {
+    "time_pressure": ["時間壓力", "急迫"],
+    "authority": ["權威", "官方", "主管機關"],
+    "greed": ["貪念", "貪"],
+    "social_proof": ["社會認同", "從眾", "跟風"],
+    "trust_building": ["信任", "取信", "建立關係"],
+}
 
 # 尾段窗格:體裁洩題集中在結尾,單獨量一次尾段可證明這件事
 TAIL_RATIO = 0.25
@@ -160,6 +183,7 @@ def load_from_dump(path, published_only=True):
                 "is_scam": row.get("is_scam") == "t",
                 "title": row.get("title") or "",
                 "narrative": row.get("narrative") or "",
+                "red_flags": json.loads(row.get("red_flags") or "[]"),
             }
         )
     return cases
@@ -170,7 +194,8 @@ def load_from_db(published_only=True):
     sql = (
         "SELECT COALESCE(json_agg(json_build_object("
         "'id', id, 'case_key', case_key, 'fraud_type', fraud_type, "
-        "'is_scam', is_scam, 'title', title, 'narrative', narrative"
+        "'is_scam', is_scam, 'title', title, 'narrative', narrative, "
+        "'red_flags', red_flags"
         f") ORDER BY id), '[]'::json) FROM game_cases {where};"
     )
     return json.loads(psql_scalar(sql))
@@ -190,6 +215,7 @@ def load_from_jsonl(path):
                 "is_scam": bool(rec.get("is_scam")),
                 "title": rec.get("title") or "",
                 "narrative": rec.get("narrative") or "",
+                "red_flags": rec.get("red_flags") or [],
             }
         )
     return cases
@@ -219,6 +245,81 @@ def probe_lexical(case, scope="full"):
         "giveaway": giveaway,
         "reason": "; ".join(h["pattern"] for h in (scam_hits + legit_hits)),
         "hits": {"scam": scam_hits, "legit": legit_hits},
+    }
+
+
+def probe_match(cases):
+    """逐句檢查 match 例句是否洩漏自己 tag，或被其他 tag 詞彙干擾。"""
+    rows = []
+    for case in cases:
+        if not case.get("is_scam"):
+            continue
+        for index, flag in enumerate(case.get("red_flags") or [], 1):
+            tag = flag.get("tag")
+            text = flag.get("text") or ""
+            own_hits = [word for word in TAG_TELL_WORDS.get(tag, []) if word in text]
+            other_hits = {
+                other_tag: [word for word in words if word in text]
+                for other_tag, words in TAG_TELL_WORDS.items()
+                if other_tag != tag and any(word in text for word in words)
+            }
+            rows.append(
+                {
+                    "case_key": case.get("case_key"),
+                    "fraud_type": case.get("fraud_type"),
+                    "flag_index": index,
+                    "tag": tag,
+                    "text": text,
+                    "own_hits": own_hits,
+                    "other_hits": other_hits,
+                }
+            )
+    return rows
+
+
+def match_score(rows):
+    """match leak_rate 定義為自己 tag 洩題句數除以全部 scam 例句數。"""
+    total = len(rows)
+    own_leaks = sum(bool(row["own_hits"]) for row in rows)
+    other_leaks = sum(bool(row["other_hits"]) for row in rows)
+    return {
+        "total": total,
+        "own_leaks": own_leaks,
+        "other_leaks": other_leaks,
+        "leak_rate": round(own_leaks / total, 4) if total else None,
+    }
+
+
+def tag_balance(cases):
+    """統計 scam red_flag 出現次數、類型涵蓋與 tactics 合格題數。"""
+    tag_types = {tag: set() for tag in TAG_TELL_WORDS}
+    counts = {tag: 0 for tag in TAG_TELL_WORDS}
+    scam_cases = 0
+    tactics_qualified = 0
+    for case in cases:
+        if not case.get("is_scam"):
+            continue
+        scam_cases += 1
+        distinct = set()
+        for flag in case.get("red_flags") or []:
+            tag = flag.get("tag")
+            if tag not in WEAKNESS_TAGS:
+                continue
+            counts[tag] += 1
+            distinct.add(tag)
+            tag_types[tag].add(case.get("fraud_type"))
+        tactics_qualified += len(distinct) >= 2
+    return {
+        "tags": {
+            tag: {
+                "count": counts[tag],
+                "fraud_type_count": len(tag_types[tag]),
+                "fraud_types": sorted(tag_types[tag]),
+            }
+            for tag in TAG_TELL_WORDS
+        },
+        "scam_cases": scam_cases,
+        "tactics_qualified": tactics_qualified,
     }
 
 
@@ -448,6 +549,53 @@ def print_report(name, rows, *, show_patterns=False, detail_limit=0):
     return s
 
 
+def print_match_report(rows):
+    summary = match_score(rows)
+    print(f"\n{'=' * 66}")
+    print("探針:match(免 API，逐句檢查 tag 洩題詞)")
+    print("=" * 66)
+    if summary["leak_rate"] is None:
+        print("  無 scam red_flag 可量測")
+        return summary
+    print(
+        f"  match leak_rate   {summary['leak_rate']:>7.1%}  {_bar(summary['leak_rate'])}"
+    )
+    print(
+        "  定義:自己 tag 洩題句數 / scam red_flag 總句數 = "
+        f"{summary['own_leaks']} / {summary['total']}"
+    )
+    print(f"  含其他 tag 洩題詞的句數:{summary['other_leaks']}")
+    print("\n  ── 逐句明細 ──")
+    for row in rows:
+        own = ",".join(row["own_hits"]) or "-"
+        other = (
+            ";".join(
+                f"{tag}:{','.join(words)}" for tag, words in row["other_hits"].items()
+            )
+            or "-"
+        )
+        print(
+            f"    {row['case_key']}#{row['flag_index']} [{row['tag']}] "
+            f"自己={own} 其他={other} | {row['text']}"
+        )
+    return summary
+
+
+def print_tag_balance(balance):
+    print(f"\n{'=' * 66}")
+    print("tag balance(published 或輸入中的 scam red_flags)")
+    print("=" * 66)
+    for tag, stats in balance["tags"].items():
+        print(
+            f"  {tag:<16} 出現 {stats['count']:>2} 次  "
+            f"fraud_type {stats['fraud_type_count']} 種 "
+            f"({', '.join(stats['fraud_types']) or '-'})"
+        )
+    print(
+        f"  tactics 合格題數:{balance['tactics_qualified']} / {balance['scam_cases']} scam"
+    )
+
+
 # ── 主流程 ──────────────────────────────────────────────────
 def main():
     p = argparse.ArgumentParser(
@@ -463,7 +611,18 @@ def main():
     p.add_argument(
         "--probe",
         default="lexical",
-        help="逗號分隔:lexical(免費) / genre(LLM) / title(LLM) / all。預設 lexical",
+        help="逗號分隔:lexical(免費) / match(免費) / genre(LLM) / title(LLM) / all。預設 lexical",
+    )
+    p.add_argument(
+        "--tag-balance",
+        action="store_true",
+        help="統計五種 tag 覆蓋與 tactics 合格題數",
+    )
+    p.add_argument(
+        "--min-tag-count",
+        type=int,
+        metavar="N",
+        help="任一 tag 出現次數低於 N 就 exit 1（需搭配 --tag-balance）",
     )
     p.add_argument(
         "--all-statuses", action="store_true", help="含 draft(預設只看 published)"
@@ -500,7 +659,9 @@ def main():
 
     probes = [x.strip() for x in args.probe.split(",") if x.strip()]
     if "all" in probes:
-        probes = ["lexical", "lexical-tail", "genre", "title"]
+        probes = ["lexical", "lexical-tail", "match", "genre", "title"]
+    if args.min_tag_count is not None and not args.tag_balance:
+        raise SystemExit("--min-tag-count 必須搭配 --tag-balance")
 
     needs_llm = any(x in probes for x in ("genre", "title"))
     api_key = os.environ.get(args.api_key_env, "")
@@ -520,6 +681,11 @@ def main():
         elif probe == "lexical-tail":
             rows = [dict(c, **probe_lexical(c, "tail")) for c in cases]
             label = f"lexical-tail(僅末 {int(TAIL_RATIO * 100)}% 文字)"
+        elif probe == "match":
+            rows = probe_match(cases)
+            results[probe] = rows
+            summary[probe] = print_match_report(rows)
+            continue
         elif probe in ("genre", "title"):
             system = GENRE_SYSTEM if probe == "genre" else TITLE_SYSTEM
             field = "narrative" if probe == "genre" else "title"
@@ -553,6 +719,11 @@ def main():
             detail_limit=args.detail,
         )
 
+    if args.tag_balance:
+        balance = tag_balance(cases)
+        print_tag_balance(balance)
+        summary["tag_balance"] = balance
+
     if args.json_output:
         with open(args.json_output, "w", encoding="utf-8") as f:
             json.dump(
@@ -568,13 +739,28 @@ def main():
         breached = {
             k: v["leak_rate"]
             for k, v in summary.items()
-            if v.get("leak_rate", 0) > args.fail_over
+            if v.get("leak_rate") is not None and v["leak_rate"] > args.fail_over
         }
         if breached:
             print(f"\n✗ 洩題率超過門檻 {args.fail_over}: {breached}", file=sys.stderr)
             exit_code = 1
         else:
             print(f"\n✓ 所有探針洩題率都在門檻 {args.fail_over} 以內")
+
+    if args.min_tag_count is not None:
+        below = {
+            tag: stats["count"]
+            for tag, stats in summary["tag_balance"]["tags"].items()
+            if stats["count"] < args.min_tag_count
+        }
+        if below:
+            print(
+                f"\n✗ tag 出現次數低於門檻 {args.min_tag_count}: {below}",
+                file=sys.stderr,
+            )
+            exit_code = 1
+        else:
+            print(f"\n✓ 所有 tag 出現次數都至少為 {args.min_tag_count}")
 
     # JSON 摘要永遠是 stdout 的最後一行,方便 CI 直接 tail -1 解析
     print("\n" + json.dumps(summary, ensure_ascii=False))

@@ -90,6 +90,9 @@ function TacticsReveal({ result }: { result: QuickQuizAnswerResponse }) {
           {result.extra_tags.map(labelFor).join("、") || "無"}
         </p>
       </div>
+      <p className="mt-3 rounded-lg bg-muted px-3 py-2 text-[11px] text-muted-foreground">
+        📎 {result.provenance}
+      </p>
       <WeaknessDetails details={result.tag_details} />
     </>
   )
@@ -122,6 +125,9 @@ function MatchReveal({
               className={`mt-1 font-bold ${pair.correct ? "text-green-600" : "text-red-600"}`}
             >
               正解：{targets.get(pair.correct_tag) ?? "其他話術"}
+            </p>
+            <p className="mt-1 text-[10px] text-muted-foreground">
+              📎 {pair.provenance}
             </p>
           </li>
         ))}

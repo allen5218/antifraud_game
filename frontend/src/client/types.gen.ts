@@ -171,6 +171,7 @@ export type QuizMatchPairResult = {
     pair_id: string;
     correct_tag: string;
     correct: boolean;
+    provenance: string;
 };
 
 export type QuizMatchPrompt = {
@@ -202,6 +203,7 @@ export type QuizTacticsAnswerResponse = {
     correct_tags: Array<(string)>;
     missed_tags: Array<(string)>;
     extra_tags: Array<(string)>;
+    provenance: string;
     tag_details: Array<QuizWeaknessDetail>;
 };
 

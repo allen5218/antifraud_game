@@ -38,8 +38,9 @@
     "clean_text": {"type": "string"},
     "raw_payload": {"type": ["object", "array", "string", "null"]},
     "taxonomy_code": {
-      "type": "string",
+      "type": ["string", "null"],
       "enum": [
+        null,
         "investment_fraud",
         "fake_online_auction_purchase",
         "general_purchase_fraud",
@@ -88,6 +89,30 @@
     "validation_status": {"type": "string", "enum": ["valid", "invalid", "needs_review"]},
     "source_verification_status": {"type": "string", "enum": ["verified", "candidate", "needs_probe", "failed"]},
     "case_stance": {"type": "string", "enum": ["scam", "legit", "advisory"]},
-    "content_kind": {"type": "string", "enum": ["case_narrative", "domain_list", "advisory", "statute"]}
-  }
+    "content_kind": {"type": "string", "enum": ["case_narrative", "message_sample", "domain_list", "advisory", "statute"]}
+  },
+  "allOf": [
+    {
+      "if": {"properties": {"taxonomy_code": {"type": "null"}}, "required": ["taxonomy_code"]},
+      "then": {
+        "anyOf": [
+          {
+            "properties": {
+              "case_stance": {"const": "advisory"},
+              "content_kind": {"const": "advisory"}
+            },
+            "required": ["case_stance", "content_kind"]
+          },
+          {
+            "properties": {
+              "source_name": {"const": "tw_cofacts_scam_messages"},
+              "case_stance": {"const": "scam"},
+              "content_kind": {"const": "message_sample"}
+            },
+            "required": ["source_name", "case_stance", "content_kind"]
+          }
+        ]
+      }
+    }
+  ]
 }
