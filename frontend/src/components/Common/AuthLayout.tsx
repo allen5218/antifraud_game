@@ -1,4 +1,5 @@
 import { Appearance } from "@/components/Common/Appearance"
+import { AnimatedAcanthusEye } from "@/components/Common/AnimatedAcanthusEye"
 
 interface AuthLayoutProps {
   children: React.ReactNode
@@ -30,15 +31,11 @@ export function AuthLayout({ children }: AuthLayoutProps) {
         </footer>
       </div>
 
-      {/* Right: Brand hero — deep dark slate with glowing Acanthus Magnifying Eye */}
+      {/* Right: Brand hero — deep dark slate with dynamic living Acanthus Magnifying Eye */}
       <div className="bg-slate-950 relative hidden lg:flex lg:flex-col lg:items-center lg:justify-center gap-6 p-12 overflow-hidden">
         {/* Subtle white radial glow behind logo */}
         <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,_rgba(255,255,255,0.07)_0%,_transparent_65%)] pointer-events-none" />
-        <img
-          src="/assets/images/brand-hero-ringless-v1.png"
-          alt="反詐大師"
-          className="w-[450px] max-w-xl h-auto relative z-10 drop-shadow-[0_0_40px_rgba(255,255,255,0.25)] transition-all hover:scale-[1.02] duration-700 pointer-events-none select-none"
-        />
+        <AnimatedAcanthusEye className="w-[520px] max-w-2xl h-auto relative z-10" />
       </div>
     </div>
   )
