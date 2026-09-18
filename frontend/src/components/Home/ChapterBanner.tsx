@@ -63,83 +63,118 @@ export function ChapterBanner() {
   const multiplierPercent = Math.round((status.income_multiplier - 1) * 100)
 
   return (
-    <div className="mb-3 space-y-2">
+    <div className="space-y-3">
       {/* 創業補助領取橫幅（完成第 1 章且未領取時顯示） */}
       {status.can_claim_starter_grant && (
-        <div className="flex items-center justify-between rounded-xl bg-gradient-to-r from-amber-500 to-orange-500 p-3 text-white shadow-xs">
-          <div>
-            <div className="text-xs font-bold">🎉 完成第 1 章入門里程碑！</div>
-            <div className="text-[10px] opacity-90">
-              立即領取首期創業扶助金 7,000 元
+        <div className="relative overflow-hidden rounded-2xl border border-amber-400/50 bg-gradient-to-r from-amber-500 via-orange-500 to-amber-600 p-4 text-white shadow-[0_0_25px_rgba(245,158,11,0.4)] animate-pulse">
+          <div className="absolute right-0 top-0 h-32 w-32 translate-x-8 -translate-y-8 rounded-full bg-white/20 blur-2xl" />
+          <div className="relative flex items-center justify-between gap-3">
+            <div>
+              <div className="flex items-center gap-1.5 text-xs font-black tracking-wider text-amber-100">
+                <span>🎉</span> 首期創業扶助金解鎖！
+              </div>
+              <div className="mt-0.5 text-sm font-extrabold text-white">
+                領取第 1 章通關獎勵 <span className="text-yellow-300 font-mono text-base">7,000 元</span>
+              </div>
             </div>
+            <Button
+              size="sm"
+              disabled={claimM.isPending}
+              onClick={() => claimM.mutate()}
+              className="shrink-0 rounded-xl bg-slate-950 px-4 py-2.5 text-xs font-black text-amber-300 border border-amber-400/40 shadow-lg hover:bg-slate-900 active:scale-95"
+            >
+              {claimM.isPending ? "領取中..." : "🎁 立即領取"}
+            </Button>
           </div>
-          <Button
-            size="sm"
-            disabled={claimM.isPending}
-            onClick={() => claimM.mutate()}
-            className="bg-white text-xs font-bold text-amber-900 hover:bg-white/90"
-          >
-            {claimM.isPending ? "領取中…" : "領取 7,000 💰"}
-          </Button>
         </div>
       )}
 
       {/* 主章節進度卡片 */}
-      <div className="rounded-2xl border bg-gradient-to-br from-primary/5 via-card to-background p-4">
-        <div className="flex items-center justify-between">
-          <span className="rounded-md bg-primary/10 px-2 py-0.5 text-[10px] font-bold text-primary">
-            訓練主線進度
-          </span>
-          <span className="text-xs font-semibold text-muted-foreground">
-            已完成 {status.completed_chapters} / 5 章
-          </span>
-        </div>
+      <div className="relative overflow-hidden rounded-2xl border border-indigo-500/30 bg-gradient-to-br from-indigo-950/80 via-slate-900 to-slate-950 p-4 shadow-[0_4px_25px_rgba(0,0,0,0.5)] backdrop-blur-xl">
+        {/* Glow Decorator */}
+        <div className="absolute -left-10 -top-10 h-32 w-32 rounded-full bg-indigo-500/10 blur-2xl" />
+        <div className="absolute -right-10 -bottom-10 h-32 w-32 rounded-full bg-emerald-500/10 blur-2xl" />
 
-        <div className="mt-2 font-bold text-foreground">
-          {currentChapter?.title ?? "全章節已通關"}
-        </div>
-        <p className="mt-1 text-xs leading-relaxed text-muted-foreground">
-          {currentChapter?.description}
-        </p>
-
-        {/* 晉級條件檢核 */}
-        {currentChapter && !currentChapter.is_completed && (
-          <div className="mt-3 grid grid-cols-2 gap-2 text-xs">
-            <div className="flex items-center justify-between rounded-xl border bg-card p-2">
-              <span className="text-muted-foreground">快測題組訓練</span>
-              {currentChapter.quiz_completed ? (
-                <span className="font-bold text-green-600">✓ 已達成</span>
-              ) : (
-                <Link
-                  to="/quick/quiz"
-                  className="font-bold text-primary hover:underline"
-                >
-                  去訓練 ›
-                </Link>
-              )}
+        <div className="relative">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <span className="flex h-6 items-center rounded-full border border-indigo-400/30 bg-indigo-500/20 px-2.5 text-[10px] font-black uppercase tracking-wider text-indigo-300">
+                🎯 主線任務
+              </span>
+              <span className="text-[10px] font-mono font-bold text-slate-400">
+                CH.{currentChapter?.chapter_number ?? 1}
+              </span>
             </div>
-            <div className="flex items-center justify-between rounded-xl border bg-card p-2">
-              <span className="text-muted-foreground">情境查證通關</span>
-              {currentChapter.scenario_completed ? (
-                <span className="font-bold text-green-600">✓ 已達成</span>
-              ) : (
-                <Link
-                  to="/scenarios"
-                  className="font-bold text-primary hover:underline"
-                >
-                  去查證 ›
-                </Link>
-              )}
-            </div>
+            <span className="text-xs font-mono font-bold text-emerald-400 bg-emerald-950/60 border border-emerald-500/30 px-2 py-0.5 rounded-full">
+              通關 {status.completed_chapters} / 5 章
+            </span>
           </div>
-        )}
 
-        {/* 倍率資訊列 */}
-        <div className="mt-3 flex items-center justify-between border-t border-border/60 pt-2 text-[11px] text-muted-foreground">
-          <span>⚡ 當前收益加成</span>
-          <span className="font-bold text-primary">
-            +{multiplierPercent}% (x{status.income_multiplier.toFixed(2)})
-          </span>
+          <div className="mt-2.5 text-base font-black tracking-wide text-slate-100 flex items-center gap-2">
+            <span>{currentChapter?.title ?? "全章節已通關"}</span>
+          </div>
+          <p className="mt-1 text-xs leading-relaxed text-slate-400 font-medium">
+            {currentChapter?.description}
+          </p>
+
+          {/* 晉級條件檢核雙卡 */}
+          {currentChapter && !currentChapter.is_completed && (
+            <div className="mt-3.5 grid grid-cols-2 gap-2 text-xs">
+              <div className="flex flex-col justify-between rounded-xl border border-slate-800 bg-slate-900/90 p-3 backdrop-blur-md transition-all hover:border-slate-700">
+                <div className="text-[10px] font-bold text-slate-400 flex items-center justify-between">
+                  <span>測驗刷題</span>
+                  {currentChapter.quiz_completed && (
+                    <span className="text-emerald-400 font-extrabold">✓ 已完成</span>
+                  )}
+                </div>
+                <div className="mt-2 flex items-center justify-between">
+                  <span className="font-bold text-slate-200">題组訓練</span>
+                  {currentChapter.quiz_completed ? (
+                    <span className="h-2 w-2 rounded-full bg-emerald-400 shadow-[0_0_8px_#34d399]" />
+                  ) : (
+                    <Link
+                      to="/quick/quiz"
+                      className="inline-flex items-center gap-0.5 rounded-lg bg-indigo-600/90 border border-indigo-400/40 px-2.5 py-1 text-[11px] font-black text-white shadow-md hover:bg-indigo-500"
+                    >
+                      去訓練 ⚡
+                    </Link>
+                  )}
+                </div>
+              </div>
+
+              <div className="flex flex-col justify-between rounded-xl border border-slate-800 bg-slate-900/90 p-3 backdrop-blur-md transition-all hover:border-slate-700">
+                <div className="text-[10px] font-bold text-slate-400 flex items-center justify-between">
+                  <span>真實偵查</span>
+                  {currentChapter.scenario_completed && (
+                    <span className="text-emerald-400 font-extrabold">✓ 已完成</span>
+                  )}
+                </div>
+                <div className="mt-2 flex items-center justify-between">
+                  <span className="font-bold text-slate-200">情境查證</span>
+                  {currentChapter.scenario_completed ? (
+                    <span className="h-2 w-2 rounded-full bg-emerald-400 shadow-[0_0_8px_#34d399]" />
+                  ) : (
+                    <Link
+                      to="/scenarios"
+                      className="inline-flex items-center gap-0.5 rounded-lg bg-emerald-600/90 border border-emerald-400/40 px-2.5 py-1 text-[11px] font-black text-white shadow-md hover:bg-emerald-500"
+                    >
+                      去查證 🔍
+                    </Link>
+                  )}
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* 倍率資訊列 */}
+          <div className="mt-3.5 flex items-center justify-between rounded-xl border border-slate-800/80 bg-slate-950/60 px-3 py-2 text-xs">
+            <span className="flex items-center gap-1.5 text-slate-400 font-medium">
+              <span>⚡</span> 當前全域收益加成
+            </span>
+            <span className="font-mono font-black text-amber-400 text-sm">
+              +{multiplierPercent}% <span className="text-[10px] text-slate-500">(x{status.income_multiplier.toFixed(2)})</span>
+            </span>
+          </div>
         </div>
       </div>
     </div>
