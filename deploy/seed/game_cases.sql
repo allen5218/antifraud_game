@@ -226,4 +226,3 @@ ALTER TABLE ONLY public.game_cases
 --
 
 \unrestrict iLmlhG2s2CnLZxhbqX1JEjSQmuZwp78Dg5dkk1HsgXejhZohLND8caqXXhVooad
-
