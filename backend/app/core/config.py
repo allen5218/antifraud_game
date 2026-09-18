@@ -95,6 +95,9 @@ class Settings(BaseSettings):
     FIRST_SUPERUSER_PASSWORD: str
 
     GOOGLE_API_KEY: str = ""
+    LINE_CHANNEL_SECRET: str = ""
+    LINE_CHANNEL_ACCESS_TOKEN: str = ""
+    LINE_LIFF_ID: str = ""
 
     def _check_default_secret(self, var_name: str, value: str | None) -> None:
         if value == "changethis":

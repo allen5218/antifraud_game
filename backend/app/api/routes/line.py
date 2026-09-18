@@ -1,6 +1,7 @@
 from typing import Any
-from fastapi import APIRouter, HTTPException, Request
+from fastapi import APIRouter, HTTPException, Header, Request
 from pydantic import BaseModel
+from app.core.line_bot import line_bot_service
 
 router = APIRouter(prefix="/line", tags=["line"])
 
@@ -52,8 +53,14 @@ def verify_line_reported_message(payload: LineReportRequest) -> Any:
     )
 
 @router.post("/webhook")
-async def line_webhook(request: Request):
+async def line_webhook(request: Request, x_line_signature: str | None = Header(None)):
     """
-    LINE Official Account Webhook Handler
+    LINE Official Account Webhook Handler with Signature Verification
     """
-    return {"status": "ok", "message": "LINE Webhook received"}
+    body_bytes = await request.body()
+    body_str = body_bytes.decode("utf-8")
+
+    if x_line_signature and not line_bot_service.verify_signature(body_str, x_line_signature):
+        raise HTTPException(status_code=400, detail="Invalid LINE signature")
+
+    return {"status": "ok", "message": "LINE Webhook processed successfully"}
