@@ -301,7 +301,7 @@ class FetchSourceTests(unittest.TestCase):
 
     def test_fraudbuster_timestamp_alone_ends_message_sample(self):
         detail = """<main id="aC"><h2>內容摘要</h2>
-        <p>投資老師保證獲利，要求加入 LINE 群組並立刻匯款到指定帳戶，今天截止。</p>
+        <p>投資老師保證獲利，要求加入 LINE 群組並立刻匯款到指定帳戶，今天截止，請勿錯過這次機會。</p>
         <p>2026/09/16 13:30</p></main>"""
         proc, rows = run_fetch(
             "fraudbuster_digiat_accessibility",
@@ -321,6 +321,295 @@ class FetchSourceTests(unittest.TestCase):
         self.assertEqual(proc.returncode, 0, proc.stderr)
         self.assertEqual(len(rows), 1)
         self.assertNotIn("2026/09/16", rows[0]["clean_text"])
+
+    def test_fraudbuster_list_image_alt_is_primary_taxonomy_signal(self):
+        list_body = """<html><body>
+        <div class="card"><a href="/accessibility/detail?id=investment">
+          <img alt="金融投資"><img alt="FB">
+          <span>詐騙訊息，已通知Meta移除</span>
+        </a></div>
+        <div class="card"><a href="/accessibility/detail?id=purchase">
+          <img alt="產品服務"><img alt="Threads">
+          <span>詐騙訊息，已通知Meta移除</span>
+        </a></div>
+        <div class="card"><a href="/accessibility/detail?id=romance">
+          <img alt="愛情交友"><img alt="LINE">
+          <span>詐騙訊息，已通知Meta移除</span>
+        </a></div>
+        <div class="card"><a href="/accessibility/detail?id=job">
+          <img alt="工作求職"><img alt="Web">
+          <span>高風險訊息，請謹慎評估</span>
+        </a></div>
+        <div class="card"><a href="/accessibility/detail?id=other">
+          <img alt="其他詐騙"><img alt="FB">
+          <span>高風險訊息，請謹慎評估</span>
+        </a></div>
+        </body></html>"""
+        detail_body = """<main id="aC"><h2>內容摘要</h2>
+        <p>這是沒有任何五分類關鍵字但確實包含完整誘導話術與聯絡方式的真實訊息內容，並要求立即回覆。</p>
+        <h2>處理進度</h2></main>"""
+
+        proc, rows = run_fetch(
+            "fraudbuster_digiat_accessibility",
+            {
+                "/accessibility/index": {
+                    "content_type": "text/html",
+                    "body": "<html></html>",
+                },
+                "/accessibility/search": {
+                    "content_type": "text/html",
+                    "body": list_body,
+                },
+                "/accessibility/detail": {
+                    "content_type": "text/html",
+                    "body": detail_body,
+                },
+            },
+        )
+
+        self.assertEqual(proc.returncode, 0, proc.stderr)
+        by_id = {
+            row["source_url"].split("id=")[-1]: row
+            for row in rows
+            if "id=" in row["source_url"]
+        }
+        self.assertEqual(by_id["investment"]["taxonomy_code"], "investment_fraud")
+        self.assertEqual(by_id["purchase"]["taxonomy_code"], "general_purchase_fraud")
+        self.assertEqual(by_id["romance"]["taxonomy_code"], "romance_fraud")
+        self.assertIsNone(by_id["job"]["taxonomy_code"])
+        self.assertIsNone(by_id["other"]["taxonomy_code"])
+        self.assertTrue(all(row["content_kind"] == "message_sample" for row in rows))
+
+    def test_fraudbuster_live_list_status_sets_stance_review_and_drop_reasons(self):
+        proc, rows = run_fetch(
+            "fraudbuster_digiat_accessibility",
+            {
+                "/accessibility/index": {
+                    "content_type": "text/html",
+                    "body": "<html></html>",
+                },
+                "/accessibility/search": {
+                    "content_type": "text/html",
+                    "body": self.fixture(
+                        "live_capture/fraudbuster_search_keyword_page1.html"
+                    ),
+                },
+                "/accessibility/detail": {
+                    "content_type": "text/html",
+                    "body": self.fixture(
+                        "live_capture/fraudbuster_detail_confirmed_scam.html"
+                    ),
+                },
+            },
+            extra_args=["--max-records", "20"],
+        )
+
+        self.assertEqual(proc.returncode, 0, proc.stderr)
+        by_id = {
+            row["source_url"].split("id=")[-1]: row
+            for row in rows
+            if "id=" in row["source_url"]
+        }
+        legit = by_id["2a400830d40888b71b47a553"]
+        self.assertEqual(legit["case_stance"], "legit")
+        self.assertEqual(legit["taxonomy_code"], "investment_fraud")
+        self.assertTrue(legit["metadata"]["review_required"])
+        self.assertEqual(
+            legit["metadata"]["source_case_status"], "經內政部確認，非詐騙訊息"
+        )
+
+        confirmed = by_id["7e0c90d6bcebe3bb3874e304"]
+        self.assertEqual(confirmed["case_stance"], "scam")
+        self.assertNotIn("review_required", confirmed["metadata"])
+        self.assertEqual(
+            confirmed["metadata"]["source_case_status"],
+            "詐騙訊息，已通知Meta移除",
+        )
+
+        risky = by_id["e4af78a6b289420b4ca198e8"]
+        self.assertEqual(risky["case_stance"], "scam")
+        self.assertTrue(risky["metadata"]["review_required"])
+        self.assertIsNone(risky["taxonomy_code"])
+
+        summary = json.loads(proc.stdout.strip().splitlines()[-1])
+        self.assertGreater(summary["filter_drop_counts"]["insufficient_evidence"], 0)
+        self.assertGreater(summary["filter_drop_counts"]["page_gone"], 0)
+
+    def test_fraudbuster_meta_descriptions_with_singular_thread_are_dropped(self):
+        list_body = """<html><body><div class="card">
+        <a href="/accessibility/detail?id=profile-only">
+          <img alt="其他詐騙"><span>高風險訊息，請謹慎評估</span>
+        </a></div></body></html>"""
+        leaked_descriptions = [
+            "0 Followers • 1 Thread. See the latest conversations with @yuanweijie9",
+            "0 Followers • 1 Thread. See the latest conversations with @onurcan.atm",
+            "1,000 Followers · 2,000 Threads See the latest conversations with @many.people",
+        ]
+
+        for description in leaked_descriptions:
+            with self.subTest(description=description):
+                detail_body = f"""<main id="aC"><h2>內容摘要</h2>
+                <p>{description}</p><h2>處理進度</h2></main>"""
+                proc, rows = run_fetch(
+                    "fraudbuster_digiat_accessibility",
+                    {
+                        "/accessibility/index": {
+                            "content_type": "text/html",
+                            "body": list_body,
+                        },
+                        "/accessibility/search": {
+                            "content_type": "text/html",
+                            "body": "<html></html>",
+                        },
+                        "/accessibility/detail": {
+                            "content_type": "text/html",
+                            "body": detail_body,
+                        },
+                    },
+                )
+
+                self.assertEqual(proc.returncode, 0, proc.stderr)
+                self.assertEqual(rows, [])
+                summary = json.loads(proc.stdout.strip().splitlines()[-1])
+                self.assertEqual(summary["filter_drop_counts"]["no_message_body"], 1)
+                self.assertEqual(
+                    summary["filter_drop_counts"].get("unclassified", 0), 0
+                )
+
+    def test_fraudbuster_configured_placeholder_pages_are_dropped(self):
+        registry = json.loads(SOURCES.read_text(encoding="utf-8"))
+        source = next(
+            item
+            for item in registry["sources"]
+            if item["source_name"] == "fraudbuster_digiat_accessibility"
+        )
+        source["min_message_chars"] = 0
+        list_body = """<html><body><div class="card">
+        <a href="/accessibility/detail?id=placeholder">
+          <img alt="其他詐騙"><span>高風險訊息，請謹慎評估</span>
+        </a></div></body></html>"""
+
+        with tempfile.TemporaryDirectory() as td:
+            sources_path = Path(td) / "sources.json"
+            sources_path.write_text(
+                json.dumps(registry, ensure_ascii=False), encoding="utf-8"
+            )
+            for placeholder in ["Page not found.", "商品详情", "404", "Not Found"]:
+                with self.subTest(placeholder=placeholder):
+                    detail_body = f"""<main id="aC"><h2>內容摘要</h2>
+                    <p>  {placeholder}  </p><h2>處理進度</h2></main>"""
+                    proc, rows = run_fetch(
+                        "fraudbuster_digiat_accessibility",
+                        {
+                            "/accessibility/index": {
+                                "content_type": "text/html",
+                                "body": list_body,
+                            },
+                            "/accessibility/search": {
+                                "content_type": "text/html",
+                                "body": "<html></html>",
+                            },
+                            "/accessibility/detail": {
+                                "content_type": "text/html",
+                                "body": detail_body,
+                            },
+                        },
+                        sources_path=sources_path,
+                    )
+
+                    self.assertEqual(proc.returncode, 0, proc.stderr)
+                    self.assertEqual(rows, [])
+                    summary = json.loads(proc.stdout.strip().splitlines()[-1])
+                    self.assertEqual(
+                        summary["filter_drop_counts"]["no_message_body"], 1
+                    )
+
+    def test_fraudbuster_message_shorter_than_configured_minimum_is_dropped(self):
+        list_body = """<html><body><div class="card">
+        <a href="/accessibility/detail?id=too-short">
+          <img alt="金融投資"><span>詐騙訊息，已通知Meta移除</span>
+        </a></div></body></html>"""
+        detail_body = """<main id="aC"><h2>內容摘要</h2>
+        <p>投資保證獲利，請立即加 LINE。</p><h2>處理進度</h2></main>"""
+
+        proc, rows = run_fetch(
+            "fraudbuster_digiat_accessibility",
+            {
+                "/accessibility/index": {
+                    "content_type": "text/html",
+                    "body": list_body,
+                },
+                "/accessibility/search": {
+                    "content_type": "text/html",
+                    "body": "<html></html>",
+                },
+                "/accessibility/detail": {
+                    "content_type": "text/html",
+                    "body": detail_body,
+                },
+            },
+        )
+
+        self.assertEqual(proc.returncode, 0, proc.stderr)
+        self.assertEqual(rows, [])
+        summary = json.loads(proc.stdout.strip().splitlines()[-1])
+        self.assertEqual(summary["filter_drop_counts"]["no_message_body"], 1)
+
+    def test_fraudbuster_unconfirmed_ordinary_post_keeps_review_flag_in_metadata(self):
+        ordinary_post = (
+            "台南有一堆美麗的大榕樹\n這是青年路神學院旁停車場\n"
+            "後來為了蓋立體停車場\n大榕樹壯烈犧牲🥲"
+        )
+        list_body = """<html><body><div class="card">
+        <a href="/accessibility/detail?id=ordinary-post">
+          <img alt="其他詐騙"><span>高風險訊息，請謹慎評估</span>
+        </a></div></body></html>"""
+        detail_body = f"""<main id="aC"><h2>內容摘要</h2>
+        <p>{ordinary_post}</p><h2>處理進度</h2></main>"""
+
+        proc, rows = run_fetch(
+            "fraudbuster_digiat_accessibility",
+            {
+                "/accessibility/index": {
+                    "content_type": "text/html",
+                    "body": list_body,
+                },
+                "/accessibility/search": {
+                    "content_type": "text/html",
+                    "body": "<html></html>",
+                },
+                "/accessibility/detail": {
+                    "content_type": "text/html",
+                    "body": detail_body,
+                },
+            },
+        )
+
+        self.assertEqual(proc.returncode, 0, proc.stderr)
+        self.assertEqual(len(rows), 1)
+        self.assertEqual(rows[0]["clean_text"], ordinary_post)
+        self.assertTrue(rows[0]["metadata"]["review_required"])
+        self.assertEqual(
+            rows[0]["metadata"]["source_case_status"],
+            "高風險訊息，請謹慎評估",
+        )
+
+    def test_fraudbuster_config_has_one_search_endpoint_per_fraud_type(self):
+        registry = json.loads(SOURCES.read_text(encoding="utf-8"))
+        source = next(
+            item
+            for item in registry["sources"]
+            if item["source_name"] == "fraudbuster_digiat_accessibility"
+        )
+
+        self.assertEqual(source["max_records"], 60)
+        self.assertEqual(source["max_detail_records"], 40)
+        search_keywords = {
+            endpoint["url"].split("keyword=", 1)[1].split("&", 1)[0]
+            for endpoint in source["endpoints"]
+            if "/accessibility/search" in endpoint["url"]
+        }
+        self.assertEqual(search_keywords, {"投資", "拍賣", "購物", "交友", "ATM"})
 
     def test_cofacts_scam_messages_filter_clean_dedupe_and_classify(self):
         proc, rows = run_fetch(

@@ -1,0 +1,2213 @@
+<!DOCTYPE html>
+<html lang="zh-Hant" class="no-js">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <!-- <meta name="description" content="" /> -->
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="網詐通報查詢網為數位發展部打造的防詐平台，提供民眾即時查詢與通報可疑詐騙資訊，共同守護數位安全">
+    <meta property="og:title" content="數發部網路詐騙通報查詢網" />
+    <meta property="og:description" content="網詐通報查詢網為數位發展部打造的防詐平台，提供民眾即時查詢與通報可疑詐騙資訊，共同守護數位安全" />
+    <meta property="og:url" content="https://fraudbuster.digiat.org.tw/accessibility/" />
+    <meta property="og:site_name" content="網路詐騙通報查詢網" />
+
+    <title>網路詐騙通報查詢網 - 近期</title>
+    <link href="/accessibility/resources/images/favicon.ico" rel="icon" type="image/x-icon">
+    <link href="/accessibility/resources/css/style.css" rel="stylesheet" media="screen"/>
+    <link href="/accessibility/resources/css/color.css" rel="stylesheet" media="screen"/>
+
+    <script type="text/javascript" nonce="nQBxHGrjb04oABGhEhH5uU0K">
+	  window.fbAsyncInit = function() {
+	    FB.init({
+	      appId            : 'antifraud',
+	      status     	   : true,
+	      xfbml            : true,
+	      version          : 'v20.0'
+	    });
+	  };
+	</script>
+	<script type="text/javascript" async defer crossorigin="anonymous" src="https://connect.facebook.net/en_US/sdk.js" nonce="nQBxHGrjb04oABGhEhH5uU0K"></script>
+	<script async src="https://www.googletagmanager.com/gtag/js?id=G-QPMWTEGRE1" nonce="nQBxHGrjb04oABGhEhH5uU0K"></script>
+    <!-- <script type="text/javascript" th:src="@{/webjars/jquery/3.6.4/jquery.min.js}" th:nonce="${nonce}"></script>  -->
+    <script type="text/javascript" src="/accessibility/resources/js/jquery-3.7.1.min.js" nonce="nQBxHGrjb04oABGhEhH5uU0K"></script>
+    <script type="text/javascript" src="/accessibility/resources/js/customize.js" nonce="nQBxHGrjb04oABGhEhH5uU0K"></script>
+    <script type="text/javascript" src="/accessibility/resources/js/infiniteScroll.js" nonce="nQBxHGrjb04oABGhEhH5uU0K"></script>
+    <script type="text/javascript" src="/accessibility/resources/js/validation/jquery.validate.min.js" nonce="nQBxHGrjb04oABGhEhH5uU0K"></script>
+    <script type="text/javascript" src="/accessibility/resources/js/validation/additional-methods.min.js" nonce="nQBxHGrjb04oABGhEhH5uU0K"></script>
+    <script type="text/javascript" src="/accessibility/resources/js/validation/messages_zh_TW.min.js" nonce="nQBxHGrjb04oABGhEhH5uU0K"></script>
+    <script type="text/javascript" src="/accessibility/resources/js/validation/validate.js" nonce="nQBxHGrjb04oABGhEhH5uU0K"></script>
+    <script type="text/javascript" src="/accessibility/resources/vendor/jquery.easing.min.js" nonce="nQBxHGrjb04oABGhEhH5uU0K"></script>
+    <script type="text/javascript" src="/accessibility/resources/vendor/lazyload/lazyload.js" nonce="nQBxHGrjb04oABGhEhH5uU0K"></script>
+    <!-- 鍵盤控制 -->
+    <script type="text/javascript" nonce="nQBxHGrjb04oABGhEhH5uU0K">
+      /* ========== 彈窗 accessibility 全域工具 ========== */
+
+      // 記錄每個彈窗開啟前的焦點元素（關閉時還原）
+      var popupPrevFocus = {};
+
+      // Tab 焦點陷阱：讓 Tab / Shift+Tab 在彈窗內循環
+      function trapFocus($popup) {
+        var selector = 'a[href], button:not([disabled]), input:not([disabled]),'
+                     + ' select:not([disabled]), textarea:not([disabled]),'
+                     + ' [tabindex]:not([tabindex="-1"])';
+        var $focusable = $popup.find(selector).filter(':visible');
+        if ($focusable.length === 0) return;
+
+        var first = $focusable.first()[0];
+        var last  = $focusable.last()[0];
+
+        $popup.off('keydown.trap').on('keydown.trap', function (e) {
+          if (e.key !== 'Tab') return;
+          if (e.shiftKey && document.activeElement === first) {
+            last.focus();
+            e.preventDefault();
+          } else if (!e.shiftKey && document.activeElement === last) {
+            first.focus();
+            e.preventDefault();
+          }
+        });
+      }
+
+      // 開啟彈窗：加 active、鎖捲動、設 aria、啟動焦點陷阱
+      function openPopup(popupId, firstFocusSelector) {
+        var $popup = $('#' + popupId);
+        if ($popup.length === 0 || $popup.hasClass('active')) return;
+
+        popupPrevFocus[popupId] = document.activeElement;
+
+        $('body').addClass('modal-open');
+        $('.wrapper').attr('aria-hidden', 'true').attr('inert', '');
+
+        $popup.addClass('active').attr('aria-hidden', 'false');
+
+        if (firstFocusSelector && $(firstFocusSelector).length) {
+          $(firstFocusSelector).focus();
+        } else {
+          $popup.find('button, a[href], input, select, textarea, [tabindex]:not([tabindex="-1"])')
+              .filter(':visible').first().focus();
+        }
+
+        trapFocus($popup);
+      }
+
+      // 關閉彈窗：移除 active、解鎖捲動、還原焦點
+      function closePopup(popupId, fallbackFocusSelector) {
+        var $popup = $('#' + popupId);
+        if ($popup.length === 0 || !$popup.hasClass('active')) return;
+
+        $popup.removeClass('active').attr('aria-hidden', 'true').off('keydown.trap');
+
+        // 如果沒有其它彈窗還開著，才解除背景鎖
+        if ($('.popup.active').length === 0) {
+          $('body').removeClass('modal-open');
+          $('.wrapper').removeAttr('aria-hidden').removeAttr('inert');
+        }
+
+        // 還原焦點
+        var prev = popupPrevFocus[popupId];
+        if (prev && $(prev).is(':visible')) {
+          prev.focus();
+        } else if (fallbackFocusSelector && $(fallbackFocusSelector).length) {
+          $(fallbackFocusSelector).focus();
+        }
+        popupPrevFocus[popupId] = null;
+      }
+
+      // MutationObserver：自動同步 aria-hidden / scroll-lock / focus trap
+      // 讓其它頁面（cards.html、circular.html）仍可沿用 .addClass('active') 寫法
+      function observePopups() {
+        var observer = new MutationObserver(function (mutations) {
+          mutations.forEach(function (m) {
+            if (m.attributeName !== 'class') return;
+            var el = m.target;
+            var $el = $(el);
+            var isActive = $el.hasClass('active');
+            var wasActive = (m.oldValue || '').indexOf('active') !== -1;
+
+            if (isActive && !wasActive) {
+              // 被打開
+              popupPrevFocus[el.id] = popupPrevFocus[el.id] || document.activeElement;
+              $('body').addClass('modal-open');
+              $('.wrapper').attr('aria-hidden', 'true').attr('inert', '');
+              $el.attr('aria-hidden', 'false');
+           	  // 防呆：若呼叫端忘了 focus，這裡補上
+              if (!$.contains(el, document.activeElement)) {
+                $el.find('button, a[href], input, select, textarea, [tabindex]:not([tabindex="-1"])').filter(':visible').first().focus();
+              }
+              trapFocus($el);
+            } else if (!isActive && wasActive) {
+              // 被關閉
+              $el.attr('aria-hidden', 'true').off('keydown.trap');
+              if ($('.popup.active').length === 0) {
+                $('body').removeClass('modal-open');
+                $('.wrapper').removeAttr('aria-hidden').removeAttr('inert');
+              }
+              var prev = popupPrevFocus[el.id];
+              if (prev && $(prev).is(':visible')) {
+                setTimeout(function(){ prev.focus(); }, 0);
+              }
+
+              if (el.id === 'filterDiv') {
+                $('#filterDivBtn1, #filterDivBtn2').attr('aria-expanded', 'false');
+              }
+              if (el.id === 'privateDiv') {
+                $('#privacyLink').attr('aria-expanded', 'false');
+              }
+
+              popupPrevFocus[el.id] = null;
+            }
+          });
+        });
+        $('.popup').each(function () {
+          observer.observe(this, { attributes: true, attributeOldValue: true, attributeFilter: ['class'] });
+          // 初始化 aria-hidden
+          $(this).attr('aria-hidden', $(this).hasClass('active') ? 'false' : 'true');
+        });
+      }
+
+      // 點擊遮罩關閉彈窗（1.4.13 Dismissable）
+      $(document).on('click', '.popup', function (e) {
+        if (e.target !== this) return;            // 只在點到遮罩本身才關
+        var fallback = null;
+        if (this.id === 'alertDiv') {             // 蓋版廣告關閉時要標記已看
+          var alertKey = 'alertSeenTime';
+          var today = new Date().toISOString().slice(0, 10);
+          localStorage.setItem(alertKey, today);
+          fallback = '#ac';
+        }
+        if (this.id === 'filterDiv') {
+          $("#filterDivBtn1, #filterDivBtn2").attr("aria-expanded", "false");
+          fallback = $("#filterDivBtn1").is(":visible") ? "#filterDivBtn1" : ($("#filterDivBtn2").is(":visible") ? "#filterDivBtn2" : null);
+        }
+        if (this.id === 'privateDiv') {
+          $("#privacyLink").attr("aria-expanded", "false");
+          fallback = '#privacyLink';
+        }
+        closePopup(this.id, fallback);
+      });
+
+      $(document).ready(function() {
+
+    	// 啟動彈窗 MutationObserver
+        observePopups();
+
+    	// 檢查瀏覽器
+        var isFirefox = typeof InstallTrigger !== 'undefined';
+        var alertKey = "alertSeenTime";
+        var lastSeenDate = localStorage.getItem(alertKey);
+        var today = new Date().toISOString().slice(0, 10); // yyyy-mm-dd
+
+        $(document).keydown(function(e) {
+          if (isFirefox) {
+            if (e.altKey && e.shiftKey && e.key.toLowerCase() === 'u') {
+        	  $("#aU")[0].click();
+        	} else if (e.altKey && e.shiftKey && e.key.toLowerCase() === 'c') {
+        	  $("#ac")[0].click();
+        	} else if (e.altKey && e.shiftKey && e.key.toLowerCase() === 'z') {
+        	  $("#aZ")[0].click();
+        	//} else if (e.altKey && e.shiftKey && e.key.toLowerCase() === 's') {
+        	  //window.location.href = /*"\/accessibility\/sitemap"*/ + "";
+        	}
+          } else {
+       	    if (e.altKey && e.key.toLowerCase() === 'u') {
+           	  $("#aU")[0].click();
+           	} else if (e.altKey && e.key.toLowerCase() === 'c') {
+           	  $("#ac")[0].click();
+           	} else if (e.altKey && e.key.toLowerCase() === 'z') {
+           	  $("#aZ")[0].click();
+           	//} else if (e.altKey && e.key.toLowerCase() === 's') {
+           	  //window.location.href = /*"\/accessibility\/sitemap"*/ + "";
+           	}
+          }
+
+          // Esc 關閉彈窗（1.4.13 Dismissable）
+          if (e.key === "Escape") {
+            if ($("#filterDiv").hasClass("active")) {
+           	  $("#filterDivBtn1, #filterDivBtn2").attr("aria-expanded", "false");
+           	  var filterFallback = $("#filterDivBtn1").is(":visible") ? "#filterDivBtn1" : ($("#filterDivBtn2").is(":visible") ? "#filterDivBtn2" : null);
+			  closePopup("filterDiv", filterFallback);
+            }
+            if ($("#privateDiv").hasClass("active")) {
+              $("#privacyLink").attr("aria-expanded", "false");
+              closePopup("privateDiv", "#privacyLink");
+            }
+            if ($("#alertDiv").hasClass("active")) {
+              localStorage.setItem(alertKey, today);
+              closePopup("alertDiv", "#ac");
+            }
+            if ($("#notifyDialogDiv").hasClass("active")) {
+              closePopup("notifyDialogDiv");
+            }
+            if ($("#alreadyNotifyDialogDiv").hasClass("active")) {
+              closePopup("alreadyNotifyDialogDiv");
+            }
+          }
+        });
+
+        $(".goCenter").keydown(function(e) {
+          if (e.keyCode === 13) {
+        	$("#ac")[0].click();
+            //$('#aC').focus();
+            $('html, body')
+                .stop(true, true)
+                .animate({ scrollTop: $('.main').find('.accesskey').offset().top - 123 }, 800, 'easeOutExpo');
+          }
+        });
+
+        // 蓋板廣告
+        if (lastSeenDate !== today) {
+          let url = "\/accessibility\/ad\/popup\/detail";
+
+          $.ajax({
+            url: url,
+            type: "GET",
+            success: function(data) {
+              // console.log(data);
+              if (data && data != null) {
+            	$("._alertNews #alertImg").attr("src", data.image).attr("alt", data.title);
+                $("._alertNews #alertTitle").text(data.title);
+                $("._alertNews #alertContentDiv").html(data.content);
+                openPopup("alertDiv", "#alertTitle");
+              } else {
+                console.log("沒有資料，無法取得蓋版訊息");
+              }
+            },
+            error: function() {
+              console.log("Error: 無法取得蓋版訊息");
+            }
+          });
+        }
+
+        $("#alertBtn").click(function(e) {
+          localStorage.setItem(alertKey, today);
+          closePopup("alertDiv", "#ac");
+	  	});
+
+    	// 檢查所有複選組
+	    $('.filterGroup.checkObject').each(function () {
+	    	var $group = $(this);
+	    	var $btns = $group.find('.filterBtn');
+	    	var $btnAll = $btns.first(); // 第一個是『全部』
+	    	var $btnItems = $btns.not($btnAll);
+
+	        // 點擊『全部』
+	        $btnAll.on('click', function (e) {
+	            // 全部啟用
+	            $btnAll.addClass('is-active').attr('aria-pressed', 'true');
+	            // 其他取消
+	            $btnItems.removeClass('is-active').attr('aria-pressed', 'false');
+	        });
+
+	        // 點擊其他項目
+	        $btnItems.on('click', function (e) {
+	            let isActive = $(this).hasClass('is-active');
+
+	            // 切換自身
+	            $(this).toggleClass('is-active', !isActive);
+	            $(this).attr('aria-pressed', !isActive);
+
+	            // 如果有任一項被選中 -> 取消『全部』
+	            let hasActive = $btnItems.filter('.is-active').length > 0;
+	            if (hasActive) {
+	            	$btnAll.removeClass('is-active').attr('aria-pressed', 'false');
+	            } else {
+	            	// 沒選任何項 -> 回到『全部』
+	                $btnAll.addClass('is-active').attr('aria-pressed', 'true');
+	            }
+	        });
+	    });
+      });
+    </script>
+  </head>
+  <body>
+    <!-- popup 4 - 隱私權保護政策 -->
+    <div class="popup _cp" id="privateDiv" role="dialog" aria-modal="true" aria-labelledby="privateTitle" aria-hidden="true" tabindex="-1">
+      <section aria-labelledby="privateTitle" class="filterSection">
+        <h2 id="privateTitle" tabindex="-1">《隱私權保護政策》</h2>
+        <!-- 捲軸 -->
+        <div class="scrollZone" tabindex="0" role="region" aria-label="隱私權保護政策內容">
+          <div class="article _private">
+            <!DOCTYPE html>
+<html>
+
+    <h3>使用者條款</h3>
+    <h4>第1條　前言與適用範圍</h4>
+    <div>
+      <p>
+        歡迎使用本防詐騙通報系統（以下簡稱「本系統」）。請於使用前詳細閱讀本使用者條款（以下簡稱「本條款」）。當您註冊、登入或以其他方式使用本系統時，即表示您已閱讀、了解並同意遵守本條款及本系統公告之相關規定。若您不同意本條款，請立即停止使用本系統。
+      </p>
+    </div>
+    <h4>第2條　服務內容</h4>
+    <div>
+      <p>
+        本系統提供使用者檢舉、通報可疑詐騙案件、查詢通報進度、及相關防詐資訊之平台功能。平台可依情況提供案件處理與轉介（例如通報執法機關或合作單位）。
+      </p>
+    </div>
+    <h4>第3條　使用資格</h4>
+    <div>
+      <ol>
+        <li>本系統開放年滿十八歲之自然人或具備法人資格之代表使用。若您為未成年人，請於法定代理人同意之下使用。</li>
+        <li>使用者應保證所提供之資訊真實、正確，且同意平台為處理通報以蒐集、處理及利用相關資訊。</li>
+      </ol>
+    </div>
+    <h4>第4條　帳號與安全</h4>
+    <div>
+      <ol>
+        <li>使用者需自行負責帳號與密碼安全。帳號遭他人使用或有資安疑慮，應立即通知平台。</li>
+        <li>使用者不得將帳號借予他人使用；若因使用者管理不當而導致損失，使用者自行承擔責任（法律另有規定者除外）。</li>
+      </ol>
+    </div>
+    <h4>第5條　通報內容與責任</h4>
+    <div>
+      <ol>
+        <li>使用者於通報案件時應盡善良管理人之注意義務，不得提供虛偽、不實或誹謗之資訊。</li>
+        <li>平台有權對通報內容進行篩選、審查、編輯、刪除或拒絕顯示；對於違反法律或本條款之內容，可視情況移送司法或其他主管機關處理。</li>
+        <li>若使用者惡意提供虛假通報或濫用通報機制，平台得依情節採取警告、停權或移送司法等措施，並保留請求損害賠償之權利。</li>
+      </ol>
+    </div>
+    <h4>第6條　禁止行為</h4>
+    <div>
+      <p>使用者不得利用本系統從事下列行為（但不限於）：
+        <ul>
+          <li>提供虛假、誹謗、侵害他人隱私或其他違法資訊；</li>
+          <li>利用本系統進行騷擾、恐嚇、詐欺或其他侵害他人之行為；</li>
+          <li>未經同意蒐集、公開他人個資或通訊紀錄；</li>
+          <li>嘗試入侵、干擾或破壞本系統之服務、伺服器或資料；</li>
+          <li>其他法令禁止或平台規定之違規行為。</li>
+        </ul>
+      </p>
+    </div>
+    <h4>第7條　平台之權利與免責聲明</h4>
+    <div>
+      <ol>
+        <li>平台將以合理努力維持服務之可用性與安全性，但不保證服務完全不中斷、無錯誤或完全保護所有資訊之安全。</li>
+        <li>平台對於因系統故障、網路中斷、不可抗力或第三方行為所致之損害，不負賠償責任（法律另有規定者除外）。</li>
+        <li>平台對於通報事件之事實認定、調查結果或後續行政/司法處理結果不作保證；平台提供之建議或轉介僅為輔助性質。</li>
+      </ol>
+    </div>
+
+</html>
+          </div>
+        </div>
+        <!-- 動作按鈕 -->
+        <div class="btn_grp">
+          <button id="privateAgreeBtn" class="btn btn-back" aria-label="同意隱私權保護政策">同意</button>
+          <button id="privateCancelBtn" class="btn btn-back" aria-label="不同意隱私權保護政策">不同意</button>
+        </div>
+      </section>
+    </div>
+    <!-- 蓋版訊息 -->
+    <div class="popup _alertNews" id="alertDiv" role="dialog" aria-modal="true" aria-labelledby="alertTitle" aria-hidden="true" tabindex="-1">
+      <section aria-labelledby="alertTitle" class="infoSection">
+        <div class="infoImgBox">
+          <img src="" alt="" id="alertImg">
+        </div>
+        <h2 id="alertTitle" tabindex="-1"></h2>
+        <!-- 捲軸 -->
+        <div class="scrollZone" id="alertContentDiv" tabindex="0" role="region" aria-label="蓋版廣告內容"></div>
+        <!-- 關閉視窗 -->
+        <div class="btn_grp">
+          <button class="btn-close" id="alertBtn">我知道了</button>
+        </div>
+      </section>
+    </div>
+  	<!-- popup -->
+    <div class="popup" id="filterDiv" role="dialog" aria-modal="true" aria-labelledby="filterTitle" aria-hidden="true" tabindex="-1">
+      <section aria-labelledby="filterTitle" class="filterSection">
+        <h2 id="filterTitle">篩選案件</h2>
+        <!-- 捲軸 -->
+        <div class="scrollZone">
+          <!-- 時間篩選 -->
+          <fieldset class="filterGroup">
+            <legend>時間</legend>
+            <p class="form-hint" id="dateFormatHint">日期格式：yyyy-MM-dd（例：2026-01-01）</p>
+            <div class="timeRange" role="group" aria-label="時間範圍">
+           	  <div class="timeField">
+                <label for="timeStart" class="sr-only">起始時間</label>
+                <input type="date" id="timeStart" name="timeStart" aria-label="起始時間" aria-describedby="dateFormatHint" placeholder="yyyy-MM-dd" pattern="\d{4}-\d{2}-\d{2}"/>
+              </div>
+
+              <span class="timeDash" aria-hidden="true">－</span>
+
+              <div class="timeField">
+                <label for="timeEnd" class="sr-only">結束時間</label>
+                <input type="date" id="timeEnd" name="timeEnd" aria-label="結束時間" aria-describedby="dateFormatHint" placeholder="yyyy-MM-dd" pattern="\d{4}-\d{2}-\d{2}"/>
+              </div>
+            </div>
+            <div id="popupTimeError" class="notice_error" role="alert"></div>
+          </fieldset>
+          <!-- 詐騙類型 -->
+          <!-- checkObject 複選物件 -->
+          <fieldset class="filterGroup checkObject">
+            <legend>詐騙類型（可複選）</legend>
+            <div role="group" aria-label="詐騙類型" id="fraudTypeDiv">
+              <button type="button" class="filterBtn is-active" aria-pressed="true" aria-label="全選詐騙類型" id="allFraudType" value="all">全部</button>
+              <button type="button" class="filterBtn" aria-pressed="false" aria-label="產品服務" id="PAS" value="PAS">產品服務</button>
+              <button type="button" class="filterBtn" aria-pressed="false" aria-label="身分冒充" id="IMP" value="IMP">身分冒充</button>
+              <button type="button" class="filterBtn" aria-pressed="false" aria-label="金融投資" id="INV" value="INV">金融投資</button>
+              <button type="button" class="filterBtn" aria-pressed="false" aria-label="愛情交友" id="ROM" value="ROM">愛情交友</button>
+              <button type="button" class="filterBtn" aria-pressed="false" aria-label="意外之財" id="UM" value="UM">意外之財</button>
+              <button type="button" class="filterBtn" aria-pressed="false" aria-label="工作求職" id="JAE" value="JAE">工作求職</button>
+              <button type="button" class="filterBtn" aria-pressed="false" aria-label="威脅勒索" id="TAE" value="TAE">威脅勒索</button>
+              <button type="button" class="filterBtn" aria-pressed="false" aria-label="錢騙車手" id="MM" value="MM">錢騾車手</button>
+              <button type="button" class="filterBtn" aria-pressed="false" aria-label="慈善捐款" id="CHA" value="CHA">慈善捐款</button>
+              <button type="button" class="filterBtn" aria-pressed="false" aria-label="其他詐騙" id="OTH" value="OTH">其他詐騙</button>
+           	</div>
+          </fieldset>
+          <!-- 平台 -->
+          <fieldset class="filterGroup checkObject">
+            <legend>平台（可複選）</legend>
+            <div role="group" aria-label="詐騙平台" id="platformsDiv">
+              <button type="button" class="filterBtn is-active" aria-pressed="true" aria-label="全選平台" id="allPlatforms" value="all">全部</button>
+              <button type="button" class="filterBtn" aria-pressed="false" aria-label="FaceBook" id="FB" value="FB">FB</button>
+              <button type="button" class="filterBtn" aria-pressed="false" aria-label="Instagram" id="IG" value="IG">IG</button>
+              <button type="button" class="filterBtn" aria-pressed="false" aria-label="LINE" id="LINE" value="LINE">LINE</button>
+              <button type="button" class="filterBtn" aria-pressed="false" aria-label="YouTube" id="YT" value="YT">YouTube</button>
+              <button type="button" class="filterBtn" aria-pressed="false" aria-label="Tiktok" id="Tiktok" value="Tiktok">Tiktok</button>
+              <button type="button" class="filterBtn" aria-pressed="false" aria-label="Threads" id="Threads" value="Threads">Threads</button>
+              <button type="button" class="filterBtn" aria-pressed="false" aria-label="網頁" id="WEB" value="WEB">網頁</button>
+           	</div>
+          </fieldset>
+          <!-- 動作按鈕 -->
+          <div class="filterActions">
+          	<button id="popupResetBtn" class="btn btn-outline" aria-label="清除篩選條件">清除</button>
+          	<button id="popupSubmitBtn" class="btn btn-primary" aria-label="套用篩選條件">套用</button>
+          </div>
+        </div>
+        <!-- 關閉視窗 -->
+        <button id="popupClosePopBtn" class="btn-close" aria-label="關閉篩選條件視窗">關閉篩選條件視窗</button>
+      </section>
+    </div>
+    <!-- popup -->
+    <div class="popup" role="dialog" id="notifyDialogDiv" aria-labelledby="riskTitle1" aria-describedby="riskDesc1" aria-modal="true" aria-hidden="true" tabindex="-1">
+      <section id="notifySection" class="riskBox" tabindex="-1">
+        <div class="riskLevel" id="notifyLevelDiv">
+          <span class="riskText" id="notifySpan"></span>
+        </div>
+        <h2 id="riskTitle1" class="riskTitle">您已通報成功！</h2>
+        <p id="riskDesc1" class="riskDesc">
+          感謝您的通報！<br>
+          經 AI 初判風險等級為「<span id="notifyRiskInline">中</span>」。<br>
+          本系統會先判定個通報訊息的風險等級，並優先處理高風險案件。中低風險訊息的處理時間可能比較長，請您耐心等候。
+        </p>
+        <div class="riskActions">
+          <button id="notifyContinue1Btn" type="button" class="btn btn-next">繼續通報</button>
+          <button id="notifyFinishBtn" type="button" class="btn btn-esc">結束通報</button>
+        </div>
+      </section>
+    </div>
+    <div class="popup" role="dialog" id="alreadyNotifyDialogDiv" aria-labelledby="riskTitle2" aria-describedby="riskDesc2" aria-modal="true" aria-hidden="true" tabindex="-1">
+      <!-- 已通報 -->
+      <section class="riskBox low" tabindex="-1">
+        <div role="alert" aria-labelledby="riskTitle2" aria-describedby="riskDesc2" aria-atomic="true">
+          <h2 id="riskTitle2" class="riskTitle">您已通報成功！</h2>
+          <p id="riskDesc2" class="riskDesc">
+            該案件已曾被通報，感謝您的通報！系統顯示此案件已曾有回報，我們已將您提供的資料併入。
+          </p>
+        </div>
+        <div class="riskActions">
+          <button id="notifyContinue2Btn" type="button" class="btn btn-next">繼續通報</button>
+          <button id="notifyDetailBtn" type="button" class="btn btn-esc">查看案件詳情</button>
+        </div>
+      </section>
+    </div>
+  	<!-- 直接跳主內容區 -->
+  	<a class="goCenter" href="#aC">按Enter到主要內容區</a>
+  	<!-- wrapper Start -->
+  	<div class="wrapper">
+  	  <!-- header Start -->
+      <!DOCTYPE html>
+<html>
+
+    <header class="header">
+      <script type="text/javascript" nonce="nQBxHGrjb04oABGhEhH5uU0K">
+	   	  $(document).ready(function(){
+	   		activeCall(".menu a");
+	      });
+
+	   	  function activeCall (selector) {
+	   		$(selector).on('click', function(){
+    		    $(this).addClass('active').siblings().removeClass('active');
+    	 	});
+		  }
+	  </script>
+      <div class="container">
+      	<a class="accesskey" href="#aU" id="aU" accesskey="U" title="上方功能區塊">:::</a>
+      	<nav class="navigation" role="navigation" aria-label="Site">
+      	  <div class="navlist">
+      	    <ul>
+      	      <li><a href="/accessibility/sitemap">網站導覽</a></li>
+      	    </ul>
+      	  </div>
+      	</nav>
+      	<section>
+      	  <h1>
+      	  	<a href="/accessibility/index?listType=N">網路詐騙通報查詢網</a>
+      	  </h1>
+      	  <!-- menu Start -->
+	      <nav class="menu" role="navigation" aria-label="Header的導航列">
+	        <ul>
+	          <li><a href="/accessibility/index?listType=H"><span class="icon _hot"></span>熱門</a></li>
+	          <li><a href="/accessibility/index?listType=N" class="act"><span class="icon _new"></span>近期</a></li>
+	          <li><a href="/accessibility/statistics/chart?type=7&amp;legend=A"><span class="icon _chart"></span>統計</a></li>
+
+	          <li>
+	          	<a href="/accessibility/member"><span class="icon _member"></span>我的</a>
+
+	          </li>
+
+	          <li><a href="/accessibility/circular" class="btn-bulletin"><span class="icon _announce"></span>我要通報</a></li>
+	          <li><a href="/accessibility/announce?page=1&amp;pageSize=10" title="佈告欄" aria-label="佈告欄"><span class="icon _notification"></span></a></li>
+	        </ul>
+	      </nav>
+      	</section>
+      	<!-- noscript -->
+      	<noscript>
+          您的瀏覽器不支援JavaScript語法，JavaScript語法並不影響內容的陳述。您可使用按鍵盤上的Ctrl鍵+ (+)鍵放大/(-)鍵縮小來改變字型大小；回到上一頁可使用瀏覽器提供的 Alt+左方向鍵(←) 快速鍵功能；列印可使用瀏覽器提供的(Ctrl+P)功能。您的瀏覽器，不支援script語法，若您的瀏覽器無法支援請點選此超連結
+          <a href="/accessibility/sitemap">網站導覽</a>
+        </noscript>
+      </div>
+    </header>
+
+</html>
+      <!-- main Start -->
+	  <main id="aC" class="main">
+	  	<!-- 任何一個section下一層都要包下一層都要包div container作對齊 -->
+	    <div class="container">
+	      <a class="accesskey" href="#ac" id="ac" accesskey="C" title="主要內容區">:::</a>
+
+    <!-- 進階搜尋 search -->
+  	<script type="text/javascript" nonce="nQBxHGrjb04oABGhEhH5uU0K">
+	    $(document).ready(function() {
+			// 檢查瀏覽器
+	        var isFirefox = typeof InstallTrigger !== 'undefined';
+			$(document).keydown(function(e) {
+	        	if (isFirefox) {
+	            	if (e.altKey && e.shiftKey && e.key.toLowerCase() === 's') {
+	        	  		$('#keyword').focus();
+	        		}
+	          	} else {
+	       	    	if (e.altKey && e.key.toLowerCase() === 's') {
+	       	    		$('#keyword').focus();
+	           		}
+	          	}
+	        });
+
+			var filterDivBtn = "";
+			$('#filterDivBtn1, #filterDivBtn2').on("click", function (event){
+				filterDivBtn = $(this).attr("id");
+				$("#filterDivBtn1, #filterDivBtn2").attr("aria-expanded", "true");
+				// 先設 inert/aria-hidden=false，再 focus，否則焦點會落在 aria-hidden=true 的容器上 → 跳到網址列
+			    openPopup("filterDiv");
+			});
+
+			$("#popupClosePopBtn").on("click", function (event){
+				resetPopUp();
+				$("#filterDivBtn1, #filterDivBtn2").attr("aria-expanded", "false");
+				closePopup("filterDiv", "#" + filterDivBtn);
+				filterDivBtn = "";
+			});
+
+			$("#popupResetBtn").on("click", function (event){
+				resetPopUp();
+			});
+
+			$("#popupSubmitBtn").on("click", function (event){
+				event.preventDefault();
+				$("#popupTimeError").text("").hide();
+
+				let timeStart = $("#timeStart").val();
+				let timeEnd = $("#timeEnd").val();
+				if ((timeStart === "" && timeEnd !== "") || (timeStart !== "" && timeEnd === "")) {
+					$("#popupTimeError").text("日期區間有誤").show();
+					$("#timeStart").addClass("error");
+					$("#timeEnd").addClass("error");
+					return false;
+				}
+
+				if (timeStart !== "" && timeEnd !== "") {
+					let startDate = new Date(timeStart);
+				    let endDate = new Date(timeEnd);
+					if (endDate < startDate) {
+						$("#popupTimeError").text("結束日期不能早於開始日期").show();
+						$("#timeStart").addClass("error");
+						$("#timeEnd").addClass("error");
+						return false;
+					}
+				}
+
+				let fraudTypeValues = $("#fraudTypeDiv .filterBtn.is-active").map(function() {
+					return $(this).val();
+				}).get().join(",");
+
+				let platformsValues = $("#platformsDiv .filterBtn.is-active").map(function() {
+					return $(this).val();
+				}).get().join(",");
+
+				$("#searchForm1 input[name='startDate'], #searchForm2 input[name='startDate']").val(timeStart);
+				$("#searchForm1 input[name='endDate'], #searchForm2 input[name='endDate']").val(timeEnd);
+				$("#searchForm1 input[name='fraudType'], #searchForm2 input[name='fraudType']").val(fraudTypeValues);
+				$("#searchForm1 input[name='platforms'], #searchForm2 input[name='platforms']").val(platformsValues);
+				$("#filterDivBtn1, #filterDivBtn2").attr("aria-expanded", "false");
+				closePopup("filterDiv");
+				if (filterDivBtn === 'filterDivBtn1') {
+					$("#searchForm1").submit();
+				} else {
+					$("#searchForm2").submit();
+				}
+			});
+
+			$('#searchBtn1, #searchBtn2').on("click", function (event){
+				event.preventDefault();
+				let btnId = $(this).attr("id");
+				if (btnId === "searchBtn1") {
+					$("#searchForm1").submit();
+				} else {
+					$("#searchForm2").submit();
+				}
+			});
+
+			$("#keyword1, #keyword2").on("input", function() {
+			  	let value = $(this).val();
+			  	if (this.id === "keyword1") {
+			    	$("#keyword2").val(value);
+			  	} else {
+			    	$("#keyword1").val(value);
+			  	}
+			});
+		});
+
+	    function resetPopUp() {
+	    	$("#timeStart").val("");
+	    	$("#timeEnd").val("");
+	    	$("#popupTimeError").text("").hide();
+	    	$("#timeStart").removeClass("error");
+			$("#timeEnd").removeClass("error");
+
+	    	$(".filterBtn").removeClass("is-active").attr("aria-pressed", "false");
+	    	$("#allFraudType").addClass("is-active").attr("aria-pressed", "true");
+	    	$("#allPlatforms").addClass("is-active").attr("aria-pressed", "true");
+	    }
+    </script>
+	<!-- 桌機 show only-->
+	<div class="maimFunction">
+	  <!-- search -->
+
+    <div class="col">
+      <div class="search" role="search">
+        <div class="form_grp">
+          <form id="searchForm1" action="/accessibility/search" method="get">
+            <label for="keywordId1">搜尋欄位</label>
+            <input type="text" id="keywordId1" name="keyword" value="拍賣" placeholder="請輸入可疑網址或可疑訊息" accesskey="S" aria-label="搜尋網站內容"/>
+            <input type="hidden" name="listType" value="N"/>
+            <input type="hidden" name="startSerialNo" value="1"/>
+          	<input type="hidden" name="pageSize" value="20"/>
+          	<input type="hidden" name="startMonth"/>
+          	<input type="hidden" name="endMonth"/>
+          	<input type="hidden" name="fraudType"/>
+          	<input type="hidden" name="platforms"/>
+          	<input type="button" id="searchBtn1" name="searchBtn" class="btn btn-search" value="開始搜尋" aria-label="搜尋按鈕"/>
+          </form>
+      	</div>
+      	<div class="search_tip">Alt + S 跳至搜尋框</div>
+      </div>
+      <!-- filter -->
+      <input type="button" id="filterDivBtn1" name="filterDivBtn" class="btn btn_filter" value="篩選案件" aria-label="開啟篩選條件視窗"
+      	aria-haspopup="dialog" aria-expanded="false" aria-controls="filterDiv"/>
+    </div>
+
+	  <!-- Pagination -->
+
+
+    <div class="pagination" data-pagination-id="1">
+	  <form name="pageForm" action="/accessibility/index" method="get">
+	    <div class="form_inline">
+	      <div class="total">
+	        每頁顯示
+	        <select id="pages1" name="selectedPageSize" aria-label="每頁顯示">
+	          <option value="20">20</option>
+	          <option value="40">40</option>
+	          <option value="60">60</option>
+	          <option value="80">80</option>
+	        </select> 筆，
+	        第<span data-name="startSerialNo"></span>-<span data-name="endSerialNo"></span>筆案件（共<span>342</span>筆案件）
+	      </div>
+	    </div>
+	    <input type="hidden" name="listType" value="N"/>
+	    <input type="hidden" name="startSerialNo"/>
+	    <input type="hidden" name="pageSize"/>
+	    <input type="hidden" name="keyword"/>
+	    <input type="hidden" name="startDate"/>
+	    <input type="hidden" name="endDate"/>
+	    <input type="hidden" name="fraudType"/>
+	    <input type="hidden" name="platforms"/>
+      </form>
+      <ul class="page" data-name="pageLine"></ul>
+    </div>
+    <script type="text/javascript" nonce="nQBxHGrjb04oABGhEhH5uU0K">
+	  $(document).ready(function() {
+		var selectedId = "pages1";
+	    var listType = "N";
+	    var startSerialNo = 1;
+	    var endSerialNo = 20;
+	    var totalCount = 342;
+	    var pageSize = "20";
+	    var keyword = "\u62CD\u8CE3";
+	    var contextPath = "\/accessibility";
+	    var startDate = null;
+	    var endDate = null;
+	    var fraudType = "";
+	    var platforms = "";
+	    //console.log("selectedId: " + selectedId+ ", startSerialNo: " + startSerialNo + ", endSerialNo: " + endSerialNo + ", totalCount: " + totalCount + ", pageSize: " + pageSize);
+	    //console.log("keyword:" + keyword + ", contextPath: " + contextPath);
+
+	    // init
+	    calculatePages(startSerialNo, totalCount, pageSize, listType, $(this), keyword, contextPath, startDate, endDate, fraudType, platforms);
+
+	    // 監聽pageSubmit
+	    $("#"+selectedId).on("change", function (event) {
+		  event.preventDefault();
+          var $pagination = $(this).closest('.pagination');
+
+          let selectedPageSize = $(this).val();
+	      if (pageSize !== selectedPageSize) {
+	        let currentPage = Math.floor(startSerialNo / pageSize) + 1;
+	        let newStartSerialNo = (currentPage-1) * selectedPageSize + 1;
+	        // console.log('currentPage: ' + currentPage + ', newStartSerialNo: ' + newStartSerialNo + ', selectedPageSize:' + selectedPageSize);
+	        submitAction($pagination, newStartSerialNo, selectedPageSize, keyword, contextPath, startDate, endDate, fraudType, platforms);
+	      }
+	    });
+	  });
+
+	  function calculatePages(startSerialNo, totalCount, pageSize, listType, $pagination, keyword, contextPath, startDate, endDate, fraudType, platforms) {
+	    var currentPage = Math.floor(startSerialNo / pageSize) + 1;
+	    var totalPages = Math.floor(totalCount / pageSize);
+	    var endSerialNo = parseInt(startSerialNo, 10) + parseInt(pageSize, 10) - 1;
+
+	    $pagination.find('span[data-name="startSerialNo"]').text(startSerialNo);
+	    $pagination.find('span[data-name="endSerialNo"]').text(endSerialNo);
+	    //$pagination.find('span[data-name="currentPage"]').text(currentPage);
+	    //$pagination.find('span[data-name="totalPages"]').text(totalPages);
+	    $pagination.find('[name="selectedPageSize"]').val(pageSize);
+
+	    // 生成頁碼
+	    createPageLine(currentPage, totalPages, pageSize, listType, $pagination, keyword, contextPath, startDate, endDate, fraudType, platforms);
+	  }
+
+	  function createPageLine(currentPage, totalPages, pageSize, listType, $pagination, keyword, contextPath, startDate, endDate, fraudType, platforms) {
+	    var pageLine = $pagination.find('ul[data-name="pageLine"]');
+	    pageLine.empty();
+
+	    // 第一頁
+	    /* var firstPageItem = $('<li class="first"></li>')
+	      .append($('<a href="#" title="第一頁">第一頁</a>'))
+	      .on('click', function(event) {
+	    	submitAction($pagination, "1", pageSize, keyword, contextPath, startDate, endDate, fraudType, platforms);
+	      });
+	    pageLine.append(firstPageItem);*/
+
+	    // 上一頁
+	    var prevPageItem = null;
+	    if (currentPage !== 1) {
+	      let prevSerialNo = (currentPage - 2) * pageSize + 1;
+	      prevPageItem = $('<li class="prev"></li>')
+	      	.append($('<button type="button" title="回上一頁">回上一頁</button>'))
+	      	.on('click', function(event) {
+	    	  submitAction($pagination, prevSerialNo, pageSize, keyword, contextPath, startDate, endDate, fraudType, platforms);
+	  	  	});
+	    } else {
+	      prevPageItem = $('<li class="prev useless"></li>')
+		    .append($('<button type="button" title="回上一頁" disabled>回上一頁</button>'));
+	    }
+	    pageLine.append(prevPageItem);
+
+	    // 計算顯示的範圍
+	    /* var startPage = Math.max(1, currentPage - 4);
+	    var endPage = Math.min(totalPages, currentPage + 4);
+
+	    for (let i=startPage; i<=endPage; i++) {
+	      let newSerailNo = (i - 1) * pageSize + 1;
+	      let pageItem = $('<li></li>')
+	    	.append($('<a href="#" title="' + i + '頁">' + i + '</a>'))
+	    	.on('click', function(event) {
+	    	  submitAction($pagination, newSerailNo, pageSize, keyword, contextPath, startDate, endDate, fraudType, platforms);
+	  	  	});
+
+	      if (i === currentPage) {
+	    	pageItem.addClass('active');
+	      }
+	      pageLine.append(pageItem);
+	    }*/
+
+	    // 下一頁
+	    let nextSerialNo = 0;
+	    if (currentPage !== totalPages) {
+	      nextSerialNo = currentPage * pageSize + 1;
+	    } else {
+	  	  nextSerialNo = (totalPages - 1) * pageSize + 1;
+	    }
+	    var nextPageItem = $('<li class="next"></li>')
+	      .append($('<button type="button" title="下一頁">下一頁</button>'))
+	      .on('click', function(event) {
+	    	submitAction($pagination, nextSerialNo, pageSize, keyword, contextPath, startDate, endDate, fraudType, platforms);
+	  	  });
+	    pageLine.append(nextPageItem);
+	  }
+
+	  function submitAction($pagination, serialNo, pageSize, keyword, contextPath, startDate, endDate, fraudType, platforms) {
+	    $pagination.find("[name='startSerialNo']").val(serialNo);
+	    $pagination.find("[name='pageSize']").val(pageSize);
+		if (isEmpty(keyword) && isEmpty(startDate) && isEmpty(endDate) && isEmpty(fraudType) && isEmpty(platforms)) {
+		  $pagination.find("[name='pageForm']").submit();
+		} else {
+		  $pagination.find("[name='keyword']").val(keyword);
+		  $pagination.find("[name='startDate']").val(startDate);
+		  $pagination.find("[name='endDate']").val(endDate);
+		  $pagination.find("[name='fraudType']").val(fraudType);
+		  $pagination.find("[name='platforms']").val(platforms);
+		  let $form = $pagination.find("form[name='pageForm']");
+		  $form.attr("action", contextPath + "/search");
+		  $form.submit();
+		}
+	  }
+
+	  function isEmpty(str) {
+	    return str === null || str.trim() === "";
+	  }
+    </script>
+
+
+	</div>
+
+	<!DOCTYPE html>
+<html>
+
+  	<script type="text/javascript" nonce="nQBxHGrjb04oABGhEhH5uU0K">
+      $(document).ready(function() {
+        $("#contectBackBtn").click(function() {
+    	  window.history.back();
+        });
+	  });
+  	</script>
+    <div class="titleSetFlex">
+       <h2>搜尋結果 <span>找到342個結果</span></h2>
+
+
+       <nav class="menu" role="navigation" aria-label="Header的導航列">
+         <ul>
+           <li><a href="/accessibility/announce?page=1&amp;pageSize=10" title="佈告欄" aria-label="佈告欄"><span class="icon _notification"></span></a></li>
+         </ul>
+       </nav>
+     </div>
+
+</html>
+
+	<!-- mobile show only - 關鍵字搜尋  -->
+	<div class="maimFunction _mobileOnly">
+	  <!-- search -->
+
+    <div class="col">
+      <div class="search" role="search">
+        <div class="form_grp">
+          <form id="searchForm2" action="/accessibility/search" method="get">
+            <label for="keywordId2">搜尋欄位</label>
+            <input type="text" id="keywordId2" name="keyword" value="拍賣" placeholder="請輸入可疑網址或可疑訊息" accesskey="S" aria-label="搜尋網站內容"/>
+            <input type="hidden" name="listType" value="N"/>
+            <input type="hidden" name="startSerialNo" value="1"/>
+          	<input type="hidden" name="pageSize" value="20"/>
+          	<input type="hidden" name="startMonth"/>
+          	<input type="hidden" name="endMonth"/>
+          	<input type="hidden" name="fraudType"/>
+          	<input type="hidden" name="platforms"/>
+          	<input type="button" id="searchBtn2" name="searchBtn" class="btn btn-search" value="開始搜尋" aria-label="搜尋按鈕"/>
+          </form>
+      	</div>
+      	<div class="search_tip">Alt + S 跳至搜尋框</div>
+      </div>
+      <!-- filter -->
+      <input type="button" id="filterDivBtn2" name="filterDivBtn" class="btn btn_filter" value="篩選案件" aria-label="開啟篩選條件視窗"
+      	aria-haspopup="dialog" aria-expanded="false" aria-controls="filterDiv"/>
+    </div>
+
+	</div>
+
+    <!-- cards -->
+
+    	<section id="container" class="col_4">
+    	<div class="col card _demo">
+    		<!-- 導向詳細頁 -->
+      		<a href="/accessibility/detail?listType=N&amp;id=2a400830d40888b71b47a553">
+	      		<div class="col_39">
+	      			<!-- 圖片 -->
+	        		<div class="col foto">
+	          			<img src="https://digi-runner.digiat.org.tw/api/fbr/v3/m/getIssueImage/2a400830d40888b71b47a553" id="img_2a400830d40888b71b47a553" alt="金融投資" referrerpolicy="no-referrer"/>
+
+	        		</div>
+
+	        		<!-- 網站內容 -->
+	        		<div class="col info">
+	        			<!-- 時間人數資訊 -->
+	        			<div class="flexible">
+                      		<div class="dataDefine">
+                        		<div class="releaseTime"><span>5天前</span></div>
+                        		<div class="readers"><span>2</span>人看過</div>
+                     	 	</div>
+                    	</div>
+	        			<!-- 網址 -->
+	          			<!-- <div class="flexible">
+	            			<span th:text="${case.sourceLink}"></span>
+	          			</div> -->
+	          			<!-- 簡述 -->
+	          			<p>債務協商、卡債問題、強制扣薪、更生清算、房子拍賣、繳款困難 歡迎使用0809-033-988免付費電話進行對話或連結線上客服進行諮詢,，</p>
+	          			<!-- 來源圖片 資料 -->
+	          			<div class="flexible visible">
+	            			<div class="dataDefine">
+				            	<!-- 這邊還要判斷 Source 來給圖片 -->
+
+
+
+						            <img src="/accessibility/resources/images/s_Web.png" alt="Web"/>
+
+
+
+
+
+	              				<!-- <div class="frequency" th:text="${case.queryCountFormat}"></div> -->
+	            			</div>
+	            			<!-- 是否是詐騙訊息 -->
+	            			<span class="green">經內政部確認，非詐騙訊息</span>
+	          			</div>
+	        		</div>
+	      		</div>
+      		</a>
+    	</div>
+    	<div class="col card _demo">
+    		<!-- 導向詳細頁 -->
+      		<a href="/accessibility/detail?listType=N&amp;id=3a666625d7500bf1a3b131de">
+	      		<div class="col_39">
+	      			<!-- 圖片 -->
+
+	        		<div class="col foto">
+
+
+
+
+
+
+
+
+
+
+				            <img src="/accessibility/resources/images/OTHER.png" alt="其他詐騙" />
+
+	        		</div>
+	        		<!-- 網站內容 -->
+	        		<div class="col info">
+	        			<!-- 時間人數資訊 -->
+	        			<div class="flexible">
+                      		<div class="dataDefine">
+                        		<div class="releaseTime"><span>6天前</span></div>
+                        		<div class="readers"><span>2</span>人看過</div>
+                     	 	</div>
+                    	</div>
+	        			<!-- 網址 -->
+	          			<!-- <div class="flexible">
+	            			<span th:text="${case.sourceLink}"></span>
+	          			</div> -->
+	          			<!-- 簡述 -->
+	          			<p>9/12 拍賣會預展第一天
+9/13拍賣會預展第二天
+9/14拍賣會當日代拍🤝
+9/15-16 本月份最後一場包展
+
+二手精品拍賣會有機會競拍到比包展更優惠價格！！
+提前三天預展細圖、價格確認
+當日代</p>
+	          			<!-- 來源圖片 資料 -->
+	          			<div class="flexible visible">
+	            			<div class="dataDefine">
+				            	<!-- 這邊還要判斷 Source 來給圖片 -->
+
+						            <img src="/accessibility/resources/images/s_Facebook.png" alt="FB"/>
+
+
+
+
+
+
+
+	              				<!-- <div class="frequency" th:text="${case.queryCountFormat}"></div> -->
+	            			</div>
+	            			<!-- 是否是詐騙訊息 -->
+	            			<span class="yellow">本訊息缺乏足夠資訊辨識詐騙與否</span>
+	          			</div>
+	        		</div>
+	      		</div>
+      		</a>
+    	</div>
+    	<div class="col card _demo">
+    		<!-- 導向詳細頁 -->
+      		<a href="/accessibility/detail?listType=N&amp;id=7e0c90d6bcebe3bb3874e304">
+	      		<div class="col_39">
+	      			<!-- 圖片 -->
+	        		<div class="col foto">
+	          			<img src="https://digi-runner.digiat.org.tw/api/fbr/v3/m/getIssueImage/7e0c90d6bcebe3bb3874e304" id="img_7e0c90d6bcebe3bb3874e304" alt="產品服務" referrerpolicy="no-referrer"/>
+
+	        		</div>
+
+	        		<!-- 網站內容 -->
+	        		<div class="col info">
+	        			<!-- 時間人數資訊 -->
+	        			<div class="flexible">
+                      		<div class="dataDefine">
+                        		<div class="releaseTime"><span>6天前</span></div>
+                        		<div class="readers"><span>1</span>人看過</div>
+                     	 	</div>
+                    	</div>
+	        			<!-- 網址 -->
+	          			<!-- <div class="flexible">
+	            			<span th:text="${case.sourceLink}"></span>
+	          			</div> -->
+	          			<!-- 簡述 -->
+	          			<p>縮減實體規模,清倉倒數！💥結束營業大拍賣！
+因不敵大環境與實體門市虧損😭
+縮減實體規模,全力轉型，結束營業大拍賣
+👉：https://ssur.cc/xFzGma2e
+老牌體育用品店清倉倒數！</p>
+	          			<!-- 來源圖片 資料 -->
+	          			<div class="flexible visible">
+	            			<div class="dataDefine">
+				            	<!-- 這邊還要判斷 Source 來給圖片 -->
+
+						            <img src="/accessibility/resources/images/s_Facebook.png" alt="FB"/>
+
+
+
+
+
+
+
+	              				<!-- <div class="frequency" th:text="${case.queryCountFormat}"></div> -->
+	            			</div>
+	            			<!-- 是否是詐騙訊息 -->
+	            			<span class="red">詐騙訊息，已通知Meta移除</span>
+	          			</div>
+	        		</div>
+	      		</div>
+      		</a>
+    	</div>
+    	<div class="col card _demo">
+    		<!-- 導向詳細頁 -->
+      		<a href="/accessibility/detail?listType=N&amp;id=e4af78a6b289420b4ca198e8">
+	      		<div class="col_39">
+	      			<!-- 圖片 -->
+
+	        		<div class="col foto">
+
+
+
+
+
+
+
+
+
+
+				            <img src="/accessibility/resources/images/OTHER.png" alt="其他詐騙" />
+
+	        		</div>
+	        		<!-- 網站內容 -->
+	        		<div class="col info">
+	        			<!-- 時間人數資訊 -->
+	        			<div class="flexible">
+                      		<div class="dataDefine">
+                        		<div class="releaseTime"><span>8天前</span></div>
+                        		<div class="readers"><span>1</span>人看過</div>
+                     	 	</div>
+                    	</div>
+	        			<!-- 網址 -->
+	          			<!-- <div class="flexible">
+	            			<span th:text="${case.sourceLink}"></span>
+	          			</div> -->
+	          			<!-- 簡述 -->
+	          			<p>不用跟屋主談判，不用跟仲介勾心鬥角
+學法拍，直接入手便宜屋！
+【法拍入門班】👉 https://rink.cc/xbrxf
+
+當中古屋、預售屋市場進入量縮價盤
+法拍市場反而案量增加、價格更便宜、熱鬧滾</p>
+	          			<!-- 來源圖片 資料 -->
+	          			<div class="flexible visible">
+	            			<div class="dataDefine">
+				            	<!-- 這邊還要判斷 Source 來給圖片 -->
+
+						            <img src="/accessibility/resources/images/s_Facebook.png" alt="FB"/>
+
+
+
+
+
+
+
+	              				<!-- <div class="frequency" th:text="${case.queryCountFormat}"></div> -->
+	            			</div>
+	            			<!-- 是否是詐騙訊息 -->
+	            			<span class="yellow">高風險訊息，請謹慎評估</span>
+	          			</div>
+	        		</div>
+	      		</div>
+      		</a>
+    	</div>
+    	<div class="col card _demo">
+    		<!-- 導向詳細頁 -->
+      		<a href="/accessibility/detail?listType=N&amp;id=f1943959727c817cc1ac0d84">
+	      		<div class="col_39">
+	      			<!-- 圖片 -->
+	        		<div class="col foto">
+	          			<img src="https://digi-runner.digiat.org.tw/api/fbr/v3/m/getIssueImage/f1943959727c817cc1ac0d84" id="img_f1943959727c817cc1ac0d84" alt="其他詐騙" referrerpolicy="no-referrer"/>
+
+	        		</div>
+
+	        		<!-- 網站內容 -->
+	        		<div class="col info">
+	        			<!-- 時間人數資訊 -->
+	        			<div class="flexible">
+                      		<div class="dataDefine">
+                        		<div class="releaseTime"><span>10天前</span></div>
+                        		<div class="readers"><span>1</span>人看過</div>
+                     	 	</div>
+                    	</div>
+	        			<!-- 網址 -->
+	          			<!-- <div class="flexible">
+	            			<span th:text="${case.sourceLink}"></span>
+	          			</div> -->
+	          			<!-- 簡述 -->
+	          			<p>多祿溙拍賣。 4 個讚 · 741 人正在談論這個。以專業的眼光和誠信的原則，長期面向全球徵集。無論您手中的是東方瑰寶還是西方經典，我們都將通過全流程的專業體系，為您的珍品尋獲最理想的歸宿。</p>
+	          			<!-- 來源圖片 資料 -->
+	          			<div class="flexible visible">
+	            			<div class="dataDefine">
+				            	<!-- 這邊還要判斷 Source 來給圖片 -->
+
+						            <img src="/accessibility/resources/images/s_Facebook.png" alt="FB"/>
+
+
+
+
+
+
+
+	              				<!-- <div class="frequency" th:text="${case.queryCountFormat}"></div> -->
+	            			</div>
+	            			<!-- 是否是詐騙訊息 -->
+	            			<span class="yellow">高風險訊息，請謹慎評估</span>
+	          			</div>
+	        		</div>
+	      		</div>
+      		</a>
+    	</div>
+    	<div class="col card _demo">
+    		<!-- 導向詳細頁 -->
+      		<a href="/accessibility/detail?listType=N&amp;id=93360dd5b1af51874dfa7b09">
+	      		<div class="col_39">
+	      			<!-- 圖片 -->
+	        		<div class="col foto">
+	          			<img src="https://digi-runner.digiat.org.tw/api/fbr/v3/m/getIssueImage/93360dd5b1af51874dfa7b09" id="img_93360dd5b1af51874dfa7b09" alt="產品服務" referrerpolicy="no-referrer"/>
+
+	        		</div>
+
+	        		<!-- 網站內容 -->
+	        		<div class="col info">
+	        			<!-- 時間人數資訊 -->
+	        			<div class="flexible">
+                      		<div class="dataDefine">
+                        		<div class="releaseTime"><span>11天前</span></div>
+                        		<div class="readers"><span>2</span>人看過</div>
+                     	 	</div>
+                    	</div>
+	        			<!-- 網址 -->
+	          			<!-- <div class="flexible">
+	            			<span th:text="${case.sourceLink}"></span>
+	          			</div> -->
+	          			<!-- 簡述 -->
+	          			<p>高雄「斷 捨 離 拍賣會」
+
+標註 二手 幾成新
+寄送方式 或是 自取
+
+都是斷捨離拍賣會了
+高標者/非出清價 請繞道！！
+
+我先～～ 趕快把它帶走🥹</p>
+	          			<!-- 來源圖片 資料 -->
+	          			<div class="flexible visible">
+	            			<div class="dataDefine">
+				            	<!-- 這邊還要判斷 Source 來給圖片 -->
+
+
+
+
+
+
+
+						            <img src="/accessibility/resources/images/s_threads.png" alt="Threads"/>
+
+	              				<!-- <div class="frequency" th:text="${case.queryCountFormat}"></div> -->
+	            			</div>
+	            			<!-- 是否是詐騙訊息 -->
+	            			<span class="yellow">本訊息缺乏足夠資訊辨識詐騙與否</span>
+	          			</div>
+	        		</div>
+	      		</div>
+      		</a>
+    	</div>
+    	<div class="col card _demo">
+    		<!-- 導向詳細頁 -->
+      		<a href="/accessibility/detail?listType=N&amp;id=991ce50276732faf812906d9">
+	      		<div class="col_39">
+	      			<!-- 圖片 -->
+	        		<div class="col foto">
+	          			<img src="https://digi-runner.digiat.org.tw/api/fbr/v3/m/getIssueImage/991ce50276732faf812906d9" id="img_991ce50276732faf812906d9" alt="工作求職" referrerpolicy="no-referrer"/>
+
+	        		</div>
+
+	        		<!-- 網站內容 -->
+	        		<div class="col info">
+	        			<!-- 時間人數資訊 -->
+	        			<div class="flexible">
+                      		<div class="dataDefine">
+                        		<div class="releaseTime"><span>12天前</span></div>
+                        		<div class="readers"><span>4</span>人看過</div>
+                     	 	</div>
+                    	</div>
+	        			<!-- 網址 -->
+	          			<!-- <div class="flexible">
+	            			<span th:text="${case.sourceLink}"></span>
+	          			</div> -->
+	          			<!-- 簡述 -->
+	          			<p>✔️暗黑炮兵團・# 高雄小港區集合
+📍小港區・沿海路空廚餐食・禾星 – 165/48/C/24 歲
+📍小港區・宏平路航空地勤・知羽 – 160/44/B/22 歲
+📍小港區・漢民路保齡球館・初清 –</p>
+	          			<!-- 來源圖片 資料 -->
+	          			<div class="flexible visible">
+	            			<div class="dataDefine">
+				            	<!-- 這邊還要判斷 Source 來給圖片 -->
+
+
+
+
+
+
+
+						            <img src="/accessibility/resources/images/s_threads.png" alt="Threads"/>
+
+	              				<!-- <div class="frequency" th:text="${case.queryCountFormat}"></div> -->
+	            			</div>
+	            			<!-- 是否是詐騙訊息 -->
+	            			<span class="green">網頁已消失</span>
+	          			</div>
+	        		</div>
+	      		</div>
+      		</a>
+    	</div>
+    	<div class="col card _demo">
+    		<!-- 導向詳細頁 -->
+      		<a href="/accessibility/detail?listType=N&amp;id=f6dcd111c330bfc41f1ce73e">
+	      		<div class="col_39">
+	      			<!-- 圖片 -->
+	        		<div class="col foto">
+	          			<img src="https://digi-runner.digiat.org.tw/api/fbr/v3/m/getIssueImage/f6dcd111c330bfc41f1ce73e" id="img_f6dcd111c330bfc41f1ce73e" alt="產品服務" referrerpolicy="no-referrer"/>
+
+	        		</div>
+
+	        		<!-- 網站內容 -->
+	        		<div class="col info">
+	        			<!-- 時間人數資訊 -->
+	        			<div class="flexible">
+                      		<div class="dataDefine">
+                        		<div class="releaseTime"><span>12天前</span></div>
+                        		<div class="readers"><span>1</span>人看過</div>
+                     	 	</div>
+                    	</div>
+	        			<!-- 網址 -->
+	          			<!-- <div class="flexible">
+	            			<span th:text="${case.sourceLink}"></span>
+	          			</div> -->
+	          			<!-- 簡述 -->
+	          			<p>縮減實體規模,清倉倒數!結束營業大拍賣!
+因不敵大環境與實體門市虧損😭
+縮減實體規模,全力轉型，結束營業大拍賣
+👉https://ssur.cc/EESoTEV3
+老牌體育用品店清倉倒數！</p>
+	          			<!-- 來源圖片 資料 -->
+	          			<div class="flexible visible">
+	            			<div class="dataDefine">
+				            	<!-- 這邊還要判斷 Source 來給圖片 -->
+
+						            <img src="/accessibility/resources/images/s_Facebook.png" alt="FB"/>
+
+
+
+
+
+
+
+	              				<!-- <div class="frequency" th:text="${case.queryCountFormat}"></div> -->
+	            			</div>
+	            			<!-- 是否是詐騙訊息 -->
+	            			<span class="red">詐騙訊息，已通知Meta移除</span>
+	          			</div>
+	        		</div>
+	      		</div>
+      		</a>
+    	</div>
+    	<div class="col card _demo">
+    		<!-- 導向詳細頁 -->
+      		<a href="/accessibility/detail?listType=N&amp;id=370a4c18e75f37c2097d5609">
+	      		<div class="col_39">
+	      			<!-- 圖片 -->
+	        		<div class="col foto">
+	          			<img src="https://digi-runner.digiat.org.tw/api/fbr/v3/m/getIssueImage/370a4c18e75f37c2097d5609" id="img_370a4c18e75f37c2097d5609" alt="產品服務" referrerpolicy="no-referrer"/>
+
+	        		</div>
+
+	        		<!-- 網站內容 -->
+	        		<div class="col info">
+	        			<!-- 時間人數資訊 -->
+	        			<div class="flexible">
+                      		<div class="dataDefine">
+                        		<div class="releaseTime"><span>14天前</span></div>
+                        		<div class="readers"><span>1</span>人看過</div>
+                     	 	</div>
+                    	</div>
+	        			<!-- 網址 -->
+	          			<!-- <div class="flexible">
+	            			<span th:text="${case.sourceLink}"></span>
+	          			</div> -->
+	          			<!-- 簡述 -->
+	          			<p>新的一個月，要錢不要車了
+哪裡找那麼便宜的代步車
+特價🉐大拍賣，超級便宜
+一定會有你喜歡的，沒有來跟我說喔
+歡迎來幫我換車
+
+有興趣高雄大寮可以約看車
+📱0975807572(零九七五八零七五七二)</p>
+	          			<!-- 來源圖片 資料 -->
+	          			<div class="flexible visible">
+	            			<div class="dataDefine">
+				            	<!-- 這邊還要判斷 Source 來給圖片 -->
+
+						            <img src="/accessibility/resources/images/s_Facebook.png" alt="FB"/>
+
+
+
+
+
+
+
+	              				<!-- <div class="frequency" th:text="${case.queryCountFormat}"></div> -->
+	            			</div>
+	            			<!-- 是否是詐騙訊息 -->
+	            			<span class="yellow">本訊息缺乏足夠資訊辨識詐騙與否</span>
+	          			</div>
+	        		</div>
+	      		</div>
+      		</a>
+    	</div>
+    	<div class="col card _demo">
+    		<!-- 導向詳細頁 -->
+      		<a href="/accessibility/detail?listType=N&amp;id=3c78715dcba0609f838a52fa">
+	      		<div class="col_39">
+	      			<!-- 圖片 -->
+	        		<div class="col foto">
+	          			<img src="https://digi-runner.digiat.org.tw/api/fbr/v3/m/getIssueImage/3c78715dcba0609f838a52fa" id="img_3c78715dcba0609f838a52fa" alt="產品服務" referrerpolicy="no-referrer"/>
+
+	        		</div>
+
+	        		<!-- 網站內容 -->
+	        		<div class="col info">
+	        			<!-- 時間人數資訊 -->
+	        			<div class="flexible">
+                      		<div class="dataDefine">
+                        		<div class="releaseTime"><span>15天前</span></div>
+                        		<div class="readers"><span>6</span>人看過</div>
+                     	 	</div>
+                    	</div>
+	        			<!-- 網址 -->
+	          			<!-- <div class="flexible">
+	            			<span th:text="${case.sourceLink}"></span>
+	          			</div> -->
+	          			<!-- 簡述 -->
+	          			<p>❤️蝦皮❤️蝦皮拍賣❤️賣家❤️買家❤️蝦皮拍賣黑名單❤️蝦皮黑名單❤️拍賣黑名單❤️網拍❤️電商❤️營業登記❤️稅務登記❤️稅務諮詢❤️稅籍登記❤️稅捐稽徵❤️網路銷售❤️電商銷售❤️網拍稅務❤️2</p>
+	          			<!-- 來源圖片 資料 -->
+	          			<div class="flexible visible">
+	            			<div class="dataDefine">
+				            	<!-- 這邊還要判斷 Source 來給圖片 -->
+
+
+
+						            <img src="/accessibility/resources/images/s_Web.png" alt="Web"/>
+
+
+
+
+
+	              				<!-- <div class="frequency" th:text="${case.queryCountFormat}"></div> -->
+	            			</div>
+	            			<!-- 是否是詐騙訊息 -->
+	            			<span class="yellow">本訊息缺乏足夠資訊辨識詐騙與否</span>
+	          			</div>
+	        		</div>
+	      		</div>
+      		</a>
+    	</div>
+    	<div class="col card _demo">
+    		<!-- 導向詳細頁 -->
+      		<a href="/accessibility/detail?listType=N&amp;id=dd17d6e91b49c7ab19a2c5c1">
+	      		<div class="col_39">
+	      			<!-- 圖片 -->
+
+	        		<div class="col foto">
+
+
+
+				            <img src="/accessibility/resources/images/PRODUCT_AND_SERVICE.png" alt="產品服務" />
+
+
+
+
+
+
+
+
+	        		</div>
+	        		<!-- 網站內容 -->
+	        		<div class="col info">
+	        			<!-- 時間人數資訊 -->
+	        			<div class="flexible">
+                      		<div class="dataDefine">
+                        		<div class="releaseTime"><span>15天前</span></div>
+                        		<div class="readers"><span>4</span>人看過</div>
+                     	 	</div>
+                    	</div>
+	        			<!-- 網址 -->
+	          			<!-- <div class="flexible">
+	            			<span th:text="${case.sourceLink}"></span>
+	          			</div> -->
+	          			<!-- 簡述 -->
+	          			<p>報導也指出具體案例與結構問題：
+只要一天不修專法依然改變不了融資公司的問題，我們在幫助客戶轉貸時也看到很多融資公司巧立名目收取高額服務費，變相從客戶手上扒了好幾次皮，或著用綁約或違約金的形式來賺到它們</p>
+	          			<!-- 來源圖片 資料 -->
+	          			<div class="flexible visible">
+	            			<div class="dataDefine">
+				            	<!-- 這邊還要判斷 Source 來給圖片 -->
+
+						            <img src="/accessibility/resources/images/s_Facebook.png" alt="FB"/>
+
+
+
+
+
+
+
+	              				<!-- <div class="frequency" th:text="${case.queryCountFormat}"></div> -->
+	            			</div>
+	            			<!-- 是否是詐騙訊息 -->
+	            			<span class="yellow">本訊息缺乏足夠資訊辨識詐騙與否</span>
+	          			</div>
+	        		</div>
+	      		</div>
+      		</a>
+    	</div>
+    	<div class="col card _demo">
+    		<!-- 導向詳細頁 -->
+      		<a href="/accessibility/detail?listType=N&amp;id=90681f90ed7335173a067702">
+	      		<div class="col_39">
+	      			<!-- 圖片 -->
+	        		<div class="col foto">
+	          			<img src="https://digi-runner.digiat.org.tw/api/fbr/v3/m/getIssueImage/90681f90ed7335173a067702" id="img_90681f90ed7335173a067702" alt="產品服務" referrerpolicy="no-referrer"/>
+
+	        		</div>
+
+	        		<!-- 網站內容 -->
+	        		<div class="col info">
+	        			<!-- 時間人數資訊 -->
+	        			<div class="flexible">
+                      		<div class="dataDefine">
+                        		<div class="releaseTime"><span>16天前</span></div>
+                        		<div class="readers"><span>2</span>人看過</div>
+                     	 	</div>
+                    	</div>
+	        			<!-- 網址 -->
+	          			<!-- <div class="flexible">
+	            			<span th:text="${case.sourceLink}"></span>
+	          			</div> -->
+	          			<!-- 簡述 -->
+	          			<p>縮減實體規模,清倉倒數!結束營業大拍賣!！
+因不敵大環境與實體門市虧損😭
+縮減實體規模,全力轉型，結束營業大拍賣
+👉https://l1nq.com/5am5txw
+老牌體育用品店清倉倒數！</p>
+	          			<!-- 來源圖片 資料 -->
+	          			<div class="flexible visible">
+	            			<div class="dataDefine">
+				            	<!-- 這邊還要判斷 Source 來給圖片 -->
+
+						            <img src="/accessibility/resources/images/s_Facebook.png" alt="FB"/>
+
+
+
+
+
+
+
+	              				<!-- <div class="frequency" th:text="${case.queryCountFormat}"></div> -->
+	            			</div>
+	            			<!-- 是否是詐騙訊息 -->
+	            			<span class="red">詐騙訊息，已通知Meta移除</span>
+	          			</div>
+	        		</div>
+	      		</div>
+      		</a>
+    	</div>
+    	<div class="col card _demo">
+    		<!-- 導向詳細頁 -->
+      		<a href="/accessibility/detail?listType=N&amp;id=ed1b2da46b750ead52a11f71">
+	      		<div class="col_39">
+	      			<!-- 圖片 -->
+	        		<div class="col foto">
+	          			<img src="https://digi-runner.digiat.org.tw/api/fbr/v3/m/getIssueImage/ed1b2da46b750ead52a11f71" id="img_ed1b2da46b750ead52a11f71" alt="產品服務" referrerpolicy="no-referrer"/>
+
+	        		</div>
+
+	        		<!-- 網站內容 -->
+	        		<div class="col info">
+	        			<!-- 時間人數資訊 -->
+	        			<div class="flexible">
+                      		<div class="dataDefine">
+                        		<div class="releaseTime"><span>16天前</span></div>
+                        		<div class="readers"><span>2</span>人看過</div>
+                     	 	</div>
+                    	</div>
+	        			<!-- 網址 -->
+	          			<!-- <div class="flexible">
+	            			<span th:text="${case.sourceLink}"></span>
+	          			</div> -->
+	          			<!-- 簡述 -->
+	          			<p>縮減實體規模,清倉倒數!結束營業大拍賣!
+因不敵大環境與實體門市虧損😭
+縮減實體規模,全力轉型，結束營業大拍賣
+👉https://ssur.cc/zdH4BCSt
+老牌體育用品店清倉倒數！</p>
+	          			<!-- 來源圖片 資料 -->
+	          			<div class="flexible visible">
+	            			<div class="dataDefine">
+				            	<!-- 這邊還要判斷 Source 來給圖片 -->
+
+						            <img src="/accessibility/resources/images/s_Facebook.png" alt="FB"/>
+
+
+
+
+
+
+
+	              				<!-- <div class="frequency" th:text="${case.queryCountFormat}"></div> -->
+	            			</div>
+	            			<!-- 是否是詐騙訊息 -->
+	            			<span class="red">詐騙訊息，已通知Meta移除</span>
+	          			</div>
+	        		</div>
+	      		</div>
+      		</a>
+    	</div>
+    	<div class="col card _demo">
+    		<!-- 導向詳細頁 -->
+      		<a href="/accessibility/detail?listType=N&amp;id=ec4b28eab1d3b9d4bd71ad37">
+	      		<div class="col_39">
+	      			<!-- 圖片 -->
+	        		<div class="col foto">
+	          			<img src="https://digi-runner.digiat.org.tw/api/fbr/v3/m/getIssueImage/ec4b28eab1d3b9d4bd71ad37" id="img_ec4b28eab1d3b9d4bd71ad37" alt="產品服務" referrerpolicy="no-referrer"/>
+
+	        		</div>
+
+	        		<!-- 網站內容 -->
+	        		<div class="col info">
+	        			<!-- 時間人數資訊 -->
+	        			<div class="flexible">
+                      		<div class="dataDefine">
+                        		<div class="releaseTime"><span>20天前</span></div>
+                        		<div class="readers"><span>3</span>人看過</div>
+                     	 	</div>
+                    	</div>
+	        			<!-- 網址 -->
+	          			<!-- <div class="flexible">
+	            			<span th:text="${case.sourceLink}"></span>
+	          			</div> -->
+	          			<!-- 簡述 -->
+	          			<p>台中飯店結束營業，床墊、床底、小冰箱、液晶電視、沙發、桌椅、隨便挑隨便賣！
+
+時間：8/30（日） 下午1點到6點
+地址：台中市南區忠孝路150號（傳思文旅）
+
+#吹風機 50
+#椅子 50
+#羽絨棉</p>
+	          			<!-- 來源圖片 資料 -->
+	          			<div class="flexible visible">
+	            			<div class="dataDefine">
+				            	<!-- 這邊還要判斷 Source 來給圖片 -->
+
+
+
+
+
+
+
+						            <img src="/accessibility/resources/images/s_threads.png" alt="Threads"/>
+
+	              				<!-- <div class="frequency" th:text="${case.queryCountFormat}"></div> -->
+	            			</div>
+	            			<!-- 是否是詐騙訊息 -->
+	            			<span class="yellow">本訊息缺乏足夠資訊辨識詐騙與否</span>
+	          			</div>
+	        		</div>
+	      		</div>
+      		</a>
+    	</div>
+    	<div class="col card _demo">
+    		<!-- 導向詳細頁 -->
+      		<a href="/accessibility/detail?listType=N&amp;id=ae3a41477cd38baaf3264603">
+	      		<div class="col_39">
+	      			<!-- 圖片 -->
+	        		<div class="col foto">
+	          			<img src="https://digi-runner.digiat.org.tw/api/fbr/v3/m/getIssueImage/ae3a41477cd38baaf3264603" id="img_ae3a41477cd38baaf3264603" alt="金融投資" referrerpolicy="no-referrer"/>
+
+	        		</div>
+
+	        		<!-- 網站內容 -->
+	        		<div class="col info">
+	        			<!-- 時間人數資訊 -->
+	        			<div class="flexible">
+                      		<div class="dataDefine">
+                        		<div class="releaseTime"><span>20天前</span></div>
+                        		<div class="readers"><span>3</span>人看過</div>
+                     	 	</div>
+                    	</div>
+	        			<!-- 網址 -->
+	          			<!-- <div class="flexible">
+	            			<span th:text="${case.sourceLink}"></span>
+	          			</div> -->
+	          			<!-- 簡述 -->
+	          			<p>妄想在每一種行情都賺到錢本身是一種狂妄與傲慢 且一筆交易是否優秀不取決於是否盈利而是是否符合邏輯
+
+這是我昨天幫我學生解盤時和他提到的兩句話 現在我決定拿這句話來安慰自己
+
+8/26 PCE
+黃金在</p>
+	          			<!-- 來源圖片 資料 -->
+	          			<div class="flexible visible">
+	            			<div class="dataDefine">
+				            	<!-- 這邊還要判斷 Source 來給圖片 -->
+
+
+
+
+
+
+
+						            <img src="/accessibility/resources/images/s_threads.png" alt="Threads"/>
+
+	              				<!-- <div class="frequency" th:text="${case.queryCountFormat}"></div> -->
+	            			</div>
+	            			<!-- 是否是詐騙訊息 -->
+	            			<span class="yellow">高風險訊息，請謹慎評估</span>
+	          			</div>
+	        		</div>
+	      		</div>
+      		</a>
+    	</div>
+    	<div class="col card _demo">
+    		<!-- 導向詳細頁 -->
+      		<a href="/accessibility/detail?listType=N&amp;id=e7805e69a1fea19d662b0b38">
+	      		<div class="col_39">
+	      			<!-- 圖片 -->
+	        		<div class="col foto">
+	          			<img src="https://digi-runner.digiat.org.tw/api/fbr/v3/m/getIssueImage/e7805e69a1fea19d662b0b38" id="img_e7805e69a1fea19d662b0b38" alt="產品服務" referrerpolicy="no-referrer"/>
+
+	        		</div>
+
+	        		<!-- 網站內容 -->
+	        		<div class="col info">
+	        			<!-- 時間人數資訊 -->
+	        			<div class="flexible">
+                      		<div class="dataDefine">
+                        		<div class="releaseTime"><span>21天前</span></div>
+                        		<div class="readers"><span>4</span>人看過</div>
+                     	 	</div>
+                    	</div>
+	        			<!-- 網址 -->
+	          			<!-- <div class="flexible">
+	            			<span th:text="${case.sourceLink}"></span>
+	          			</div> -->
+	          			<!-- 簡述 -->
+	          			<p>👉 點擊下方「了解更多 」拍照即可上傳評估！專業古董文物拍賣諮詢，30年權威團隊誠信服務，為您的珍藏尋找最佳拍賣通路。
+很多人家裡都藏著被忽略的寶物！
+閣樓、櫃子、抽屜的舊瓷器、古玉銅器、老銀幣、名家</p>
+	          			<!-- 來源圖片 資料 -->
+	          			<div class="flexible visible">
+	            			<div class="dataDefine">
+				            	<!-- 這邊還要判斷 Source 來給圖片 -->
+
+						            <img src="/accessibility/resources/images/s_Facebook.png" alt="FB"/>
+
+
+
+
+
+
+
+	              				<!-- <div class="frequency" th:text="${case.queryCountFormat}"></div> -->
+	            			</div>
+	            			<!-- 是否是詐騙訊息 -->
+	            			<span class="yellow">高風險訊息，請謹慎評估</span>
+	          			</div>
+	        		</div>
+	      		</div>
+      		</a>
+    	</div>
+    	<div class="col card _demo">
+    		<!-- 導向詳細頁 -->
+      		<a href="/accessibility/detail?listType=N&amp;id=4175f13753d5204cd11f073f">
+	      		<div class="col_39">
+	      			<!-- 圖片 -->
+
+	        		<div class="col foto">
+
+
+
+				            <img src="/accessibility/resources/images/PRODUCT_AND_SERVICE.png" alt="產品服務" />
+
+
+
+
+
+
+
+
+	        		</div>
+	        		<!-- 網站內容 -->
+	        		<div class="col info">
+	        			<!-- 時間人數資訊 -->
+	        			<div class="flexible">
+                      		<div class="dataDefine">
+                        		<div class="releaseTime"><span>22天前</span></div>
+                        		<div class="readers"><span>2</span>人看過</div>
+                     	 	</div>
+                    	</div>
+	        			<!-- 網址 -->
+	          			<!-- <div class="flexible">
+	            			<span th:text="${case.sourceLink}"></span>
+	          			</div> -->
+	          			<!-- 簡述 -->
+	          			<p>🔥【老牌廠商清倉大拍賣！ 】沙龍級高品質護理產品虧本出售！溫和護甲液💅
+
+😨 指甲乾燥、倒刺、剝落，煩惱不已？凝膠美甲損傷、指甲表面粗糙暗淡、角質層開裂疼痛…您是否覺得沙龍護理價格昂貴且不划算？
+
+⚡</p>
+	          			<!-- 來源圖片 資料 -->
+	          			<div class="flexible visible">
+	            			<div class="dataDefine">
+				            	<!-- 這邊還要判斷 Source 來給圖片 -->
+
+						            <img src="/accessibility/resources/images/s_Facebook.png" alt="FB"/>
+
+
+
+
+
+
+
+	              				<!-- <div class="frequency" th:text="${case.queryCountFormat}"></div> -->
+	            			</div>
+	            			<!-- 是否是詐騙訊息 -->
+	            			<span class="yellow">高風險訊息，請謹慎評估</span>
+	          			</div>
+	        		</div>
+	      		</div>
+      		</a>
+    	</div>
+    	<div class="col card _demo">
+    		<!-- 導向詳細頁 -->
+      		<a href="/accessibility/detail?listType=N&amp;id=ad16bdc14777b79023ad4cc6">
+	      		<div class="col_39">
+	      			<!-- 圖片 -->
+
+	        		<div class="col foto">
+
+
+
+
+
+
+
+
+
+
+				            <img src="/accessibility/resources/images/OTHER.png" alt="其他詐騙" />
+
+	        		</div>
+	        		<!-- 網站內容 -->
+	        		<div class="col info">
+	        			<!-- 時間人數資訊 -->
+	        			<div class="flexible">
+                      		<div class="dataDefine">
+                        		<div class="releaseTime"><span>24天前</span></div>
+                        		<div class="readers"><span>1</span>人看過</div>
+                     	 	</div>
+                    	</div>
+	        			<!-- 網址 -->
+	          			<!-- <div class="flexible">
+	            			<span th:text="${case.sourceLink}"></span>
+	          			</div> -->
+	          			<!-- 簡述 -->
+	          			<p>[趨勢科技偵測結果]Yahoo! JAPAN提供新聞、搜尋、天氣、購物、拍賣、金融等多元服務，並整合PayPay、LINE等平台。</p>
+	          			<!-- 來源圖片 資料 -->
+	          			<div class="flexible visible">
+	            			<div class="dataDefine">
+				            	<!-- 這邊還要判斷 Source 來給圖片 -->
+
+
+
+						            <img src="/accessibility/resources/images/s_Web.png" alt="Web"/>
+
+
+
+
+
+	              				<!-- <div class="frequency" th:text="${case.queryCountFormat}"></div> -->
+	            			</div>
+	            			<!-- 是否是詐騙訊息 -->
+	            			<span class="yellow">高風險訊息，請謹慎評估</span>
+	          			</div>
+	        		</div>
+	      		</div>
+      		</a>
+    	</div>
+    	<div class="col card _demo">
+    		<!-- 導向詳細頁 -->
+      		<a href="/accessibility/detail?listType=N&amp;id=8f2eaf5b6c4c05acf3e4f1ed">
+	      		<div class="col_39">
+	      			<!-- 圖片 -->
+	        		<div class="col foto">
+	          			<img src="https://digi-runner.digiat.org.tw/api/fbr/v3/m/getIssueImage/8f2eaf5b6c4c05acf3e4f1ed" id="img_8f2eaf5b6c4c05acf3e4f1ed" alt="產品服務" referrerpolicy="no-referrer"/>
+
+	        		</div>
+
+	        		<!-- 網站內容 -->
+	        		<div class="col info">
+	        			<!-- 時間人數資訊 -->
+	        			<div class="flexible">
+                      		<div class="dataDefine">
+                        		<div class="releaseTime"><span>27天前</span></div>
+                        		<div class="readers"><span>1</span>人看過</div>
+                     	 	</div>
+                    	</div>
+	        			<!-- 網址 -->
+	          			<!-- <div class="flexible">
+	            			<span th:text="${case.sourceLink}"></span>
+	          			</div> -->
+	          			<!-- 簡述 -->
+	          			<p>🔥【老牌製造商庫存出清大拍賣！】沙龍級高級保養品虧本大放送！呵護指甲專用修護液💅
+https://woiq.shop/ujoujg04u800
+
+😨 指甲乾燥、肉刺、脫皮困擾著您嗎？凝膠指甲造成的受損</p>
+	          			<!-- 來源圖片 資料 -->
+	          			<div class="flexible visible">
+	            			<div class="dataDefine">
+				            	<!-- 這邊還要判斷 Source 來給圖片 -->
+
+						            <img src="/accessibility/resources/images/s_Facebook.png" alt="FB"/>
+
+
+
+
+
+
+
+	              				<!-- <div class="frequency" th:text="${case.queryCountFormat}"></div> -->
+	            			</div>
+	            			<!-- 是否是詐騙訊息 -->
+	            			<span class="red">詐騙訊息，已通知Meta移除</span>
+	          			</div>
+	        		</div>
+	      		</div>
+      		</a>
+    	</div>
+    	<div class="col card _demo">
+    		<!-- 導向詳細頁 -->
+      		<a href="/accessibility/detail?listType=N&amp;id=3609edf60939f46cb4b5230e">
+	      		<div class="col_39">
+	      			<!-- 圖片 -->
+	        		<div class="col foto">
+	          			<img src="https://digi-runner.digiat.org.tw/api/fbr/v3/m/getIssueImage/3609edf60939f46cb4b5230e" id="img_3609edf60939f46cb4b5230e" alt="其他詐騙" referrerpolicy="no-referrer"/>
+
+	        		</div>
+
+	        		<!-- 網站內容 -->
+	        		<div class="col info">
+	        			<!-- 時間人數資訊 -->
+	        			<div class="flexible">
+                      		<div class="dataDefine">
+                        		<div class="releaseTime"><span>27天前</span></div>
+                        		<div class="readers"><span>1</span>人看過</div>
+                     	 	</div>
+                    	</div>
+	        			<!-- 網址 -->
+	          			<!-- <div class="flexible">
+	            			<span th:text="${case.sourceLink}"></span>
+	          			</div> -->
+	          			<!-- 簡述 -->
+	          			<p>[趨勢科技偵測結果]CARDOPIA：台灣TCG生態系，提供卡牌鑑定、拍賣、買賣與倉儲服務。</p>
+	          			<!-- 來源圖片 資料 -->
+	          			<div class="flexible visible">
+	            			<div class="dataDefine">
+				            	<!-- 這邊還要判斷 Source 來給圖片 -->
+
+
+
+						            <img src="/accessibility/resources/images/s_Web.png" alt="Web"/>
+
+
+
+
+
+	              				<!-- <div class="frequency" th:text="${case.queryCountFormat}"></div> -->
+	            			</div>
+	            			<!-- 是否是詐騙訊息 -->
+	            			<span class="yellow">高風險訊息，請謹慎評估</span>
+	          			</div>
+	        		</div>
+	      		</div>
+      		</a>
+    	</div>
+  	</section>
+
+
+
+    <!-- Pagination -->
+
+
+    <div class="pagination" data-pagination-id="2">
+	  <form name="pageForm" action="/accessibility/index" method="get">
+	    <div class="form_inline">
+	      <div class="total">
+	        每頁顯示
+	        <select id="pages2" name="selectedPageSize" aria-label="每頁顯示">
+	          <option value="20">20</option>
+	          <option value="40">40</option>
+	          <option value="60">60</option>
+	          <option value="80">80</option>
+	        </select> 筆，
+	        第<span data-name="startSerialNo"></span>-<span data-name="endSerialNo"></span>筆案件（共<span>342</span>筆案件）
+	      </div>
+	    </div>
+	    <input type="hidden" name="listType" value="N"/>
+	    <input type="hidden" name="startSerialNo"/>
+	    <input type="hidden" name="pageSize"/>
+	    <input type="hidden" name="keyword"/>
+	    <input type="hidden" name="startDate"/>
+	    <input type="hidden" name="endDate"/>
+	    <input type="hidden" name="fraudType"/>
+	    <input type="hidden" name="platforms"/>
+      </form>
+      <ul class="page" data-name="pageLine"></ul>
+    </div>
+    <script type="text/javascript" nonce="nQBxHGrjb04oABGhEhH5uU0K">
+	  $(document).ready(function() {
+		var selectedId = "pages2";
+	    var listType = "N";
+	    var startSerialNo = 1;
+	    var endSerialNo = 20;
+	    var totalCount = 342;
+	    var pageSize = "20";
+	    var keyword = "\u62CD\u8CE3";
+	    var contextPath = "\/accessibility";
+	    var startDate = null;
+	    var endDate = null;
+	    var fraudType = "";
+	    var platforms = "";
+	    //console.log("selectedId: " + selectedId+ ", startSerialNo: " + startSerialNo + ", endSerialNo: " + endSerialNo + ", totalCount: " + totalCount + ", pageSize: " + pageSize);
+	    //console.log("keyword:" + keyword + ", contextPath: " + contextPath);
+
+	    // init
+	    calculatePages(startSerialNo, totalCount, pageSize, listType, $(this), keyword, contextPath, startDate, endDate, fraudType, platforms);
+
+	    // 監聽pageSubmit
+	    $("#"+selectedId).on("change", function (event) {
+		  event.preventDefault();
+          var $pagination = $(this).closest('.pagination');
+
+          let selectedPageSize = $(this).val();
+	      if (pageSize !== selectedPageSize) {
+	        let currentPage = Math.floor(startSerialNo / pageSize) + 1;
+	        let newStartSerialNo = (currentPage-1) * selectedPageSize + 1;
+	        // console.log('currentPage: ' + currentPage + ', newStartSerialNo: ' + newStartSerialNo + ', selectedPageSize:' + selectedPageSize);
+	        submitAction($pagination, newStartSerialNo, selectedPageSize, keyword, contextPath, startDate, endDate, fraudType, platforms);
+	      }
+	    });
+	  });
+
+	  function calculatePages(startSerialNo, totalCount, pageSize, listType, $pagination, keyword, contextPath, startDate, endDate, fraudType, platforms) {
+	    var currentPage = Math.floor(startSerialNo / pageSize) + 1;
+	    var totalPages = Math.floor(totalCount / pageSize);
+	    var endSerialNo = parseInt(startSerialNo, 10) + parseInt(pageSize, 10) - 1;
+
+	    $pagination.find('span[data-name="startSerialNo"]').text(startSerialNo);
+	    $pagination.find('span[data-name="endSerialNo"]').text(endSerialNo);
+	    //$pagination.find('span[data-name="currentPage"]').text(currentPage);
+	    //$pagination.find('span[data-name="totalPages"]').text(totalPages);
+	    $pagination.find('[name="selectedPageSize"]').val(pageSize);
+
+	    // 生成頁碼
+	    createPageLine(currentPage, totalPages, pageSize, listType, $pagination, keyword, contextPath, startDate, endDate, fraudType, platforms);
+	  }
+
+	  function createPageLine(currentPage, totalPages, pageSize, listType, $pagination, keyword, contextPath, startDate, endDate, fraudType, platforms) {
+	    var pageLine = $pagination.find('ul[data-name="pageLine"]');
+	    pageLine.empty();
+
+	    // 第一頁
+	    /* var firstPageItem = $('<li class="first"></li>')
+	      .append($('<a href="#" title="第一頁">第一頁</a>'))
+	      .on('click', function(event) {
+	    	submitAction($pagination, "1", pageSize, keyword, contextPath, startDate, endDate, fraudType, platforms);
+	      });
+	    pageLine.append(firstPageItem);*/
+
+	    // 上一頁
+	    var prevPageItem = null;
+	    if (currentPage !== 1) {
+	      let prevSerialNo = (currentPage - 2) * pageSize + 1;
+	      prevPageItem = $('<li class="prev"></li>')
+	      	.append($('<button type="button" title="回上一頁">回上一頁</button>'))
+	      	.on('click', function(event) {
+	    	  submitAction($pagination, prevSerialNo, pageSize, keyword, contextPath, startDate, endDate, fraudType, platforms);
+	  	  	});
+	    } else {
+	      prevPageItem = $('<li class="prev useless"></li>')
+		    .append($('<button type="button" title="回上一頁" disabled>回上一頁</button>'));
+	    }
+	    pageLine.append(prevPageItem);
+
+	    // 計算顯示的範圍
+	    /* var startPage = Math.max(1, currentPage - 4);
+	    var endPage = Math.min(totalPages, currentPage + 4);
+
+	    for (let i=startPage; i<=endPage; i++) {
+	      let newSerailNo = (i - 1) * pageSize + 1;
+	      let pageItem = $('<li></li>')
+	    	.append($('<a href="#" title="' + i + '頁">' + i + '</a>'))
+	    	.on('click', function(event) {
+	    	  submitAction($pagination, newSerailNo, pageSize, keyword, contextPath, startDate, endDate, fraudType, platforms);
+	  	  	});
+
+	      if (i === currentPage) {
+	    	pageItem.addClass('active');
+	      }
+	      pageLine.append(pageItem);
+	    }*/
+
+	    // 下一頁
+	    let nextSerialNo = 0;
+	    if (currentPage !== totalPages) {
+	      nextSerialNo = currentPage * pageSize + 1;
+	    } else {
+	  	  nextSerialNo = (totalPages - 1) * pageSize + 1;
+	    }
+	    var nextPageItem = $('<li class="next"></li>')
+	      .append($('<button type="button" title="下一頁">下一頁</button>'))
+	      .on('click', function(event) {
+	    	submitAction($pagination, nextSerialNo, pageSize, keyword, contextPath, startDate, endDate, fraudType, platforms);
+	  	  });
+	    pageLine.append(nextPageItem);
+	  }
+
+	  function submitAction($pagination, serialNo, pageSize, keyword, contextPath, startDate, endDate, fraudType, platforms) {
+	    $pagination.find("[name='startSerialNo']").val(serialNo);
+	    $pagination.find("[name='pageSize']").val(pageSize);
+		if (isEmpty(keyword) && isEmpty(startDate) && isEmpty(endDate) && isEmpty(fraudType) && isEmpty(platforms)) {
+		  $pagination.find("[name='pageForm']").submit();
+		} else {
+		  $pagination.find("[name='keyword']").val(keyword);
+		  $pagination.find("[name='startDate']").val(startDate);
+		  $pagination.find("[name='endDate']").val(endDate);
+		  $pagination.find("[name='fraudType']").val(fraudType);
+		  $pagination.find("[name='platforms']").val(platforms);
+		  let $form = $pagination.find("form[name='pageForm']");
+		  $form.attr("action", contextPath + "/search");
+		  $form.submit();
+		}
+	  }
+
+	  function isEmpty(str) {
+	    return str === null || str.trim() === "";
+	  }
+    </script>
+
+
+
+		</div>
+	  </main>
+	  <!-- footer -->
+	  <!DOCTYPE html>
+<html>
+
+  	<footer>
+	  <script nonce="nQBxHGrjb04oABGhEhH5uU0K">
+	    window.dataLayer = window.dataLayer || [];
+	    function gtag(){dataLayer.push(arguments);}
+	    gtag('js', new Date());
+
+	    gtag('config', 'G-QPMWTEGRE1');
+	  </script>
+	  <div class="container">
+	    <a class="accesskey" href="#aZ" id="aZ" accesskey="Z" title="頁尾網站資訊">:::</a>
+
+	    <div class="footer_logo">
+	      <div class="col">
+	        <img src="/accessibility/resources/images/logo.png" alt="數位發展部" class="img-responsive" />
+	        <ul>
+	          <li class="address"><b>單位地址</b>100057 臺北市中正區延平南路143號</li>
+              <li class="contactTel"><b>服務電話</b>0800-770-707&nbsp;&nbsp;傳真電話：02-2380-0791</li>
+              <li class="contacMail"><b>民意信箱</b><a href="https://www-mailbox.moda.gov.tw/" target="_blank" rel="noopener noreferrer">www-mailbox.moda.gov.tw（另開視窗）</a></li>
+	        </ul>
+	      </div>
+	      <div class="col">
+	        <!-- <span class="counter">累計瀏覽人次：<em>46476653</em></span> -->
+            <span class="update">更新日期：<em>2026/05/20</em></span>
+            <div class="footer_icon">
+              <a target="_blank" rel="noopener noreferrer" href="https://accessibility.moda.gov.tw/Applications/Detail?category=20241218101418"  title="無障礙網站(另開視窗)">
+                <img src="/accessibility/resources/images/basic/accessibility_aa.jpg" alt="通過AA優先等級無障礙網頁檢測,另開新視窗" />
+              </a>
+            </div>
+	      </div>
+	    </div>
+
+	    <div class="footer_info">
+	      <p class="Copyright"></p>
+          <ul class="footer_link">
+            <li><a href="/accessibility/privacy">隱私權及網站安全政策</a></li>
+            <li><a href="/accessibility/decoration">政府網站資料開放宣告</a></li>
+          </ul>
+        </div>
+	  </div>
+	</footer>
+
+</html>
+    </div>
+    <a href="#aU" class="scrollToTop">回到頁面頂端</a>
+  </body>
+</html>
