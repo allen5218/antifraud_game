@@ -2,11 +2,13 @@ import type { QuizDeckResponse } from "@/client"
 import { MatchQuestion } from "./MatchQuestion"
 import { TacticsQuestion } from "./TacticsQuestion"
 import { VerdictQuestion } from "./VerdictQuestion"
+import { VerificationQuestion } from "./VerificationQuestion"
 
 type QuizItem = QuizDeckResponse["items"][number]
 
 export type QuizDraftAnswer =
   | { guess_is_scam: boolean }
+  | { selected_option: string }
   | { selected_tags: string[] }
   | { pairs: Record<string, string> }
 
@@ -35,6 +37,18 @@ export function QuizCard({
           total={total}
           disabled={disabled}
           onSubmit={(guessIsScam) => onSubmit({ guess_is_scam: guessIsScam })}
+        />
+      )
+    case "verification":
+      return (
+        <VerificationQuestion
+          item={item}
+          index={index}
+          total={total}
+          disabled={disabled}
+          onSubmit={(selectedOption) =>
+            onSubmit({ selected_option: selectedOption })
+          }
         />
       )
     case "tactics":

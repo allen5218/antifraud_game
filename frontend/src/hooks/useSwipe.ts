@@ -15,12 +15,26 @@ export function useSwipeDeck(size = 12) {
 
 // ── 變更 ──────────────────────────────────────────────────────────────────────
 
-/** 提交單張卡片答案 */
+/** 提交單張卡片答案（支援詐騙、正常與安全略過） */
 export function useSwipeAnswer() {
   return useMutation({
-    mutationFn: (vars: { cardId: string; guessIsScam: boolean }) =>
+    mutationFn: (vars: {
+      sessionId: string
+      cardId: string
+      action: "scam" | "legit" | "skip"
+    }) =>
       QuickService.swipeAnswer({
-        requestBody: { card_id: vars.cardId, guess_is_scam: vars.guessIsScam },
+        requestBody: {
+          session_id: vars.sessionId,
+          card_id: vars.cardId,
+          action: vars.action,
+          guess_is_scam:
+            vars.action === "scam"
+              ? true
+              : vars.action === "legit"
+                ? false
+                : null,
+        },
       }),
   })
 }
@@ -29,8 +43,8 @@ export function useSwipeAnswer() {
 export function useSwipeComplete() {
   const qc = useQueryClient()
   return useMutation({
-    mutationFn: (answers: { card_id: string; guess_is_scam: boolean }[]) =>
-      QuickService.swipeComplete({ requestBody: { answers } }),
+    mutationFn: (sessionId: string) =>
+      QuickService.swipeComplete({ requestBody: { session_id: sessionId } }),
     onSuccess: () => qc.invalidateQueries({ queryKey: ["economy"] }),
   })
 }

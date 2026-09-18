@@ -3,7 +3,7 @@
 import type { CancelablePromise } from './core/CancelablePromise';
 import { OpenAPI } from './core/OpenAPI';
 import { request as __request } from './core/request';
-import type { EconomyReadMeResponse, EconomyPostSettleResponse, EconomyClaimResponse, EconomyListPropertiesResponse, EconomyBuyPropertyData, EconomyBuyPropertyResponse, EconomyGetAssetsResponse, EconomyPostLiquidateData, EconomyPostLiquidateResponse, ItemsReadItemsData, ItemsReadItemsResponse, ItemsCreateItemData, ItemsCreateItemResponse, ItemsReadItemData, ItemsReadItemResponse, ItemsUpdateItemData, ItemsUpdateItemResponse, ItemsDeleteItemData, ItemsDeleteItemResponse, LoginLoginAccessTokenData, LoginLoginAccessTokenResponse, LoginTestTokenResponse, LoginRecoverPasswordData, LoginRecoverPasswordResponse, LoginResetPasswordData, LoginResetPasswordResponse, LoginRecoverPasswordHtmlContentData, LoginRecoverPasswordHtmlContentResponse, MascotListMascotItemsResponse, MascotPurchaseItemData, MascotPurchaseItemResponse, MascotToggleEquipData, MascotToggleEquipResponse, MascotGetMyMascotResponse, PretestGetPretestQuestionsResponse, PretestSubmitPretestData, PretestSubmitPretestResponse, PrivateCreateUserData, PrivateCreateUserResponse, QuickSwipeDeckData, QuickSwipeDeckResponse, QuickSwipeAnswerData, QuickSwipeAnswerResponse, QuickSwipeCompleteData, QuickSwipeCompleteResponse, QuickQuizDeckData, QuickQuizDeckResponse, QuickQuizAnswerData, QuickQuizAnswerResponse, QuickQuizCompleteData, QuickQuizCompleteResponse, ScenarioInboxResponse, ScenarioCreateScenarioData, ScenarioCreateScenarioResponse, ScenarioReadScenarioData, ScenarioReadScenarioResponse, ScenarioSendMessageData, ScenarioSendMessageResponse, ScenarioJudgeScenarioData, ScenarioJudgeScenarioResponse, ScoreGetMyScoreResponse, UsersReadUsersData, UsersReadUsersResponse, UsersCreateUserData, UsersCreateUserResponse, UsersReadUserMeResponse, UsersDeleteUserMeResponse, UsersUpdateUserMeData, UsersUpdateUserMeResponse, UsersUpdatePasswordMeData, UsersUpdatePasswordMeResponse, UsersRegisterUserData, UsersRegisterUserResponse, UsersReadUserByIdData, UsersReadUserByIdResponse, UsersUpdateUserData, UsersUpdateUserResponse, UsersDeleteUserData, UsersDeleteUserResponse, UtilsTestEmailData, UtilsTestEmailResponse, UtilsHealthCheckResponse } from './types.gen';
+import type { EconomyReadMeResponse, EconomyPostSettleResponse, EconomyClaimResponse, EconomyListPropertiesResponse, EconomyBuyPropertyData, EconomyBuyPropertyResponse, EconomyGetAssetsResponse, EconomyPostLiquidateData, EconomyPostLiquidateResponse, EconomyGetChaptersResponse, EconomyPostClaimStarterGrantResponse, EconomyGetHouseTaskResponse, EconomyVerifyHouseTaskData, EconomyVerifyHouseTaskResponse, EconomyResolveHouseTaskEndpointData, EconomyResolveHouseTaskEndpointResponse, EconomyGetMyHomeResponse, EconomyBuyHomeDecorData, EconomyBuyHomeDecorResponse, EconomyToggleHomeDecorData, EconomyToggleHomeDecorResponse, EconomyGetHomeEventResponse, EconomyResolveHomeEventResponse, EconomyGetVehicleResponse, EconomyBuyVehicleResponse, EconomyResolveVehicleEventResponse, ItemsReadItemsData, ItemsReadItemsResponse, ItemsCreateItemData, ItemsCreateItemResponse, ItemsReadItemData, ItemsReadItemResponse, ItemsUpdateItemData, ItemsUpdateItemResponse, ItemsDeleteItemData, ItemsDeleteItemResponse, LoginLoginAccessTokenData, LoginLoginAccessTokenResponse, LoginTestTokenResponse, LoginRecoverPasswordData, LoginRecoverPasswordResponse, LoginResetPasswordData, LoginResetPasswordResponse, LoginRecoverPasswordHtmlContentData, LoginRecoverPasswordHtmlContentResponse, MascotListMascotItemsResponse, MascotPurchaseItemData, MascotPurchaseItemResponse, MascotToggleEquipData, MascotToggleEquipResponse, MascotGetMyMascotResponse, PretestGetPretestQuestionsResponse, PretestSubmitPretestData, PretestSubmitPretestResponse, PrivateCreateUserData, PrivateCreateUserResponse, QuickSwipeDeckData, QuickSwipeDeckResponse, QuickSwipeAnswerData, QuickSwipeAnswerResponse, QuickSwipeCompleteData, QuickSwipeCompleteResponse, QuickQuizDeckData, QuickQuizDeckResponse, QuickQuizAnswerData, QuickQuizAnswerResponse, QuickQuizCompleteData, QuickQuizCompleteResponse, ScenarioInboxResponse, ScenarioCreateScenarioData, ScenarioCreateScenarioResponse, ScenarioReadScenarioData, ScenarioReadScenarioResponse, ScenarioSendMessageData, ScenarioSendMessageResponse, ScenarioVerifyScenarioData, ScenarioVerifyScenarioResponse, ScenarioJudgeScenarioData, ScenarioJudgeScenarioResponse, ScoreGetMyScoreResponse, UsersReadUsersData, UsersReadUsersResponse, UsersCreateUserData, UsersCreateUserResponse, UsersReadUserMeResponse, UsersDeleteUserMeResponse, UsersUpdateUserMeData, UsersUpdateUserMeResponse, UsersUpdatePasswordMeData, UsersUpdatePasswordMeResponse, UsersRegisterUserData, UsersRegisterUserResponse, UsersReadUserByIdData, UsersReadUserByIdResponse, UsersUpdateUserData, UsersUpdateUserResponse, UsersDeleteUserData, UsersDeleteUserResponse, UtilsTestEmailData, UtilsTestEmailResponse, UtilsHealthCheckResponse } from './types.gen';
 
 export class EconomyService {
     /**
@@ -109,6 +109,203 @@ export class EconomyService {
             errors: {
                 422: 'Validation Error'
             }
+        });
+    }
+    
+    /**
+     * Get Chapters
+     * 取得玩家目前章節推進進度與累積收入倍率。
+     * @returns ChapterStatusResponse Successful Response
+     * @throws ApiError
+     */
+    public static getChapters(): CancelablePromise<EconomyGetChaptersResponse> {
+        return __request(OpenAPI, {
+            method: 'GET',
+            url: '/api/v1/economy/chapters'
+        });
+    }
+    
+    /**
+     * Post Claim Starter Grant
+     * 完成第 1 章後領取 7,000 元入門創業補助。
+     * @returns ClaimStarterGrantResponse Successful Response
+     * @throws ApiError
+     */
+    public static postClaimStarterGrant(): CancelablePromise<EconomyPostClaimStarterGrantResponse> {
+        return __request(OpenAPI, {
+            method: 'POST',
+            url: '/api/v1/economy/claim-starter-grant'
+        });
+    }
+    
+    /**
+     * Get House Task
+     * 取得首次購屋查證任務狀態。
+     * @returns HouseTaskPublic Successful Response
+     * @throws ApiError
+     */
+    public static getHouseTask(): CancelablePromise<EconomyGetHouseTaskResponse> {
+        return __request(OpenAPI, {
+            method: 'GET',
+            url: '/api/v1/economy/house-task'
+        });
+    }
+    
+    /**
+     * Verify House Task
+     * 執行購屋查證步驟取得客觀事實。
+     * @param data The data for the request.
+     * @param data.requestBody
+     * @returns HouseTaskVerifyResponse Successful Response
+     * @throws ApiError
+     */
+    public static verifyHouseTask(data: EconomyVerifyHouseTaskData): CancelablePromise<EconomyVerifyHouseTaskResponse> {
+        return __request(OpenAPI, {
+            method: 'POST',
+            url: '/api/v1/economy/house-task/verify',
+            body: data.requestBody,
+            mediaType: 'application/json',
+            errors: {
+                422: 'Validation Error'
+            }
+        });
+    }
+    
+    /**
+     * Resolve House Task Endpoint
+     * 決策：堅持履約保證官方專戶 vs 私下匯款保留金。
+     * @param data The data for the request.
+     * @param data.requestBody
+     * @returns HouseTaskResolveResponse Successful Response
+     * @throws ApiError
+     */
+    public static resolveHouseTaskEndpoint(data: EconomyResolveHouseTaskEndpointData): CancelablePromise<EconomyResolveHouseTaskEndpointResponse> {
+        return __request(OpenAPI, {
+            method: 'POST',
+            url: '/api/v1/economy/house-task/resolve',
+            body: data.requestBody,
+            mediaType: 'application/json',
+            errors: {
+                422: 'Validation Error'
+            }
+        });
+    }
+    
+    /**
+     * Get My Home
+     * 取得我的家園狀態、擁有裝飾與後續修繕事件。
+     * @returns MyHomeResponse Successful Response
+     * @throws ApiError
+     */
+    public static getMyHome(): CancelablePromise<EconomyGetMyHomeResponse> {
+        return __request(OpenAPI, {
+            method: 'GET',
+            url: '/api/v1/economy/home'
+        });
+    }
+    
+    /**
+     * Buy Home Decor
+     * 購買家園裝飾品。
+     * @param data The data for the request.
+     * @param data.requestBody
+     * @returns MyHomeResponse Successful Response
+     * @throws ApiError
+     */
+    public static buyHomeDecor(data: EconomyBuyHomeDecorData): CancelablePromise<EconomyBuyHomeDecorResponse> {
+        return __request(OpenAPI, {
+            method: 'POST',
+            url: '/api/v1/economy/home/decor/buy',
+            body: data.requestBody,
+            mediaType: 'application/json',
+            errors: {
+                422: 'Validation Error'
+            }
+        });
+    }
+    
+    /**
+     * Toggle Home Decor
+     * 切換已擁有裝飾品的展示狀態。
+     * @param data The data for the request.
+     * @param data.requestBody
+     * @returns MyHomeResponse Successful Response
+     * @throws ApiError
+     */
+    public static toggleHomeDecor(data: EconomyToggleHomeDecorData): CancelablePromise<EconomyToggleHomeDecorResponse> {
+        return __request(OpenAPI, {
+            method: 'POST',
+            url: '/api/v1/economy/home/decor/toggle',
+            body: data.requestBody,
+            mediaType: 'application/json',
+            errors: {
+                422: 'Validation Error'
+            }
+        });
+    }
+    
+    /**
+     * Get Home Event
+     * 取得房屋入住後之管線修繕事件。
+     * @returns HomeFollowUpEventResponse Successful Response
+     * @throws ApiError
+     */
+    public static getHomeEvent(): CancelablePromise<EconomyGetHomeEventResponse> {
+        return __request(OpenAPI, {
+            method: 'GET',
+            url: '/api/v1/economy/home/event'
+        });
+    }
+    
+    /**
+     * Resolve Home Event
+     * 完成管線修繕查證事件並獲得獎勵。
+     * @returns HomeFollowUpEventResponse Successful Response
+     * @throws ApiError
+     */
+    public static resolveHomeEvent(): CancelablePromise<EconomyResolveHomeEventResponse> {
+        return __request(OpenAPI, {
+            method: 'POST',
+            url: '/api/v1/economy/home/event/resolve'
+        });
+    }
+    
+    /**
+     * Get Vehicle
+     * 取得車輛資產持有狀況與後續事件。
+     * @returns VehiclePublic Successful Response
+     * @throws ApiError
+     */
+    public static getVehicle(): CancelablePromise<EconomyGetVehicleResponse> {
+        return __request(OpenAPI, {
+            method: 'GET',
+            url: '/api/v1/economy/vehicle'
+        });
+    }
+    
+    /**
+     * Buy Vehicle
+     * 購買代步車輛資產。
+     * @returns VehiclePublic Successful Response
+     * @throws ApiError
+     */
+    public static buyVehicle(): CancelablePromise<EconomyBuyVehicleResponse> {
+        return __request(OpenAPI, {
+            method: 'POST',
+            url: '/api/v1/economy/vehicle/buy'
+        });
+    }
+    
+    /**
+     * Resolve Vehicle Event
+     * 完成車輛過戶與定金查證事件。
+     * @returns VehiclePublic Successful Response
+     * @throws ApiError
+     */
+    public static resolveVehicleEvent(): CancelablePromise<EconomyResolveVehicleEventResponse> {
+        return __request(OpenAPI, {
+            method: 'POST',
+            url: '/api/v1/economy/vehicle/event/resolve'
         });
     }
 }
@@ -453,7 +650,7 @@ export class QuickService {
      * Swipe Deck
      * @param data The data for the request.
      * @param data.size
-     * @returns SwipeCardPublic Successful Response
+     * @returns SwipeDeckResponse Successful Response
      * @throws ApiError
      */
     public static swipeDeck(data: QuickSwipeDeckData = {}): CancelablePromise<QuickSwipeDeckResponse> {
@@ -646,8 +843,32 @@ export class ScenarioService {
     }
     
     /**
+     * Verify Scenario
+     * 執行獨立查證工具（不呼叫 LLM，查閱客觀公開紀錄）。
+     * @param data The data for the request.
+     * @param data.scenarioId
+     * @param data.requestBody
+     * @returns ScenarioVerifyResponse Successful Response
+     * @throws ApiError
+     */
+    public static verifyScenario(data: ScenarioVerifyScenarioData): CancelablePromise<ScenarioVerifyScenarioResponse> {
+        return __request(OpenAPI, {
+            method: 'POST',
+            url: '/api/v1/scenario/{scenario_id}/verify',
+            path: {
+                scenario_id: data.scenarioId
+            },
+            body: data.requestBody,
+            mediaType: 'application/json',
+            errors: {
+                422: 'Validation Error'
+            }
+        });
+    }
+    
+    /**
      * Judge Scenario
-     * 確定性裁決 → 經濟入口 → 揭曉。
+     * 確定性裁決 → 經濟入口 → 揭曉。鎖定順序：先 session 後 user。
      * @param data The data for the request.
      * @param data.scenarioId
      * @param data.requestBody

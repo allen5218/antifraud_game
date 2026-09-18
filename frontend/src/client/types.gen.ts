@@ -22,6 +22,30 @@ export type BuyPropertyResponse = {
     new_cash: number;
 };
 
+export type ChapterMilestonePublic = {
+    chapter_id: number;
+    title: string;
+    skill_type: string;
+    description: string;
+    quiz_completed: boolean;
+    scenario_completed: boolean;
+    is_completed: boolean;
+    is_current: boolean;
+};
+
+export type ChapterStatusResponse = {
+    completed_chapters: number;
+    income_multiplier: number;
+    starter_grant_claimed: boolean;
+    can_claim_starter_grant: boolean;
+    chapters: Array<ChapterMilestonePublic>;
+};
+
+export type ClaimStarterGrantResponse = {
+    granted_cash: number;
+    new_cash: number;
+};
+
 export type EconomyMeResponse = {
     cash: number;
     xp: number;
@@ -29,6 +53,7 @@ export type EconomyMeResponse = {
     streak_days: number;
     pending_accrual: number;
     bankruptcy_pending: boolean;
+    completed_chapters?: number;
 };
 
 export type FlagItem = {
@@ -40,6 +65,69 @@ export type FlagItem = {
 export type FraudTypeResult = {
     correct: number;
     total: number;
+};
+
+export type HomeDecorActionRequest = {
+    decor_id: string;
+};
+
+export type HomeDecorItemPublic = {
+    id: string;
+    name: string;
+    cost: number;
+    description: string;
+    icon: string;
+    is_owned: boolean;
+    is_equipped: boolean;
+};
+
+export type HomeFollowUpEventResponse = {
+    event_id: string;
+    title: string;
+    scenario: string;
+    verification_step: string;
+    evidence: string;
+    is_completed: boolean;
+};
+
+export type HouseTaskPublic = {
+    task_id: string;
+    tier_id: number;
+    title: string;
+    scenario: string;
+    steps: Array<HouseTaskStepPublic>;
+    is_passed: boolean;
+    can_proceed_to_buy: boolean;
+};
+
+export type HouseTaskResolveRequest = {
+    choice: 'official_escrow' | 'private_wire';
+};
+
+export type choice = 'official_escrow' | 'private_wire';
+
+export type HouseTaskResolveResponse = {
+    is_passed: boolean;
+    message: string;
+    can_buy: boolean;
+};
+
+export type HouseTaskStepPublic = {
+    step_id: string;
+    name: string;
+    description: string;
+    evidence?: (string | null);
+    is_done?: boolean;
+};
+
+export type HouseTaskVerifyRequest = {
+    step_id: string;
+};
+
+export type HouseTaskVerifyResponse = {
+    step_id: string;
+    evidence: string;
+    all_steps_done: boolean;
 };
 
 export type HTTPValidationError = {
@@ -83,6 +171,16 @@ export type Message = {
     message: string;
 };
 
+export type MyHomeResponse = {
+    has_house: boolean;
+    house_count: number;
+    best_tier_name: (string | null);
+    decorations: Array<HomeDecorItemPublic>;
+    follow_up_event_unlocked: boolean;
+    follow_up_event_title: (string | null);
+    follow_up_event_done: boolean;
+};
+
 export type NewPassword = {
     token: string;
     new_password: string;
@@ -92,6 +190,7 @@ export type OwnedPropertyPublic = {
     id: string;
     tier: PropertyTierPublic;
     purchased_at: string;
+    purchase_price?: number;
 };
 
 export type PretestAnswer = {
@@ -135,6 +234,7 @@ export type PropertyTierPublic = {
 export type QuizAnswerRequest = {
     item_id: string;
     guess_is_scam?: (boolean | null);
+    selected_option?: (string | null);
     selected_tags?: (Array<(string)> | null);
     pairs?: ({
     [key: string]: (string);
@@ -157,7 +257,7 @@ export type QuizCompleteResponse = {
 
 export type QuizDeckResponse = {
     session_id: string;
-    items: Array<(QuizVerdictPublic | QuizTacticsPublic | QuizMatchPublic)>;
+    items: Array<(QuizVerdictPublic | QuizVerificationPublic | QuizTacticsPublic | QuizMatchPublic)>;
 };
 
 export type QuizMatchAnswerResponse = {
@@ -213,10 +313,8 @@ export type QuizTacticsOption = {
 export type QuizTacticsPublic = {
     item_id: string;
     type?: "tactics";
-    fraud_type: string;
     title: string;
     narrative: string;
-    difficulty: number;
     question: string;
     options: Array<QuizTacticsOption>;
 };
@@ -233,10 +331,29 @@ export type QuizVerdictAnswerResponse = {
 export type QuizVerdictPublic = {
     item_id: string;
     type?: "verdict";
-    fraud_type: string;
     title: string;
     narrative: string;
-    difficulty: number;
+};
+
+export type QuizVerificationAnswerResponse = {
+    type?: "verification";
+    correct: boolean;
+    explanation: string;
+    tag_details: Array<QuizWeaknessDetail>;
+};
+
+export type QuizVerificationOption = {
+    key: string;
+    text: string;
+};
+
+export type QuizVerificationPublic = {
+    item_id: string;
+    type?: "verification";
+    title: string;
+    narrative: string;
+    question: string;
+    options: Array<QuizVerificationOption>;
 };
 
 export type QuizWeaknessDetail = {
@@ -257,6 +374,14 @@ export type ScenarioDetail = {
     history: Array<{
         [key: string]: unknown;
     }>;
+    available_tools?: Array<ScenarioToolItem>;
+    unlocked_evidence?: Array<ScenarioEvidenceItem>;
+};
+
+export type ScenarioEvidenceItem = {
+    tool_id: string;
+    title: string;
+    content: string;
 };
 
 export type ScenarioInboxItem = {
@@ -271,10 +396,10 @@ export type ScenarioInboxItem = {
 };
 
 export type ScenarioJudgeRequest = {
-    action: 'report' | 'comply';
+    action: 'report' | 'comply' | 'safe_exit';
 };
 
-export type action = 'report' | 'comply';
+export type action = 'report' | 'comply' | 'safe_exit';
 
 export type ScenarioJudgeResponse = {
     outcome: string;
@@ -286,6 +411,7 @@ export type ScenarioJudgeResponse = {
     new_cash: number;
     triggers_forced_sell: boolean;
     case_provenance: (string | null);
+    unlocked_evidence_count?: number;
 };
 
 export type ScenarioMessageRequest = {
@@ -302,19 +428,33 @@ export type ScenarioNewRequest = {
     fraud_type: string;
 };
 
-export type SwipeAnswerItem = {
-    card_id: string;
-    guess_is_scam: boolean;
+export type ScenarioToolItem = {
+    tool_id: string;
+    name: string;
+    description: string;
+};
+
+export type ScenarioVerifyRequest = {
+    tool_id: string;
+};
+
+export type ScenarioVerifyResponse = {
+    evidence: ScenarioEvidenceItem;
+    already_unlocked: boolean;
+    unlocked_evidence: Array<ScenarioEvidenceItem>;
 };
 
 export type SwipeAnswerRequest = {
+    session_id: string;
     card_id: string;
-    guess_is_scam: boolean;
+    guess_is_scam?: (boolean | null);
+    action?: ('scam' | 'legit' | 'skip' | null);
 };
 
 export type SwipeAnswerResponse = {
     correct: boolean;
     is_scam: boolean;
+    action_taken: string;
     explanation: string;
     weakness_tags: Array<(string)>;
     tag_details: Array<QuizWeaknessDetail>;
@@ -323,13 +463,10 @@ export type SwipeAnswerResponse = {
 export type SwipeCardPublic = {
     id: string;
     scenario: string;
-    source_label: string;
-    fraud_type: string;
-    difficulty: number;
 };
 
 export type SwipeCompleteRequest = {
-    answers: Array<SwipeAnswerItem>;
+    session_id: string;
 };
 
 export type SwipeCompleteResponse = {
@@ -339,6 +476,11 @@ export type SwipeCompleteResponse = {
     cash_earned: number;
     xp_earned: number;
     weakness_summary: Array<WeaknessSummaryItem>;
+};
+
+export type SwipeDeckResponse = {
+    session_id: string;
+    cards: Array<SwipeCardPublic>;
 };
 
 export type Token = {
@@ -402,6 +544,15 @@ export type ValidationError = {
     };
 };
 
+export type VehiclePublic = {
+    name: string;
+    price: number;
+    is_owned: boolean;
+    purchased_at: (string | null);
+    follow_up_event_title: string;
+    follow_up_event_done: boolean;
+};
+
 export type WeaknessSummaryItem = {
     tag: string;
     label: string;
@@ -429,6 +580,48 @@ export type EconomyPostLiquidateData = {
 };
 
 export type EconomyPostLiquidateResponse = (LiquidateResponse);
+
+export type EconomyGetChaptersResponse = (ChapterStatusResponse);
+
+export type EconomyPostClaimStarterGrantResponse = (ClaimStarterGrantResponse);
+
+export type EconomyGetHouseTaskResponse = (HouseTaskPublic);
+
+export type EconomyVerifyHouseTaskData = {
+    requestBody: HouseTaskVerifyRequest;
+};
+
+export type EconomyVerifyHouseTaskResponse = (HouseTaskVerifyResponse);
+
+export type EconomyResolveHouseTaskEndpointData = {
+    requestBody: HouseTaskResolveRequest;
+};
+
+export type EconomyResolveHouseTaskEndpointResponse = (HouseTaskResolveResponse);
+
+export type EconomyGetMyHomeResponse = (MyHomeResponse);
+
+export type EconomyBuyHomeDecorData = {
+    requestBody: HomeDecorActionRequest;
+};
+
+export type EconomyBuyHomeDecorResponse = (MyHomeResponse);
+
+export type EconomyToggleHomeDecorData = {
+    requestBody: HomeDecorActionRequest;
+};
+
+export type EconomyToggleHomeDecorResponse = (MyHomeResponse);
+
+export type EconomyGetHomeEventResponse = (HomeFollowUpEventResponse);
+
+export type EconomyResolveHomeEventResponse = (HomeFollowUpEventResponse);
+
+export type EconomyGetVehicleResponse = (VehiclePublic);
+
+export type EconomyBuyVehicleResponse = (VehiclePublic);
+
+export type EconomyResolveVehicleEventResponse = (VehiclePublic);
 
 export type ItemsReadItemsData = {
     limit?: number;
@@ -522,7 +715,7 @@ export type QuickSwipeDeckData = {
     size?: number;
 };
 
-export type QuickSwipeDeckResponse = (Array<SwipeCardPublic>);
+export type QuickSwipeDeckResponse = (SwipeDeckResponse);
 
 export type QuickSwipeAnswerData = {
     requestBody: SwipeAnswerRequest;
@@ -546,7 +739,7 @@ export type QuickQuizAnswerData = {
     requestBody: QuizAnswerRequest;
 };
 
-export type QuickQuizAnswerResponse = ((QuizVerdictAnswerResponse | QuizTacticsAnswerResponse | QuizMatchAnswerResponse));
+export type QuickQuizAnswerResponse = ((QuizVerdictAnswerResponse | QuizVerificationAnswerResponse | QuizTacticsAnswerResponse | QuizMatchAnswerResponse));
 
 export type QuickQuizCompleteData = {
     requestBody: QuizCompleteRequest;
@@ -574,6 +767,13 @@ export type ScenarioSendMessageData = {
 };
 
 export type ScenarioSendMessageResponse = (ScenarioMessageResponse);
+
+export type ScenarioVerifyScenarioData = {
+    requestBody: ScenarioVerifyRequest;
+    scenarioId: string;
+};
+
+export type ScenarioVerifyScenarioResponse = (ScenarioVerifyResponse);
 
 export type ScenarioJudgeScenarioData = {
     requestBody: ScenarioJudgeRequest;

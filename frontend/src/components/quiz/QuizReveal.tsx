@@ -131,6 +131,19 @@ function MatchReveal({
   )
 }
 
+function VerificationReveal({ result }: { result: QuickQuizAnswerResponse }) {
+  if (result.type !== "verification") return null
+  return (
+    <>
+      <div className="mt-3 rounded-xl bg-muted p-3 text-xs leading-relaxed">
+        <span className="font-bold text-foreground">查證解析：</span>
+        <p className="mt-1 text-muted-foreground">{result.explanation}</p>
+      </div>
+      <WeaknessDetails details={result.tag_details} />
+    </>
+  )
+}
+
 /** 單題揭曉：依題型顯示答案差異，並共用後端提供的弱點建議。 */
 export function QuizReveal({
   item,
@@ -154,6 +167,7 @@ export function QuizReveal({
           {result.correct ? "✓ 答對了！" : "✗ 答錯了…"}
         </h3>
         <VerdictReveal result={result} />
+        <VerificationReveal result={result} />
         <TacticsReveal result={result} />
         <MatchReveal item={item} result={result} />
         <button

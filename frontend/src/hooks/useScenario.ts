@@ -35,7 +35,7 @@ export function useSendMessage(id: string) {
 export function useJudge(id: string) {
   const qc = useQueryClient()
   return useMutation({
-    mutationFn: (action: "report" | "comply") =>
+    mutationFn: (action: "report" | "comply" | "safe_exit") =>
       ScenarioService.judgeScenario({
         scenarioId: id,
         requestBody: { action },
@@ -44,6 +44,19 @@ export function useJudge(id: string) {
       qc.invalidateQueries({ queryKey: ["economy"] })
       qc.invalidateQueries({ queryKey: ["scenario"] })
     },
+  })
+}
+
+/** 執行情境獨立查證工具 */
+export function useVerifyScenario(id: string) {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: (toolId: string) =>
+      ScenarioService.verifyScenario({
+        scenarioId: id,
+        requestBody: { tool_id: toolId },
+      }),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ["scenario", id] }),
   })
 }
 

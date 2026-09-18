@@ -20,23 +20,21 @@ export function SwipeDeck() {
   const [idx, setIdx] = useState(0)
   const [alertness, setAlertness] = useState(MAX_ALERTNESS)
   const [streak, setStreak] = useState(0)
-  const [answers, setAnswers] = useState<
-    { card_id: string; guess_is_scam: boolean }[]
-  >([])
   const [feedback, setFeedback] = useState<{
     correct: boolean
     explanation: string
     weaknessDetails: QuizWeaknessDetail[]
   } | null>(null)
 
-  const cards = deck.data ?? []
+  const cards = deck.data?.cards ?? []
+  const sessionId = deck.data?.session_id ?? ""
   const done = !deck.isLoading && (idx >= cards.length || alertness <= 0)
 
   useEffect(() => {
-    if (done && !completeM.data && !completeM.isPending) {
-      completeM.mutate(answers)
+    if (done && sessionId && !completeM.data && !completeM.isPending) {
+      completeM.mutate(sessionId)
     }
-  }, [done, completeM, answers])
+  }, [done, sessionId, completeM])
 
   if (deck.isLoading) {
     return (
@@ -64,17 +62,15 @@ export function SwipeDeck() {
 
   const card = cards[idx]
 
-  const onJudge = (guessIsScam: boolean) => {
-    if (feedback || answerM.isPending) return
+  const onJudge = (action: "scam" | "legit" | "skip") => {
+    if (feedback || answerM.isPending || !sessionId) return
     answerM.mutate(
-      { cardId: card.id, guessIsScam },
+      { sessionId, cardId: card.id, action },
       {
         onSuccess: (res) => {
-          setAnswers((a) => [
-            ...a,
-            { card_id: card.id, guess_is_scam: guessIsScam },
-          ])
-          if (res.correct) {
+          if (res.action_taken === "skip") {
+            // 安全避險略過：不扣警覺值、保持連勝紀錄
+          } else if (res.correct) {
             setStreak((s) => s + 1)
           } else {
             setStreak(0)

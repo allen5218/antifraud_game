@@ -8,6 +8,7 @@ from sqlmodel import col, func, select
 
 from app.api.deps import CurrentUser, SessionDep
 from app.core.cases import get_case, pick_case
+from app.economy.chapters import record_scenario_progress
 from app.economy.service import add_xp, adjust_cash, lock_user
 from app.models import FraudType, ScenarioSession, ScenarioStatus
 from app.scenario import agent as scenario_agent
@@ -21,6 +22,11 @@ from app.scenario.config import (
     SCENARIO_ECONOMY,
     ScenarioEconomyConfig,
 )
+from app.scenario.evidence import (
+    get_available_tools,
+    get_evidence_for_scenario,
+    get_unlocked_evidence_items,
+)
 from app.schemas import (
     ScenarioDetail,
     ScenarioInboxItem,
@@ -29,6 +35,8 @@ from app.schemas import (
     ScenarioMessageRequest,
     ScenarioMessageResponse,
     ScenarioNewRequest,
+    ScenarioVerifyRequest,
+    ScenarioVerifyResponse,
 )
 
 router = APIRouter(prefix="/scenario", tags=["scenario"])
@@ -175,6 +183,7 @@ def read_scenario(
         )
         for e in sc.conversation_history
     ]
+    unlocked_ids = sc.unlocked_evidence or []
     return ScenarioDetail(
         id=str(sc.id),
         fraud_type=sc.fraud_type,
@@ -185,6 +194,10 @@ def read_scenario(
         player_turns=sc.player_turns,
         max_turns=MAX_TURNS,
         history=public_history,
+        available_tools=get_available_tools(),
+        unlocked_evidence=get_unlocked_evidence_items(
+            sc.fraud_type, sc.persona_role, unlocked_ids
+        ),
     )
 
 
@@ -235,6 +248,42 @@ async def send_message(
     )
 
 
+@router.post("/{scenario_id}/verify", response_model=ScenarioVerifyResponse)
+def verify_scenario(
+    *,
+    session: SessionDep,
+    current_user: CurrentUser,
+    scenario_id: uuid.UUID,
+    payload: ScenarioVerifyRequest,
+) -> Any:
+    """執行獨立查證工具（不呼叫 LLM，查閱客觀公開紀錄）。"""
+    sc = _owned_session(session, current_user, scenario_id)
+    if sc.status != ScenarioStatus.ACTIVE:
+        raise HTTPException(400, {"code": "not_active"})
+
+    unlocked_ids = list(sc.unlocked_evidence or [])
+    already_unlocked = payload.tool_id in unlocked_ids
+
+    evidence_item = get_evidence_for_scenario(
+        sc.fraud_type, sc.persona_role, payload.tool_id
+    )
+
+    if not already_unlocked:
+        unlocked_ids.append(payload.tool_id)
+        sc.unlocked_evidence = unlocked_ids
+        session.add(sc)
+        session.commit()
+        session.refresh(sc)
+
+    return ScenarioVerifyResponse(
+        evidence=evidence_item,
+        already_unlocked=already_unlocked,
+        unlocked_evidence=get_unlocked_evidence_items(
+            sc.fraud_type, sc.persona_role, unlocked_ids
+        ),
+    )
+
+
 @router.post("/{scenario_id}/judge", response_model=ScenarioJudgeResponse)
 def judge_scenario(
     *,
@@ -243,21 +292,36 @@ def judge_scenario(
     scenario_id: uuid.UUID,
     payload: ScenarioJudgeRequest,
 ) -> Any:
-    """確定性裁決 → 經濟入口 → 揭曉。"""
-    sc = _owned_session(session, current_user, scenario_id)
+    """確定性裁決 → 經濟入口 → 揭曉。鎖定順序：先 session 後 user。"""
+    sc = session.exec(
+        select(ScenarioSession)
+        .where(ScenarioSession.id == scenario_id)
+        .with_for_update()
+    ).first()
+    if not sc:
+        raise HTTPException(status_code=404, detail="Scenario not found")
+    if sc.user_id != current_user.id:
+        raise HTTPException(status_code=403, detail="Not your scenario")
     if sc.status != ScenarioStatus.ACTIVE:
         raise HTTPException(400, {"code": "not_active"})
 
+    current_user = lock_user(session, current_user)
+
     outcome = manager.resolve_judgment(sc.persona_role, payload.action)
-    # 用 session 自帶數值(建場時複製),不回頭讀 config
     econ = ScenarioEconomyConfig(
         stake_loss=sc.stake_loss,
         reward_win=sc.reward_win,
         reward_legit=sc.reward_legit,
         penalty_misreport=sc.penalty_misreport,
     )
-    cash_delta, xp_delta = manager.outcome_deltas(outcome, econ)
-    current_user = lock_user(session, current_user)
+    has_evidence = bool(sc.unlocked_evidence)
+    evidence_count = len(sc.unlocked_evidence or [])
+    cash_delta, xp_delta = manager.outcome_deltas(
+        outcome,
+        econ,
+        has_evidence=has_evidence,
+        completed_chapters=current_user.completed_chapters,
+    )
     adjust_cash(current_user, cash_delta, reason=outcome)
     add_xp(current_user, xp_delta, reason=outcome)
 
@@ -265,8 +329,20 @@ def judge_scenario(
     sc.outcome = outcome
     sc.completed_at = datetime.now(timezone.utc)
 
+    if (
+        outcome
+        in (
+            manager.OUTCOME_WIN_REPORT,
+            manager.OUTCOME_WIN_TRUST,
+            manager.OUTCOME_SAFE_EXIT,
+        )
+        and has_evidence
+    ):
+        record_scenario_progress(
+            session, current_user, sc.fraud_type, has_evidence=True
+        )
+
     meta = scenario_agent.read_persona_meta(sc.fraud_type, sc.persona_role)
-    # scam 結局若整場沒觀察到 tactics(玩家秒判),退回人格 primary_tactics 供教學
     tactics = sc.tactics_seen or meta.primary_tactics
     flags = manager.build_flags(outcome, tactics, sc.fraud_type)
     case = get_case(session, sc.case_id) if sc.case_id else None
@@ -286,4 +362,5 @@ def judge_scenario(
         new_cash=current_user.cash,
         triggers_forced_sell=current_user.cash < 0,
         case_provenance=case.provenance if case else None,
+        unlocked_evidence_count=evidence_count,
     )

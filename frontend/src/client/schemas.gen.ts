@@ -101,6 +101,93 @@ export const BuyPropertyResponseSchema = {
     title: 'BuyPropertyResponse'
 } as const;
 
+export const ChapterMilestonePublicSchema = {
+    properties: {
+        chapter_id: {
+            type: 'integer',
+            title: 'Chapter Id'
+        },
+        title: {
+            type: 'string',
+            title: 'Title'
+        },
+        skill_type: {
+            type: 'string',
+            title: 'Skill Type'
+        },
+        description: {
+            type: 'string',
+            title: 'Description'
+        },
+        quiz_completed: {
+            type: 'boolean',
+            title: 'Quiz Completed'
+        },
+        scenario_completed: {
+            type: 'boolean',
+            title: 'Scenario Completed'
+        },
+        is_completed: {
+            type: 'boolean',
+            title: 'Is Completed'
+        },
+        is_current: {
+            type: 'boolean',
+            title: 'Is Current'
+        }
+    },
+    type: 'object',
+    required: ['chapter_id', 'title', 'skill_type', 'description', 'quiz_completed', 'scenario_completed', 'is_completed', 'is_current'],
+    title: 'ChapterMilestonePublic'
+} as const;
+
+export const ChapterStatusResponseSchema = {
+    properties: {
+        completed_chapters: {
+            type: 'integer',
+            title: 'Completed Chapters'
+        },
+        income_multiplier: {
+            type: 'number',
+            title: 'Income Multiplier'
+        },
+        starter_grant_claimed: {
+            type: 'boolean',
+            title: 'Starter Grant Claimed'
+        },
+        can_claim_starter_grant: {
+            type: 'boolean',
+            title: 'Can Claim Starter Grant'
+        },
+        chapters: {
+            items: {
+                '$ref': '#/components/schemas/ChapterMilestonePublic'
+            },
+            type: 'array',
+            title: 'Chapters'
+        }
+    },
+    type: 'object',
+    required: ['completed_chapters', 'income_multiplier', 'starter_grant_claimed', 'can_claim_starter_grant', 'chapters'],
+    title: 'ChapterStatusResponse'
+} as const;
+
+export const ClaimStarterGrantResponseSchema = {
+    properties: {
+        granted_cash: {
+            type: 'integer',
+            title: 'Granted Cash'
+        },
+        new_cash: {
+            type: 'integer',
+            title: 'New Cash'
+        }
+    },
+    type: 'object',
+    required: ['granted_cash', 'new_cash'],
+    title: 'ClaimStarterGrantResponse'
+} as const;
+
 export const EconomyMeResponseSchema = {
     properties: {
         cash: {
@@ -126,6 +213,11 @@ export const EconomyMeResponseSchema = {
         bankruptcy_pending: {
             type: 'boolean',
             title: 'Bankruptcy Pending'
+        },
+        completed_chapters: {
+            type: 'integer',
+            title: 'Completed Chapters',
+            default: 0
         }
     },
     type: 'object',
@@ -188,6 +280,226 @@ export const HTTPValidationErrorSchema = {
     },
     type: 'object',
     title: 'HTTPValidationError'
+} as const;
+
+export const HomeDecorActionRequestSchema = {
+    properties: {
+        decor_id: {
+            type: 'string',
+            title: 'Decor Id'
+        }
+    },
+    type: 'object',
+    required: ['decor_id'],
+    title: 'HomeDecorActionRequest'
+} as const;
+
+export const HomeDecorItemPublicSchema = {
+    properties: {
+        id: {
+            type: 'string',
+            title: 'Id'
+        },
+        name: {
+            type: 'string',
+            title: 'Name'
+        },
+        cost: {
+            type: 'integer',
+            title: 'Cost'
+        },
+        description: {
+            type: 'string',
+            title: 'Description'
+        },
+        icon: {
+            type: 'string',
+            title: 'Icon'
+        },
+        is_owned: {
+            type: 'boolean',
+            title: 'Is Owned'
+        },
+        is_equipped: {
+            type: 'boolean',
+            title: 'Is Equipped'
+        }
+    },
+    type: 'object',
+    required: ['id', 'name', 'cost', 'description', 'icon', 'is_owned', 'is_equipped'],
+    title: 'HomeDecorItemPublic'
+} as const;
+
+export const HomeFollowUpEventResponseSchema = {
+    properties: {
+        event_id: {
+            type: 'string',
+            title: 'Event Id'
+        },
+        title: {
+            type: 'string',
+            title: 'Title'
+        },
+        scenario: {
+            type: 'string',
+            title: 'Scenario'
+        },
+        verification_step: {
+            type: 'string',
+            title: 'Verification Step'
+        },
+        evidence: {
+            type: 'string',
+            title: 'Evidence'
+        },
+        is_completed: {
+            type: 'boolean',
+            title: 'Is Completed'
+        }
+    },
+    type: 'object',
+    required: ['event_id', 'title', 'scenario', 'verification_step', 'evidence', 'is_completed'],
+    title: 'HomeFollowUpEventResponse'
+} as const;
+
+export const HouseTaskPublicSchema = {
+    properties: {
+        task_id: {
+            type: 'string',
+            title: 'Task Id'
+        },
+        tier_id: {
+            type: 'integer',
+            title: 'Tier Id'
+        },
+        title: {
+            type: 'string',
+            title: 'Title'
+        },
+        scenario: {
+            type: 'string',
+            title: 'Scenario'
+        },
+        steps: {
+            items: {
+                '$ref': '#/components/schemas/HouseTaskStepPublic'
+            },
+            type: 'array',
+            title: 'Steps'
+        },
+        is_passed: {
+            type: 'boolean',
+            title: 'Is Passed'
+        },
+        can_proceed_to_buy: {
+            type: 'boolean',
+            title: 'Can Proceed To Buy'
+        }
+    },
+    type: 'object',
+    required: ['task_id', 'tier_id', 'title', 'scenario', 'steps', 'is_passed', 'can_proceed_to_buy'],
+    title: 'HouseTaskPublic'
+} as const;
+
+export const HouseTaskResolveRequestSchema = {
+    properties: {
+        choice: {
+            type: 'string',
+            enum: ['official_escrow', 'private_wire'],
+            title: 'Choice'
+        }
+    },
+    type: 'object',
+    required: ['choice'],
+    title: 'HouseTaskResolveRequest'
+} as const;
+
+export const HouseTaskResolveResponseSchema = {
+    properties: {
+        is_passed: {
+            type: 'boolean',
+            title: 'Is Passed'
+        },
+        message: {
+            type: 'string',
+            title: 'Message'
+        },
+        can_buy: {
+            type: 'boolean',
+            title: 'Can Buy'
+        }
+    },
+    type: 'object',
+    required: ['is_passed', 'message', 'can_buy'],
+    title: 'HouseTaskResolveResponse'
+} as const;
+
+export const HouseTaskStepPublicSchema = {
+    properties: {
+        step_id: {
+            type: 'string',
+            title: 'Step Id'
+        },
+        name: {
+            type: 'string',
+            title: 'Name'
+        },
+        description: {
+            type: 'string',
+            title: 'Description'
+        },
+        evidence: {
+            anyOf: [
+                {
+                    type: 'string'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Evidence'
+        },
+        is_done: {
+            type: 'boolean',
+            title: 'Is Done',
+            default: false
+        }
+    },
+    type: 'object',
+    required: ['step_id', 'name', 'description'],
+    title: 'HouseTaskStepPublic'
+} as const;
+
+export const HouseTaskVerifyRequestSchema = {
+    properties: {
+        step_id: {
+            type: 'string',
+            title: 'Step Id'
+        }
+    },
+    type: 'object',
+    required: ['step_id'],
+    title: 'HouseTaskVerifyRequest'
+} as const;
+
+export const HouseTaskVerifyResponseSchema = {
+    properties: {
+        step_id: {
+            type: 'string',
+            title: 'Step Id'
+        },
+        evidence: {
+            type: 'string',
+            title: 'Evidence'
+        },
+        all_steps_done: {
+            type: 'boolean',
+            title: 'All Steps Done'
+        }
+    },
+    type: 'object',
+    required: ['step_id', 'evidence', 'all_steps_done'],
+    title: 'HouseTaskVerifyResponse'
 } as const;
 
 export const ItemCreateSchema = {
@@ -362,6 +674,59 @@ export const MessageSchema = {
     title: 'Message'
 } as const;
 
+export const MyHomeResponseSchema = {
+    properties: {
+        has_house: {
+            type: 'boolean',
+            title: 'Has House'
+        },
+        house_count: {
+            type: 'integer',
+            title: 'House Count'
+        },
+        best_tier_name: {
+            anyOf: [
+                {
+                    type: 'string'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Best Tier Name'
+        },
+        decorations: {
+            items: {
+                '$ref': '#/components/schemas/HomeDecorItemPublic'
+            },
+            type: 'array',
+            title: 'Decorations'
+        },
+        follow_up_event_unlocked: {
+            type: 'boolean',
+            title: 'Follow Up Event Unlocked'
+        },
+        follow_up_event_title: {
+            anyOf: [
+                {
+                    type: 'string'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Follow Up Event Title'
+        },
+        follow_up_event_done: {
+            type: 'boolean',
+            title: 'Follow Up Event Done'
+        }
+    },
+    type: 'object',
+    required: ['has_house', 'house_count', 'best_tier_name', 'decorations', 'follow_up_event_unlocked', 'follow_up_event_title', 'follow_up_event_done'],
+    title: 'MyHomeResponse'
+} as const;
+
 export const NewPasswordSchema = {
     properties: {
         token: {
@@ -392,6 +757,11 @@ export const OwnedPropertyPublicSchema = {
         purchased_at: {
             type: 'string',
             title: 'Purchased At'
+        },
+        purchase_price: {
+            type: 'integer',
+            title: 'Purchase Price',
+            default: 0
         }
     },
     type: 'object',
@@ -550,6 +920,18 @@ export const QuizAnswerRequestSchema = {
             ],
             title: 'Guess Is Scam'
         },
+        selected_option: {
+            anyOf: [
+                {
+                    type: 'string',
+                    maxLength: 16
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Selected Option'
+        },
         selected_tags: {
             anyOf: [
                 {
@@ -655,6 +1037,9 @@ export const QuizDeckResponseSchema = {
                         '$ref': '#/components/schemas/QuizVerdictPublic'
                     },
                     {
+                        '$ref': '#/components/schemas/QuizVerificationPublic'
+                    },
+                    {
                         '$ref': '#/components/schemas/QuizTacticsPublic'
                     },
                     {
@@ -666,7 +1051,8 @@ export const QuizDeckResponseSchema = {
                     mapping: {
                         match: '#/components/schemas/QuizMatchPublic',
                         tactics: '#/components/schemas/QuizTacticsPublic',
-                        verdict: '#/components/schemas/QuizVerdictPublic'
+                        verdict: '#/components/schemas/QuizVerdictPublic',
+                        verification: '#/components/schemas/QuizVerificationPublic'
                     }
                 }
             },
@@ -896,10 +1282,6 @@ export const QuizTacticsPublicSchema = {
             title: 'Type',
             default: 'tactics'
         },
-        fraud_type: {
-            type: 'string',
-            title: 'Fraud Type'
-        },
         title: {
             type: 'string',
             title: 'Title'
@@ -907,10 +1289,6 @@ export const QuizTacticsPublicSchema = {
         narrative: {
             type: 'string',
             title: 'Narrative'
-        },
-        difficulty: {
-            type: 'integer',
-            title: 'Difficulty'
         },
         question: {
             type: 'string',
@@ -925,7 +1303,7 @@ export const QuizTacticsPublicSchema = {
         }
     },
     type: 'object',
-    required: ['item_id', 'fraud_type', 'title', 'narrative', 'difficulty', 'question', 'options'],
+    required: ['item_id', 'title', 'narrative', 'question', 'options'],
     title: 'QuizTacticsPublic'
 } as const;
 
@@ -981,9 +1359,76 @@ export const QuizVerdictPublicSchema = {
             title: 'Type',
             default: 'verdict'
         },
-        fraud_type: {
+        title: {
             type: 'string',
-            title: 'Fraud Type'
+            title: 'Title'
+        },
+        narrative: {
+            type: 'string',
+            title: 'Narrative'
+        }
+    },
+    type: 'object',
+    required: ['item_id', 'title', 'narrative'],
+    title: 'QuizVerdictPublic'
+} as const;
+
+export const QuizVerificationAnswerResponseSchema = {
+    properties: {
+        type: {
+            type: 'string',
+            const: 'verification',
+            title: 'Type',
+            default: 'verification'
+        },
+        correct: {
+            type: 'boolean',
+            title: 'Correct'
+        },
+        explanation: {
+            type: 'string',
+            title: 'Explanation'
+        },
+        tag_details: {
+            items: {
+                '$ref': '#/components/schemas/QuizWeaknessDetail'
+            },
+            type: 'array',
+            title: 'Tag Details'
+        }
+    },
+    type: 'object',
+    required: ['correct', 'explanation', 'tag_details'],
+    title: 'QuizVerificationAnswerResponse'
+} as const;
+
+export const QuizVerificationOptionSchema = {
+    properties: {
+        key: {
+            type: 'string',
+            title: 'Key'
+        },
+        text: {
+            type: 'string',
+            title: 'Text'
+        }
+    },
+    type: 'object',
+    required: ['key', 'text'],
+    title: 'QuizVerificationOption'
+} as const;
+
+export const QuizVerificationPublicSchema = {
+    properties: {
+        item_id: {
+            type: 'string',
+            title: 'Item Id'
+        },
+        type: {
+            type: 'string',
+            const: 'verification',
+            title: 'Type',
+            default: 'verification'
         },
         title: {
             type: 'string',
@@ -993,14 +1438,21 @@ export const QuizVerdictPublicSchema = {
             type: 'string',
             title: 'Narrative'
         },
-        difficulty: {
-            type: 'integer',
-            title: 'Difficulty'
+        question: {
+            type: 'string',
+            title: 'Question'
+        },
+        options: {
+            items: {
+                '$ref': '#/components/schemas/QuizVerificationOption'
+            },
+            type: 'array',
+            title: 'Options'
         }
     },
     type: 'object',
-    required: ['item_id', 'fraud_type', 'title', 'narrative', 'difficulty'],
-    title: 'QuizVerdictPublic'
+    required: ['item_id', 'title', 'narrative', 'question', 'options'],
+    title: 'QuizVerificationPublic'
 } as const;
 
 export const QuizWeaknessDetailSchema = {
@@ -1071,11 +1523,47 @@ export const ScenarioDetailSchema = {
             },
             type: 'array',
             title: 'History'
+        },
+        available_tools: {
+            items: {
+                '$ref': '#/components/schemas/ScenarioToolItem'
+            },
+            type: 'array',
+            title: 'Available Tools',
+            default: []
+        },
+        unlocked_evidence: {
+            items: {
+                '$ref': '#/components/schemas/ScenarioEvidenceItem'
+            },
+            type: 'array',
+            title: 'Unlocked Evidence',
+            default: []
         }
     },
     type: 'object',
     required: ['id', 'fraud_type', 'display_name', 'avatar', 'status', 'outcome', 'player_turns', 'max_turns', 'history'],
     title: 'ScenarioDetail'
+} as const;
+
+export const ScenarioEvidenceItemSchema = {
+    properties: {
+        tool_id: {
+            type: 'string',
+            title: 'Tool Id'
+        },
+        title: {
+            type: 'string',
+            title: 'Title'
+        },
+        content: {
+            type: 'string',
+            title: 'Content'
+        }
+    },
+    type: 'object',
+    required: ['tool_id', 'title', 'content'],
+    title: 'ScenarioEvidenceItem'
 } as const;
 
 export const ScenarioInboxItemSchema = {
@@ -1129,7 +1617,7 @@ export const ScenarioJudgeRequestSchema = {
     properties: {
         action: {
             type: 'string',
-            enum: ['report', 'comply'],
+            enum: ['report', 'comply', 'safe_exit'],
             title: 'Action'
         }
     },
@@ -1185,6 +1673,11 @@ export const ScenarioJudgeResponseSchema = {
                 }
             ],
             title: 'Case Provenance'
+        },
+        unlocked_evidence_count: {
+            type: 'integer',
+            title: 'Unlocked Evidence Count',
+            default: 0
         }
     },
     type: 'object',
@@ -1247,35 +1740,96 @@ export const ScenarioNewRequestSchema = {
     title: 'ScenarioNewRequest'
 } as const;
 
-export const SwipeAnswerItemSchema = {
+export const ScenarioToolItemSchema = {
     properties: {
-        card_id: {
+        tool_id: {
             type: 'string',
-            title: 'Card Id'
+            title: 'Tool Id'
         },
-        guess_is_scam: {
-            type: 'boolean',
-            title: 'Guess Is Scam'
+        name: {
+            type: 'string',
+            title: 'Name'
+        },
+        description: {
+            type: 'string',
+            title: 'Description'
         }
     },
     type: 'object',
-    required: ['card_id', 'guess_is_scam'],
-    title: 'SwipeAnswerItem'
+    required: ['tool_id', 'name', 'description'],
+    title: 'ScenarioToolItem'
+} as const;
+
+export const ScenarioVerifyRequestSchema = {
+    properties: {
+        tool_id: {
+            type: 'string',
+            title: 'Tool Id'
+        }
+    },
+    type: 'object',
+    required: ['tool_id'],
+    title: 'ScenarioVerifyRequest'
+} as const;
+
+export const ScenarioVerifyResponseSchema = {
+    properties: {
+        evidence: {
+            '$ref': '#/components/schemas/ScenarioEvidenceItem'
+        },
+        already_unlocked: {
+            type: 'boolean',
+            title: 'Already Unlocked'
+        },
+        unlocked_evidence: {
+            items: {
+                '$ref': '#/components/schemas/ScenarioEvidenceItem'
+            },
+            type: 'array',
+            title: 'Unlocked Evidence'
+        }
+    },
+    type: 'object',
+    required: ['evidence', 'already_unlocked', 'unlocked_evidence'],
+    title: 'ScenarioVerifyResponse'
 } as const;
 
 export const SwipeAnswerRequestSchema = {
     properties: {
+        session_id: {
+            type: 'string',
+            title: 'Session Id'
+        },
         card_id: {
             type: 'string',
             title: 'Card Id'
         },
         guess_is_scam: {
-            type: 'boolean',
+            anyOf: [
+                {
+                    type: 'boolean'
+                },
+                {
+                    type: 'null'
+                }
+            ],
             title: 'Guess Is Scam'
+        },
+        action: {
+            anyOf: [
+                {
+                    type: 'string',
+                    enum: ['scam', 'legit', 'skip']
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Action'
         }
     },
     type: 'object',
-    required: ['card_id', 'guess_is_scam'],
+    required: ['session_id', 'card_id'],
     title: 'SwipeAnswerRequest'
 } as const;
 
@@ -1288,6 +1842,10 @@ export const SwipeAnswerResponseSchema = {
         is_scam: {
             type: 'boolean',
             title: 'Is Scam'
+        },
+        action_taken: {
+            type: 'string',
+            title: 'Action Taken'
         },
         explanation: {
             type: 'string',
@@ -1309,7 +1867,7 @@ export const SwipeAnswerResponseSchema = {
         }
     },
     type: 'object',
-    required: ['correct', 'is_scam', 'explanation', 'weakness_tags', 'tag_details'],
+    required: ['correct', 'is_scam', 'action_taken', 'explanation', 'weakness_tags', 'tag_details'],
     title: 'SwipeAnswerResponse'
 } as const;
 
@@ -1322,37 +1880,22 @@ export const SwipeCardPublicSchema = {
         scenario: {
             type: 'string',
             title: 'Scenario'
-        },
-        source_label: {
-            type: 'string',
-            title: 'Source Label'
-        },
-        fraud_type: {
-            type: 'string',
-            title: 'Fraud Type'
-        },
-        difficulty: {
-            type: 'integer',
-            title: 'Difficulty'
         }
     },
     type: 'object',
-    required: ['id', 'scenario', 'source_label', 'fraud_type', 'difficulty'],
+    required: ['id', 'scenario'],
     title: 'SwipeCardPublic'
 } as const;
 
 export const SwipeCompleteRequestSchema = {
     properties: {
-        answers: {
-            items: {
-                '$ref': '#/components/schemas/SwipeAnswerItem'
-            },
-            type: 'array',
-            title: 'Answers'
+        session_id: {
+            type: 'string',
+            title: 'Session Id'
         }
     },
     type: 'object',
-    required: ['answers'],
+    required: ['session_id'],
     title: 'SwipeCompleteRequest'
 } as const;
 
@@ -1389,6 +1932,25 @@ export const SwipeCompleteResponseSchema = {
     type: 'object',
     required: ['correct_count', 'total', 'best_streak', 'cash_earned', 'xp_earned', 'weakness_summary'],
     title: 'SwipeCompleteResponse'
+} as const;
+
+export const SwipeDeckResponseSchema = {
+    properties: {
+        session_id: {
+            type: 'string',
+            title: 'Session Id'
+        },
+        cards: {
+            items: {
+                '$ref': '#/components/schemas/SwipeCardPublic'
+            },
+            type: 'array',
+            title: 'Cards'
+        }
+    },
+    type: 'object',
+    required: ['session_id', 'cards'],
+    title: 'SwipeDeckResponse'
 } as const;
 
 export const TokenSchema = {
@@ -1696,6 +2258,45 @@ export const ValidationErrorSchema = {
     type: 'object',
     required: ['loc', 'msg', 'type'],
     title: 'ValidationError'
+} as const;
+
+export const VehiclePublicSchema = {
+    properties: {
+        name: {
+            type: 'string',
+            title: 'Name'
+        },
+        price: {
+            type: 'integer',
+            title: 'Price'
+        },
+        is_owned: {
+            type: 'boolean',
+            title: 'Is Owned'
+        },
+        purchased_at: {
+            anyOf: [
+                {
+                    type: 'string'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Purchased At'
+        },
+        follow_up_event_title: {
+            type: 'string',
+            title: 'Follow Up Event Title'
+        },
+        follow_up_event_done: {
+            type: 'boolean',
+            title: 'Follow Up Event Done'
+        }
+    },
+    type: 'object',
+    required: ['name', 'price', 'is_owned', 'purchased_at', 'follow_up_event_title', 'follow_up_event_done'],
+    title: 'VehiclePublic'
 } as const;
 
 export const WeaknessSummaryItemSchema = {

@@ -1,6 +1,5 @@
 import { useState } from "react"
 import type { QuizTacticsPublic } from "@/client"
-import { FRAUD_TYPE_LABELS } from "@/components/scenario/labels"
 import { Button } from "@/components/ui/button"
 import { Checkbox } from "@/components/ui/checkbox"
 
@@ -35,9 +34,8 @@ export function TacticsQuestion({
     <div className="flex h-full flex-col">
       <div className="flex items-center gap-2 px-4 pt-3 text-xs text-muted-foreground">
         <span className="rounded-md bg-primary/10 px-1.5 py-0.5 font-semibold text-primary">
-          {FRAUD_TYPE_LABELS[item.fraud_type] ?? "其他類型"}
+          話術辨識
         </span>
-        <span>{"★".repeat(item.difficulty)}</span>
         <span className="ml-auto">
           {index + 1} / {total}
         </span>

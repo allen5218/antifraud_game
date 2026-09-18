@@ -3,22 +3,20 @@ import { fireEvent, render, screen } from "@testing-library/react"
 import { SwipeCard } from "./SwipeCard"
 
 describe("<SwipeCard />", () => {
-  it("calls onJudge(true) for 詐騙 and onJudge(false) for 正常", () => {
-    const calls: boolean[] = []
+  it("calls onJudge with scam, skip, and legit", () => {
+    const calls: string[] = []
     render(
       <SwipeCard
         card={{
           id: "c1",
           scenario: "測試情境",
-          source_label: "來源",
-          fraud_type: "investment",
-          difficulty: 1,
         }}
-        onJudge={(g) => calls.push(g)}
+        onJudge={(action) => calls.push(action)}
       />,
     )
     fireEvent.click(screen.getByRole("button", { name: /詐騙/ }))
+    fireEvent.click(screen.getByRole("button", { name: /略過/ }))
     fireEvent.click(screen.getByRole("button", { name: /正常/ }))
-    expect(calls).toEqual([true, false])
+    expect(calls).toEqual(["scam", "skip", "legit"])
   })
 })

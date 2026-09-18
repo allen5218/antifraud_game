@@ -70,6 +70,11 @@ class User(UserBase, table=True):
     bankruptcy_pending: bool = Field(default=False)
     bankruptcy_count: int = Field(default=0)
 
+    # ── chapters & milestones ──
+    completed_chapters: int = Field(default=0)
+    starter_grant_claimed: bool = Field(default=False)
+    first_home_task_completed: bool = Field(default=False)
+
     properties: list["UserProperty"] = Relationship(
         back_populates="owner", cascade_delete=True
     )
@@ -259,6 +264,7 @@ class UserProperty(SQLModel, table=True):
         default_factory=get_datetime_utc,
         sa_type=DateTime(timezone=True),  # type: ignore
     )
+    purchase_price: int = Field(default=0)
     sold_at: datetime | None = Field(
         default=None,
         sa_type=DateTime(timezone=True),  # type: ignore
@@ -318,6 +324,10 @@ class ScenarioSession(SQLModel, table=True):
     tactics_seen: list[str] = Field(
         default=[], sa_column=Column(JSONB, nullable=False, server_default="[]")
     )
+    unlocked_evidence: list[str] = Field(
+        default=[], sa_column=Column(JSONB, nullable=False, server_default="[]")
+    )
+
     # G2:注入的 game_cases 素材(管線表,無 FK 約束——跨管理域引用);null = 純人格
     case_id: int | None = Field(default=None, sa_type=BigInteger())  # type: ignore
     # 經濟數值於建場時自 config 複製（比照 SwipeCard 自帶資料）
@@ -368,5 +378,110 @@ class QuizSession(SQLModel, table=True):
     )
     completed_at: datetime | None = Field(
         default=None,
+        sa_type=DateTime(timezone=True),  # type: ignore
+    )
+
+
+class SwipeSession(SQLModel, table=True):
+    """滑卡模式的一次性結算 token: 發牌時建立、首次作答防重放、結算時標記 completed。"""
+
+    __tablename__ = "swipe_session"
+
+    id: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True)
+    user_id: uuid.UUID = Field(
+        foreign_key="user.id", nullable=False, ondelete="CASCADE", index=True
+    )
+    card_ids: list[str] = Field(
+        default=[], sa_column=Column(JSONB, nullable=False, server_default="[]")
+    )
+    answers: dict[str, object] = Field(
+        default={}, sa_column=Column(JSONB, nullable=False, server_default="{}")
+    )
+    completed: bool = Field(default=False)
+    created_at: datetime | None = Field(
+        default_factory=get_datetime_utc,
+        sa_type=DateTime(timezone=True),  # type: ignore
+    )
+    completed_at: datetime | None = Field(
+        default=None,
+        sa_type=DateTime(timezone=True),  # type: ignore
+    )
+
+
+class UserChapterProgress(SQLModel, table=True):
+    """章節進度持久化里程碑（T3）。"""
+
+    __tablename__ = "user_chapter_progress"
+
+    id: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True)
+    user_id: uuid.UUID = Field(
+        foreign_key="user.id", nullable=False, ondelete="CASCADE", index=True
+    )
+    chapter_id: int = Field(index=True)
+    quiz_completed: bool = Field(default=False)
+    scenario_completed: bool = Field(default=False)
+    is_completed: bool = Field(default=False)
+    completed_at: datetime | None = Field(
+        default=None,
+        sa_type=DateTime(timezone=True),  # type: ignore
+    )
+
+
+class UserHouseTask(SQLModel, table=True):
+    """首房購買前的交易查證任務（T4 / AC6）。"""
+
+    __tablename__ = "user_house_task"
+
+    id: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True)
+    user_id: uuid.UUID = Field(
+        foreign_key="user.id", nullable=False, ondelete="CASCADE", index=True
+    )
+    tier_id: int = Field(default=1)
+    variant: str = Field(default="suspicious", max_length=32)
+    completed_steps: list[str] = Field(
+        default=[], sa_column=Column(JSONB, nullable=False, server_default="[]")
+    )
+    is_passed: bool = Field(default=False)
+    created_at: datetime | None = Field(
+        default_factory=get_datetime_utc,
+        sa_type=DateTime(timezone=True),  # type: ignore
+    )
+    completed_at: datetime | None = Field(
+        default=None,
+        sa_type=DateTime(timezone=True),  # type: ignore
+    )
+
+
+class UserHomeDecor(SQLModel, table=True):
+    """我的家裝飾品（T4 / AC8）。"""
+
+    __tablename__ = "user_home_decor"
+
+    id: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True)
+    user_id: uuid.UUID = Field(
+        foreign_key="user.id", nullable=False, ondelete="CASCADE", index=True
+    )
+    decor_id: str = Field(max_length=64, index=True)
+    is_equipped: bool = Field(default=False)
+    purchased_at: datetime | None = Field(
+        default_factory=get_datetime_utc,
+        sa_type=DateTime(timezone=True),  # type: ignore
+    )
+
+
+class UserVehicle(SQLModel, table=True):
+    """車輛資產與後續事件（T4 / AC8）。"""
+
+    __tablename__ = "user_vehicle"
+
+    id: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True)
+    user_id: uuid.UUID = Field(
+        foreign_key="user.id", nullable=False, ondelete="CASCADE", index=True
+    )
+    vehicle_name: str = Field(default="實用代步休旅車", max_length=64)
+    purchase_price: int = Field(default=60000)
+    event_completed: bool = Field(default=False)
+    purchased_at: datetime | None = Field(
+        default_factory=get_datetime_utc,
         sa_type=DateTime(timezone=True),  # type: ignore
     )

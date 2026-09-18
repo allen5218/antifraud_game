@@ -35,6 +35,7 @@ class EconomyMeResponse(BaseModel):
     streak_days: int
     pending_accrual: int
     bankruptcy_pending: bool
+    completed_chapters: int = 0
 
 
 class PropertyTierPublic(BaseModel):
@@ -50,6 +51,7 @@ class OwnedPropertyPublic(BaseModel):
     id: str
     tier: PropertyTierPublic
     purchased_at: str
+    purchase_price: int = 0
 
 
 class PropertiesListResponse(BaseModel):
@@ -80,20 +82,134 @@ class LiquidateResponse(BaseModel):
     bankruptcy_pending: bool
 
 
+# ── Chapter & Grant (T3 / AC4 / AC9) ─────────────────────────
+
+
+class ChapterMilestonePublic(BaseModel):
+    chapter_id: int
+    title: str
+    skill_type: str
+    description: str
+    quiz_completed: bool
+    scenario_completed: bool
+    is_completed: bool
+    is_current: bool
+
+
+class ChapterStatusResponse(BaseModel):
+    completed_chapters: int
+    income_multiplier: float
+    starter_grant_claimed: bool
+    can_claim_starter_grant: bool
+    chapters: list[ChapterMilestonePublic]
+
+
+class ClaimStarterGrantResponse(BaseModel):
+    granted_cash: int
+    new_cash: int
+
+
+# ── House Task, Home Decor, & Vehicle (T4 / AC6, AC7, AC8) ───
+
+
+class HouseTaskStepPublic(BaseModel):
+    step_id: str
+    name: str
+    description: str
+    evidence: str | None = None
+    is_done: bool = False
+
+
+class HouseTaskPublic(BaseModel):
+    task_id: str
+    tier_id: int
+    title: str
+    scenario: str
+    steps: list[HouseTaskStepPublic]
+    is_passed: bool
+    can_proceed_to_buy: bool
+
+
+class HouseTaskVerifyRequest(BaseModel):
+    step_id: str
+
+
+class HouseTaskVerifyResponse(BaseModel):
+    step_id: str
+    evidence: str
+    all_steps_done: bool
+
+
+class HouseTaskResolveRequest(BaseModel):
+    choice: Literal["official_escrow", "private_wire"]
+
+
+class HouseTaskResolveResponse(BaseModel):
+    is_passed: bool
+    message: str
+    can_buy: bool
+
+
+class HomeDecorItemPublic(BaseModel):
+    id: str
+    name: str
+    cost: int
+    description: str
+    icon: str
+    is_owned: bool
+    is_equipped: bool
+
+
+class MyHomeResponse(BaseModel):
+    has_house: bool
+    house_count: int
+    best_tier_name: str | None
+    decorations: list[HomeDecorItemPublic]
+    follow_up_event_unlocked: bool
+    follow_up_event_title: str | None
+    follow_up_event_done: bool
+
+
+class HomeDecorActionRequest(BaseModel):
+    decor_id: str
+
+
+class HomeFollowUpEventResponse(BaseModel):
+    event_id: str
+    title: str
+    scenario: str
+    verification_step: str
+    evidence: str
+    is_completed: bool
+
+
+class VehiclePublic(BaseModel):
+    name: str
+    price: int
+    is_owned: bool
+    purchased_at: str | None
+    follow_up_event_title: str
+    follow_up_event_done: bool
+
+
 # ── Swipe（快速模式滑卡）─────────────────────────────────────
 
 
 class SwipeCardPublic(BaseModel):
     id: str
     scenario: str
-    source_label: str
-    fraud_type: str
-    difficulty: int
+
+
+class SwipeDeckResponse(BaseModel):
+    session_id: str
+    cards: list[SwipeCardPublic]
 
 
 class SwipeAnswerRequest(BaseModel):
+    session_id: str
     card_id: str
-    guess_is_scam: bool
+    guess_is_scam: bool | None = None
+    action: Literal["scam", "legit", "skip"] | None = None
 
 
 class QuizWeaknessDetail(BaseModel):
@@ -105,6 +221,7 @@ class QuizWeaknessDetail(BaseModel):
 class SwipeAnswerResponse(BaseModel):
     correct: bool
     is_scam: bool
+    action_taken: str
     explanation: str
     weakness_tags: list[str]
     tag_details: list[QuizWeaknessDetail]
@@ -112,11 +229,12 @@ class SwipeAnswerResponse(BaseModel):
 
 class SwipeAnswerItem(BaseModel):
     card_id: str
-    guess_is_scam: bool
+    guess_is_scam: bool | None = None
+    action: Literal["scam", "legit", "skip"] | None = None
 
 
 class SwipeCompleteRequest(BaseModel):
-    answers: list[SwipeAnswerItem]
+    session_id: str
 
 
 class WeaknessSummaryItem(BaseModel):
@@ -176,8 +294,30 @@ class ScenarioMessageResponse(BaseModel):
     turns_left: int
 
 
+class ScenarioToolItem(BaseModel):
+    tool_id: str
+    name: str
+    description: str
+
+
+class ScenarioEvidenceItem(BaseModel):
+    tool_id: str
+    title: str
+    content: str
+
+
+class ScenarioVerifyRequest(BaseModel):
+    tool_id: str
+
+
+class ScenarioVerifyResponse(BaseModel):
+    evidence: ScenarioEvidenceItem
+    already_unlocked: bool
+    unlocked_evidence: list[ScenarioEvidenceItem]
+
+
 class ScenarioJudgeRequest(BaseModel):
-    action: Literal["report", "comply"]
+    action: Literal["report", "comply", "safe_exit"]
 
 
 class ScenarioJudgeResponse(BaseModel):
@@ -190,6 +330,7 @@ class ScenarioJudgeResponse(BaseModel):
     new_cash: int
     triggers_forced_sell: bool
     case_provenance: str | None
+    unlocked_evidence_count: int = 0
 
 
 class ScenarioDetail(BaseModel):
@@ -202,6 +343,8 @@ class ScenarioDetail(BaseModel):
     player_turns: int
     max_turns: int
     history: list[dict[str, Any]]
+    available_tools: list[ScenarioToolItem] = []
+    unlocked_evidence: list[ScenarioEvidenceItem] = []
 
 
 # ── Quiz（混合題型）───────────────────────────────────────
@@ -210,10 +353,22 @@ class ScenarioDetail(BaseModel):
 class QuizVerdictPublic(BaseModel):
     item_id: str
     type: Literal["verdict"] = "verdict"
-    fraud_type: str
     title: str
     narrative: str
-    difficulty: int
+
+
+class QuizVerificationOption(BaseModel):
+    key: str
+    text: str
+
+
+class QuizVerificationPublic(BaseModel):
+    item_id: str
+    type: Literal["verification"] = "verification"
+    title: str
+    narrative: str
+    question: str
+    options: list[QuizVerificationOption]
 
 
 class QuizTacticsOption(BaseModel):
@@ -224,10 +379,8 @@ class QuizTacticsOption(BaseModel):
 class QuizTacticsPublic(BaseModel):
     item_id: str
     type: Literal["tactics"] = "tactics"
-    fraud_type: str
     title: str
     narrative: str
-    difficulty: int
     question: str
     options: list[QuizTacticsOption]
 
@@ -251,7 +404,7 @@ class QuizMatchPublic(BaseModel):
 
 
 QuizDeckItem = Annotated[
-    QuizVerdictPublic | QuizTacticsPublic | QuizMatchPublic,
+    QuizVerdictPublic | QuizVerificationPublic | QuizTacticsPublic | QuizMatchPublic,
     Field(discriminator="type"),
 ]
 
@@ -269,6 +422,7 @@ QuizAnswerString64 = Annotated[str, StringConstraints(max_length=64)]
 class QuizAnswerItem(BaseModel):
     item_id: str = Field(max_length=64)
     guess_is_scam: bool | None = None
+    selected_option: str | None = Field(default=None, max_length=16)
     selected_tags: list[QuizAnswerString32] | None = Field(default=None, max_length=5)
     pairs: dict[QuizAnswerString64, QuizAnswerString64] | None = Field(
         default=None, max_length=5
@@ -290,6 +444,13 @@ class QuizVerdictAnswerResponse(BaseModel):
     is_scam: bool
     red_flags: list[QuizRedFlag]
     provenance: str
+    tag_details: list[QuizWeaknessDetail]
+
+
+class QuizVerificationAnswerResponse(BaseModel):
+    type: Literal["verification"] = "verification"
+    correct: bool
+    explanation: str
     tag_details: list[QuizWeaknessDetail]
 
 
@@ -316,7 +477,10 @@ class QuizMatchAnswerResponse(BaseModel):
 
 
 QuizAnswerResponse = Annotated[
-    QuizVerdictAnswerResponse | QuizTacticsAnswerResponse | QuizMatchAnswerResponse,
+    QuizVerdictAnswerResponse
+    | QuizVerificationAnswerResponse
+    | QuizTacticsAnswerResponse
+    | QuizMatchAnswerResponse,
     Field(discriminator="type"),
 ]
 

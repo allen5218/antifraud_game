@@ -16,11 +16,11 @@ class ScenarioEconomyConfig:
 
 
 SCENARIO_ECONOMY: dict[str, ScenarioEconomyConfig] = {
-    "investment": ScenarioEconomyConfig(12000, 1500, 800, 300),
-    "romance": ScenarioEconomyConfig(10000, 1500, 800, 300),
-    "atm": ScenarioEconomyConfig(8000, 1200, 700, 300),
-    "shopping": ScenarioEconomyConfig(6000, 1000, 600, 250),
-    "fake-sale": ScenarioEconomyConfig(6000, 1000, 600, 250),
+    "investment": ScenarioEconomyConfig(2000, 1200, 800, 250),
+    "romance": ScenarioEconomyConfig(2000, 1200, 800, 250),
+    "atm": ScenarioEconomyConfig(2000, 1200, 700, 250),
+    "shopping": ScenarioEconomyConfig(1500, 1000, 600, 200),
+    "fake-sale": ScenarioEconomyConfig(1500, 1000, 600, 200),
 }
 
 # scam/legit 共用同一池,避免「名字 ↔ 角色」相關性洩題

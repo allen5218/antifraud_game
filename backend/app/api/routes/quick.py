@@ -17,14 +17,16 @@ from app.core.quiz import (
     score_tactics,
     select_quiz_material,
 )
+from app.core.verification_material import list_verification_materials
 from app.core.weakness import (
     WEAKNESS_LABELS,
     WEAKNESS_SUGGESTIONS,
     WEAKNESS_TAGS,
 )
+from app.economy.chapters import apply_income_multiplier, record_quiz_progress
 from app.economy.levels import level_of
 from app.economy.service import add_xp, adjust_cash, lock_user
-from app.models import QuizSession, SwipeCard
+from app.models import QuizSession, SwipeCard, SwipeSession
 from app.schemas import (
     QuizAnswerItem,
     QuizAnswerRequest,
@@ -35,22 +37,22 @@ from app.schemas import (
     QuizDeckResponse,
     QuizMatchAnswerResponse,
     QuizMatchPairResult,
-    QuizMatchPrompt,
-    QuizMatchPublic,
-    QuizMatchTarget,
     QuizRedFlag,
     QuizTacticsAnswerResponse,
     QuizTacticsOption,
     QuizTacticsPublic,
     QuizVerdictAnswerResponse,
     QuizVerdictPublic,
+    QuizVerificationAnswerResponse,
+    QuizVerificationOption,
+    QuizVerificationPublic,
     QuizWeaknessDetail,
-    SwipeAnswerItem,
     SwipeAnswerRequest,
     SwipeAnswerResponse,
     SwipeCardPublic,
     SwipeCompleteRequest,
     SwipeCompleteResponse,
+    SwipeDeckResponse,
     WeaknessSummaryItem,
 )
 
@@ -58,8 +60,12 @@ router = APIRouter(prefix="/quick", tags=["quick"])
 logger = logging.getLogger(__name__)
 
 
-def _reward(correct_count: int, best_streak: int) -> tuple[int, int]:
-    cash = int(20 * correct_count * (1 + 0.1 * (best_streak // 3)))
+def _swipe_reward(
+    correct_count: int, best_streak: int, completed_chapters: int = 0
+) -> tuple[int, int]:
+    """滑卡基礎獎勵：每題正確 100，連對每 3 題 +10% 取整，再套用章節倍率。"""
+    base_cash = int(100 * correct_count * (1 + 0.1 * (best_streak // 3)))
+    cash = apply_income_multiplier(base_cash, completed_chapters)
     xp = 10 * correct_count
     return cash, xp
 
@@ -85,34 +91,79 @@ def _weakness_summary(weakness: dict[str, int]) -> list[WeaknessSummaryItem]:
     ]
 
 
-@router.get("/swipe/deck", response_model=list[SwipeCardPublic])
+@router.get("/swipe/deck", response_model=SwipeDeckResponse)
 def swipe_deck(session: SessionDep, current_user: CurrentUser, size: int = 12) -> Any:
-    _ = current_user
     size = max(1, min(size, 30))
     cards = session.exec(select(SwipeCard).order_by(func.random()).limit(size)).all()
-    return [
-        SwipeCardPublic(
-            id=str(c.id),
-            scenario=c.scenario,
-            source_label=c.source_label,
-            fraud_type=c.fraud_type,
-            difficulty=c.difficulty,
-        )
-        for c in cards
-    ]
+    card_ids = [str(c.id) for c in cards]
+
+    # 一次性發牌 Session，鎖定 card_ids 與初始空答案，防重放刷分
+    swipe_sess = SwipeSession(user_id=current_user.id, card_ids=card_ids, answers={})
+    session.add(swipe_sess)
+    session.commit()
+    session.refresh(swipe_sess)
+
+    # 題目卡不包含 source_label、fraud_type、difficulty 等洩題標籤（AC1）
+    return SwipeDeckResponse(
+        session_id=str(swipe_sess.id),
+        cards=[
+            SwipeCardPublic(
+                id=str(c.id),
+                scenario=c.scenario,
+            )
+            for c in cards
+        ],
+    )
 
 
 @router.post("/swipe/answer", response_model=SwipeAnswerResponse)
 def swipe_answer(
     payload: SwipeAnswerRequest, session: SessionDep, current_user: CurrentUser
 ) -> Any:
-    _ = current_user
-    card = session.get(SwipeCard, uuid.UUID(payload.card_id))
-    if not card:
-        raise HTTPException(404, "card not found")
+    try:
+        session_uuid = uuid.UUID(payload.session_id)
+        card_uuid = uuid.UUID(payload.card_id)
+    except ValueError:
+        raise HTTPException(400, {"code": "invalid_id_format"}) from None
+
+    swipe_sess = session.get(SwipeSession, session_uuid)
+    if not swipe_sess:
+        raise HTTPException(404, {"code": "swipe_session_not_found"})
+    if swipe_sess.user_id != current_user.id:
+        raise HTTPException(403, {"code": "not_your_swipe_session"})
+    if swipe_sess.completed:
+        raise HTTPException(400, {"code": "swipe_already_completed"})
+
+    card = session.get(SwipeCard, card_uuid)
+    if not card or payload.card_id not in swipe_sess.card_ids:
+        raise HTTPException(404, {"code": "card_not_found"})
+
+    action = payload.action or ("scam" if payload.guess_is_scam else "legit")
+    if action == "skip":
+        # 資訊不足／略過查證（Safe Skip）：不判定對錯、不扣警覺值、不記連對
+        is_correct = False
+    elif action == "scam":
+        is_correct = card.is_scam
+    else:  # "legit"
+        is_correct = not card.is_scam
+
+    # 伺服器權威記錄首次作答
+    answers = dict(swipe_sess.answers or {})
+    if payload.card_id not in answers:
+        answers[payload.card_id] = {
+            "card_id": payload.card_id,
+            "action": action,
+            "is_correct": is_correct,
+            "guess_is_scam": action == "scam",
+        }
+        swipe_sess.answers = answers
+        session.add(swipe_sess)
+        session.commit()
+
     return SwipeAnswerResponse(
-        correct=payload.guess_is_scam == card.is_scam,
+        correct=is_correct,
         is_scam=card.is_scam,
+        action_taken=action,
         explanation=card.explanation,
         weakness_tags=card.weakness_tags,
         tag_details=_weakness_details(set(card.weakness_tags)),
@@ -123,37 +174,47 @@ def swipe_answer(
 def swipe_complete(
     payload: SwipeCompleteRequest, session: SessionDep, current_user: CurrentUser
 ) -> Any:
-    if not payload.answers:
-        raise HTTPException(400, {"code": "empty_answers"})
+    try:
+        session_uuid = uuid.UUID(payload.session_id)
+    except ValueError:
+        raise HTTPException(400, {"code": "invalid_session_id"}) from None
 
-    # Anti-cheat: dedupe card_ids (count each unique card once, first occurrence)
-    # and cap the answer count to prevent reward inflation
-    MAX_ANSWERS = 30
-    seen: set[str] = set()
-    deduped: list[SwipeAnswerItem] = []
-    for a in payload.answers:
-        if a.card_id in seen:
-            continue
-        seen.add(a.card_id)
-        deduped.append(a)
-        if len(deduped) >= MAX_ANSWERS:
-            break
+    # 以 SELECT ... FOR UPDATE 鎖定 swipe_session，防止重放並發刷獎
+    stmt = select(SwipeSession).where(SwipeSession.id == session_uuid).with_for_update()
+    swipe_sess = session.exec(stmt).first()
+    if not swipe_sess:
+        raise HTTPException(404, {"code": "swipe_session_not_found"})
+    if swipe_sess.user_id != current_user.id:
+        raise HTTPException(403, {"code": "not_your_swipe_session"})
+    if swipe_sess.completed:
+        raise HTTPException(400, {"code": "swipe_already_completed"})
 
-    ids = [uuid.UUID(a.card_id) for a in deduped]
+    answers = dict(swipe_sess.answers or {})
+    card_uuids = [uuid.UUID(cid) for cid in swipe_sess.card_ids]
     cards = {
         c.id: c
-        for c in session.exec(select(SwipeCard).where(col(SwipeCard.id).in_(ids))).all()
+        for c in session.exec(
+            select(SwipeCard).where(col(SwipeCard.id).in_(card_uuids))
+        ).all()
     }
 
     correct_count = 0
     best_streak = 0
     streak = 0
     weakness: dict[str, int] = {}
-    for a in deduped:
-        card = cards.get(uuid.UUID(a.card_id))
-        if card is None:
+
+    for card_id_str in swipe_sess.card_ids:
+        ans = answers.get(card_id_str)
+        if not ans or not isinstance(ans, dict):
             continue
-        if a.guess_is_scam == card.is_scam:
+        card = cards.get(uuid.UUID(card_id_str))
+        if not card:
+            continue
+        action = ans.get("action")
+        if action == "skip":
+            # safe skip: 保留不中斷 streak，但不算正確題
+            continue
+        if ans.get("is_correct"):
             correct_count += 1
             streak += 1
             best_streak = max(best_streak, streak)
@@ -162,29 +223,38 @@ def swipe_complete(
             for tag in card.weakness_tags:
                 weakness[tag] = weakness.get(tag, 0) + 1
 
-    cash, xp = _reward(correct_count, best_streak)
+    cash, xp = _swipe_reward(
+        correct_count, best_streak, current_user.completed_chapters
+    )
     current_user = lock_user(session, current_user)
     adjust_cash(current_user, cash, reason="swipe_reward")
     add_xp(current_user, xp, reason="swipe_reward")
+
+    swipe_sess.completed = True
+    swipe_sess.completed_at = datetime.now(timezone.utc)
     session.add(current_user)
+    session.add(swipe_sess)
     session.commit()
 
-    summary = _weakness_summary(weakness)
     return SwipeCompleteResponse(
         correct_count=correct_count,
-        total=len(deduped),
+        total=len(swipe_sess.card_ids),
         best_streak=best_streak,
         cash_earned=cash,
         xp_earned=xp,
-        weakness_summary=summary,
+        weakness_summary=_weakness_summary(weakness),
     )
 
 
 # ── Quiz（混合題型）───────────────────────────────────────
 
 
-def _quiz_reward(correct_count: int, best_streak: int) -> tuple[int, int]:
-    cash = int(40 * correct_count * (1 + 0.1 * (best_streak // 3)))
+def _quiz_reward(
+    correct_count: int, best_streak: int, completed_chapters: int = 0
+) -> tuple[int, int]:
+    """五題四對約 1000 之設計基準：每題 240，連對每 3 題 +10% 取整，套用章節倍率。"""
+    base_cash = int(240 * correct_count * (1 + 0.1 * (best_streak // 3)))
+    cash = apply_income_multiplier(base_cash, completed_chapters)
     xp = 20 * correct_count
     return cash, xp
 
@@ -204,7 +274,9 @@ def quiz_deck(session: SessionDep, current_user: CurrentUser, size: int = 5) -> 
     public_items: list[QuizDeckItem] = []
     case_ids: list[int] = []
 
-    for case in material.verdict:
+    # 1. 真偽判斷題（去題型提示、去難度星數）
+    verdict_quota = min(len(material.verdict), max(1, size - 2))
+    for case in material.verdict[:verdict_quota]:
         item_id = uuid.uuid4().hex
         stored_items.append(
             {
@@ -219,97 +291,78 @@ def quiz_deck(session: SessionDep, current_user: CurrentUser, size: int = 5) -> 
         public_items.append(
             QuizVerdictPublic(
                 item_id=item_id,
-                fraud_type=case.fraud_type,
                 title=case.title,
                 narrative=case.narrative,
-                difficulty=case.difficulty,
             )
         )
 
-    for case in material.tactics:
-        item_id = uuid.uuid4().hex
-        # 每題建立並打亂自己的 list，避免固定位置或跨題共用順序洩漏答案模式。
-        tactics_options = [
-            QuizTacticsOption(tag=tag, label=label)
-            for tag, label in WEAKNESS_LABELS.items()
-        ]
-        shuffle(tactics_options)
-        stored_items.append(
-            {
-                "item_id": item_id,
-                "type": "tactics",
-                "case_id": case.id,
-                "correct_tags": sorted(case_tags(case.red_flags)),
-            }
-        )
-        case_ids.append(case.id)
-        public_items.append(
-            QuizTacticsPublic(
-                item_id=item_id,
-                fraud_type=case.fraud_type,
-                title=case.title,
-                narrative=case.narrative,
-                difficulty=case.difficulty,
-                question="這則訊息用了哪些話術？（複選）",
-                options=tactics_options,
+    # 2. 查證行動／證據能證明什麼題型（T1：納入下一步查證或證據題型）
+    verif_needed = size - len(public_items)
+    if verif_needed > 0:
+        verif_materials = list_verification_materials(limit=verif_needed)
+        for vm in verif_materials:
+            item_id = uuid.uuid4().hex
+            correct_key = next(
+                (opt["key"] for opt in vm.options if opt.get("is_correct")), "A"
             )
-        )
-
-    if material.match:
-        item_id = uuid.uuid4().hex
-        stored_pairs: list[dict[str, Any]] = []
-        prompts: list[QuizMatchPrompt] = []
-        for match_material in material.match:
-            pair_id = uuid.uuid4().hex
-            text = str(
-                match_material.case.red_flags[match_material.flag_index].get("text", "")
-            )
-            stored_pairs.append(
+            stored_items.append(
                 {
-                    "pair_id": pair_id,
-                    "case_id": match_material.case.id,
-                    "flag_index": match_material.flag_index,
-                    "tag": match_material.tag,
-                    "text": text,
+                    "item_id": item_id,
+                    "type": "verification",
+                    "material_id": vm.material_id,
+                    "correct_key": correct_key,
+                    "explanation": vm.explanation,
+                    "weakness_tag": vm.weakness_tag,
                 }
             )
-            case_ids.append(match_material.case.id)
-            prompts.append(
-                QuizMatchPrompt(
-                    pair_id=pair_id,
-                    text=text,
+            public_items.append(
+                QuizVerificationPublic(
+                    item_id=item_id,
+                    title=vm.title,
+                    narrative=vm.narrative,
+                    question=vm.question,
+                    options=[
+                        QuizVerificationOption(key=opt["key"], text=opt["text"])
+                        for opt in vm.options
+                    ],
                 )
             )
-        targets = [
-            QuizMatchTarget(tag=tag, label=WEAKNESS_LABELS[tag])
-            for tag in WEAKNESS_TAGS
-        ]
-        shuffle(prompts)
-        shuffle(targets)
-        stored_items.append(
-            {"item_id": item_id, "type": "match", "pairs": stored_pairs}
-        )
-        public_items.append(
-            QuizMatchPublic(
-                item_id=item_id,
-                question="把話術和例句配對起來",
-                match_prompts=prompts,
-                match_targets=targets,
-            )
-        )
 
-    # 公開牌序與 session 權威牌序必須一致，避免客戶端重排答案操縱 streak。
+    # 3. 補充不足題數的話術教學題
+    if len(public_items) < size and material.tactics:
+        for case in material.tactics:
+            if len(public_items) >= size:
+                break
+            item_id = uuid.uuid4().hex
+            tactics_options = [
+                QuizTacticsOption(tag=tag, label=label)
+                for tag, label in WEAKNESS_LABELS.items()
+            ]
+            shuffle(tactics_options)
+            stored_items.append(
+                {
+                    "item_id": item_id,
+                    "type": "tactics",
+                    "case_id": case.id,
+                    "correct_tags": sorted(case_tags(case.red_flags)),
+                }
+            )
+            case_ids.append(case.id)
+            public_items.append(
+                QuizTacticsPublic(
+                    item_id=item_id,
+                    title=case.title,
+                    narrative=case.narrative,
+                    question="這則訊息用了哪些話術？（教學複選題）",
+                    options=tactics_options,
+                )
+            )
+
     shuffle(public_items)
     stored_by_item_id = {str(item["item_id"]): item for item in stored_items}
     stored_items = [stored_by_item_id[item.item_id] for item in public_items]
-    # 一次性結算 token 同時鎖定題目索引與全部底層 case id。
+
     quiz = QuizSession(user_id=current_user.id, case_ids=case_ids, items=stored_items)
-    if material.mirror_relaxed_count:
-        logger.warning(
-            "quiz 牌組 %s 放寬鏡像排除 %d 張",
-            quiz.id,
-            material.mirror_relaxed_count,
-        )
     session.add(quiz)
     session.commit()
     session.refresh(quiz)
@@ -398,16 +451,11 @@ def _correct_match_pairs(
         flag_index = stored_pair.get("flag_index")
         if not isinstance(flag_index, int):
             return None
-        # 優先採用發牌時定版的 tag。game_cases 由外部策展管線管理,
-        # 策展人可在玩家開著牌的時候調動 red_flags 順序;若這裡回頭讀即時資料,
-        # 同一個 flag_index 會指到別的話術,把答對判成答錯,
-        # 還會把錯誤的弱點寫進 weakness_summary 給出反向的教學建議。
         frozen_tag = stored_pair.get("tag")
         if isinstance(frozen_tag, str) and frozen_tag in WEAKNESS_TAGS:
             correct_pairs[pair_id] = frozen_tag
             used_case_ids.add(case_id)
             continue
-        # 定版機制上線前發出的舊 session 沒有 tag,才回頭查 DB
         case = get_case(session, case_id)
         if case is None or not 0 <= flag_index < len(case.red_flags):
             return None
@@ -444,7 +492,6 @@ def quiz_answer(
     raw_answer = payload.model_dump(
         exclude={"session_id", "item_id"}, exclude_none=True
     )
-    # JSONB 就地 mutate 不會被 ORM 偵測；必須整個重新指派。
     quiz.answers = {**answers, payload.item_id: raw_answer}
     session.add(quiz)
     session.commit()
@@ -463,7 +510,6 @@ def _quiz_answer_response(
         if case is None:
             raise HTTPException(404, {"code": "quiz_case_not_found"})
         correct = payload.guess_is_scam == case.is_scam
-        # 策展不變量：legit 案例的 red_flags[].tag 一律為 null。
         weakness_tags = (
             case_tags(case.red_flags) if not correct and case.is_scam else set()
         )
@@ -476,6 +522,18 @@ def _quiz_answer_response(
             ],
             provenance=case.provenance,
             tag_details=_weakness_details(weakness_tags),
+        )
+    if item_type == "verification":
+        correct_key = item.get("correct_key")
+        weakness_tag = item.get("weakness_tag")
+        explanation = item.get("explanation", "")
+        correct = payload.selected_option == correct_key
+        weakness_set = {weakness_tag} if (weakness_tag and not correct) else set()
+        return QuizVerificationAnswerResponse(
+            type="verification",
+            correct=correct,
+            explanation=explanation,
+            tag_details=_weakness_details(weakness_set),
         )
     if item_type == "tactics":
         case = _item_case(session, quiz, item)
@@ -524,8 +582,13 @@ def _score_quiz_item(
             return None
         correct = answer.guess_is_scam == case.is_scam
         correct_tags = case_tags(case.red_flags)
-        # 策展不變量：legit 案例的 red_flags[].tag 一律為 null。
         weaknesses = sorted(correct_tags) if not correct and case.is_scam else []
+        return correct, weaknesses
+    if item_type == "verification":
+        correct_key = item.get("correct_key")
+        weakness_tag = item.get("weakness_tag")
+        correct = answer.selected_option == correct_key
+        weaknesses = [weakness_tag] if (weakness_tag and not correct) else []
         return correct, weaknesses
     if item_type == "tactics":
         case = _item_case(session, quiz, item)
@@ -565,9 +628,6 @@ def _stored_quiz_answer(item_id: str, raw_answer: Any) -> QuizAnswerItem | None:
 def quiz_complete(
     payload: QuizCompleteRequest, session: SessionDep, current_user: CurrentUser
 ) -> Any:
-    # 驗證一次性結算 token:必須存在、屬於本人、且尚未結算(防跨請求重放刷獎)。
-    # 以 SELECT ... FOR UPDATE 鎖列,讓同 session_id 的並發結算(雙擊/重試)序列化——
-    # 第二筆會阻塞到第一筆 commit(已標記 completed)後才讀到,避免 TOCTOU 雙重發獎。
     quiz = _get_quiz_session(
         session,
         raw_session_id=payload.session_id,
@@ -577,7 +637,6 @@ def quiz_complete(
     if quiz.completed:
         raise HTTPException(400, {"code": "quiz_already_completed"})
 
-    # server-authoritative：只讀發牌時的不可變 items 與逐題首次寫入的 answers。
     dealt = _dealt_quiz_items(quiz)
     stored_answers = _quiz_answers(quiz)
 
@@ -611,13 +670,14 @@ def quiz_complete(
             for tag in weakness_tags:
                 weakness[tag] = weakness.get(tag, 0) + 1
 
-    cash, xp = _quiz_reward(correct_count, best_streak)
-    # 全專案鎖順序約定：先鎖玩法 session（此處 quiz_session），再鎖 user。
-    # 不可反向取得，避免兩種資源交叉等待造成死鎖。
+    cash, xp = _quiz_reward(correct_count, best_streak, current_user.completed_chapters)
     current_user = lock_user(session, current_user)
     adjust_cash(current_user, cash, reason="quiz_reward")
     add_xp(current_user, xp, reason="quiz_reward")
-    # 標記已結算與加獎同一 commit 原子化——不會有「已發獎但可重放」的中間態
+
+    # 推進章節里程碑
+    record_quiz_progress(session, current_user)
+
     quiz.completed = True
     quiz.completed_at = datetime.now(timezone.utc)
     session.add(current_user)

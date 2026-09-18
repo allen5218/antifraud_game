@@ -6,11 +6,13 @@ import { JudgeSheet } from "@/components/scenario/JudgeSheet"
 import { FRAUD_TYPE_LABELS, OUTCOME_BADGES } from "@/components/scenario/labels"
 import { MessageList, toChatEntries } from "@/components/scenario/MessageList"
 import { ResultSheet } from "@/components/scenario/ResultSheet"
+import { VerificationToolsModal } from "@/components/scenario/VerificationToolsModal"
 import {
   useJudge,
   useNewScenario,
   useScenario,
   useSendMessage,
+  useVerifyScenario,
 } from "@/hooks/useScenario"
 
 export const Route = createFileRoute("/_shell/scenarios/$scenarioId")({
@@ -26,9 +28,11 @@ function ScenarioChatPage() {
   const { data: detail, isPending } = useScenario(scenarioId)
   const sendM = useSendMessage(scenarioId)
   const judgeM = useJudge(scenarioId)
+  const verifyM = useVerifyScenario(scenarioId)
   const newM = useNewScenario()
   const [input, setInput] = useState("")
   const [judgeOpen, setJudgeOpen] = useState(false)
+  const [verifyOpen, setVerifyOpen] = useState(false)
   const [result, setResult] = useState<ScenarioJudgeResponse | null>(null)
 
   if (isPending || !detail) {
@@ -56,7 +60,7 @@ function ScenarioChatPage() {
       },
     })
   }
-  const judge = (action: "report" | "comply") => {
+  const judge = (action: "report" | "comply" | "safe_exit") => {
     if (judgeM.isPending) return
     setJudgeOpen(false)
     judgeM.mutate(action, { onSuccess: (data) => setResult(data) })
@@ -84,14 +88,23 @@ function ScenarioChatPage() {
           </span>
         </span>
         {detail.status === "active" ? (
-          <button
-            type="button"
-            onClick={() => setJudgeOpen(true)}
-            data-testid="judge-button"
-            className="rounded-full border border-border bg-muted px-3 py-1 text-xs font-semibold"
-          >
-            ⚖️ 下判斷
-          </button>
+          <div className="flex items-center gap-1.5">
+            <button
+              type="button"
+              onClick={() => setVerifyOpen(true)}
+              className="rounded-full border border-amber-300 bg-amber-50 px-2.5 py-1 text-xs font-semibold text-amber-700 hover:bg-amber-100 dark:border-amber-900 dark:bg-amber-950 dark:text-amber-300"
+            >
+              🔍 查證 ({detail.unlocked_evidence?.length ?? 0})
+            </button>
+            <button
+              type="button"
+              onClick={() => setJudgeOpen(true)}
+              data-testid="judge-button"
+              className="rounded-full border border-border bg-muted px-3 py-1 text-xs font-semibold"
+            >
+              ⚖️ 下判斷
+            </button>
+          </div>
         ) : (
           detail.outcome && (
             <span
@@ -186,6 +199,14 @@ function ScenarioChatPage() {
         </div>
       )}
 
+      <VerificationToolsModal
+        open={verifyOpen}
+        onClose={() => setVerifyOpen(false)}
+        tools={detail.available_tools ?? []}
+        unlockedEvidence={detail.unlocked_evidence ?? []}
+        onVerify={(toolId) => verifyM.mutate(toolId)}
+        isVerifying={verifyM.isPending}
+      />
       <JudgeSheet
         open={judgeOpen}
         onClose={() => setJudgeOpen(false)}

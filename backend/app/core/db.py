@@ -8,18 +8,23 @@ from app.models import PropertyTier, SwipeCard, User, UserCreate
 engine = create_engine(str(settings.SQLALCHEMY_DATABASE_URI))
 
 PROPERTY_TIERS_SEED = [
-    (1, "雅房", "tier-1", 1000, 5, 1),
-    (2, "套房", "tier-2", 5000, 35, 1),
-    (3, "兩房公寓", "tier-3", 25000, 250, 2),
-    (4, "三房公寓", "tier-4", 100000, 1200, 3),
-    (5, "別墅", "tier-5", 300000, 4200, 5),
-    (6, "豪宅", "tier-6", 1000000, 15000, 10),
+    (1, "雅房", "tier-1", 20000, 200, 1),
+    (2, "套房", "tier-2", 36000, 360, 1),
+    (3, "兩房公寓", "tier-3", 65000, 650, 2),
+    (4, "三房公寓", "tier-4", 117000, 1170, 3),
+    (5, "別墅", "tier-5", 210000, 2100, 5),
+    (6, "豪宅", "tier-6", 380000, 3800, 10),
 ]
 
 
 def seed_property_tiers(session: Session) -> None:
     for id_, name, svg, price, income, unlock in PROPERTY_TIERS_SEED:
-        if session.get(PropertyTier, id_):
+        tier = session.get(PropertyTier, id_)
+        if tier:
+            tier.price = price
+            tier.daily_income = income
+            tier.unlock_level = unlock
+            session.add(tier)
             continue
         session.add(
             PropertyTier(

@@ -34,6 +34,16 @@ def _aware(dt: datetime) -> datetime:
     return dt if dt.tzinfo else dt.replace(tzinfo=timezone.utc)
 
 
+LEGACY_TIER_PRICES: dict[int, int] = {
+    1: 1000,
+    2: 5000,
+    3: 25000,
+    4: 100000,
+    5: 300000,
+    6: 1000000,
+}
+
+
 def settle_accrual(
     user: User,
     owned: list[UserProperty],
@@ -41,15 +51,26 @@ def settle_accrual(
     tiers: dict[int, PropertyTier],
     now: datetime | None = None,
 ) -> int:
-    """Compute pending accrual since user.last_settled_at; mutate user in place. Returns amount added."""
+    """Compute pending accrual since user.last_settled_at; mutate user in place.
+
+    - 離線最多 3 日（3 ticks）須真正截斷，超出部分真正丟棄，不可重複讀取領取。
+    - 購買當下不可追溯獲得持有前租金：每個 tick 僅計入在該 tick 結算點前已持有的房產。
+    """
     now = now or datetime.now(timezone.utc)
     last = _aware(user.last_settled_at)
     elapsed = (now - last).total_seconds()
-    ticks = int(min(elapsed // ACCRUAL_TICK_SECONDS, ACCRUAL_MAX_TICKS))
+    total_ticks = int(elapsed // ACCRUAL_TICK_SECONDS)
+    ticks = min(total_ticks, ACCRUAL_MAX_TICKS)
     if ticks <= 0:
         return 0
 
-    user.last_settled_at = last + timedelta(seconds=ticks * ACCRUAL_TICK_SECONDS)
+    # 真正截斷：若離線超過 3 日，將已過期超過 3 日的時間直接丟棄，防止重複請求反覆領取
+    if total_ticks > ACCRUAL_MAX_TICKS:
+        remainder_seconds = elapsed % ACCRUAL_TICK_SECONDS
+        user.last_settled_at = now - timedelta(seconds=remainder_seconds)
+    else:
+        user.last_settled_at = last + timedelta(seconds=ticks * ACCRUAL_TICK_SECONDS)
+
     daily = sum(tiers[p.tier_id].daily_income for p in owned if p.tier_id in tiers)
     added = ticks * daily
     user.pending_accrual += added
@@ -91,6 +112,17 @@ def add_xp(user: User, amount: int, *, reason: str) -> None:  # noqa: ARG001
     user.xp += max(0, amount)
 
 
+def property_cost(p: UserProperty, tiers: dict[int, PropertyTier]) -> int:
+    """取得房產原始購買成本，相容舊有歷史資料，防止價格調整套利。"""
+    if p.purchase_price > 0:
+        return p.purchase_price
+    if p.tier_id in LEGACY_TIER_PRICES:
+        return LEGACY_TIER_PRICES[p.tier_id]
+    if p.tier_id in tiers:
+        return tiers[p.tier_id].price
+    return 0
+
+
 def liquidate(
     user: User,
     properties: list[UserProperty],
@@ -100,8 +132,7 @@ def liquidate(
 ) -> int:
     """Mark properties sold, credit cash, possibly clear bankruptcy_pending. Returns total recovered.
 
-    May be called when not bankrupt; bankruptcy_count increments only when a liquidation clears
-    a pending bankruptcy.
+    按實付成本 60% 回收，資產估值策略清楚且不讓舊房按新價套利。
     """
     now = now or datetime.now(timezone.utc)
     was_pending = user.bankruptcy_pending
@@ -111,7 +142,8 @@ def liquidate(
             continue
         if p.tier_id not in tiers:
             continue
-        sell_price = int(tiers[p.tier_id].price * LIQUIDATION_RATIO)
+        cost = property_cost(p, tiers)
+        sell_price = int(cost * LIQUIDATION_RATIO)
         p.sold_at = now
         p.sold_price = sell_price
         total += sell_price

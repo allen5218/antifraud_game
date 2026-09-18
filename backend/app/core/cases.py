@@ -13,6 +13,8 @@ from pydantic import BaseModel
 from sqlalchemy import text
 from sqlmodel import Session
 
+from app.core.case_curation import project_case_safely
+
 _COLS = (
     "id, fraud_type, is_scam, title, narrative, red_flags, difficulty, provenance, "
     "mirror_of"
@@ -31,6 +33,24 @@ class GameCaseRow(BaseModel):
     mirror_of: int | None = None
 
 
+def _apply_safe_row(raw: dict[str, Any]) -> GameCaseRow | None:
+    row = GameCaseRow(**raw)
+    proj, is_safe = project_case_safely(row)
+    if not is_safe or proj is None:
+        return None
+    return GameCaseRow(
+        id=row.id,
+        fraud_type=proj.fraud_type,
+        is_scam=proj.is_scam,
+        title=proj.title,
+        narrative=proj.narrative,
+        red_flags=row.red_flags,
+        difficulty=row.difficulty,
+        provenance=row.provenance,
+        mirror_of=row.mirror_of,
+    )
+
+
 def list_published(
     session: Session, *, fraud_type: str | None = None, limit: int = 10
 ) -> list[GameCaseRow]:
@@ -41,7 +61,12 @@ def list_published(
         params["fraud_type"] = fraud_type
     sql += " ORDER BY random() LIMIT :limit"
     rows = session.execute(text(sql), params).mappings().all()
-    return [GameCaseRow(**dict(r)) for r in rows]
+    results: list[GameCaseRow] = []
+    for r in rows:
+        safe = _apply_safe_row(dict(r))
+        if safe:
+            results.append(safe)
+    return results
 
 
 def list_published_for_quiz(session: Session) -> list[GameCaseRow]:
@@ -53,7 +78,12 @@ def list_published_for_quiz(session: Session) -> list[GameCaseRow]:
         .mappings()
         .all()
     )
-    return [GameCaseRow(**dict(row)) for row in rows]
+    results: list[GameCaseRow] = []
+    for row in rows:
+        safe = _apply_safe_row(dict(row))
+        if safe:
+            results.append(safe)
+    return results
 
 
 def get_case(session: Session, case_id: int) -> GameCaseRow | None:
@@ -67,7 +97,7 @@ def get_case(session: Session, case_id: int) -> GameCaseRow | None:
         .mappings()
         .first()
     )
-    return GameCaseRow(**dict(row)) if row else None
+    return _apply_safe_row(dict(row)) if row else None
 
 
 def pick_case(
@@ -85,4 +115,4 @@ def pick_case(
         .mappings()
         .first()
     )
-    return GameCaseRow(**dict(row)) if row else None
+    return _apply_safe_row(dict(row)) if row else None
