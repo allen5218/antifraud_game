@@ -37,7 +37,7 @@ export function AuthLayout({ children }: AuthLayoutProps) {
         <img
           src="/assets/images/brand-hero.png"
           alt="反詐大師"
-          className="w-[420px] max-w-lg h-auto relative z-10 drop-shadow-[0_0_50px_rgba(255,255,255,0.25)] transition-all hover:scale-[1.02] duration-700 rounded-3xl"
+          className="w-[450px] max-w-xl h-auto relative z-10 drop-shadow-[0_0_40px_rgba(255,255,255,0.25)] transition-all hover:scale-[1.02] duration-700 pointer-events-none select-none"
         />
       </div>
     </div>
