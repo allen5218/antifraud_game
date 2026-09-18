@@ -2,10 +2,10 @@ import { Link } from "@tanstack/react-router"
 
 import { useTheme } from "@/components/theme-provider"
 import { cn } from "@/lib/utils"
-import icon from "/assets/images/brand-icon.svg"
-import iconLight from "/assets/images/brand-icon-light.svg"
-import logo from "/assets/images/brand-logo.svg"
-import logoLight from "/assets/images/brand-logo-light.svg"
+import icon from "/assets/images/brand-icon-dark.png"
+import iconLight from "/assets/images/brand-icon-transparent.png"
+import logo from "/assets/images/brand-icon-dark.png"
+import logoLight from "/assets/images/brand-icon-transparent.png"
 
 interface LogoProps {
   variant?: "full" | "icon" | "responsive"

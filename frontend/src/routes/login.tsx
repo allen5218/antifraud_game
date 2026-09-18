@@ -74,8 +74,9 @@ function Login() {
           onSubmit={form.handleSubmit(onSubmit)}
           className="flex flex-col gap-6"
         >
-          <div className="flex flex-col items-center gap-2 text-center">
-            <h1 className="text-2xl font-bold">登入反詐大師</h1>
+          <div className="flex flex-col gap-1.5 text-left mb-2">
+            <h1 className="text-2xl font-extrabold text-slate-900 tracking-tight">登入反詐大師</h1>
+            <p className="text-xs text-slate-500 font-medium">請輸入你的帳號以進入防詐修練場</p>
           </div>
 
           <div className="grid gap-4">
@@ -84,16 +85,17 @@ function Login() {
               name="username"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Email</FormLabel>
+                  <FormLabel className="text-xs font-bold text-slate-700">電子信箱</FormLabel>
                   <FormControl>
                     <Input
                       data-testid="email-input"
                       placeholder="user@example.com"
                       type="email"
+                      className="bg-white border-slate-300 text-slate-900 focus:border-slate-800 focus:ring-slate-800 rounded-xl"
                       {...field}
                     />
                   </FormControl>
-                  <FormMessage className="text-xs" />
+                  <FormMessage className="text-xs text-red-600" />
                 </FormItem>
               )}
             />
@@ -104,10 +106,10 @@ function Login() {
               render={({ field }) => (
                 <FormItem>
                   <div className="flex items-center">
-                    <FormLabel>Password</FormLabel>
+                    <FormLabel className="text-xs font-bold text-slate-700">密碼</FormLabel>
                     <RouterLink
                       to="/recover-password"
-                      className="ml-auto text-sm underline-offset-4 hover:underline"
+                      className="ml-auto text-xs font-semibold text-slate-500 underline-offset-4 hover:underline hover:text-slate-900"
                     >
                       忘記密碼?
                     </RouterLink>
@@ -115,16 +117,21 @@ function Login() {
                   <FormControl>
                     <PasswordInput
                       data-testid="password-input"
-                      placeholder="Password"
+                      placeholder="••••••••"
+                      className="bg-white border-slate-300 text-slate-900 focus:border-slate-800 focus:ring-slate-800 rounded-xl"
                       {...field}
                     />
                   </FormControl>
-                  <FormMessage className="text-xs" />
+                  <FormMessage className="text-xs text-red-600" />
                 </FormItem>
               )}
             />
 
-            <LoadingButton type="submit" loading={loginMutation.isPending}>
+            <LoadingButton
+              type="submit"
+              loading={loginMutation.isPending}
+              className="w-full py-2.5 bg-slate-900 hover:bg-slate-800 text-white font-bold rounded-xl shadow-sm transition-all"
+            >
               登入
             </LoadingButton>
 
@@ -134,7 +141,7 @@ function Login() {
                 localStorage.setItem("access_token", "demo_token_123")
                 window.location.href = "/"
               }}
-              className="w-full py-2.5 px-4 bg-slate-800 hover:bg-slate-700 text-white font-semibold rounded-lg border border-slate-700 transition-all flex items-center justify-center gap-2 text-sm"
+              className="w-full py-2.5 px-4 bg-slate-100 hover:bg-slate-200 text-slate-800 font-semibold rounded-xl border border-slate-300 transition-all flex items-center justify-center gap-2 text-xs"
             >
               免登入體驗模式 (Guest Demo)
             </button>
