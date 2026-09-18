@@ -74,9 +74,6 @@ function Login() {
           onSubmit={form.handleSubmit(onSubmit)}
           className="flex flex-col gap-6"
         >
-          <div className="flex flex-col gap-1.5 text-left mb-2">
-            <h1 className="text-2xl font-extrabold text-slate-900 tracking-tight">登入反詐大師</h1>
-          </div>
 
           <div className="grid gap-4">
             <FormField
