@@ -10,9 +10,11 @@ export function HeaderStatus() {
   return (
     <header className="sticky top-0 z-20 flex items-center justify-between border-b border-white/10 bg-slate-900/90 backdrop-blur-xl px-4 py-3 sm:pt-6">
       <div className="flex items-center gap-2">
-        <span className="flex h-7 w-7 items-center justify-center rounded-lg border border-white/20 bg-white/5 text-xs font-bold text-white shadow-[0_0_10px_rgba(255,255,255,0.08)]">
-          防詐
-        </span>
+        <img
+          src="/assets/images/brand-icon-transparent.png"
+          alt="反詐大師"
+          className="h-6 w-auto object-contain drop-shadow-[0_0_8px_rgba(255,255,255,0.25)]"
+        />
         <span className="font-bold text-sm tracking-wide text-white">
           反詐大師
         </span>
