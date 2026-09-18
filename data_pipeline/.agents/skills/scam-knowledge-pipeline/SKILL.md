@@ -49,12 +49,23 @@ The pipeline is skill-driven: Codex performs source inspection and LLM-assisted 
     - Measure genre leakage with `scripts/leak_probe.py` before ingest. Drafts whose `is_scam` is guessable from narrative form alone (retrospective endings, "正因為…我才放心" closings) are free points for the player. 50% = clean, ~100% = giving the answer away. Gate with `--fail-over 0.75`.
 12. Ingest game case drafts.
     - Use `scripts/ingest_game_cases.py`; default is dry-run, `--apply` is required to write. Drafts only.
+12.5. 驗收 game cases。
+    - 必跑 `scripts/validate_game_cases.py`。
+    - 必跑 `scripts/leak_probe.py --probe lexical,match --tag-balance`。
+    - 有 `GOOGLE_API_KEY` 時，再加跑 `--probe genre,title`。
+13. 審核後升級 published。
+    - `draft` → `reviewed` → `published` 由人工執行，或由使用者明確授權。
+14. 匯出 published 種子檔。
+    - 先執行 `scripts/export_published_seed.py` dry-run 檢查統計。
+    - 確認後加 `--output PATH` 產生只含 published 的 SQL。
 
 For a single-source run, prefer `scripts/run_source_pipeline.sh`; it performs probe, fetch, validate, scoped ingest, scoped normalization, scoped chunking, scoped embedding, and scoped audit with dry-runs before every write stage.
 
 ## Hard Rules
 
-- Do not start Docker containers from this skill. Docker was used only during planning experiments.
+- Skill 內的 Python／shell 管線腳本不得自行啟動 Docker 或資料庫容器。
+  `data_pipeline/runner/` 是操作者在缺少 `psql`／`pg_dump` 的主機上主動使用的
+  外部工具，不屬於 skill 腳本，也只連線到既有資料庫。
 - Connect only to an existing PostgreSQL/pgvector endpoint configured outside this skill.
 - Do not read or print production secrets. Use `references/.env.example` only as a template.
 - Do not bypass captcha, login, rate limits, reporting flows, or access controls.
@@ -66,7 +77,8 @@ For a single-source run, prefer `scripts/run_source_pipeline.sh`; it performs pr
 - Store full raw payload and clean text in JSONB; normalize only stable fields into relational tables.
 - Use pgvector only for clean chunks, never raw JSONB or raw HTML.
 - Treat Playwright CLI as integrated inspection/fallback capability inside this skill, not as a separate skill dependency.
-- game_cases writes are draft-only; status promotion (reviewed/published) happens manually in Supabase Studio, never from this skill.
+- game_cases 寫入預設只建立 draft；status 升級必須經人工審核，並由操作者
+  手動執行或取得使用者明確授權。
 - Game case narratives must be de-identified (no names, phone numbers, accounts, URLs, or real brand/app names).
 
 ## Resource Routing

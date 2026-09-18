@@ -1,8 +1,9 @@
 #!/usr/bin/env python3
 import argparse
+from collections import Counter
 import json
-from pathlib import Path
-from common import ROOT, TAXONOMY_CODES, read_jsonl, write_jsonl
+import re
+from common import CONTENT_KINDS, ROOT, TAXONOMY_CODES, read_jsonl, write_jsonl
 
 try:
     from jsonschema import Draft202012Validator
@@ -10,16 +11,37 @@ except ImportError:
     Draft202012Validator = None
 
 REQUIRED = [
-    "source_name", "source_type", "source_url", "fetched_at", "content_hash",
-    "page_title", "body_text", "clean_text", "raw_payload", "taxonomy_code",
-    "source_category_label", "matched_keywords", "classification_confidence",
-    "category_evidence", "extraction_notes", "classification_notes",
-    "validation_status", "source_verification_status", "case_stance", "content_kind"
+    "source_name",
+    "source_type",
+    "source_url",
+    "fetched_at",
+    "content_hash",
+    "page_title",
+    "body_text",
+    "clean_text",
+    "raw_payload",
+    "taxonomy_code",
+    "source_category_label",
+    "matched_keywords",
+    "classification_confidence",
+    "category_evidence",
+    "extraction_notes",
+    "classification_notes",
+    "validation_status",
+    "source_verification_status",
+    "case_stance",
+    "content_kind",
 ]
 EVIDENCE_REQUIRED = [
-    "platforms", "payment_methods", "impersonated_roles", "transaction_context",
-    "relationship_signals", "atm_or_installment_signals", "evidence_quotes"
+    "platforms",
+    "payment_methods",
+    "impersonated_roles",
+    "transaction_context",
+    "relationship_signals",
+    "atm_or_installment_signals",
+    "evidence_quotes",
 ]
+
 
 def load_schema_validator():
     schema_path = ROOT / "schemas" / "scam_case.schema.json"
@@ -30,6 +52,7 @@ def load_schema_validator():
     validator.check_schema(schema)
     return validator
 
+
 def fallback_validate(record):
     errors = []
     if "__json_error__" in record:
@@ -37,11 +60,25 @@ def fallback_validate(record):
     for key in REQUIRED:
         if key not in record:
             errors.append(f"missing {key}")
-    if record.get("taxonomy_code") not in TAXONOMY_CODES:
+    taxonomy_code = record.get("taxonomy_code")
+    empty_advisory_taxonomy = (
+        taxonomy_code is None
+        and record.get("case_stance") == "advisory"
+        and record.get("content_kind") == "advisory"
+    )
+    empty_cofacts_message_taxonomy = (
+        taxonomy_code is None
+        and record.get("source_name") == "tw_cofacts_scam_messages"
+        and record.get("case_stance") == "scam"
+        and record.get("content_kind") == "message_sample"
+    )
+    if taxonomy_code not in TAXONOMY_CODES and not (
+        empty_advisory_taxonomy or empty_cofacts_message_taxonomy
+    ):
         errors.append("invalid taxonomy_code")
     if record.get("case_stance") not in {"scam", "legit", "advisory"}:
         errors.append("invalid case_stance")
-    if record.get("content_kind") not in {"case_narrative", "domain_list", "advisory", "statute"}:
+    if record.get("content_kind") not in CONTENT_KINDS:
         errors.append("invalid content_kind")
     confidence = record.get("classification_confidence")
     if not isinstance(confidence, (int, float)) or not (0 <= confidence <= 1):
@@ -58,7 +95,9 @@ def fallback_validate(record):
                 errors.append(f"missing category_evidence.{key}")
     if record.get("validation_status") != "valid":
         errors.append("validation_status must be valid before ingest")
+    errors.extend(case_narrative_quality_reasons(record))
     return errors
+
 
 def validate(record, schema_validator):
     if "__json_error__" in record:
@@ -66,12 +105,31 @@ def validate(record, schema_validator):
     if schema_validator is None:
         return fallback_validate(record)
     errors = []
-    for error in sorted(schema_validator.iter_errors(record), key=lambda e: list(e.path)):
+    for error in sorted(
+        schema_validator.iter_errors(record), key=lambda e: list(e.path)
+    ):
         path = ".".join(str(part) for part in error.path)
         errors.append(f"{path or '<root>'}: {error.message}")
     if record.get("validation_status") != "valid":
         errors.append("validation_status must be valid before ingest")
+    errors.extend(case_narrative_quality_reasons(record))
     return errors
+
+
+def case_narrative_quality_reasons(record):
+    if record.get("content_kind") != "case_narrative":
+        return []
+    text = record.get("clean_text")
+    text = text if isinstance(text, str) else ""
+    reasons = []
+    if len(text) < 150:
+        reasons.append("case_narrative_too_short")
+    if len(text) > 20000:
+        reasons.append("case_narrative_too_long")
+    if re.search(r"</?[A-Za-z][^>]*>", text):
+        reasons.append("case_narrative_contains_html")
+    return reasons
+
 
 parser = argparse.ArgumentParser(description="Validate classified scam case JSONL.")
 parser.add_argument("--input", required=True)
@@ -81,14 +139,33 @@ args = parser.parse_args()
 
 schema_validator = load_schema_validator()
 valid, rejected = [], []
+rejection_reasons = Counter()
 for line_no, record in read_jsonl(args.input):
     errors = validate(record, schema_validator)
     if errors:
-        rejected.append({"line": line_no, "errors": errors, "record": record})
+        quality_reasons = case_narrative_quality_reasons(record)
+        rejection_reasons.update(quality_reasons)
+        rejected.append(
+            {
+                "line": line_no,
+                "errors": errors,
+                "quality_reasons": quality_reasons,
+                "record": record,
+            }
+        )
     else:
         valid.append(record)
 
 write_jsonl(args.valid_output, valid)
 write_jsonl(args.reject_output, rejected)
-print(json.dumps({"valid": len(valid), "rejected": len(rejected)}, ensure_ascii=False))
+print(
+    json.dumps(
+        {
+            "valid": len(valid),
+            "rejected": len(rejected),
+            "rejection_reasons": dict(sorted(rejection_reasons.items())),
+        },
+        ensure_ascii=False,
+    )
+)
 raise SystemExit(1 if rejected else 0)

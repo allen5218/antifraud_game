@@ -1,0 +1,30 @@
+{
+  "data": {
+    "ListArticles": {
+      "totalCount": 708,
+      "edges": [
+        {
+          "cursor": "legit-1",
+          "node": {
+            "id": "legit-toll-message",
+            "text": "監理所通知本期公路養管費即將到期，可至監理服務網查詢繳費資料；簡訊不會要求操作 ATM 或提供網銀密碼。",
+            "createdAt": "2026-09-10T01:02:03.000Z",
+            "lastRequestedAt": "2026-09-17T02:03:04.000Z",
+            "replyRequestCount": 2
+          }
+        },
+        {
+          "cursor": "legit-2",
+          "node": {
+            "id": "investment-warning",
+            "text": "這是投資詐騙，對方會用保證獲利吸引民眾加入投資群組，請大家不要匯款也不要提供帳戶資料。",
+            "createdAt": "2026-09-09T01:02:03.000Z",
+            "lastRequestedAt": "2026-09-16T02:03:04.000Z",
+            "replyRequestCount": 4
+          }
+        }
+      ],
+      "pageInfo": {"lastCursor": null}
+    }
+  }
+}
