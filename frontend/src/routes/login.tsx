@@ -76,7 +76,6 @@ function Login() {
         >
           <div className="flex flex-col gap-1.5 text-left mb-2">
             <h1 className="text-2xl font-extrabold text-slate-900 tracking-tight">登入反詐大師</h1>
-            <p className="text-xs text-slate-500 font-medium">請輸入你的帳號以進入防詐修練場</p>
           </div>
 
           <div className="grid gap-4">
