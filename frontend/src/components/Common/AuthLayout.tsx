@@ -1,5 +1,6 @@
 import { Appearance } from "@/components/Common/Appearance"
 import { AnimatedAcanthusEye } from "@/components/Common/AnimatedAcanthusEye"
+import { BrandPlateBackground } from "@/components/Common/BrandPlateBackground"
 
 interface AuthLayoutProps {
   children: React.ReactNode
@@ -31,11 +32,13 @@ export function AuthLayout({ children }: AuthLayoutProps) {
         </footer>
       </div>
 
-      {/* Right: Brand hero — deep dark slate with dynamic living Acanthus Magnifying Eye */}
-      <div className="bg-slate-950 relative hidden lg:flex lg:flex-col lg:items-center lg:justify-center gap-6 p-12 overflow-hidden">
-        {/* Subtle white radial glow behind logo */}
-        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,_rgba(255,255,255,0.07)_0%,_transparent_65%)] pointer-events-none" />
-        <AnimatedAcanthusEye className="w-[520px] max-w-2xl h-auto relative z-10" />
+      {/* Right: Brand hero — classical copperplate archival plate with balanced proportions */}
+      <div className="bg-slate-950 relative hidden lg:flex lg:flex-col lg:items-center lg:justify-center p-12 overflow-hidden">
+        {/* Archival copperplate print background with celestial coordinates & double border */}
+        <BrandPlateBackground />
+        
+        {/* Classical Magnifying Eye master artwork — elegant scaled proportion */}
+        <AnimatedAcanthusEye className="w-[380px] max-w-md h-auto relative z-10" />
       </div>
     </div>
   )
