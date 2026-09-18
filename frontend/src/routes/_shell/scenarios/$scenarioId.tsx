@@ -1,6 +1,7 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router"
 import { useState } from "react"
 import type { ScenarioJudgeResponse } from "@/client"
+import { LineChatWrapper } from "@/components/line/LineChatWrapper"
 import { ActionCard } from "@/components/scenario/ActionCard"
 import { JudgeSheet } from "@/components/scenario/JudgeSheet"
 import { FRAUD_TYPE_LABELS, OUTCOME_BADGES } from "@/components/scenario/labels"
@@ -67,58 +68,61 @@ function ScenarioChatPage() {
   }
 
   return (
-    <div className="flex h-full flex-col">
-      {/* header:返回 + 身份 + 下判斷 */}
-      <div className="flex items-center gap-2 border-b border-border bg-background px-3 py-2">
-        <button
-          type="button"
-          onClick={() => navigate({ to: "/scenarios" })}
-          className="px-1 text-lg text-muted-foreground"
-          aria-label="返回"
-        >
-          ‹
-        </button>
-        <span className="text-xl">{detail.avatar}</span>
-        <span className="min-w-0 flex-1">
-          <span className="block truncate text-sm font-bold">
-            {detail.display_name}
-          </span>
-          <span className="text-[10px] text-amber-600">
-            ● {FRAUD_TYPE_LABELS[detail.fraud_type] ?? "其他類型"}
-          </span>
-        </span>
-        {detail.status === "active" ? (
-          <div className="flex items-center gap-1.5">
-            <button
-              type="button"
-              onClick={() => setVerifyOpen(true)}
-              className="rounded-full border border-amber-300 bg-amber-50 px-2.5 py-1 text-xs font-semibold text-amber-700 hover:bg-amber-100 dark:border-amber-900 dark:bg-amber-950 dark:text-amber-300"
-            >
-              🔍 查證 ({detail.unlocked_evidence?.length ?? 0})
-            </button>
-            <button
-              type="button"
-              onClick={() => setJudgeOpen(true)}
-              data-testid="judge-button"
-              className="rounded-full border border-border bg-muted px-3 py-1 text-xs font-semibold"
-            >
-              ⚖️ 下判斷
-            </button>
-          </div>
-        ) : (
-          detail.outcome && (
-            <span
-              className={`text-[11px] font-bold ${
-                OUTCOME_BADGES[detail.outcome]?.tone === "win"
-                  ? "text-green-600"
-                  : "text-red-600"
-              }`}
-            >
-              {OUTCOME_BADGES[detail.outcome]?.label}
+    <LineChatWrapper
+      title={detail.display_name}
+      subtitle={`● ${FRAUD_TYPE_LABELS[detail.fraud_type] ?? "其他類型"} (${detail.status === "active" ? `剩 ${turnsLeft} 回合` : "已完成"})`}
+      avatarUrl={`https://api.dicebear.com/7.x/bottts/svg?seed=${detail.id}`}
+      onReportToLineBot={() => setVerifyOpen(true)}
+    >
+      <div className="flex h-full flex-col">
+        {/* header:返回 + 身份 + 下判斷 */}
+        <div className="flex items-center gap-2 border-b border-border bg-background/80 backdrop-blur p-2 rounded-xl">
+          <button
+            type="button"
+            onClick={() => navigate({ to: "/scenarios" })}
+            className="px-1 text-lg text-muted-foreground"
+            aria-label="返回"
+          >
+            ‹
+          </button>
+          <span className="text-xl">{detail.avatar}</span>
+          <span className="min-w-0 flex-1">
+            <span className="block truncate text-sm font-bold">
+              {detail.display_name}
             </span>
-          )
-        )}
-      </div>
+          </span>
+          {detail.status === "active" ? (
+            <div className="flex items-center gap-1.5">
+              <button
+                type="button"
+                onClick={() => setVerifyOpen(true)}
+                className="rounded-full border border-amber-300 bg-amber-50 px-2.5 py-1 text-xs font-semibold text-amber-700 hover:bg-amber-100 dark:border-amber-900 dark:bg-amber-950 dark:text-amber-300"
+              >
+                🔍 查證 ({detail.unlocked_evidence?.length ?? 0})
+              </button>
+              <button
+                type="button"
+                onClick={() => setJudgeOpen(true)}
+                data-testid="judge-button"
+                className="rounded-full border border-border bg-muted px-3 py-1 text-xs font-semibold"
+              >
+                ⚖️ 下判斷
+              </button>
+            </div>
+          ) : (
+            detail.outcome && (
+              <span
+                className={`text-[11px] font-bold ${
+                  OUTCOME_BADGES[detail.outcome]?.tone === "win"
+                    ? "text-green-600"
+                    : "text-red-600"
+                }`}
+              >
+                {OUTCOME_BADGES[detail.outcome]?.label}
+              </span>
+            )
+          )}
+        </div>
 
       {/* 訊息流 */}
       <div className="flex-1 overflow-y-auto bg-muted/40">
@@ -223,5 +227,6 @@ function ScenarioChatPage() {
         />
       )}
     </div>
-  )
+  </LineChatWrapper>
+)
 }
