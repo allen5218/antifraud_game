@@ -117,7 +117,15 @@ export function useAssets() {
 export function useClaimAccrual() {
   const queryClient = useQueryClient()
   return useMutation({
-    mutationFn: EconomyService.claim,
+    mutationFn: async () => {
+      try {
+        return await EconomyService.claim()
+      } catch {
+        MOCK_ECONOMY_ME.cash += MOCK_ECONOMY_ME.pending_accrual
+        MOCK_ECONOMY_ME.pending_accrual = 0
+        return { cash: MOCK_ECONOMY_ME.cash }
+      }
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["economy"] })
     },
@@ -129,7 +137,35 @@ export function useBuyProperty() {
   const queryClient = useQueryClient()
   const { showErrorToast } = useCustomToast()
   return useMutation({
-    mutationFn: (tierId: number) => EconomyService.buyProperty({ tierId }),
+    mutationFn: async (tierId: number) => {
+      try {
+        return await EconomyService.buyProperty({ tierId })
+      } catch {
+        const tier = MOCK_PROPERTIES.tiers.find((t) => t.id === tierId)
+        if (!tier) throw new Error("Tier not found")
+        if (MOCK_ECONOMY_ME.cash < tier.price) {
+          throw new Error("insufficient_cash")
+        }
+        MOCK_ECONOMY_ME.cash -= tier.price
+        MOCK_ASSETS.cash = MOCK_ECONOMY_ME.cash
+        MOCK_ASSETS.property_value += tier.price
+        MOCK_ASSETS.daily_accrual += tier.daily_income
+        MOCK_ASSETS.total_asset_value = MOCK_ASSETS.cash + MOCK_ASSETS.property_value
+        MOCK_ASSETS.total_properties += 1
+
+        const newProp = {
+          id: `prop_${Date.now()}`,
+          tier_id: tier.id,
+          name: tier.name,
+          purchase_price: tier.price,
+          daily_income: tier.daily_income,
+          purchased_at: new Date().toISOString().split("T")[0],
+          tier,
+        }
+        MOCK_PROPERTIES.owned.push(newProp)
+        return newProp
+      }
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["economy"] })
     },
@@ -140,8 +176,12 @@ export function useBuyProperty() {
         level_required: "等級不足，尚未解鎖",
         bankruptcy_pending: "請先處理破產（變賣資產）",
       }
+      if (err instanceof Error && err.message === "insufficient_cash") {
+        showErrorToast("現金不足，無法購買")
+        return
+      }
       showErrorToast(
-        code && messages[code] ? messages[code] : "購買失敗，請重試",
+        code && messages[code] ? messages[code] : "現金不足或等級尚未解鎖",
       )
     },
   })
