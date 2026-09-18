@@ -1,7 +1,6 @@
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
+import { useQuery } from "@tanstack/react-query"
 import { Link } from "@tanstack/react-router"
 import { EconomyService } from "@/client"
-import { Button } from "@/components/ui/button"
 
 const MOCK_CHAPTERS = {
   completed_chapters: 1,
@@ -30,7 +29,6 @@ const MOCK_CHAPTERS = {
 }
 
 export function ChapterBanner() {
-  const qc = useQueryClient()
   const { data: status, isPending } = useQuery({
     queryKey: ["economy", "chapters"],
     queryFn: async () => {
@@ -42,17 +40,10 @@ export function ChapterBanner() {
     },
   })
 
-  const claimM = useMutation({
-    mutationFn: () => EconomyService.postClaimStarterGrant(),
-    onSuccess: () => {
-      qc.invalidateQueries({ queryKey: ["economy"] })
-    },
-  })
-
   if (isPending || !status) {
     return (
-      <div className="mb-3 rounded-2xl bg-muted p-4 text-center text-xs text-muted-foreground">
-        章節進度載入中…
+      <div className="rounded-2xl border border-slate-800 bg-slate-900/60 p-4 text-center text-xs text-slate-400">
+        章節進度載入中...
       </div>
     )
   }
@@ -64,30 +55,6 @@ export function ChapterBanner() {
 
   return (
     <div className="space-y-3">
-      {/* 創業補助領取橫幅（完成第 1 章且未領取時顯示） */}
-      {status.can_claim_starter_grant && (
-        <div className="relative overflow-hidden rounded-2xl border border-amber-400/50 bg-gradient-to-r from-amber-500 via-orange-500 to-amber-600 p-4 text-white shadow-[0_0_25px_rgba(245,158,11,0.4)] animate-pulse">
-          <div className="absolute right-0 top-0 h-32 w-32 translate-x-8 -translate-y-8 rounded-full bg-white/20 blur-2xl" />
-          <div className="relative flex items-center justify-between gap-3">
-            <div>
-              <div className="flex items-center gap-1.5 text-xs font-black tracking-wider text-amber-100">
-                <span>🎉</span> 首期創業扶助金解鎖！
-              </div>
-              <div className="mt-0.5 text-sm font-extrabold text-white">
-                領取第 1 章通關獎勵 <span className="text-yellow-300 font-mono text-base">7,000 元</span>
-              </div>
-            </div>
-            <Button
-              size="sm"
-              disabled={claimM.isPending}
-              onClick={() => claimM.mutate()}
-              className="shrink-0 rounded-xl bg-slate-950 px-4 py-2.5 text-xs font-black text-amber-300 border border-amber-400/40 shadow-lg hover:bg-slate-900 active:scale-95"
-            >
-              {claimM.isPending ? "領取中..." : "🎁 立即領取"}
-            </Button>
-          </div>
-        </div>
-      )}
 
       {/* 主章節進度卡片 */}
       <div className="relative overflow-hidden rounded-2xl border border-indigo-500/30 bg-gradient-to-br from-indigo-950/80 via-slate-900 to-slate-950 p-4 shadow-[0_4px_25px_rgba(0,0,0,0.5)] backdrop-blur-xl">
