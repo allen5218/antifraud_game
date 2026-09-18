@@ -1,4 +1,4 @@
-import React, { useState } from "react"
+import { useState } from "react"
 import { useEconomyMe } from "@/hooks/useEconomy"
 
 export interface SkillNode {

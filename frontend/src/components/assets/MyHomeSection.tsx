@@ -69,7 +69,7 @@ export function MyHomeSection() {
 
       {/* 裝飾品展示櫃 */}
       <div className="grid grid-cols-3 gap-2">
-        {home.decorations.map((d) => (
+        {home.decorations.map((d: { id: string; icon: string; name: string; cost: number; is_owned: boolean; is_equipped: boolean }) => (
           <div
             key={d.id}
             className={`flex flex-col items-center rounded-xl border p-2.5 text-center transition-colors ${

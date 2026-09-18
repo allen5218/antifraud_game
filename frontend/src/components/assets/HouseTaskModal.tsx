@@ -61,7 +61,7 @@ export function HouseTaskModal({
 
   if (!open) return null
 
-  const completedStepsCount = task?.steps.filter((s) => s.is_done).length ?? 0
+  const completedStepsCount = task?.steps.filter((s: { is_done: boolean }) => s.is_done).length ?? 0
   const canResolve = completedStepsCount >= 2
 
   return (
@@ -111,7 +111,7 @@ export function HouseTaskModal({
                 </div>
 
                 <div className="grid gap-2">
-                  {task.steps.map((step) => (
+                  {task.steps.map((step: { step_id: string; is_done: boolean; name: string; description: string; evidence?: string }) => (
                     <div
                       key={step.step_id}
                       className={`rounded-xl border p-3 ${

@@ -1,4 +1,4 @@
-import React, { useState } from "react"
+import { useState } from "react"
 import { Link } from "@tanstack/react-router"
 import { useEconomyMe } from "@/hooks/useEconomy"
 import { SkillTreeModal } from "@/components/skilltree/SkillTreeModal"

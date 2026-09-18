@@ -58,7 +58,7 @@ export function ChapterBanner() {
   }
 
   const currentChapter =
-    status.chapters.find((c) => c.is_current) ??
+    status.chapters.find((c: { is_current: boolean }) => c.is_current) ??
     status.chapters[status.chapters.length - 1]
   const multiplierPercent = Math.round((status.income_multiplier - 1) * 100)
 

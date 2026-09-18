@@ -1,4 +1,4 @@
-import React, { useState } from "react"
+import { useState } from "react"
 
 interface LineChatWrapperProps {
   title: string
@@ -16,7 +16,6 @@ export function LineChatWrapper({
   onReportToLineBot,
 }: LineChatWrapperProps) {
   const [showCallModal, setShowCallModal] = useState(false)
-  const [showStickerPicker, setShowStickerPicker] = useState(false)
 
   return (
     <div className="flex flex-col h-full bg-[#8CABD9]/20 rounded-2xl overflow-hidden border border-[#06C755]/30 shadow-lg">

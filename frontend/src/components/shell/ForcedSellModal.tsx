@@ -17,9 +17,9 @@ export function ForcedSellModal() {
   const recovered = useMemo(
     () =>
       owned
-        .filter((p) => selected.has(p.id))
+        .filter((p: any) => selected.has(p.id))
         .reduce(
-          (sum, p) => sum + Math.floor(p.tier.price * LIQUIDATION_RATIO),
+          (sum: number, p: any) => sum + Math.floor(p.tier.price * LIQUIDATION_RATIO),
           0,
         ),
     [owned, selected],
@@ -28,7 +28,7 @@ export function ForcedSellModal() {
   const maxRecoverable = useMemo(
     () =>
       owned.reduce(
-        (sum, p) => sum + Math.floor(p.tier.price * LIQUIDATION_RATIO),
+        (sum: number, p: any) => sum + Math.floor(p.tier.price * LIQUIDATION_RATIO),
         0,
       ),
     [owned],
@@ -99,7 +99,7 @@ export function ForcedSellModal() {
           </div>
         )}
         <div className="flex flex-col gap-1.5">
-          {owned.map((p) => {
+          {owned.map((p: any) => {
             const sellPrice = Math.floor(p.tier.price * LIQUIDATION_RATIO)
             const isSel = selected.has(p.id)
             return (

@@ -66,7 +66,7 @@ export function OwnedAndAvailableList() {
         可購買房產
       </div>
       <div className="flex flex-col gap-2">
-        {tiers.map((tier) => (
+        {tiers.map((tier: any) => (
           <PropertyCard
             key={tier.id}
             tier={tier}
