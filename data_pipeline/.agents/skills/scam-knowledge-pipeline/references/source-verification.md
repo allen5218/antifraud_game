@@ -33,4 +33,6 @@ live capture 已確認 Cofacts 具有 edge `cursor`、`pageInfo.lastCursor` 與 
 
 Cofacts 授權邊界：使用者回報的原始訊息 `node.text` 是 CC0，作為 document 的主要 `body_text`／`clean_text`；社群查證回應屬 CC BY-SA 4.0，只能存於 `metadata.cofacts_replies` 作分類訊號與出處連結，並附 `attribution_required=true`、`verbatim_in_seed=false`。不得把 `articleReplies` 回應文字混入 document 主要 content 或遊戲題目種子檔。
 
+fraudbuster 題目素材邊界：只有官方已確認為詐騙、且輸出沒有 `metadata.review_required=true` 的紀錄可以直接作為詐騙題素材。`高風險訊息，請謹慎評估`、`疑似詐騙訊息` 等未確認狀態一律輸出 `metadata.review_required=true` 與 `metadata.source_case_status`，下游必須人工看過後才能採用；不得因 `case_stance="scam"` 或已有 taxonomy 就略過人工複核。
+
 For multi-endpoint sources, do not require every endpoint to be healthy unless `verification_policy` is `all_endpoints`. Use endpoint-level results to decide which records are eligible for validation and ingest.

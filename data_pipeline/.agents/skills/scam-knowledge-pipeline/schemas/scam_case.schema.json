@@ -110,6 +110,14 @@
               "content_kind": {"const": "message_sample"}
             },
             "required": ["source_name", "case_stance", "content_kind"]
+          },
+          {
+            "properties": {
+              "source_name": {"const": "fraudbuster_digiat_accessibility"},
+              "case_stance": {"enum": ["scam", "legit"]},
+              "content_kind": {"const": "message_sample"}
+            },
+            "required": ["source_name", "case_stance", "content_kind"]
           }
         ]
       }

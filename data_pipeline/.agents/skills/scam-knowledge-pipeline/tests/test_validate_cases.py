@@ -136,6 +136,25 @@ class StanceFieldTests(unittest.TestCase):
 
         self.assertEqual((code, out["valid"], out["rejected"]), (0, 1, 0))
 
+    def test_fraudbuster_message_may_keep_empty_taxonomy_for_scam_or_legit(self):
+        records = [
+            dict(
+                BASE_RECORD,
+                source_name="fraudbuster_digiat_accessibility",
+                taxonomy_code=None,
+                source_category_label="其他詐騙",
+                classification_confidence=0,
+                classification_method="source_taxonomy",
+                case_stance=stance,
+                content_kind="message_sample",
+            )
+            for stance in ("scam", "legit")
+        ]
+
+        code, out, _ = run_validate(records)
+
+        self.assertEqual((code, out["valid"], out["rejected"]), (0, 2, 0))
+
     def test_case_narrative_shorter_than_150_chars_is_rejected_and_counted(self):
         rec = dict(BASE_RECORD, clean_text="短" * 149)
 
