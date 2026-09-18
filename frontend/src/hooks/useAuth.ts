@@ -22,7 +22,19 @@ const useAuth = () => {
 
   const { data: user } = useQuery<UserPublic | null, Error>({
     queryKey: ["currentUser"],
-    queryFn: UsersService.readUserMe,
+    queryFn: async () => {
+      try {
+        return await UsersService.readUserMe()
+      } catch {
+        return {
+          id: "demo_user_id",
+          email: "demo@antifraud.game",
+          full_name: "反詐玩家 (本機體驗)",
+          is_active: true,
+          is_superuser: false,
+        } as any
+      }
+    },
     enabled: isLoggedIn(),
   })
 
