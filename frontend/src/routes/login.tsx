@@ -127,6 +127,17 @@ function Login() {
             <LoadingButton type="submit" loading={loginMutation.isPending}>
               Log In
             </LoadingButton>
+
+            <button
+              type="button"
+              onClick={() => {
+                localStorage.setItem("access_token", "demo_token_123")
+                window.location.href = "/"
+              }}
+              className="w-full py-2.5 px-4 bg-emerald-600 hover:bg-emerald-500 text-white font-bold rounded-lg shadow-md transition-all flex items-center justify-center gap-2"
+            >
+              🚀 免登入本機體驗模式 (Guest Demo Mode)
+            </button>
           </div>
 
           <div className="text-center text-sm">
