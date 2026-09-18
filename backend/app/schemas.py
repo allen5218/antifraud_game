@@ -299,6 +299,7 @@ class QuizTacticsAnswerResponse(BaseModel):
     correct_tags: list[str]
     missed_tags: list[str]
     extra_tags: list[str]
+    provenance: str
     tag_details: list[QuizWeaknessDetail]
 
 
@@ -306,6 +307,7 @@ class QuizMatchPairResult(BaseModel):
     pair_id: str
     correct_tag: str
     correct: bool
+    provenance: str
 
 
 class QuizMatchAnswerResponse(BaseModel):

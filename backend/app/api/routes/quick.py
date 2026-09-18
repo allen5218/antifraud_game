@@ -271,6 +271,7 @@ def quiz_deck(session: SessionDep, current_user: CurrentUser, size: int = 5) -> 
                     "flag_index": match_material.flag_index,
                     "tag": match_material.tag,
                     "text": text,
+                    "provenance": match_material.case.provenance,
                 }
             )
             case_ids.append(match_material.case.id)
@@ -376,11 +377,12 @@ def _item_case(session: Session, quiz: QuizSession, item: dict[str, Any]) -> Any
 
 def _correct_match_pairs(
     session: Session, quiz: QuizSession, item: dict[str, Any]
-) -> dict[str, str] | None:
+) -> tuple[dict[str, str], dict[str, str]] | None:
     stored_pairs = item.get("pairs")
     if not isinstance(stored_pairs, list) or len(stored_pairs) != len(WEAKNESS_TAGS):
         return None
     correct_pairs: dict[str, str] = {}
+    provenance_by_pair: dict[str, str] = {}
     used_case_ids: set[int] = set()
     for stored_pair in stored_pairs:
         if not isinstance(stored_pair, dict):
@@ -403,13 +405,30 @@ def _correct_match_pairs(
         # 同一個 flag_index 會指到別的話術,把答對判成答錯,
         # 還會把錯誤的弱點寫進 weakness_summary 給出反向的教學建議。
         frozen_tag = stored_pair.get("tag")
+        frozen_provenance = stored_pair.get("provenance")
+        case = None
+        if not (
+            isinstance(frozen_tag, str)
+            and frozen_tag in WEAKNESS_TAGS
+            and isinstance(frozen_provenance, str)
+        ):
+            case = get_case(session, case_id)
+            if case is None:
+                return None
+        if isinstance(frozen_provenance, str):
+            provenance_by_pair[pair_id] = frozen_provenance
+        else:
+            if case is None:
+                return None
+            provenance_by_pair[pair_id] = case.provenance
         if isinstance(frozen_tag, str) and frozen_tag in WEAKNESS_TAGS:
             correct_pairs[pair_id] = frozen_tag
             used_case_ids.add(case_id)
             continue
         # 定版機制上線前發出的舊 session 沒有 tag,才回頭查 DB
-        case = get_case(session, case_id)
-        if case is None or not 0 <= flag_index < len(case.red_flags):
+        if case is None:
+            return None
+        if not 0 <= flag_index < len(case.red_flags):
             return None
         tag = case.red_flags[flag_index].get("tag")
         if not isinstance(tag, str) or tag not in WEAKNESS_TAGS:
@@ -418,7 +437,7 @@ def _correct_match_pairs(
         used_case_ids.add(case_id)
     if set(correct_pairs.values()) != WEAKNESS_TAGS:
         return None
-    return correct_pairs
+    return correct_pairs, provenance_by_pair
 
 
 @router.post("/quiz/answer", response_model=QuizAnswerResponse)
@@ -489,12 +508,14 @@ def _quiz_answer_response(
             correct_tags=sorted(correct_tags),
             missed_tags=sorted(tactics_result.missed_tags),
             extra_tags=sorted(tactics_result.extra_tags),
+            provenance=case.provenance,
             tag_details=_weakness_details(relevant_tags),
         )
     if item_type == "match":
-        correct_pairs = _correct_match_pairs(session, quiz, item)
-        if correct_pairs is None:
+        match_pairs = _correct_match_pairs(session, quiz, item)
+        if match_pairs is None:
             raise HTTPException(404, {"code": "quiz_case_not_found"})
+        correct_pairs, provenance_by_pair = match_pairs
         match_result = score_match(correct_pairs, payload.pairs)
         return QuizMatchAnswerResponse(
             correct=match_result.correct,
@@ -503,6 +524,7 @@ def _quiz_answer_response(
                     pair_id=pair_id,
                     correct_tag=tag,
                     correct=match_result.pair_correct[pair_id],
+                    provenance=provenance_by_pair[pair_id],
                 )
                 for pair_id, tag in correct_pairs.items()
             ],
@@ -535,9 +557,10 @@ def _score_quiz_item(
         tactics_result = score_tactics(correct_tags, answer.selected_tags)
         return tactics_result.correct, sorted(tactics_result.missed_tags)
     if item_type == "match":
-        correct_pairs = _correct_match_pairs(session, quiz, item)
-        if correct_pairs is None:
+        match_pairs = _correct_match_pairs(session, quiz, item)
+        if match_pairs is None:
             return None
+        correct_pairs, _ = match_pairs
         match_result = score_match(correct_pairs, answer.pairs)
         return match_result.correct, match_result.incorrect_tags
     return None

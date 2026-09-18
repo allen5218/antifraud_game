@@ -89,6 +89,7 @@ describe("<QuizReveal />", () => {
           correct_tags: ["time_pressure"],
           missed_tags: ["time_pressure"],
           extra_tags: ["authority"],
+          provenance: "改編自:Cofacts 原始訊息",
           tag_details: [
             {
               tag: "time_pressure",
@@ -111,6 +112,7 @@ describe("<QuizReveal />", () => {
     expect(screen.getByText(/多選/)).toBeTruthy()
     expect(screen.getByText(/先給自己冷靜期/)).toBeTruthy()
     expect(screen.getByText(/主動查證身份/)).toBeTruthy()
+    expect(screen.getByText(/改編自:Cofacts 原始訊息/)).toBeTruthy()
   })
 
   it("shows each match result and suggestions for incorrect pairs", () => {
@@ -137,8 +139,14 @@ describe("<QuizReveal />", () => {
               pair_id: "pair-1",
               correct_tag: "time_pressure",
               correct: false,
+              provenance: "改編自:金管會新聞稿",
             },
-            { pair_id: "pair-2", correct_tag: "authority", correct: true },
+            {
+              pair_id: "pair-2",
+              correct_tag: "authority",
+              correct: true,
+              provenance: "改編自:司法院判決",
+            },
           ],
           tag_details: [
             {
@@ -156,5 +164,7 @@ describe("<QuizReveal />", () => {
     expect(screen.getByText(/今晚前匯款/)).toBeTruthy()
     expect(screen.getByText(/正解：.*時間壓力/)).toBeTruthy()
     expect(screen.getByText(/先給自己冷靜期/)).toBeTruthy()
+    expect(screen.getByText(/改編自:金管會新聞稿/)).toBeTruthy()
+    expect(screen.getByText(/改編自:司法院判決/)).toBeTruthy()
   })
 })

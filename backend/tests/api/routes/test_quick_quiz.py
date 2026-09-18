@@ -158,7 +158,15 @@ def test_deck_never_reuses_case_and_tactics_are_scam(
         else:
             assert set(item) == {"item_id", "type", "pairs"}
             assert all(
-                set(pair) == {"pair_id", "case_id", "flag_index", "tag", "text"}
+                set(pair)
+                == {
+                    "pair_id",
+                    "case_id",
+                    "flag_index",
+                    "tag",
+                    "text",
+                    "provenance",
+                }
                 for pair in item["pairs"]
             )
         if item["type"] != "tactics":
@@ -382,6 +390,9 @@ def test_answer_tactics_reveals_exact_missed_and_extra_tags(
 
     session_id, items = _deal(client, normal_user_token_headers, size=3)
     tactics = next(item for item in items if item["type"] == "tactics")
+    stored = _stored_item(db, session_id, tactics["item_id"])
+    source_case = get_case(db, stored["case_id"])
+    assert source_case is not None
     correct = _correct_answer(db, session_id, tactics)["selected_tags"]
     selected = correct[1:] + ["greed"]
 
@@ -402,6 +413,7 @@ def test_answer_tactics_reveals_exact_missed_and_extra_tags(
     assert set(data["correct_tags"]) == set(correct)
     assert set(data["missed_tags"]) == {correct[0]}
     assert set(data["extra_tags"]) == {"greed"} - set(correct)
+    assert data["provenance"] == source_case.provenance
     _assert_weakness_details(
         data["tag_details"],
         set(data["correct_tags"] + data["missed_tags"] + data["extra_tags"]),
@@ -415,6 +427,14 @@ def test_answer_match_reveals_each_pair_result(
 ) -> None:
     session_id, items = _deal(client, normal_user_token_headers, size=5)
     match = next(item for item in items if item["type"] == "match")
+    stored = _stored_item(db, session_id, match["item_id"])
+    case_ids = [pair["case_id"] for pair in stored["pairs"]]
+    assert len(case_ids) == len(set(case_ids)) == 5
+    expected_provenance = {}
+    for pair in stored["pairs"]:
+        source_case = get_case(db, pair["case_id"])
+        assert source_case is not None
+        expected_provenance[pair["pair_id"]] = source_case.provenance
     pairs = _correct_answer(db, session_id, match)["pairs"]
     wrong_pair_id = next(iter(pairs))
     pairs[wrong_pair_id] = next(
@@ -436,6 +456,9 @@ def test_answer_match_reveals_each_pair_result(
     assert data["type"] == "match"
     assert data["correct"] is False
     assert len(data["results"]) == 5
+    assert {
+        row["pair_id"]: row["provenance"] for row in data["results"]
+    } == expected_provenance
     result = next(row for row in data["results"] if row["pair_id"] == wrong_pair_id)
     assert result["correct"] is False
     _assert_weakness_details(data["tag_details"], {result["correct_tag"]})

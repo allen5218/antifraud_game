@@ -8,6 +8,7 @@
     "dev": "bun run --filter frontend dev",
     "lint": "bun run --filter frontend lint",
     "test": "bun run --filter frontend test",
+    "test:unit": "bun run --filter frontend test:unit",
     "test:ui": "bun run --filter frontend test:ui"
   }
 }
