@@ -1,8 +1,8 @@
 import pytest
 
+from app.api.routes.quick import _cases_excluding
 from app.core import quiz as quiz_core
 from app.core.cases import GameCaseRow
-from app.api.routes.quick import _cases_excluding
 from app.core.quiz import (
     _compose_deck,
     _match_candidates,

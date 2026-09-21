@@ -1021,6 +1021,7 @@ def test_answer_rejects_oversized_nested_payload_with_422(
 
 def test_each_tactics_item_shuffles_its_own_options(
     client: TestClient,
+    db: Session,
     normal_user_token_headers: dict[str, str],
     monkeypatch: Any,
 ) -> None:
@@ -1035,17 +1036,43 @@ def test_each_tactics_item_shuffles_its_own_options(
 
     monkeypatch.setattr(quick_routes, "shuffle", deterministic_shuffle)
 
-    # size=5 的配額只有 1 題 tactics，測不出「每題各自洗牌」；用 size=10。
-    # 實際題數受 fixture 素材量影響（match 會先吃掉 5 個 scam 案例），
-    # 所以這裡只要求「至少兩題」與「洗牌次數等於題數」，不釘死數字。
+    # 這題測的是「每題各自洗牌」，不是配額。tactics 的題數取決於素材夠不夠，
+    # 在只有 fixture 資料的 CI 上隨機到 0～3 題都有可能，所以不能靠隨機發牌湊題數：
+    # 把素材固定成「每個案例都是同樣兩個紅旗」——tactics 只要求 ≥2 個標籤所以全部合格，
+    # match 需要五個相異標籤所以必定發不出來，空出來的 scam 案例正好餵給 tactics。
+    cases = list_published_for_quiz(db)
+    uniform_tags = [
+        case.model_copy(
+            update={
+                "red_flags": [
+                    {"tag": "time_pressure", "text": "限時處理"},
+                    {"tag": "authority", "text": "主管要求"},
+                ]
+            }
+        )
+        for case in cases
+    ]
+    monkeypatch.setattr(
+        quick_routes, "list_published_for_quiz", lambda _session: uniform_tags
+    )
+    # 查證題會從池子裡佔走案例，關掉才能讓 tactics 拿到穩定的題數。
+    monkeypatch.setattr(
+        quick_routes, "list_published_verification_questions", lambda *_, **__: []
+    )
+
     _, items = _deal(client, normal_user_token_headers, size=10)
     tactics_items = [item for item in items if item["type"] == "tactics"]
     option_orders = [
         [option["tag"] for option in item["options"]] for item in tactics_items
     ]
 
+    assert len(items) == 10
+    # 素材固定後題數就不再隨機（目前 fixture 給得出 4 題）。這裡不釘死數字，
+    # 因為題數只反映 fixture 有幾個 scam 案例，擴充 fixture 不該弄壞這個測試。
     assert len(tactics_items) >= 2
+    # 真正要守的不變式：每一題各自洗一次牌，不是全部共用同一個順序。
     assert tactics_shuffle_calls == len(tactics_items)
+    # 洗牌函式每隔一次才反轉，所以相鄰兩題的選項順序必定不同。
     assert option_orders[0] != option_orders[1]
 
 

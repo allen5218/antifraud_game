@@ -1,5 +1,6 @@
 import uuid
 from datetime import datetime, timezone
+from typing import Any
 
 from fastapi.testclient import TestClient
 from sqlmodel import Session, select
@@ -18,20 +19,20 @@ def _test_user(db: Session) -> User:
 def _make_session(
     db: Session, user: User, *, role: str, **overrides
 ) -> ScenarioSession:
-    values = dict(
-        user_id=user.id,
-        fraud_type="investment",
-        persona_role=role,
-        display_name="Kevin",
-        avatar="📈",
-        conversation_history=[
+    values: dict[str, Any] = {
+        "user_id": user.id,
+        "fraud_type": "investment",
+        "persona_role": role,
+        "display_name": "Kevin",
+        "avatar": "📈",
+        "conversation_history": [
             {"role": "npc", "messages": ["你好!"], "decision_point": None}
         ],
-        stake_loss=100,
-        reward_win=50,
-        reward_legit=30,
-        penalty_misreport=10,
-    )
+        "stake_loss": 100,
+        "reward_win": 50,
+        "reward_legit": 30,
+        "penalty_misreport": 10,
+    }
     values.update(overrides)
     sc = ScenarioSession(**values)
     db.add(sc)
