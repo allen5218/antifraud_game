@@ -9,7 +9,7 @@ export function HeaderStatus() {
 
   return (
     <header className="sticky top-0 z-20 flex items-center justify-between border-b bg-background px-4 py-3">
-      <span className="font-bold">反詐騙</span>
+      <span className="font-bold">ScamGym</span>
       <div className="flex gap-2 text-xs">
         <Link
           to="/assets"
