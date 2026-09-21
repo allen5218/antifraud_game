@@ -70,6 +70,78 @@ def get_case(session: Session, case_id: int) -> GameCaseRow | None:
     return GameCaseRow(**dict(row)) if row else None
 
 
+class VerificationQuestionRow(BaseModel):
+    """查證題:掛在母案例底下,問「下一步該查什麼」或「這個證據能證明什麼」。
+
+    `provenance` 已在 SQL 端解析完畢——子題自己有就用自己的,沒有就繼承母案例,
+    所以呼叫端拿到的一定是可直接顯示給玩家的字串。
+    """
+
+    id: int
+    question_key: str
+    case_id: int
+    question_kind: str
+    question: str
+    options: list[dict[str, str]]
+    correct_key: str
+    explanation: str
+    weakness_tag: str | None = None
+    difficulty: int
+    provenance: str
+
+
+def list_published_verification_questions(
+    session: Session,
+    *,
+    max_difficulty: int | None = None,
+    exclude_case_ids: set[int] | None = None,
+    limit: int = 10,
+) -> list[VerificationQuestionRow]:
+    """取查證題素材。
+
+    只回子題與母案例「雙方都 published」的題目——母案例發布不代表子題已審核。
+    同一個 question_key 只取最大 version,避免改版後舊題還被抽到。
+    """
+    sql = """
+SELECT q.id,
+       q.question_key,
+       q.case_id,
+       q.question_kind,
+       q.question,
+       q.options,
+       q.correct_key,
+       q.explanation,
+       q.weakness_tag,
+       q.difficulty,
+       COALESCE(q.provenance, gc.provenance) AS provenance
+FROM game_case_questions q
+JOIN game_cases gc ON gc.id = q.case_id
+WHERE q.status = 'published'
+  AND gc.status = 'published'
+  AND q.version = (
+      SELECT max(v.version) FROM game_case_questions v
+      WHERE v.question_key = q.question_key
+  )
+"""
+    params: dict[str, Any] = {"limit": limit}
+    if max_difficulty is not None:
+        sql += " AND q.difficulty <= :max_difficulty"
+        params["max_difficulty"] = max_difficulty
+    if exclude_case_ids:
+        # 同一副牌裡母案例不得重複,否則玩家會在同一輪看到同一個情境兩次。
+        # 鏡像也要擋:鏡像對是同一個情境的詐騙／正當兩面,同時出現會直接洩漏
+        # verdict 題的答案。
+        sql += (
+            " AND q.case_id <> ALL(:exclude_case_ids)"
+            " AND (gc.mirror_of IS NULL OR gc.mirror_of <> ALL(:exclude_case_ids))"
+        )
+        params["exclude_case_ids"] = list(exclude_case_ids)
+    sql += " ORDER BY random() LIMIT :limit"
+
+    rows = session.execute(text(sql), params).mappings().all()
+    return [VerificationQuestionRow(**dict(row)) for row in rows]
+
+
 def pick_case(
     session: Session, *, fraud_type: str, is_scam: bool
 ) -> GameCaseRow | None:

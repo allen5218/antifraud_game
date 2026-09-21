@@ -77,6 +77,8 @@ def _correct_answer(
         answer["guess_is_scam"] = stored["is_scam"]
     elif stored["type"] == "tactics":
         answer["selected_tags"] = stored["correct_tags"]
+    elif stored["type"] == "verification":
+        answer["selected_key"] = stored["correct_key"]
     else:
         answer["pairs"] = {pair["pair_id"]: pair["tag"] for pair in stored["pairs"]}
     return answer
@@ -108,7 +110,12 @@ def test_deck_returns_mixed_items_without_answers(
     assert [item["item_id"] for item in items] == [
         item["item_id"] for item in _quiz(db, session_id).items
     ]
-    assert {item["type"] for item in items} <= {"verdict", "tactics", "match"}
+    assert {item["type"] for item in items} <= {
+        "verdict",
+        "tactics",
+        "match",
+        "verification",
+    }
     for item in items:
         assert "case_id" not in item
         assert "is_scam" not in item
@@ -119,6 +126,12 @@ def test_deck_returns_mixed_items_without_answers(
         if item["type"] == "match":
             assert len(item["match_prompts"]) == 5
             assert len(item["match_targets"]) == 5
+        if item["type"] == "verification":
+            # 正解與解說必須留在 session，發牌 payload 只有 key 與選項文字。
+            assert "correct_key" not in item
+            assert "explanation" not in item
+            assert len(item["options"]) >= 3
+            assert all(set(opt) == {"key", "text"} for opt in item["options"])
 
 
 def test_deck_never_reuses_case_and_tactics_are_scam(
@@ -155,6 +168,18 @@ def test_deck_never_reuses_case_and_tactics_are_scam(
     for item in quiz.items:
         if item["type"] in {"verdict", "tactics"}:
             assert {"item_id", "type", "case_id"} <= set(item)
+        elif item["type"] == "verification":
+            # 正解、解說與來源留在 session 端，發牌 payload 不帶。
+            assert set(item) == {
+                "item_id",
+                "type",
+                "question_id",
+                "case_id",
+                "correct_key",
+                "explanation",
+                "provenance",
+                "weakness_tag",
+            }
         else:
             assert set(item) == {"item_id", "type", "pairs"}
             assert all(
@@ -212,7 +237,9 @@ def test_deck_balances_verdicts_with_skewed_fixture(
     verdict_scam = sum(case is not None and case.is_scam for case in verdict_cases)
     verdict_legit = sum(case is not None and not case.is_scam for case in verdict_cases)
 
-    assert len(verdict_cases) >= 5
+    # size=10 的配額是 verdict 3 / tactics 3 / match 1 / verification 3。
+    # 查證題進來之後 verdict 從 5 降到 3——這個測的是「平衡」不是「題數」。
+    assert len(verdict_cases) >= 3
     assert minimum_gaps
     # 固定 <= 1 是錯的期望：match/tactics 會先消耗 scam，且 mirror、難度與
     # 唯一性仍須成立；完整候選有時只能達到差距 2。正確性質是最終選到
@@ -1008,13 +1035,17 @@ def test_each_tactics_item_shuffles_its_own_options(
 
     monkeypatch.setattr(quick_routes, "shuffle", deterministic_shuffle)
 
-    _, items = _deal(client, normal_user_token_headers, size=5)
+    # size=5 的配額只有 1 題 tactics，測不出「每題各自洗牌」；用 size=10。
+    # 實際題數受 fixture 素材量影響（match 會先吃掉 5 個 scam 案例），
+    # 所以這裡只要求「至少兩題」與「洗牌次數等於題數」，不釘死數字。
+    _, items = _deal(client, normal_user_token_headers, size=10)
     tactics_items = [item for item in items if item["type"] == "tactics"]
     option_orders = [
         [option["tag"] for option in item["options"]] for item in tactics_items
     ]
 
-    assert tactics_shuffle_calls == len(tactics_items) == 2
+    assert len(tactics_items) >= 2
+    assert tactics_shuffle_calls == len(tactics_items)
     assert option_orders[0] != option_orders[1]
 
 
@@ -1042,7 +1073,10 @@ def test_deck_omits_match_when_material_is_insufficient(
 
     _, items = _deal(client, normal_user_token_headers, size=5)
 
+    types = [item["type"] for item in items]
     assert len(items) == 5
-    assert [item["type"] for item in items].count("match") == 0
-    assert [item["type"] for item in items].count("verdict") == 3
-    assert [item["type"] for item in items].count("tactics") == 2
+    assert types.count("match") == 0
+    # match 發不出來時由 verdict 補回缺額；查證題來自子表，不受案例素材不足影響。
+    assert types.count("verdict") == 3
+    assert types.count("tactics") == 1
+    assert types.count("verification") == 1

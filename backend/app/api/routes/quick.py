@@ -9,13 +9,20 @@ from pydantic import ValidationError
 from sqlmodel import Session, col, func, select
 
 from app.api.deps import CurrentUser, SessionDep
-from app.core.cases import get_case, list_published_for_quiz
+from app.core.cases import (
+    VerificationQuestionRow,
+    get_case,
+    list_published_for_quiz,
+    list_published_verification_questions,
+)
 from app.core.quiz import (
+    QuizMaterial,
     case_tags,
     max_difficulty_for_level,
     score_match,
     score_tactics,
     select_quiz_material,
+    verification_quota,
 )
 from app.core.weakness import (
     WEAKNESS_LABELS,
@@ -44,6 +51,9 @@ from app.schemas import (
     QuizTacticsPublic,
     QuizVerdictAnswerResponse,
     QuizVerdictPublic,
+    QuizVerificationAnswerResponse,
+    QuizVerificationOption,
+    QuizVerificationPublic,
     QuizWeaknessDetail,
     SwipeAnswerItem,
     SwipeAnswerRequest,
@@ -189,16 +199,74 @@ def _quiz_reward(correct_count: int, best_streak: int) -> tuple[int, int]:
     return cash, xp
 
 
+def _pick_verifications(
+    session: SessionDep,
+    *,
+    material: QuizMaterial,
+    max_difficulty: int | None,
+    quota: int,
+) -> list[VerificationQuestionRow]:
+    """取查證題，排除本副牌其他題型已用掉的母案例。
+
+    同一個情境在一副牌裡出現兩次會讓玩家以為題庫很小，也會讓第二次的答案被第一次
+    的揭曉卡洩漏。
+    """
+    if quota <= 0:
+        return []
+    used_cases = [
+        *material.verdict,
+        *material.tactics,
+        *(p.case for p in material.match),
+    ]
+    used_case_ids = {case.id for case in used_cases}
+    # 另一個方向:已用案例自己指向的鏡像,也不能再被查證題帶進來。
+    used_case_ids.update(
+        case.mirror_of for case in used_cases if case.mirror_of is not None
+    )
+    return list_published_verification_questions(
+        session,
+        max_difficulty=max_difficulty,
+        exclude_case_ids=used_case_ids,
+        limit=quota,
+    )
+
+
 @router.get("/quiz/deck", response_model=QuizDeckResponse)
 def quiz_deck(session: SessionDep, current_user: CurrentUser, size: int = 5) -> Any:
     size = max(1, min(size, 10))
+    max_difficulty = max_difficulty_for_level(level_of(current_user.xp))
     cases = list_published_for_quiz(session)
     shuffle(cases)
+
+    # 查證題素材在另一張子表,可能不足配額。先照配額樂觀選材,取完查證題後若
+    # 真的不足(素材沒那麼多,或母案例已被其他題型用掉),再以實際題數重選一次,
+    # 讓 verdict/tactics 補回缺額——牌堆題數不能因此縮水。
+    quota = verification_quota(size)
     material = select_quiz_material(
         cases,
         size=size,
-        max_difficulty=max_difficulty_for_level(level_of(current_user.xp)),
+        max_difficulty=max_difficulty,
+        verification_count=quota,
     )
+    verifications = _pick_verifications(
+        session,
+        material=material,
+        max_difficulty=max_difficulty,
+        quota=quota,
+    )
+    if len(verifications) < quota:
+        material = select_quiz_material(
+            cases,
+            size=size,
+            max_difficulty=max_difficulty,
+            verification_count=len(verifications),
+        )
+        verifications = _pick_verifications(
+            session,
+            material=material,
+            max_difficulty=max_difficulty,
+            quota=len(verifications),
+        )
 
     stored_items: list[dict[str, Any]] = []
     public_items: list[QuizDeckItem] = []
@@ -296,6 +364,44 @@ def quiz_deck(session: SessionDep, current_user: CurrentUser, size: int = 5) -> 
                 question="把話術和例句配對起來",
                 match_prompts=prompts,
                 match_targets=targets,
+            )
+        )
+
+    for question in verifications:
+        parent_case = get_case(session, question.case_id)
+        if parent_case is None:
+            logger.warning(
+                "查證題 %s 的母案例 %d 讀不到，本題不進牌堆",
+                question.question_key,
+                question.case_id,
+            )
+            continue
+        item_id = uuid.uuid4().hex
+        stored_items.append(
+            {
+                "item_id": item_id,
+                "type": "verification",
+                "question_id": question.id,
+                "case_id": question.case_id,
+                "correct_key": question.correct_key,
+                "explanation": question.explanation,
+                "provenance": question.provenance,
+                "weakness_tag": question.weakness_tag,
+            }
+        )
+        case_ids.append(question.case_id)
+        public_items.append(
+            QuizVerificationPublic(
+                item_id=item_id,
+                fraud_type=parent_case.fraud_type,
+                title=parent_case.title,
+                narrative=parent_case.narrative,
+                difficulty=question.difficulty,
+                question=question.question,
+                options=[
+                    QuizVerificationOption(key=opt["key"], text=opt["text"])
+                    for opt in question.options
+                ],
             )
         )
 
@@ -511,6 +617,18 @@ def _quiz_answer_response(
             provenance=case.provenance,
             tag_details=_weakness_details(relevant_tags),
         )
+    if item_type == "verification":
+        correct_key = str(item.get("correct_key", ""))
+        correct = bool(payload.selected_key) and payload.selected_key == correct_key
+        tag = item.get("weakness_tag")
+        weakness_tags = {tag} if not correct and isinstance(tag, str) else set()
+        return QuizVerificationAnswerResponse(
+            correct=correct,
+            correct_key=correct_key,
+            explanation=str(item.get("explanation", "")),
+            provenance=str(item.get("provenance", "")),
+            tag_details=_weakness_details(weakness_tags),
+        )
     if item_type == "match":
         match_pairs = _correct_match_pairs(session, quiz, item)
         if match_pairs is None:
@@ -556,6 +674,12 @@ def _score_quiz_item(
         correct_tags = case_tags(case.red_flags)
         tactics_result = score_tactics(correct_tags, answer.selected_tags)
         return tactics_result.correct, sorted(tactics_result.missed_tags)
+    if item_type == "verification":
+        correct_key = str(item.get("correct_key", ""))
+        correct = bool(answer.selected_key) and answer.selected_key == correct_key
+        tag = item.get("weakness_tag")
+        weaknesses = [tag] if not correct and isinstance(tag, str) else []
+        return correct, weaknesses
     if item_type == "match":
         match_pairs = _correct_match_pairs(session, quiz, item)
         if match_pairs is None:

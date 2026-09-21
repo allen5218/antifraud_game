@@ -55,6 +55,39 @@ def test_compose_deck_keeps_one_match_and_splits_the_rest(
     assert (composition.verdict, composition.tactics, composition.match) == expected
 
 
+@pytest.mark.parametrize(
+    ("size", "expected"),
+    [
+        (1, (1, 0, 0, 0)),
+        (2, (1, 1, 0, 0)),
+        (3, (1, 1, 0, 1)),
+        (5, (2, 1, 1, 1)),
+        (10, (3, 3, 1, 3)),
+    ],
+)
+def test_compose_deck_with_verification_keeps_all_four_types(
+    size: int, expected: tuple[int, int, int, int]
+) -> None:
+    """查證題進來之後，四種題型都要還在，而且總題數不能縮水。"""
+    quota = quiz_core.verification_quota(size)
+    composition = _compose_deck(size, quota)
+
+    assert tuple(composition) == expected
+    assert sum(composition) == max(1, min(size, 10))
+
+
+def test_compose_deck_backfills_when_no_verification_material() -> None:
+    """查證題素材掛零時，verdict/tactics 要補回來，不能讓牌堆少一題。
+
+    協作者原型的作法是硬扣 size-2，素材不足就讓 tactics 永遠發不出來。
+    """
+    composition = _compose_deck(5, 0)
+
+    assert sum(composition) == 5
+    assert composition.verification == 0
+    assert composition.tactics > 0
+
+
 def test_tactics_requires_exact_set() -> None:
     correct = {"time_pressure", "authority"}
 
@@ -345,6 +378,7 @@ def test_select_quiz_material_skips_second_direction_at_theoretical_minimum(
         enforce_mirror: bool,
         max_difficulty: int | None,
         prefer_scam_on_tie: bool,
+        verification_count: int = 0,
     ) -> quiz_core.QuizMaterial:
         nonlocal selection_calls
         selection_calls += 1
@@ -354,6 +388,7 @@ def test_select_quiz_material_skips_second_direction_at_theoretical_minimum(
             enforce_mirror=enforce_mirror,
             max_difficulty=max_difficulty,
             prefer_scam_on_tie=prefer_scam_on_tie,
+            verification_count=verification_count,
         )
 
     monkeypatch.setattr(quiz_core, "_select_quiz_material", count_selection)

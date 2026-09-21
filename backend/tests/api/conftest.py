@@ -42,6 +42,26 @@ CREATE TABLE IF NOT EXISTS game_cases (
     created_at timestamptz NOT NULL DEFAULT now(),
     published_at timestamptz
 );
+CREATE TABLE IF NOT EXISTS game_case_questions (
+    id bigserial PRIMARY KEY,
+    question_key text NOT NULL,
+    version int NOT NULL DEFAULT 1,
+    case_id bigint NOT NULL REFERENCES game_cases(id) ON DELETE CASCADE,
+    question_kind text NOT NULL,
+    question text NOT NULL,
+    options jsonb NOT NULL,
+    correct_key text NOT NULL,
+    explanation text NOT NULL,
+    weakness_tag text,
+    difficulty int NOT NULL DEFAULT 2,
+    source_document_ids bigint[] NOT NULL DEFAULT '{}',
+    provenance text,
+    status text NOT NULL DEFAULT 'draft',
+    review_notes text,
+    created_at timestamptz NOT NULL DEFAULT now(),
+    published_at timestamptz,
+    UNIQUE (question_key, version)
+);
 """
 
 _GAME_CASES_INSERT = """
@@ -58,6 +78,27 @@ ON CONFLICT (case_key) DO UPDATE SET
     difficulty = EXCLUDED.difficulty,
     provenance = EXCLUDED.provenance,
     mirror_of = EXCLUDED.mirror_of,
+    status = EXCLUDED.status
+"""
+
+
+_CASE_QUESTIONS_INSERT = """
+INSERT INTO game_case_questions
+    (question_key, version, case_id, question_kind, question, options, correct_key,
+     explanation, weakness_tag, difficulty, provenance, status)
+SELECT :qkey, 1, gc.id, :kind, :question, CAST(:options AS jsonb), :correct_key,
+       :explanation, :tag, :difficulty, :prov, :status
+FROM game_cases gc WHERE gc.case_key = :case_key
+ON CONFLICT (question_key, version) DO UPDATE SET
+    case_id = EXCLUDED.case_id,
+    question_kind = EXCLUDED.question_kind,
+    question = EXCLUDED.question,
+    options = EXCLUDED.options,
+    correct_key = EXCLUDED.correct_key,
+    explanation = EXCLUDED.explanation,
+    weakness_tag = EXCLUDED.weakness_tag,
+    difficulty = EXCLUDED.difficulty,
+    provenance = EXCLUDED.provenance,
     status = EXCLUDED.status
 """
 
@@ -120,10 +161,58 @@ def game_cases_fixture() -> Generator[None, None, None]:
                 "AND scam.case_key = 'pytest-investment-scam-a'"
             )
         )
+        # 查證題子題:每個 fraud_type 掛一題 published,另外兩題用來驗「不該被發出來」。
+        options = json.dumps(
+            [
+                {"key": "A", "text": "自己打開官方 App 查一次"},
+                {"key": "B", "text": "照對方給的連結操作"},
+                {"key": "C", "text": "先把款項匯出再說"},
+            ]
+        )
+        # 分散掛在三種變體上。全部集中在 scam-a 會被 match 題（需要五個不同
+        # 標籤的詐騙案例，正好挑 scam-a）整批吃掉，查證題就永遠發不出來。
+        for index, ft in enumerate(fraud_types):
+            for variant in ("scam-a", "scam-b", "legit"):
+                session.execute(
+                    text(_CASE_QUESTIONS_INSERT),
+                    {
+                        "qkey": f"pytest-verif-{ft}-{variant}",
+                        "case_key": f"pytest-{ft}-{variant}",
+                        "kind": "next_action",
+                        "question": "接下來怎麼做比較好？",
+                        "options": options,
+                        "correct_key": "A",
+                        "explanation": "自己走官方管道查證，不要照對方的指示操作。",
+                        "tag": _WEAKNESS_TAGS[index],
+                        "difficulty": 1,
+                        "prov": None,
+                        "status": "published",
+                    },
+                )
+        # draft 子題:不該被發出來
+        session.execute(
+            text(_CASE_QUESTIONS_INSERT),
+            {
+                "qkey": "pytest-verif-draft-only",
+                "case_key": "pytest-investment-scam-b",
+                "kind": "next_action",
+                "question": "這題還沒審核完",
+                "options": options,
+                "correct_key": "A",
+                "explanation": "草稿，不該出現。",
+                "tag": "authority",
+                "difficulty": 1,
+                "prov": None,
+                "status": "draft",
+            },
+        )
         session.commit()
 
     yield
 
     with Session(engine) as session:
+        session.execute(
+            text("DELETE FROM game_case_questions WHERE question_key LIKE 'pytest-%'")
+        )
         session.execute(text("DELETE FROM game_cases WHERE case_key LIKE 'pytest-%'"))
         session.commit()
