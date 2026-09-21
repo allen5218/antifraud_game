@@ -1,0 +1,17 @@
+# Finish runtime repair after network interruption
+
+Continue implement-mu90iu28-47ce9c7a in same fresh conversation db722542-4e7e-4ae3-8d8f-272c6282ff81. It ended with agy_status ERROR, network issue, truncated response, no runtime-repair-report.md. Preserve its useful partial changes. User explicitly said continue. Complete remaining T1-T5 from03-runtime-transactions.md; do NOT execute04 yet.
+
+Codex independently verified improvements: pause action now200, cash0/XP0/no hidden role; wrong-contact finale400; request receipts hooked into page; locks now present. But found a NEW specific concurrency defect needing fix:
+
+## Async event-loop deadlock
+send_message remains async def, calls synchronous SQL row locks then awaits generate_reply. On ONE server event loop, requestA holds User lock while awaiting model; requestB synchronously blocks the SAME loop acquiring User lock; A cannot resume to release it. Without lock timeout this hangs the server. Codex uses one shared TestClient portal (client.__enter__), concurrent thread HTTP requests and async mock reply sleep0.4s; PG lock_timeout2s causes one500/one200 instead of200/409. Same probe without shared portal (per-request separate event loops) returns200/409, explaining misleading tests.
+
+Reproduction: C:\Users\kun\Documents\Codex\2026-09-18\feature-gameplay-modification-c-users-kun\work\chat-api-review-probe.py and latest chat-api-review-result.json. Test engine options lock_timeout2000/statement_timeout5000 are probe-only. Fix event-loop blocking, e.g. make endpoint sync so entire transaction+async model call runs in worker thread with suitable loop bridge, or proper async DB/transaction approach. Do NOT just increase timeouts or remove locking. Test with ONE shared app event loop and delayed async reply; verify concurrent health/read unrelated endpoint stays responsive; one200 one409 for stale revision, two same200 for same ID. Preserve rollback and actual retry identity.
+
+## Finish evidence, no report inflation
+- Required actual concurrent PG tests (new test file or extend integration suite). Existing test_chat_life_pg.py concurrency test is still sequential; safe_exit test still incorrectly expects10XP. Update tests for intentional new semantics, not to hide failures.
+- Exercise pause->resume repeated5cycles, same snapshot/history/evidence,0economy/relationship/progress; valid later conclusion persisted; replay changes no progress. API wrong contact/unknown/locked finale and qualified global completion. Frontend stable ID/revision, 409 preserve draft, resume, saved results and actual breakdown. Run full relevant tests and build.
+- Use actual Alembic fresh/legacy upgrade proof, not create_all alone. Prior migration cycles reportedly launched but no final evidence delivered; collect/rerun only necessary commands.
+- Use explicit isolatedPG env before app imports. Runtime locations already established: uv C:\Users\kun\Documents\ComfyUI\.venv\Scripts\uv.exe; bun via npm exec --yes --package=bun -- bun. Do NOT scan wholeC: again. PG127.0.0.1:55437/chat_test/chat_life_acceptance_20260919 currently alive. No Docker/devdb/prod/LINE/commit/deploy. No global formatter or unrelated cosmetic edits.
+- Produce runtime-repair-report.md with exact command outputs/counts and unresolved issues. Await all background commands before final. Do not claim branch/LLM/content done; next assignment remains pending.

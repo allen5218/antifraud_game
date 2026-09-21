@@ -26,8 +26,10 @@ export function InboxList({ items, onOpen }: InboxListProps) {
               <span className="min-w-0 flex-1">
                 <span className="flex items-center gap-1.5 text-sm font-bold">
                   {item.display_name}
-                  <span className="rounded-md bg-primary/10 px-1.5 py-0.5 text-[10px] font-semibold text-primary">
-                    {FRAUD_TYPE_LABELS[item.fraud_type] ?? "其他類型"}
+                  <span className="rounded-md bg-white/10 px-1.5 py-0.5 text-[10px] font-semibold text-slate-300">
+                    {item.story_title ??
+                      FRAUD_TYPE_LABELS[item.fraud_type] ??
+                      "事件諮詢"}
                   </span>
                 </span>
                 <span className="mt-0.5 block truncate text-xs text-muted-foreground">
@@ -40,6 +42,14 @@ export function InboxList({ items, onOpen }: InboxListProps) {
                     data-testid={`unread-${item.id}`}
                     className="size-2.5 rounded-full bg-green-500"
                   />
+                )}
+                {item.status === "paused" && (
+                  <span
+                    data-testid={`paused-badge-${item.id}`}
+                    className="rounded-md bg-amber-500/20 text-amber-300 border border-amber-500/30 px-1.5 py-0.5 text-[10px] font-semibold"
+                  >
+                    暫停中
+                  </span>
                 )}
                 {badge && (
                   <span

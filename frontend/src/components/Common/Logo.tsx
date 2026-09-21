@@ -3,8 +3,8 @@ import { Link } from "@tanstack/react-router"
 import { useTheme } from "@/components/theme-provider"
 import { cn } from "@/lib/utils"
 import icon from "/assets/images/brand-icon-dark.png"
-import iconLight from "/assets/images/brand-icon-transparent.png"
 import logo from "/assets/images/brand-icon-dark.png"
+import iconLight from "/assets/images/brand-icon-transparent.png"
 import logoLight from "/assets/images/brand-icon-transparent.png"
 
 interface LogoProps {
@@ -48,7 +48,12 @@ export function Logo({
       <img
         src={variant === "full" ? fullLogo : iconLogo}
         alt="反詐大師"
-        className={cn(variant === "full" ? "h-8 w-auto object-contain" : "h-6 w-auto object-contain", className)}
+        className={cn(
+          variant === "full"
+            ? "h-8 w-auto object-contain"
+            : "h-6 w-auto object-contain",
+          className,
+        )}
       />
     )
 

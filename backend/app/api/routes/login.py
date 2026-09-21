@@ -1,3 +1,5 @@
+import secrets
+import uuid
 from datetime import timedelta
 from typing import Annotated, Any
 
@@ -9,7 +11,7 @@ from app import crud
 from app.api.deps import CurrentUser, SessionDep, get_current_active_superuser
 from app.core import security
 from app.core.config import settings
-from app.models import Message, NewPassword, Token, UserPublic, UserUpdate
+from app.models import Message, NewPassword, Token, UserCreate, UserPublic, UserUpdate
 from app.utils import (
     generate_password_reset_token,
     generate_reset_password_email,
@@ -18,6 +20,26 @@ from app.utils import (
 )
 
 router = APIRouter(tags=["login"])
+
+
+@router.post("/login/guest")
+def login_guest(session: SessionDep) -> Token:
+    """Create an isolated guest with a normal signed gameplay credential."""
+    user = crud.create_user(
+        session=session,
+        user_create=UserCreate(
+            email=f"{uuid.uuid4().hex}@guest.example.com",
+            password=secrets.token_urlsafe(48),
+            full_name="訪客玩家",
+            is_superuser=False,
+        ),
+    )
+    return Token(
+        access_token=security.create_access_token(
+            user.id,
+            expires_delta=timedelta(minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES),
+        )
+    )
 
 
 @router.post("/login/access-token")
@@ -59,7 +81,7 @@ def recover_password(email: str, session: SessionDep) -> Message:
 
     # Always return the same response to prevent email enumeration attacks
     # Only send email if user actually exists
-    if user:
+    if user and not user.email.endswith("@guest.example.com"):
         password_reset_token = generate_password_reset_token(email=email)
         email_data = generate_reset_password_email(
             email_to=user.email, email=email, token=password_reset_token
@@ -83,7 +105,7 @@ def reset_password(session: SessionDep, body: NewPassword) -> Message:
     if not email:
         raise HTTPException(status_code=400, detail="Invalid token")
     user = crud.get_user_by_email(session=session, email=email)
-    if not user:
+    if not user or user.email.endswith("@guest.example.com"):
         # Don't reveal that the user doesn't exist - use same error as invalid token
         raise HTTPException(status_code=400, detail="Invalid token")
     elif not user.is_active:

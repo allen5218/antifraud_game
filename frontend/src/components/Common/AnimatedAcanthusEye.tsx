@@ -2,7 +2,9 @@ interface AnimatedAcanthusEyeProps {
   className?: string
 }
 
-export function AnimatedAcanthusEye({ className = "" }: AnimatedAcanthusEyeProps) {
+export function AnimatedAcanthusEye({
+  className = "",
+}: AnimatedAcanthusEyeProps) {
   return (
     <div
       className={`relative w-full max-w-[480px] aspect-square flex items-center justify-center select-none ${className}`}

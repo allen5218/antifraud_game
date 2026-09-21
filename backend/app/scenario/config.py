@@ -34,11 +34,11 @@ DISPLAY_NAME_POOL: dict[str, list[str]] = {
 
 # scam/legit 共用同一池,避免 avatar↔角色相關性洩題
 AVATAR_POOL: dict[str, list[str]] = {
-    "investment": ["🧑‍💼", "📊", "💹"],
-    "shopping": ["🛍️", "📦", "🧸"],
-    "fake-sale": ["🛎️", "📮", "🧑‍💻"],
-    "romance": ["🙂", "🌻", "📷"],
-    "atm": ["☎️", "🎧", "📞"],
+    "investment": ["INV-A", "INV-B", "INV-C"],
+    "shopping": ["SHOP-A", "SHOP-B", "SHOP-C"],
+    "fake-sale": ["SALE-A", "SALE-B", "SALE-C"],
+    "romance": ["ROM-A", "ROM-B", "ROM-C"],
+    "atm": ["ATM-A", "ATM-B", "ATM-C"],
 }
 
 # legit 結局揭曉卡的「正當訊號」文案(確定性、非 LLM)

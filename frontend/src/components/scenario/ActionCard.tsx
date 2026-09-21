@@ -18,7 +18,7 @@ export function ActionCard({
   return (
     <div className="rounded-xl border border-orange-200 bg-orange-50 p-3 dark:border-orange-900 dark:bg-orange-950/40">
       <p className="mb-2 text-xs font-semibold text-orange-900 dark:text-orange-200">
-        💸 對方要求:{text}
+        [要求] 對方要求:{text}
       </p>
       <div className="flex gap-2">
         <button

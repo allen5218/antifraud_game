@@ -8,22 +8,25 @@ const MOCK_SWIPE_DECK = {
   cards: [
     {
       id: "swipe_1",
-      scenario_text: "【飆股簡訊】『專人帶盤！加入 LINE 社群，今日免費領取漲停飆股名單！』",
-      sender_avatar: "📈",
+      scenario_text:
+        "【飆股簡訊】『專人帶盤！加入 LINE 社群，今日免費領取漲停飆股名單！』",
+      sender_avatar: "trend",
       is_scam: true,
       explanation: "標榜保證獲利、飆股名單並要求加 LINE 社群均為典型投資詐欺！",
     },
     {
       id: "swipe_2",
-      scenario_text: "【銀行關懷】『您的帳戶進行跨行轉帳，扣款 NT$1,200。若非本人操作請聯繫官方客服。』",
-      sender_avatar: "🏦",
+      scenario_text:
+        "【銀行關懷】『您的帳戶進行跨行轉帳，扣款 NT$1,200。若非本人操作請聯繫官方客服。』",
+      sender_avatar: "bank",
       is_scam: false,
       explanation: "正常的銀行轉帳通知簡訊，提供官方客服電話供查證。",
     },
     {
       id: "swipe_3",
-      scenario_text: "【假網拍客服】『您昨天的訂單物流系統扣款錯誤，請點擊此連結進行雙倍退款認證。』",
-      sender_avatar: "📦",
+      scenario_text:
+        "【假網拍客服】『您昨天的訂單物流系統扣款錯誤，請點擊此連結進行雙倍退款認證。』",
+      sender_avatar: "package",
       is_scam: true,
       explanation: "網購退款絕不需要點擊未知連結輸入信用卡或金融資訊！",
     },

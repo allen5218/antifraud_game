@@ -1,5 +1,5 @@
-import { useMemo, useState } from "react"
 import { AlertTriangle, Building2 } from "lucide-react"
+import { useMemo, useState } from "react"
 import { useEconomyMe, useLiquidate, useProperties } from "@/hooks/useEconomy"
 import { LIQUIDATION_RATIO } from "@/lib/economy"
 
@@ -21,7 +21,10 @@ export function ForcedSellModal() {
         .filter((p: any) => selected.has(p.id))
         .reduce(
           (sum: number, p: any) =>
-            sum + Math.floor((p.tier?.price ?? p.purchase_price ?? 0) * LIQUIDATION_RATIO),
+            sum +
+            Math.floor(
+              (p.tier?.price ?? p.purchase_price ?? 0) * LIQUIDATION_RATIO,
+            ),
           0,
         ),
     [owned, selected],
@@ -31,7 +34,10 @@ export function ForcedSellModal() {
     () =>
       owned.reduce(
         (sum: number, p: any) =>
-          sum + Math.floor((p.tier?.price ?? p.purchase_price ?? 0) * LIQUIDATION_RATIO),
+          sum +
+          Math.floor(
+            (p.tier?.price ?? p.purchase_price ?? 0) * LIQUIDATION_RATIO,
+          ),
         0,
       ),
     [owned],
@@ -76,7 +82,7 @@ export function ForcedSellModal() {
           <span>遭遇詐騙扣款</span>
         </h3>
         <p className="mb-2 text-[11px] text-muted-foreground">
-          在「真實情境」的對話中，你匯了款項到對方指定帳戶。
+          在「真實情境」的對話中，你被詐騙匯了款項到對方指定帳戶。
         </p>
         <div className="mb-3 rounded-lg border border-red-200 bg-red-50 px-2 py-1.5 text-[11px]">
           <b>現金不足 ${deficit.toLocaleString()}</b>

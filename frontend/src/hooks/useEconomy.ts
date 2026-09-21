@@ -1,5 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
 import { EconomyService } from "@/client"
+import { isDemoMode } from "@/lib/errorNormalizer"
 import useCustomToast from "./useCustomToast"
 
 // ── 錯誤處理輔助 ────────────────────────────────────────────────────────────────
@@ -35,20 +36,104 @@ const MOCK_ASSETS = {
 
 const MOCK_PROPERTIES = {
   tiers: [
-    { id: 1, name: "雅房", price: 1000, daily_income: 5, unlock_level: 1, icon: "🚪" },
-    { id: 2, name: "獨立套房", price: 5000, daily_income: 35, unlock_level: 1, icon: "🛋️" },
-    { id: 3, name: "兩房公寓", price: 25000, daily_income: 250, unlock_level: 2, icon: "🏢" },
-    { id: 4, name: "三房電梯大廈", price: 100000, daily_income: 1200, unlock_level: 3, icon: "🏙️" },
-    { id: 5, name: "獨棟別墅", price: 300000, daily_income: 4200, unlock_level: 5, icon: "🏡" },
-    { id: 6, name: "頂級豪宅", price: 1000000, daily_income: 15000, unlock_level: 10, icon: "🏰" },
+    {
+      id: 1,
+      name: "雅房",
+      price: 1000,
+      daily_income: 5,
+      unlock_level: 1,
+      icon: "door",
+    },
+    {
+      id: 2,
+      name: "獨立套房",
+      price: 5000,
+      daily_income: 35,
+      unlock_level: 1,
+      icon: "armchair",
+    },
+    {
+      id: 3,
+      name: "兩房公寓",
+      price: 25000,
+      daily_income: 250,
+      unlock_level: 2,
+      icon: "building",
+    },
+    {
+      id: 4,
+      name: "三房電梯大廈",
+      price: 100000,
+      daily_income: 1200,
+      unlock_level: 3,
+      icon: "building-2",
+    },
+    {
+      id: 5,
+      name: "獨棟別墅",
+      price: 300000,
+      daily_income: 4200,
+      unlock_level: 5,
+      icon: "home",
+    },
+    {
+      id: 6,
+      name: "頂級豪宅",
+      price: 1000000,
+      daily_income: 15000,
+      unlock_level: 10,
+      icon: "crown",
+    },
   ],
   available_tiers: [
-    { id: 1, name: "雅房", price: 1000, daily_income: 5, unlock_level: 1, icon: "🚪" },
-    { id: 2, name: "獨立套房", price: 5000, daily_income: 35, unlock_level: 1, icon: "🛋️" },
-    { id: 3, name: "兩房公寓", price: 25000, daily_income: 250, unlock_level: 2, icon: "🏢" },
-    { id: 4, name: "三房電梯大廈", price: 100000, daily_income: 1200, unlock_level: 3, icon: "🏙️" },
-    { id: 5, name: "獨棟別墅", price: 300000, daily_income: 4200, unlock_level: 5, icon: "🏡" },
-    { id: 6, name: "頂級豪宅", price: 1000000, daily_income: 15000, unlock_level: 10, icon: "🏰" },
+    {
+      id: 1,
+      name: "雅房",
+      price: 1000,
+      daily_income: 5,
+      unlock_level: 1,
+      icon: "door",
+    },
+    {
+      id: 2,
+      name: "獨立套房",
+      price: 5000,
+      daily_income: 35,
+      unlock_level: 1,
+      icon: "armchair",
+    },
+    {
+      id: 3,
+      name: "兩房公寓",
+      price: 25000,
+      daily_income: 250,
+      unlock_level: 2,
+      icon: "building",
+    },
+    {
+      id: 4,
+      name: "三房電梯大廈",
+      price: 100000,
+      daily_income: 1200,
+      unlock_level: 3,
+      icon: "building-2",
+    },
+    {
+      id: 5,
+      name: "獨棟別墅",
+      price: 300000,
+      daily_income: 4200,
+      unlock_level: 5,
+      icon: "home",
+    },
+    {
+      id: 6,
+      name: "頂級豪宅",
+      price: 1000000,
+      daily_income: 15000,
+      unlock_level: 10,
+      icon: "crown",
+    },
   ],
   owned: [
     {
@@ -58,7 +143,14 @@ const MOCK_PROPERTIES = {
       purchase_price: 25000,
       daily_income: 250,
       purchased_at: "2026-09-18",
-      tier: { id: 3, name: "兩房公寓", price: 25000, daily_income: 250, unlock_level: 2, icon: "🏢" },
+      tier: {
+        id: 3,
+        name: "兩房公寓",
+        price: 25000,
+        daily_income: 250,
+        unlock_level: 2,
+        icon: "building",
+      },
     },
   ],
 }
@@ -70,8 +162,11 @@ export function useEconomyMe() {
     queryFn: async () => {
       try {
         return await EconomyService.readMe()
-      } catch {
-        return MOCK_ECONOMY_ME as any
+      } catch (err) {
+        if (isDemoMode()) {
+          return MOCK_ECONOMY_ME as any
+        }
+        throw err
       }
     },
     staleTime: 30_000,
@@ -86,8 +181,11 @@ export function useProperties() {
     queryFn: async () => {
       try {
         return await EconomyService.listProperties()
-      } catch {
-        return MOCK_PROPERTIES as any
+      } catch (err) {
+        if (isDemoMode()) {
+          return MOCK_PROPERTIES as any
+        }
+        throw err
       }
     },
     staleTime: 30_000,
@@ -102,8 +200,11 @@ export function useAssets() {
     queryFn: async () => {
       try {
         return await EconomyService.getAssets()
-      } catch {
-        return MOCK_ASSETS as any
+      } catch (err) {
+        if (isDemoMode()) {
+          return MOCK_ASSETS as any
+        }
+        throw err
       }
     },
     staleTime: 30_000,
@@ -120,10 +221,13 @@ export function useClaimAccrual() {
     mutationFn: async () => {
       try {
         return await EconomyService.claim()
-      } catch {
-        MOCK_ECONOMY_ME.cash += MOCK_ECONOMY_ME.pending_accrual
-        MOCK_ECONOMY_ME.pending_accrual = 0
-        return { cash: MOCK_ECONOMY_ME.cash }
+      } catch (err) {
+        if (isDemoMode()) {
+          MOCK_ECONOMY_ME.cash += MOCK_ECONOMY_ME.pending_accrual
+          MOCK_ECONOMY_ME.pending_accrual = 0
+          return { cash: MOCK_ECONOMY_ME.cash }
+        }
+        throw err
       }
     },
     onSuccess: () => {
@@ -140,30 +244,34 @@ export function useBuyProperty() {
     mutationFn: async (tierId: number) => {
       try {
         return await EconomyService.buyProperty({ tierId })
-      } catch {
-        const tier = MOCK_PROPERTIES.tiers.find((t) => t.id === tierId)
-        if (!tier) throw new Error("Tier not found")
-        if (MOCK_ECONOMY_ME.cash < tier.price) {
-          throw new Error("insufficient_cash")
-        }
-        MOCK_ECONOMY_ME.cash -= tier.price
-        MOCK_ASSETS.cash = MOCK_ECONOMY_ME.cash
-        MOCK_ASSETS.property_value += tier.price
-        MOCK_ASSETS.daily_accrual += tier.daily_income
-        MOCK_ASSETS.total_asset_value = MOCK_ASSETS.cash + MOCK_ASSETS.property_value
-        MOCK_ASSETS.total_properties += 1
+      } catch (err) {
+        if (isDemoMode()) {
+          const tier = MOCK_PROPERTIES.tiers.find((t) => t.id === tierId)
+          if (!tier) throw new Error("Tier not found")
+          if (MOCK_ECONOMY_ME.cash < tier.price) {
+            throw new Error("insufficient_cash")
+          }
+          MOCK_ECONOMY_ME.cash -= tier.price
+          MOCK_ASSETS.cash = MOCK_ECONOMY_ME.cash
+          MOCK_ASSETS.property_value += tier.price
+          MOCK_ASSETS.daily_accrual += tier.daily_income
+          MOCK_ASSETS.total_asset_value =
+            MOCK_ASSETS.cash + MOCK_ASSETS.property_value
+          MOCK_ASSETS.total_properties += 1
 
-        const newProp = {
-          id: `prop_${Date.now()}`,
-          tier_id: tier.id,
-          name: tier.name,
-          purchase_price: tier.price,
-          daily_income: tier.daily_income,
-          purchased_at: new Date().toISOString().split("T")[0],
-          tier,
+          const newProp = {
+            id: `prop_${Date.now()}`,
+            tier_id: tier.id,
+            name: tier.name,
+            purchase_price: tier.price,
+            daily_income: tier.daily_income,
+            purchased_at: new Date().toISOString().split("T")[0],
+            tier,
+          }
+          MOCK_PROPERTIES.owned.push(newProp)
+          return newProp
         }
-        MOCK_PROPERTIES.owned.push(newProp)
-        return newProp
+        throw err
       }
     },
     onSuccess: () => {
@@ -209,5 +317,13 @@ export function useLiquidate() {
         code && messages[code] ? messages[code] : "變賣失敗，請重試",
       )
     },
+  })
+}
+
+/** 取得天梯主線旅程狀態與推薦下一步（無 mock，失敗時回報真實錯誤） */
+export function useJourney() {
+  return useQuery({
+    queryKey: ["economy", "journey"],
+    queryFn: () => EconomyService.getJourney(),
   })
 }

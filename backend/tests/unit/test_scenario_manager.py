@@ -37,6 +37,21 @@ def test_outcome_deltas():
     assert outcome_deltas(OUTCOME_LOSE_SCAMMED, ECON) == (-ECON.stake_loss, 0)
     assert outcome_deltas(OUTCOME_LOSE_MISREPORT, ECON) == (-ECON.penalty_misreport, 0)
 
+    # Test return_breakdown and chapter_subtotal
+    cash, xp, breakdown = outcome_deltas(
+        OUTCOME_WIN_REPORT,
+        ECON,
+        has_evidence=True,
+        completed_chapters=2,
+        return_breakdown=True,
+    )
+    assert breakdown["base_cash"] == ECON.reward_win
+    assert breakdown["chapter_level"] == 2
+    assert breakdown["chapter_multiplier"] == round(1.15**2, 4)
+    assert breakdown["chapter_subtotal"] == round(ECON.reward_win * (1.15**2))
+    assert breakdown["final_cash"] == round(ECON.reward_win * (1.15**2))
+
+
 
 def test_can_send_message_gate():
     assert can_send_message(0) is True

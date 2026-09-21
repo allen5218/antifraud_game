@@ -48,7 +48,7 @@ describe("<QuizReveal />", () => {
     )
     expect(screen.getByText(/答對了/)).toBeTruthy()
     expect(screen.getByText(/保證獲利穩賺不賠/)).toBeTruthy()
-    expect(screen.getAllByText("貪念誘惑")).toHaveLength(2)
+    expect(screen.getByText(/貪念誘惑/)).toBeTruthy()
     expect(screen.getByText(/先停下來查證風險/)).toBeTruthy()
     expect(screen.getByText(/改編自:司法院裁判書詐欺案件/)).toBeTruthy()
     expect(screen.queryByText("greed")).toBeNull()
@@ -63,7 +63,7 @@ describe("<QuizReveal />", () => {
         isLast
       />,
     )
-    expect(screen.getByText(/答錯了/)).toBeTruthy()
+    expect(screen.getByText(/再想一下/)).toBeTruthy()
     expect(screen.getByText(/看結算/)).toBeTruthy()
   })
 
@@ -107,7 +107,7 @@ describe("<QuizReveal />", () => {
       />,
     )
 
-    expect(screen.getByText(/漏選/)).toBeTruthy()
+    expect(screen.getByText(/少選/)).toBeTruthy()
     expect(screen.getByText(/多選/)).toBeTruthy()
     expect(screen.getByText(/先給自己冷靜期/)).toBeTruthy()
     expect(screen.getByText(/主動查證身份/)).toBeTruthy()

@@ -1,3 +1,11 @@
+import {
+  Building,
+  Building2,
+  Castle,
+  Home,
+  Lock,
+  Warehouse,
+} from "lucide-react"
 import type { PropertyTierPublic } from "@/client"
 
 interface Props {
@@ -8,13 +16,23 @@ interface Props {
   onBuy?: () => void
 }
 
-const SVG_EMOJI: Record<string, string> = {
-  "tier-1": "🏚️",
-  "tier-2": "🏠",
-  "tier-3": "🏢",
-  "tier-4": "🏘️",
-  "tier-5": "🏡",
-  "tier-6": "🏰",
+function getPropertyIcon(svgKey: string) {
+  switch (svgKey) {
+    case "tier-1":
+      return <Warehouse className="w-5 h-5 text-slate-300" />
+    case "tier-2":
+      return <Home className="w-5 h-5 text-slate-300" />
+    case "tier-3":
+      return <Building className="w-5 h-5 text-slate-300" />
+    case "tier-4":
+      return <Building2 className="w-5 h-5 text-slate-300" />
+    case "tier-5":
+      return <Home className="w-5 h-5 text-emerald-400" />
+    case "tier-6":
+      return <Castle className="w-5 h-5 text-amber-400" />
+    default:
+      return <Home className="w-5 h-5 text-slate-300" />
+  }
 }
 
 export function PropertyCard({
@@ -29,9 +47,9 @@ export function PropertyCard({
     <div className="flex items-center gap-3 rounded-xl border bg-card p-2 text-xs">
       <div
         aria-hidden="true"
-        className="flex h-11 w-11 items-center justify-center rounded-lg bg-muted text-2xl"
+        className="flex h-11 w-11 items-center justify-center rounded-lg bg-muted"
       >
-        {SVG_EMOJI[tier.svg_key]}
+        {getPropertyIcon(tier.svg_key)}
       </div>
       <div className="flex-1">
         <h5 className="text-xs font-bold">
@@ -39,8 +57,9 @@ export function PropertyCard({
           {owned ? ` ×${count}` : ""}
         </h5>
         {locked ? (
-          <div className="text-[10px] text-red-600">
-            🔒 Lv.{tier.unlock_level} 解鎖
+          <div className="text-[10px] text-red-600 flex items-center gap-1">
+            <Lock className="w-3 h-3" />
+            <span>Lv.{tier.unlock_level} 解鎖</span>
           </div>
         ) : owned ? (
           <div className="text-[10px] font-bold text-green-600">

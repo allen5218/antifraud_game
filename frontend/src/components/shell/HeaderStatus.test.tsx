@@ -96,4 +96,23 @@ describe("<HeaderStatus />", () => {
     const cashEl = screen.getByTestId("hdr-cash")
     expect(cashEl.className).toMatch(/text-red/)
   })
+
+  it("renders — for cash, streak, and level when data is pending or error", async () => {
+    mock.module("@/hooks/useEconomy", () => ({
+      useEconomyMe: () => ({
+        data: undefined,
+        isPending: true,
+        isError: false,
+      }),
+      useClaimAccrual: () => ({ mutate: () => {}, isPending: false }),
+      useProperties: () => ({ data: { tiers: [], owned: [] } }),
+      useAssets: () => ({ data: null }),
+      useBuyProperty: () => ({ mutate: () => {} }),
+      useLiquidate: () => ({ mutate: () => {} }),
+    }))
+    await renderWithRouter()
+    const cashEl = screen.getByTestId("hdr-cash")
+    expect(cashEl.textContent).toContain("—")
+    expect(screen.getAllByText("—").length).toBeGreaterThanOrEqual(3)
+  })
 })

@@ -5,7 +5,8 @@ from fastapi import APIRouter, HTTPException
 from sqlmodel import select
 
 from app.api.deps import CurrentUser, SessionDep
-from app.models import MascotItem, UserMascotItem, UserScore
+from app.economy.service import adjust_cash, lock_user
+from app.models import MascotItem, UserMascotItem
 
 router = APIRouter(prefix="/mascot", tags=["mascot"])
 
@@ -44,7 +45,7 @@ def purchase_item(
     current_user: CurrentUser,
     item_id: uuid.UUID,
 ) -> Any:
-    """用積分購買裝飾品。"""
+    """用現金購買裝飾品。"""
     item = session.get(MascotItem, item_id)
     if not item:
         raise HTTPException(status_code=404, detail="Item not found")
@@ -58,29 +59,23 @@ def purchase_item(
     if existing:
         raise HTTPException(status_code=400, detail="Already owned")
 
-    user_score = session.exec(
-        select(UserScore).where(UserScore.user_id == current_user.id)
-    ).first()
-    current_score = user_score.total_score if user_score else 0
+    current_user = lock_user(session, current_user)
+    if current_user.cash < item.cost:
+        raise HTTPException(status_code=400, detail="Not enough cash")
 
-    if current_score < item.cost:
-        raise HTTPException(status_code=400, detail="Not enough score")
-
-    if not user_score:
-        raise HTTPException(status_code=400, detail="No score record")
-
-    user_score.total_score -= item.cost
-    session.add(user_score)
+    adjust_cash(current_user, -item.cost, reason="mascot_purchase")
 
     user_item = UserMascotItem(
         user_id=current_user.id,
         item_id=item_id,
         is_equipped=False,
     )
+    session.add(current_user)
     session.add(user_item)
     session.commit()
+    session.refresh(current_user)
 
-    return {"message": "Purchase successful", "remaining_score": user_score.total_score}
+    return {"message": "Purchase successful", "remaining_cash": current_user.cash}
 
 
 @router.patch("/items/{item_id}/equip")

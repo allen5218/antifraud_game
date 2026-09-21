@@ -1,4 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
+import { Camera, Flower2, Home, Trophy, Wrench } from "lucide-react"
 import { EconomyService } from "@/client"
 import { Button } from "@/components/ui/button"
 
@@ -16,9 +17,30 @@ export function MyHomeSection() {
           best_tier_name: "兩房公寓",
           house_count: 1,
           decorations: [
-            { id: "d1", name: "防詐警惕植物", icon: "🪴", cost: 500, is_owned: true, is_equipped: true },
-            { id: "d2", name: "智能安防監視器", icon: "📹", cost: 1200, is_owned: false, is_equipped: false },
-            { id: "d3", name: "防詐大師紀念獎座", icon: "🏆", cost: 3000, is_owned: true, is_equipped: true },
+            {
+              id: "d1",
+              name: "防詐警惕植物",
+              icon: "plant",
+              cost: 500,
+              is_owned: true,
+              is_equipped: true,
+            },
+            {
+              id: "d2",
+              name: "智能安防監視器",
+              icon: "camera",
+              cost: 1200,
+              is_owned: false,
+              is_equipped: false,
+            },
+            {
+              id: "d3",
+              name: "防詐大師紀念獎座",
+              icon: "trophy",
+              cost: 3000,
+              is_owned: true,
+              is_equipped: true,
+            },
           ],
           follow_up_event_unlocked: true,
           follow_up_event_title: "假冒社區公務維修",
@@ -58,8 +80,9 @@ export function MyHomeSection() {
   return (
     <div className="mt-4 space-y-3">
       <div className="flex items-center justify-between">
-        <div className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
-          🏡 我的家園與生活裝飾
+        <div className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground flex items-center gap-1.5">
+          <Home className="w-3.5 h-3.5" />
+          <span>我的家園與生活裝飾</span>
         </div>
         <span className="text-xs text-muted-foreground">
           主宅：{home.best_tier_name ?? "自住宅"}（共 {home.house_count}{" "}
@@ -69,52 +92,74 @@ export function MyHomeSection() {
 
       {/* 裝飾品展示櫃 */}
       <div className="grid grid-cols-3 gap-2">
-        {home.decorations.map((d: { id: string; icon: string; name: string; cost: number; is_owned: boolean; is_equipped: boolean }) => (
-          <div
-            key={d.id}
-            className={`flex flex-col items-center rounded-xl border p-2.5 text-center transition-colors ${
-              d.is_equipped
-                ? "border-primary bg-primary/5 ring-1 ring-primary"
-                : "border-border bg-card"
-            }`}
-          >
-            <div className="text-2xl">{d.icon}</div>
-            <div className="mt-1 font-bold text-xs">{d.name}</div>
-            <div className="text-[10px] text-muted-foreground">{d.cost} 💰</div>
-            <div className="mt-2 w-full">
-              {d.is_owned ? (
-                <Button
-                  size="sm"
-                  variant={d.is_equipped ? "default" : "outline"}
-                  onClick={() => toggleDecorM.mutate(d.id)}
-                  disabled={toggleDecorM.isPending}
-                  className="h-6 w-full text-[10px]"
-                >
-                  {d.is_equipped ? "展示中" : "點擊擺放"}
-                </Button>
-              ) : (
-                <Button
-                  size="sm"
-                  variant="secondary"
-                  onClick={() => buyDecorM.mutate(d.id)}
-                  disabled={buyDecorM.isPending}
-                  className="h-6 w-full text-[10px]"
-                >
-                  購買
-                </Button>
-              )}
+        {home.decorations.map(
+          (d: {
+            id: string
+            icon: string
+            name: string
+            cost: number
+            is_owned: boolean
+            is_equipped: boolean
+          }) => (
+            <div
+              key={d.id}
+              className={`flex flex-col items-center rounded-xl border p-2.5 text-center transition-colors ${
+                d.is_equipped
+                  ? "border-primary bg-primary/5 ring-1 ring-primary"
+                  : "border-border bg-card"
+              }`}
+            >
+              <div className="flex items-center justify-center w-10 h-10 rounded-lg bg-muted mb-1">
+                {d.icon === "plant" ? (
+                  <Flower2 className="w-5 h-5 text-emerald-400" />
+                ) : d.icon === "camera" ? (
+                  <Camera className="w-5 h-5 text-blue-400" />
+                ) : (
+                  <Trophy className="w-5 h-5 text-amber-400" />
+                )}
+              </div>
+              <div className="mt-1 font-bold text-xs">{d.name}</div>
+              <div className="text-[10px] text-muted-foreground">
+                ${d.cost.toLocaleString()}
+              </div>
+              <div className="mt-2 w-full">
+                {d.is_owned ? (
+                  <Button
+                    size="sm"
+                    variant={d.is_equipped ? "default" : "outline"}
+                    onClick={() => toggleDecorM.mutate(d.id)}
+                    disabled={toggleDecorM.isPending}
+                    className="h-6 w-full text-[10px]"
+                  >
+                    {d.is_equipped ? "展示中" : "點擊擺放"}
+                  </Button>
+                ) : (
+                  <Button
+                    size="sm"
+                    variant="secondary"
+                    onClick={() => buyDecorM.mutate(d.id)}
+                    disabled={buyDecorM.isPending}
+                    className="h-6 w-full text-[10px]"
+                  >
+                    購買
+                  </Button>
+                )}
+              </div>
             </div>
-          </div>
-        ))}
+          ),
+        )}
       </div>
 
       {/* 社區公共修繕事件 */}
       {home.follow_up_event_unlocked && (
         <div className="rounded-xl border border-amber-300/60 bg-amber-500/5 p-3 text-xs">
           <div className="flex items-center justify-between font-bold text-amber-900 dark:text-amber-200">
-            <span>🛠️ 社區生活事件：{home.follow_up_event_title}</span>
+            <span className="flex items-center gap-1.5">
+              <Wrench className="w-3.5 h-3.5" />
+              <span>社區生活事件：{home.follow_up_event_title}</span>
+            </span>
             {home.follow_up_event_done ? (
-              <span className="text-green-600">✓ 已查證排除</span>
+              <span className="text-green-600">已查證排除</span>
             ) : (
               <span className="text-amber-600">未結案</span>
             )}

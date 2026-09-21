@@ -1,6 +1,6 @@
 from typing import Annotated, Any, Literal
 
-from pydantic import BaseModel, Field, StringConstraints
+from pydantic import BaseModel, ConfigDict, Field, StringConstraints, field_validator
 
 # ── 前測 ─────────────────────────────────────────────────────
 
@@ -109,6 +109,49 @@ class ClaimStarterGrantResponse(BaseModel):
     new_cash: int
 
 
+# ── Ladder Journey (Brief 10 / 10b) ──────────────────────────
+
+
+class JourneyStepPublic(BaseModel):
+    id: str
+    label: str
+    status: str
+
+
+class JourneyChapterPublic(BaseModel):
+    id: int
+    title: str
+    rung_title: str
+    description: str
+    completed: bool
+    is_current: bool = False
+    is_locked: bool = False
+    contact_id: str | None = None
+    contact_name: str | None = None
+    contact_avatar: str | None = None
+    contact_persona: str | None = None
+    steps: list[JourneyStepPublic] = []
+
+
+class JourneyNextStepPublic(BaseModel):
+    kind: str
+    title: str
+    reason: str
+    href: str
+    contact_id: str | None = None
+    story_id: str | None = None
+    scenario_id: str | None = None
+    estimated_time: str | None = None
+
+
+class JourneyResponse(BaseModel):
+    chapter: JourneyChapterPublic
+    next_step: JourneyNextStepPublic
+    all_chapters: list[JourneyChapterPublic]
+    completed_chapters: int
+    unlocked_contact_ids: list[str]
+
+
 # ── House Task, Home Decor, & Vehicle (T4 / AC6, AC7, AC8) ───
 
 
@@ -210,6 +253,7 @@ class SwipeAnswerRequest(BaseModel):
     card_id: str
     guess_is_scam: bool | None = None
     action: Literal["scam", "legit", "skip"] | None = None
+    confidence: float | None = Field(default=None, ge=0.5, le=1.0)
 
 
 class QuizWeaknessDetail(BaseModel):
@@ -225,12 +269,14 @@ class SwipeAnswerResponse(BaseModel):
     explanation: str
     weakness_tags: list[str]
     tag_details: list[QuizWeaknessDetail]
+    inoculation: dict[str, Any] | None = None
 
 
 class SwipeAnswerItem(BaseModel):
     card_id: str
     guess_is_scam: bool | None = None
     action: Literal["scam", "legit", "skip"] | None = None
+    confidence: float | None = Field(default=None, ge=0.5, le=1.0)
 
 
 class SwipeCompleteRequest(BaseModel):
@@ -250,9 +296,95 @@ class SwipeCompleteResponse(BaseModel):
     cash_earned: int
     xp_earned: int
     weakness_summary: list[WeaknessSummaryItem]
+    signal_detection: dict[str, Any] | None = None
+    calibration: dict[str, Any] | None = None
 
 
 # ── Scenario（情境模擬）──────────────────────────────────────
+
+
+ALLOWED_INTENTS: tuple[str, ...] = (
+    "query_identity",
+    "query_transaction",
+    "query_amount",
+    "query_evidence",
+    "doubt_challenge",
+    "verify_intent",
+    "reject_pause",
+    "agree_comply",
+    "ask_help",
+    "small_talk",
+    "jailbreak_prompt",
+    "off_topic",
+    "uncertain",
+)
+
+ALLOWED_TOPICS: tuple[str, ...] = (
+    "amount",
+    "evidence",
+    "vendor",
+    "doubt",
+    "pause",
+    "transaction",
+    "identity",
+    "help",
+)
+
+ALLOWED_VARIANTS: tuple[str, ...] = (
+    "standard",
+    "detailed",
+    "cautious",
+)
+
+
+class SemanticSelection(BaseModel):
+    """語意選擇器 Agent 的受約束輸出 Schema（G1）。
+
+    嚴格限制欄位：
+    - 僅允許白名單意圖 IDs (intents)
+    - 可選主題/主張 ID (topic_id，限定白名單)
+    - 可選安全回覆變體 ID (reply_variant，限定白名單)
+    - 嚴禁額外欄位 (extra='forbid')
+    - 絕不允許模型自創 messages、amount、truth、official_result、decision_point、reward、NPC 身分等欄位。
+    """
+
+    model_config = ConfigDict(extra="forbid")
+
+    intents: list[str] = Field(
+        default_factory=list,
+        description="白名單意圖 ID 列表",
+    )
+    topic_id: str | None = Field(
+        default=None,
+        description="選取的對應主題或主張 ID",
+    )
+    reply_variant: str | None = Field(
+        default=None,
+        description="選取的安全回覆變體 ID",
+    )
+
+    @field_validator("intents")
+    @classmethod
+    def validate_intents(cls, v: list[str]) -> list[str]:
+        valid_set = set(ALLOWED_INTENTS)
+        for item in v:
+            if item not in valid_set:
+                raise ValueError(f"Unknown intent ID: {item}")
+        return v
+
+    @field_validator("topic_id")
+    @classmethod
+    def validate_topic_id(cls, v: str | None) -> str | None:
+        if v is not None and v not in set(ALLOWED_TOPICS):
+            raise ValueError(f"Unknown topic ID: {v}")
+        return v
+
+    @field_validator("reply_variant")
+    @classmethod
+    def validate_reply_variant(cls, v: str | None) -> str | None:
+        if v is not None and v not in set(ALLOWED_VARIANTS):
+            raise ValueError(f"Unknown reply variant: {v}")
+        return v
 
 
 class ScenarioReply(BaseModel):
@@ -261,6 +393,7 @@ class ScenarioReply(BaseModel):
     messages: list[str]
     decision_point: str | None = None
     tactics_used: list[str] = []
+    reply_mode: str = "rules"  # "rules" | "model"
 
 
 class FlagItem(BaseModel):
@@ -278,20 +411,31 @@ class ScenarioInboxItem(BaseModel):
     status: str
     outcome: str | None
     unread: bool
+    contact_id: str | None = None
+    story_id: str | None = None
+    story_title: str | None = None
 
 
 class ScenarioNewRequest(BaseModel):
-    fraud_type: str
+    fraud_type: str | None = None
+    contact_id: str | None = None
+    story_id: str | None = None
+    request_id: str | None = None
 
 
 class ScenarioMessageRequest(BaseModel):
     text: str = Field(max_length=2000)
+    request_id: str | None = None
+    expected_revision: int | None = None
 
 
 class ScenarioMessageResponse(BaseModel):
     messages: list[str]
     decision_point: str | None
     turns_left: int
+    revision: int = 0
+    intent: str | None = None
+    reply_mode: str = "rules"
 
 
 class ScenarioToolItem(BaseModel):
@@ -308,16 +452,44 @@ class ScenarioEvidenceItem(BaseModel):
 
 class ScenarioVerifyRequest(BaseModel):
     tool_id: str
+    request_id: str | None = None
+    expected_revision: int | None = None
 
 
 class ScenarioVerifyResponse(BaseModel):
     evidence: ScenarioEvidenceItem
     already_unlocked: bool
     unlocked_evidence: list[ScenarioEvidenceItem]
+    revision: int = 0
 
 
 class ScenarioJudgeRequest(BaseModel):
-    action: Literal["report", "comply", "safe_exit"]
+    action: Literal["report", "comply", "safe_exit", "pause"]
+    request_id: str | None = None
+    expected_revision: int | None = None
+
+
+class ScenarioResumeRequest(BaseModel):
+    request_id: str | None = None
+    expected_revision: int | None = None
+
+
+class ScenarioPauseRequest(BaseModel):
+    request_id: str | None = None
+    expected_revision: int | None = None
+
+
+class RewardBreakdown(BaseModel):
+    base_cash: int
+    chapter_level: int
+    chapter_multiplier: float
+    chapter_subtotal: int | None = None
+    chat_bonuses: dict[str, float]
+    total_chat_factor: float
+    is_chapter_finale: bool
+    final_cash: int
+    final_xp: int
+    is_replay: bool = False
 
 
 class ScenarioJudgeResponse(BaseModel):
@@ -331,6 +503,37 @@ class ScenarioJudgeResponse(BaseModel):
     triggers_forced_sell: bool
     case_provenance: str | None
     unlocked_evidence_count: int = 0
+    inoculation: dict[str, Any] | None = None
+    guardian_boost: dict[str, Any] | None = None
+    reward_breakdown: RewardBreakdown | None = None
+
+
+class ScenarioBranchAction(BaseModel):
+    action_id: str
+    category: str  # "cash" | "network" | "handling" | "property_vehicle" | "xp_item"
+    label: str
+    description: str
+    available: bool
+    unavailable_reason: str | None = None
+    completed: bool = False
+
+
+class ScenarioActionRequest(BaseModel):
+    action_id: str
+    request_id: str | None = None
+    expected_revision: int | None = None
+
+
+class ScenarioActionResponse(BaseModel):
+    action_id: str
+    label: str
+    result_text: str
+    new_revision: int
+    unlocked_evidence_id: str | None = None
+    disclosed_facts: list[str] = []
+    trust_delta: int = 0
+    reliability_delta: int = 0
+    repeated: bool = False
 
 
 class ScenarioDetail(BaseModel):
@@ -345,6 +548,64 @@ class ScenarioDetail(BaseModel):
     history: list[dict[str, Any]]
     available_tools: list[ScenarioToolItem] = []
     unlocked_evidence: list[ScenarioEvidenceItem] = []
+    contact_id: str | None = None
+    story_id: str | None = None
+    story_title: str | None = None
+    learning_objective: str | None = None
+    revision: int = 0
+    available_branch_actions: list[ScenarioBranchAction] = []
+    reply_mode: str | None = None
+    is_paused: bool = False
+    terminal_result: ScenarioJudgeResponse | None = None
+    source_adaptation_mark: str | None = None
+
+
+# ── 聊天式養成：聯絡人與商店道具 Schemas (C4, C5) ───────────────
+
+
+class ContactRelationPublic(BaseModel):
+    contact_id: str
+    name: str
+    avatar: str
+    persona_desc: str
+    trust: int
+    reliability: int
+    event_flags: list[str]
+    completed_story_ids: list[str]
+    last_outcome: str | None = None
+    is_locked: bool = False
+
+
+class ShopItemPublic(BaseModel):
+    id: str
+    name: str
+    price: int
+    category: str
+    description: str
+    visible_use: str
+    triggers_action: bool
+    action_description: str | None = None
+    owned_quantity: int = 0
+
+
+class ShopItemsListResponse(BaseModel):
+    items: list[ShopItemPublic]
+    user_cash: int
+
+
+class PurchaseItemRequest(BaseModel):
+    item_id: str
+    request_id: str | None = None
+
+
+class PurchaseItemResponse(BaseModel):
+    success: bool
+    item_id: str
+    item_name: str
+    cost: int
+    new_cash: int
+    quantity: int
+
 
 
 # ── Quiz（混合題型）───────────────────────────────────────
@@ -427,6 +688,10 @@ class QuizAnswerItem(BaseModel):
     pairs: dict[QuizAnswerString64, QuizAnswerString64] | None = Field(
         default=None, max_length=5
     )
+    confidence: float | None = Field(default=None, ge=0.5, le=1.0)
+    response_time_ms: int | None = Field(default=None, ge=0, le=600000)
+    option_switch_count: int | None = Field(default=None, ge=0, le=50)
+    interaction_obscured: bool | None = None
 
 
 class QuizAnswerRequest(QuizAnswerItem):
@@ -445,6 +710,7 @@ class QuizVerdictAnswerResponse(BaseModel):
     red_flags: list[QuizRedFlag]
     provenance: str
     tag_details: list[QuizWeaknessDetail]
+    inoculation: dict[str, Any] | None = None
 
 
 class QuizVerificationAnswerResponse(BaseModel):
@@ -496,3 +762,5 @@ class QuizCompleteResponse(BaseModel):
     cash_earned: int
     xp_earned: int
     weakness_summary: list[WeaknessSummaryItem]
+    signal_detection: dict[str, Any] | None = None
+    calibration: dict[str, Any] | None = None

@@ -20,6 +20,7 @@ from app.economy.house_task import (
     is_eligible_to_buy_house,
     user_owns_any_property,
 )
+from app.economy.journey import resolve_journey_state
 from app.economy.levels import level_of
 from app.economy.service import (
     EconomyError,
@@ -33,7 +34,10 @@ from app.economy.service import (
 )
 from app.models import (
     PropertyTier,
+    ScenarioSession,
+    ScenarioStatus,
     UserChapterProgress,
+    UserContactRelation,
     UserHomeDecor,
     UserProperty,
     UserVehicle,
@@ -54,6 +58,7 @@ from app.schemas import (
     HouseTaskStepPublic,
     HouseTaskVerifyRequest,
     HouseTaskVerifyResponse,
+    JourneyResponse,
     LiquidateRequest,
     LiquidateResponse,
     MyHomeResponse,
@@ -284,7 +289,49 @@ def post_liquidate(
     )
 
 
-# ── 章節與起步補助端點 (T3 / AC4, AC9) ───────────────────────
+# ── 章節、天梯旅程與起步補助端點 (T3 / AC4, AC9 / Brief 10, 10b) ──────────────
+
+
+@router.get("/journey", response_model=JourneyResponse)
+def get_journey(session: SessionDep, current_user: CurrentUser) -> Any:
+    """取得天梯主線旅程狀態與下一步指引（無副作用，唯讀）。"""
+    # 1. 讀取現有章節進度（不建立新列）
+    progs = session.exec(
+        select(UserChapterProgress).where(
+            UserChapterProgress.user_id == current_user.id
+        )
+    ).all()
+    progress_by_chapter: dict[int, UserChapterProgress | None] = {
+        p.chapter_id: p for p in progs
+    }
+
+    # 2. 查詢當前使用者擁有的 active / paused 對話（嚴格 user_id 隔離，不外洩）
+    active_or_paused = session.exec(
+        select(ScenarioSession)
+        .where(
+            ScenarioSession.user_id == current_user.id,
+            ScenarioSession.status.in_([ScenarioStatus.ACTIVE, ScenarioStatus.PAUSED]),
+        )
+        .order_by(col(ScenarioSession.created_at).desc())
+    ).first()
+
+    # 3. 收集使用者已完成之故事 ID（供先決條件判斷，不洩漏未解鎖故事）
+    user_relations = session.exec(
+        select(UserContactRelation).where(
+            UserContactRelation.user_id == current_user.id
+        )
+    ).all()
+    completed_stories: set[str] = set()
+    for rel in user_relations:
+        if rel.completed_story_ids:
+            completed_stories.update(rel.completed_story_ids)
+
+    return resolve_journey_state(
+        completed_chapters=current_user.completed_chapters,
+        progress_by_chapter=progress_by_chapter,
+        active_or_paused_session=active_or_paused,
+        user_completed_story_ids=completed_stories,
+    )
 
 
 @router.get("/chapters", response_model=ChapterStatusResponse)

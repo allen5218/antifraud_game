@@ -26,8 +26,11 @@ def lock_user(session: Session, user: User) -> User:
     若該物件是在鎖之前載入的，並發請求會各自以過期的值計算後互相覆蓋。
     refresh 會略過同一 Session 的 identity map，真正從已鎖定的資料列重載。
     """
-    session.refresh(user, with_for_update=True)
-    return user
+    if user in session:
+        session.refresh(user, with_for_update=True)
+        return user
+    locked = session.get(type(user), user.id, with_for_update=True)
+    return locked or user
 
 
 def _aware(dt: datetime) -> datetime:

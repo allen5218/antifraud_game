@@ -115,3 +115,81 @@ def test_quiz_answer_item_rejects_oversized_nested_payload(
 
     with pytest.raises(ValidationError):
         QuizAnswerItem.model_validate(payload)
+
+
+def test_quiz_complete_uses_real_case_narrative_length_for_calibration(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """證明長題與短題把真實 case narrative 長度送進估算，而非 0。"""
+    recorded_lengths: list[int] = []
+
+    def mock_estimate(
+        narrative_length: int = 0,
+        response_time_ms: int | None = None,
+        switch_count: int | None = None,
+        interaction_obscured: bool | None = None,
+    ) -> float:
+        recorded_lengths.append(narrative_length)
+        return 0.85
+
+    from app.core import calibration
+    monkeypatch.setattr(calibration, "estimate_behavioral_confidence", mock_estimate)
+
+    class LongCase:
+        is_scam = True
+        narrative = "這是一道敘述相當詳盡的詐騙案例" * 5  # 15 * 5 = 75 chars
+        red_flags = []
+
+    class ShortCase:
+        is_scam = False
+        narrative = "短情境"  # 3 chars
+        red_flags = []
+
+    quiz = Mock()
+    quiz.id = "mock-quiz-id"
+    quiz.completed = False
+    quiz.items = [
+        {"item_id": "v-long", "type": "verdict", "case_id": 1},
+        {"item_id": "v-short", "type": "verdict", "case_id": 2},
+    ]
+    quiz.answers = {
+        "v-long": {"guess_is_scam": True, "response_time_ms": 3000, "option_switch_count": 0},
+        "v-short": {"guess_is_scam": False, "response_time_ms": 1500, "option_switch_count": 0},
+    }
+
+    cases_by_id = {1: LongCase(), 2: ShortCase()}
+
+    monkeypatch.setattr(quick_routes, "_get_quiz_session", lambda *a, **kw: quiz)
+    monkeypatch.setattr(
+        quick_routes,
+        "_dealt_quiz_items",
+        lambda q: {item["item_id"]: item for item in q.items},
+    )
+    monkeypatch.setattr(quick_routes, "_quiz_answers", lambda q: q.answers)
+    monkeypatch.setattr(
+        quick_routes,
+        "_item_case",
+        lambda s, q, item: cases_by_id.get(item.get("case_id")),
+    )
+    monkeypatch.setattr(quick_routes, "_score_quiz_item", lambda s, q, item, ans: (True, []))
+    monkeypatch.setattr(quick_routes, "_get_user_insight_bonus", lambda *a: 0.0)
+    monkeypatch.setattr(quick_routes, "lock_user", lambda s, u: u)
+    monkeypatch.setattr(quick_routes, "adjust_cash", lambda *a, **kw: None)
+    monkeypatch.setattr(quick_routes, "add_xp", lambda *a, **kw: None)
+    monkeypatch.setattr(quick_routes, "record_quiz_progress", lambda *a: None)
+
+    session = Mock(spec=Session)
+    user = Mock()
+    user.id = "user-id"
+    user.completed_chapters = 0
+
+    quick_routes.quiz_complete(
+        payload=QuizCompleteRequest(session_id="mock-session"),
+        session=session,
+        current_user=user,
+    )
+
+    assert len(recorded_lengths) == 2
+    assert recorded_lengths[0] == 75
+    assert recorded_lengths[1] == 3
+    assert all(l != 0 for l in recorded_lengths)

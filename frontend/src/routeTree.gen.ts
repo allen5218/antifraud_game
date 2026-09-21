@@ -14,11 +14,15 @@ import { Route as ResetPasswordRouteImport } from './routes/reset-password'
 import { Route as RecoverPasswordRouteImport } from './routes/recover-password'
 import { Route as PretestRouteImport } from './routes/pretest'
 import { Route as LoginRouteImport } from './routes/login'
+import { Route as LineCallbackRouteImport } from './routes/line-callback'
 import { Route as ShellRouteImport } from './routes/_shell'
 import { Route as LayoutRouteImport } from './routes/_layout'
 import { Route as ShellIndexRouteImport } from './routes/_shell/index'
 import { Route as PretestResultRouteImport } from './routes/pretest.result'
+import { Route as ShellSandboxRouteImport } from './routes/_shell/sandbox'
 import { Route as ShellMeRouteImport } from './routes/_shell/me'
+import { Route as ShellLineChannelRouteImport } from './routes/_shell/line-channel'
+import { Route as ShellLeagueRouteImport } from './routes/_shell/league'
 import { Route as ShellAssetsRouteImport } from './routes/_shell/assets'
 import { Route as LayoutSettingsRouteImport } from './routes/_layout/settings'
 import { Route as LayoutMascotRouteImport } from './routes/_layout/mascot'
@@ -54,6 +58,11 @@ const LoginRoute = LoginRouteImport.update({
   path: '/login',
   getParentRoute: () => rootRouteImport,
 } as any)
+const LineCallbackRoute = LineCallbackRouteImport.update({
+  id: '/line-callback',
+  path: '/line-callback',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ShellRoute = ShellRouteImport.update({
   id: '/_shell',
   getParentRoute: () => rootRouteImport,
@@ -72,9 +81,24 @@ const PretestResultRoute = PretestResultRouteImport.update({
   path: '/result',
   getParentRoute: () => PretestRoute,
 } as any)
+const ShellSandboxRoute = ShellSandboxRouteImport.update({
+  id: '/sandbox',
+  path: '/sandbox',
+  getParentRoute: () => ShellRoute,
+} as any)
 const ShellMeRoute = ShellMeRouteImport.update({
   id: '/me',
   path: '/me',
+  getParentRoute: () => ShellRoute,
+} as any)
+const ShellLineChannelRoute = ShellLineChannelRouteImport.update({
+  id: '/line-channel',
+  path: '/line-channel',
+  getParentRoute: () => ShellRoute,
+} as any)
+const ShellLeagueRoute = ShellLeagueRouteImport.update({
+  id: '/league',
+  path: '/league',
   getParentRoute: () => ShellRoute,
 } as any)
 const ShellAssetsRoute = ShellAssetsRouteImport.update({
@@ -126,6 +150,7 @@ const ShellQuickQuizRoute = ShellQuickQuizRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof ShellIndexRoute
+  '/line-callback': typeof LineCallbackRoute
   '/login': typeof LoginRoute
   '/pretest': typeof PretestRouteWithChildren
   '/recover-password': typeof RecoverPasswordRoute
@@ -136,7 +161,10 @@ export interface FileRoutesByFullPath {
   '/mascot': typeof LayoutMascotRoute
   '/settings': typeof LayoutSettingsRoute
   '/assets': typeof ShellAssetsRoute
+  '/league': typeof ShellLeagueRoute
+  '/line-channel': typeof ShellLineChannelRoute
   '/me': typeof ShellMeRoute
+  '/sandbox': typeof ShellSandboxRoute
   '/pretest/result': typeof PretestResultRoute
   '/quick/quiz': typeof ShellQuickQuizRoute
   '/quick/swipe': typeof ShellQuickSwipeRoute
@@ -145,6 +173,7 @@ export interface FileRoutesByFullPath {
 }
 export interface FileRoutesByTo {
   '/': typeof ShellIndexRoute
+  '/line-callback': typeof LineCallbackRoute
   '/login': typeof LoginRoute
   '/pretest': typeof PretestRouteWithChildren
   '/recover-password': typeof RecoverPasswordRoute
@@ -155,7 +184,10 @@ export interface FileRoutesByTo {
   '/mascot': typeof LayoutMascotRoute
   '/settings': typeof LayoutSettingsRoute
   '/assets': typeof ShellAssetsRoute
+  '/league': typeof ShellLeagueRoute
+  '/line-channel': typeof ShellLineChannelRoute
   '/me': typeof ShellMeRoute
+  '/sandbox': typeof ShellSandboxRoute
   '/pretest/result': typeof PretestResultRoute
   '/quick/quiz': typeof ShellQuickQuizRoute
   '/quick/swipe': typeof ShellQuickSwipeRoute
@@ -166,6 +198,7 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/_layout': typeof LayoutRouteWithChildren
   '/_shell': typeof ShellRouteWithChildren
+  '/line-callback': typeof LineCallbackRoute
   '/login': typeof LoginRoute
   '/pretest': typeof PretestRouteWithChildren
   '/recover-password': typeof RecoverPasswordRoute
@@ -176,7 +209,10 @@ export interface FileRoutesById {
   '/_layout/mascot': typeof LayoutMascotRoute
   '/_layout/settings': typeof LayoutSettingsRoute
   '/_shell/assets': typeof ShellAssetsRoute
+  '/_shell/league': typeof ShellLeagueRoute
+  '/_shell/line-channel': typeof ShellLineChannelRoute
   '/_shell/me': typeof ShellMeRoute
+  '/_shell/sandbox': typeof ShellSandboxRoute
   '/pretest/result': typeof PretestResultRoute
   '/_shell/': typeof ShellIndexRoute
   '/_shell/quick/quiz': typeof ShellQuickQuizRoute
@@ -188,6 +224,7 @@ export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
+    | '/line-callback'
     | '/login'
     | '/pretest'
     | '/recover-password'
@@ -198,7 +235,10 @@ export interface FileRouteTypes {
     | '/mascot'
     | '/settings'
     | '/assets'
+    | '/league'
+    | '/line-channel'
     | '/me'
+    | '/sandbox'
     | '/pretest/result'
     | '/quick/quiz'
     | '/quick/swipe'
@@ -207,6 +247,7 @@ export interface FileRouteTypes {
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
+    | '/line-callback'
     | '/login'
     | '/pretest'
     | '/recover-password'
@@ -217,7 +258,10 @@ export interface FileRouteTypes {
     | '/mascot'
     | '/settings'
     | '/assets'
+    | '/league'
+    | '/line-channel'
     | '/me'
+    | '/sandbox'
     | '/pretest/result'
     | '/quick/quiz'
     | '/quick/swipe'
@@ -227,6 +271,7 @@ export interface FileRouteTypes {
     | '__root__'
     | '/_layout'
     | '/_shell'
+    | '/line-callback'
     | '/login'
     | '/pretest'
     | '/recover-password'
@@ -237,7 +282,10 @@ export interface FileRouteTypes {
     | '/_layout/mascot'
     | '/_layout/settings'
     | '/_shell/assets'
+    | '/_shell/league'
+    | '/_shell/line-channel'
     | '/_shell/me'
+    | '/_shell/sandbox'
     | '/pretest/result'
     | '/_shell/'
     | '/_shell/quick/quiz'
@@ -249,6 +297,7 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   LayoutRoute: typeof LayoutRouteWithChildren
   ShellRoute: typeof ShellRouteWithChildren
+  LineCallbackRoute: typeof LineCallbackRoute
   LoginRoute: typeof LoginRoute
   PretestRoute: typeof PretestRouteWithChildren
   RecoverPasswordRoute: typeof RecoverPasswordRoute
@@ -293,6 +342,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof LoginRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/line-callback': {
+      id: '/line-callback'
+      path: '/line-callback'
+      fullPath: '/line-callback'
+      preLoaderRoute: typeof LineCallbackRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/_shell': {
       id: '/_shell'
       path: ''
@@ -321,11 +377,32 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof PretestResultRouteImport
       parentRoute: typeof PretestRoute
     }
+    '/_shell/sandbox': {
+      id: '/_shell/sandbox'
+      path: '/sandbox'
+      fullPath: '/sandbox'
+      preLoaderRoute: typeof ShellSandboxRouteImport
+      parentRoute: typeof ShellRoute
+    }
     '/_shell/me': {
       id: '/_shell/me'
       path: '/me'
       fullPath: '/me'
       preLoaderRoute: typeof ShellMeRouteImport
+      parentRoute: typeof ShellRoute
+    }
+    '/_shell/line-channel': {
+      id: '/_shell/line-channel'
+      path: '/line-channel'
+      fullPath: '/line-channel'
+      preLoaderRoute: typeof ShellLineChannelRouteImport
+      parentRoute: typeof ShellRoute
+    }
+    '/_shell/league': {
+      id: '/_shell/league'
+      path: '/league'
+      fullPath: '/league'
+      preLoaderRoute: typeof ShellLeagueRouteImport
       parentRoute: typeof ShellRoute
     }
     '/_shell/assets': {
@@ -413,7 +490,10 @@ const LayoutRouteWithChildren =
 
 interface ShellRouteChildren {
   ShellAssetsRoute: typeof ShellAssetsRoute
+  ShellLeagueRoute: typeof ShellLeagueRoute
+  ShellLineChannelRoute: typeof ShellLineChannelRoute
   ShellMeRoute: typeof ShellMeRoute
+  ShellSandboxRoute: typeof ShellSandboxRoute
   ShellIndexRoute: typeof ShellIndexRoute
   ShellQuickQuizRoute: typeof ShellQuickQuizRoute
   ShellQuickSwipeRoute: typeof ShellQuickSwipeRoute
@@ -423,7 +503,10 @@ interface ShellRouteChildren {
 
 const ShellRouteChildren: ShellRouteChildren = {
   ShellAssetsRoute: ShellAssetsRoute,
+  ShellLeagueRoute: ShellLeagueRoute,
+  ShellLineChannelRoute: ShellLineChannelRoute,
   ShellMeRoute: ShellMeRoute,
+  ShellSandboxRoute: ShellSandboxRoute,
   ShellIndexRoute: ShellIndexRoute,
   ShellQuickQuizRoute: ShellQuickQuizRoute,
   ShellQuickSwipeRoute: ShellQuickSwipeRoute,
@@ -447,6 +530,7 @@ const PretestRouteWithChildren =
 const rootRouteChildren: RootRouteChildren = {
   LayoutRoute: LayoutRouteWithChildren,
   ShellRoute: ShellRouteWithChildren,
+  LineCallbackRoute: LineCallbackRoute,
   LoginRoute: LoginRoute,
   PretestRoute: PretestRouteWithChildren,
   RecoverPasswordRoute: RecoverPasswordRoute,

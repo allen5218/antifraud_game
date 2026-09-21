@@ -7,7 +7,9 @@ export function TodayChallengeHero() {
         今日挑戰
       </span>
       <div className="font-bold">投資詐欺 · 5 題</div>
-      <div className="text-[10px] opacity-90">完成可得 +500💰 · 連勝守住</div>
+      <div className="text-[10px] opacity-90">
+        完成可得 +500 現金 · 連勝守住
+      </div>
     </div>
   )
 }

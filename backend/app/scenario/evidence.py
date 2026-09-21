@@ -8,6 +8,8 @@
 
 from __future__ import annotations
 
+from typing import Any
+
 from app.schemas import ScenarioEvidenceItem, ScenarioToolItem
 
 AVAILABLE_TOOLS: list[ScenarioToolItem] = [
@@ -158,33 +160,154 @@ FACTS_MAP: dict[tuple[str, str, str], dict[str, str]] = {
 }
 
 
-def get_available_tools() -> list[ScenarioToolItem]:
-    return AVAILABLE_TOOLS
+# 道具擴充查證工具定義（對應 6 件具備實際調查/支線觸發功能之道具，R3 / R4）
+ITEM_TOOLS: dict[str, ScenarioToolItem] = {
+    "second_phone": ScenarioToolItem(
+        tool_id="use_second_phone",
+        name="使用第二支手機撥號查證",
+        description="透過獨立線路直接外撥官方公開登記號碼核實，避免對方轉駁線路。",
+    ),
+    "document_scanner": ScenarioToolItem(
+        tool_id="use_document_scanner",
+        name="使用文件掃描器光學比對",
+        description="高精細光學掃描合約與公文紙本，留存數位影像以供對比條款與字樣特徵。",
+    ),
+    "secondhand_polaroid": ScenarioToolItem(
+        tool_id="use_secondhand_polaroid",
+        name="使用二手拍立得現場取證",
+        description="現場即時顯影拍攝作品微距細節，留存具備時間標記之實體相片存證。",
+    ),
+    "pet_supplies": ScenarioToolItem(
+        tool_id="use_pet_supplies",
+        name="出示高級寵物用品",
+        description="為共養街貓提供用品並參與現場照護，建立鄰里信任並核實共照實況。",
+    ),
+    "collectible_doll": ScenarioToolItem(
+        tool_id="use_collectible_doll",
+        name="出示限定收藏玩偶",
+        description="出示同好手作玩偶交流並建立共鳴，降低防禦心態獲取詳細創作脈絡。",
+    ),
+    "dashcam": ScenarioToolItem(
+        tool_id="use_dashcam",
+        name="調閱行車紀錄器影音",
+        description="調閱車輛出勤與現場會勘動線影音，留存交通與會勘佐證紀錄。",
+    ),
+}
+
+
+def get_available_tools(
+    owned_item_ids: list[str] | None = None,
+    story_snapshot: dict | None = None,
+) -> list[ScenarioToolItem]:
+    """回傳基礎查證工具與玩家道具解鎖之專用工具（過濾適用於本事件者）。"""
+    tools = list(AVAILABLE_TOOLS)
+    owned_set = set(owned_item_ids or [])
+    story_tools = (
+        set(story_snapshot.get("tool_results", {}).keys())
+        if story_snapshot and "tool_results" in story_snapshot
+        else None
+    )
+
+    for item_id, tool_item in ITEM_TOOLS.items():
+        if item_id in owned_set:
+            if story_tools is not None and tool_item.tool_id not in story_tools:
+                continue
+            if tool_item not in tools:
+                tools.append(tool_item)
+    return tools
 
 
 def get_evidence_for_scenario(
-    fraud_type: str, persona_role: str, tool_id: str
+    fraud_type: str,
+    persona_role: str,
+    tool_id: str,
+    story_snapshot: dict | None = None,
 ) -> ScenarioEvidenceItem:
-    """依情境狀態確定性產出客觀事實證據（不依賴 LLM）。"""
+    """依情境狀態確定性產出客觀事實證據（優先自固定事實 snapshot 讀取；拒絕未知工具）。"""
+    if story_snapshot and "tool_results" in story_snapshot:
+        tool_results = story_snapshot.get("tool_results", {})
+        if tool_id not in tool_results:
+            raise ValueError(f"Tool '{tool_id}' is not available for this scenario.")
+        tool_dict = tool_results[tool_id]
+        content = tool_dict.get("content", "").removeprefix("【遊戲模擬查證】")
+        return ScenarioEvidenceItem(
+            tool_id=tool_id,
+            title=tool_dict.get("title", "查證結果"),
+            content=content,
+        )
+
+    # 舊版 Session 相容兜底
     key = (fraud_type, persona_role, tool_id)
     fact = FACTS_MAP.get(key)
     if not fact:
-        # 通用兜底客觀事實
-        fact = {
-            "title": "查證結果紀錄",
-            "content": f"經由相關管道查核，目前已取得該情境之最新查證比對資訊（來源：{tool_id}）。",
-        }
+        raise ValueError(f"Tool '{tool_id}' is unknown or unavailable.")
+    content = fact["content"].removeprefix("【遊戲模擬查證】")
     return ScenarioEvidenceItem(
         tool_id=tool_id,
         title=fact["title"],
-        content=fact["content"],
+        content=content,
     )
 
 
 def get_unlocked_evidence_items(
-    fraud_type: str, persona_role: str, unlocked_tool_ids: list[str]
+    fraud_type: str,
+    persona_role: str,
+    unlocked_tool_ids: list[str],
+    story_snapshot: dict | None = None,
 ) -> list[ScenarioEvidenceItem]:
-    return [
-        get_evidence_for_scenario(fraud_type, persona_role, tid)
-        for tid in unlocked_tool_ids
-    ]
+    res: list[ScenarioEvidenceItem] = []
+    for tid in unlocked_tool_ids:
+        try:
+            res.append(get_evidence_for_scenario(fraud_type, persona_role, tid, story_snapshot))
+        except ValueError:
+            pass
+    return res
+
+
+def is_sufficient_evidence(
+    unlocked_tool_ids: list[str],
+    story_id_or_snapshot: str | dict | None = None,
+) -> bool:
+    """驗證查證是否達到充分標準（C3, R4）。
+
+    原則：
+    1. 依必要證據與來源獨立性判斷，不只單純看數量。
+    2. 同一轉接鏈或對同一文件的兩次檢驗不算獨立來源（例如 personal_records 與 document_scanner 均為 contract_paper）。
+    3. 紀念性/展示性物品無獨立查證來源，不可充當證據。
+    4. 至少涵蓋 2 個獨立客觀來源。
+    """
+    if not unlocked_tool_ids:
+        return False
+
+    from app.scenario.stories import STORIES_CATALOG
+
+    tool_results: dict[str, Any] | None = None
+    if isinstance(story_id_or_snapshot, dict):
+        tool_results = story_id_or_snapshot.get("tool_results")
+    elif isinstance(story_id_or_snapshot, str) and story_id_or_snapshot in STORIES_CATALOG:
+        tool_results = STORIES_CATALOG[story_id_or_snapshot].tool_results
+
+    if tool_results:
+        distinct_sources: set[str] = set()
+        for tid in unlocked_tool_ids:
+            t_data = tool_results.get(tid)
+            if not t_data:
+                continue
+            # 只有明確標註 is_independent 且具備有效 source_id 的工具才算作獨立來源
+            if t_data.get("is_independent") and t_data.get("source_id"):
+                distinct_sources.add(t_data["source_id"])
+        return len(distinct_sources) >= 2
+
+    # 舊版 Session 相容兜底
+    distinct_sources = set()
+    for tid in unlocked_tool_ids:
+        if tid == "check_personal_records":
+            distinct_sources.add("internal_records")
+        elif tid == "check_official_registry":
+            distinct_sources.add("official_registry")
+        elif tid in ("check_independent_service", "use_second_phone"):
+            distinct_sources.add("independent_hotline")
+        elif tid in ("use_document_scanner", "use_secondhand_polaroid"):
+            distinct_sources.add("forensic_record")
+
+    return len(distinct_sources) >= 2

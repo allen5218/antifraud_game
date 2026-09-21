@@ -24,21 +24,21 @@ DECOR_CATALOG: list[dict[str, Any]] = [
         "name": "防詐溫馨地毯",
         "cost": 500,
         "description": "柔軟舒適的手工編織地毯，象徵踏實穩健的資產積累。",
-        "icon": "🧶",
+        "icon": "Rug",
     },
     {
         "id": "security_cam",
         "name": "智能門禁監控",
         "cost": 1000,
         "description": "即時雲端警報與雙向語音，隨時把關家庭門禁安全。",
-        "icon": "📹",
+        "icon": "Camera",
     },
     {
         "id": "panoramic_window",
         "name": "景觀落地全景窗",
         "cost": 2000,
         "description": "採光通透明亮的景觀落地窗，展望豐收富足的未來生活。",
-        "icon": "🪟",
+        "icon": "Maximize",
     },
 ]
 

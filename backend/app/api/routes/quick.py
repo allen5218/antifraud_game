@@ -60,11 +60,29 @@ router = APIRouter(prefix="/quick", tags=["quick"])
 logger = logging.getLogger(__name__)
 
 
+def _get_user_insight_bonus(session: Session, user_id: uuid.UUID) -> float:
+    try:
+        from app.core.skills_config import get_skill_bonus
+        from app.models import UserSkill
+
+        records = session.exec(
+            select(UserSkill).where(UserSkill.user_id == user_id)
+        ).all()
+        user_skills = {r.skill_id: r.level for r in records}
+        return get_skill_bonus(user_skills, "insight_1")
+    except Exception:
+        return 0.0
+
+
 def _swipe_reward(
-    correct_count: int, best_streak: int, completed_chapters: int = 0
+    correct_count: int,
+    best_streak: int,
+    completed_chapters: int = 0,
+    insight_bonus: float = 0.0,
 ) -> tuple[int, int]:
-    """滑卡基礎獎勵：每題正確 100，連對每 3 題 +10% 取整，再套用章節倍率。"""
-    base_cash = int(100 * correct_count * (1 + 0.1 * (best_streak // 3)))
+    """滑卡基礎獎勵：每題正確 100，連對每 3 題 +10% 取整（受洞察天賦加成），再套用章節倍率。"""
+    streak_multiplier = 0.1 + max(0.0, insight_bonus)
+    base_cash = int(100 * correct_count * (1 + streak_multiplier * (best_streak // 3)))
     cash = apply_income_multiplier(base_cash, completed_chapters)
     xp = 10 * correct_count
     return cash, xp
@@ -155,10 +173,18 @@ def swipe_answer(
             "action": action,
             "is_correct": is_correct,
             "guess_is_scam": action == "scam",
+            "confidence": payload.confidence or 0.8,
         }
         swipe_sess.answers = answers
         session.add(swipe_sess)
         session.commit()
+
+    primary_tag = card.weakness_tags[0] if card.weakness_tags else None
+    inoc_data = None
+    if card.is_scam or primary_tag:
+        from app.core.inoculation import get_inoculation_debriefing
+
+        inoc_data = get_inoculation_debriefing(primary_tag).model_dump()
 
     return SwipeAnswerResponse(
         correct=is_correct,
@@ -167,6 +193,7 @@ def swipe_answer(
         explanation=card.explanation,
         weakness_tags=card.weakness_tags,
         tag_details=_weakness_details(set(card.weakness_tags)),
+        inoculation=inoc_data,
     )
 
 
@@ -202,7 +229,12 @@ def swipe_complete(
     best_streak = 0
     streak = 0
     weakness: dict[str, int] = {}
+    hits = 0
+    misses = 0
+    false_alarms = 0
+    correct_rejections = 0
 
+    predictions: list[tuple[float, bool]] = []
     for card_id_str in swipe_sess.card_ids:
         ans = answers.get(card_id_str)
         if not ans or not isinstance(ans, dict):
@@ -214,7 +246,21 @@ def swipe_complete(
         if action == "skip":
             # safe skip: 保留不中斷 streak，但不算正確題
             continue
-        if ans.get("is_correct"):
+        guessed_scam = action == "scam"
+        if card.is_scam:
+            if guessed_scam:
+                hits += 1
+            else:
+                misses += 1
+        else:
+            if guessed_scam:
+                false_alarms += 1
+            else:
+                correct_rejections += 1
+
+        is_corr = bool(ans.get("is_correct"))
+        predictions.append((float(ans.get("confidence") or 0.8), is_corr))
+        if is_corr:
             correct_count += 1
             streak += 1
             best_streak = max(best_streak, streak)
@@ -223,8 +269,20 @@ def swipe_complete(
             for tag in card.weakness_tags:
                 weakness[tag] = weakness.get(tag, 0) + 1
 
+    from app.core.inoculation import compute_signal_detection_metrics
+    from app.core.calibration import compute_calibration
+
+    sdt_metrics = compute_signal_detection_metrics(
+        hits, misses, false_alarms, correct_rejections
+    )
+    calib_metrics = compute_calibration(predictions)
+
+    insight_bonus = _get_user_insight_bonus(session, current_user.id)
     cash, xp = _swipe_reward(
-        correct_count, best_streak, current_user.completed_chapters
+        correct_count,
+        best_streak,
+        current_user.completed_chapters,
+        insight_bonus=insight_bonus,
     )
     current_user = lock_user(session, current_user)
     adjust_cash(current_user, cash, reason="swipe_reward")
@@ -243,6 +301,8 @@ def swipe_complete(
         cash_earned=cash,
         xp_earned=xp,
         weakness_summary=_weakness_summary(weakness),
+        signal_detection=sdt_metrics,
+        calibration=calib_metrics,
     )
 
 
@@ -250,10 +310,14 @@ def swipe_complete(
 
 
 def _quiz_reward(
-    correct_count: int, best_streak: int, completed_chapters: int = 0
+    correct_count: int,
+    best_streak: int,
+    completed_chapters: int = 0,
+    insight_bonus: float = 0.0,
 ) -> tuple[int, int]:
-    """五題四對約 1000 之設計基準：每題 240，連對每 3 題 +10% 取整，套用章節倍率。"""
-    base_cash = int(240 * correct_count * (1 + 0.1 * (best_streak // 3)))
+    """五題四對約 1000 之設計基準：每題 240，連對每 3 題 +10% 取整（受洞察天賦加成），套用章節倍率。"""
+    streak_multiplier = 0.1 + max(0.0, insight_bonus)
+    base_cash = int(240 * correct_count * (1 + streak_multiplier * (best_streak // 3)))
     cash = apply_income_multiplier(base_cash, completed_chapters)
     xp = 20 * correct_count
     return cash, xp
@@ -513,6 +577,15 @@ def _quiz_answer_response(
         weakness_tags = (
             case_tags(case.red_flags) if not correct and case.is_scam else set()
         )
+        primary_tag = next(iter(weakness_tags), None) or (
+            case.red_flags[0].get("tag") if case.red_flags else None
+        )
+        inoc_data = None
+        if case.is_scam or primary_tag:
+            from app.core.inoculation import get_inoculation_debriefing
+
+            inoc_data = get_inoculation_debriefing(primary_tag).model_dump()
+
         return QuizVerdictAnswerResponse(
             correct=correct,
             is_scam=case.is_scam,
@@ -522,6 +595,7 @@ def _quiz_answer_response(
             ],
             provenance=case.provenance,
             tag_details=_weakness_details(weakness_tags),
+            inoculation=inoc_data,
         )
     if item_type == "verification":
         correct_key = item.get("correct_key")
@@ -645,11 +719,30 @@ def quiz_complete(
     best_streak = 0
     streak = 0
     weakness: dict[str, int] = {}
+    hits = 0
+    misses = 0
+    false_alarms = 0
+    correct_rejections = 0
+    predictions: list[tuple[float, bool]] = []
     for item_id, item in dealt.items():
         answer = _stored_quiz_answer(item_id, stored_answers.get(item_id))
         if answer is None:
             streak = 0
             continue
+        if item.get("type") == "verdict":
+            is_scam = bool(item.get("is_scam"))
+            guessed_scam = answer.guess_is_scam
+            if is_scam:
+                if guessed_scam:
+                    hits += 1
+                else:
+                    misses += 1
+            else:
+                if guessed_scam:
+                    false_alarms += 1
+                else:
+                    correct_rejections += 1
+
         scored = _score_quiz_item(session, quiz, item, answer)
         if scored is None:
             logger.warning(
@@ -661,6 +754,30 @@ def quiz_complete(
             streak = 0
             continue
         correct, weakness_tags = scored
+
+        if item.get("type") == "verdict":
+            from app.core.calibration import estimate_behavioral_confidence
+
+            if answer.confidence is not None:
+                calib_conf = float(answer.confidence)
+            else:
+                case = _item_case(session, quiz, item)
+                if case is None:
+                    logger.warning(
+                        "quiz verdict case 不存在，無法計算校準：session_id=%s item_id=%s",
+                        quiz.id,
+                        item_id,
+                    )
+                    continue
+                narrative_len = len(case.narrative or "")
+                calib_conf = estimate_behavioral_confidence(
+                    narrative_length=narrative_len,
+                    response_time_ms=answer.response_time_ms,
+                    switch_count=answer.option_switch_count,
+                    interaction_obscured=answer.interaction_obscured,
+                )
+            predictions.append((calib_conf, bool(correct)))
+
         if correct:
             correct_count += 1
             streak += 1
@@ -670,7 +787,21 @@ def quiz_complete(
             for tag in weakness_tags:
                 weakness[tag] = weakness.get(tag, 0) + 1
 
-    cash, xp = _quiz_reward(correct_count, best_streak, current_user.completed_chapters)
+    from app.core.inoculation import compute_signal_detection_metrics
+    from app.core.calibration import compute_calibration
+
+    sdt_metrics = compute_signal_detection_metrics(
+        hits, misses, false_alarms, correct_rejections
+    )
+    calib_metrics = compute_calibration(predictions)
+
+    insight_bonus = _get_user_insight_bonus(session, current_user.id)
+    cash, xp = _quiz_reward(
+        correct_count,
+        best_streak,
+        current_user.completed_chapters,
+        insight_bonus=insight_bonus,
+    )
     current_user = lock_user(session, current_user)
     adjust_cash(current_user, cash, reason="quiz_reward")
     add_xp(current_user, xp, reason="quiz_reward")
@@ -692,4 +823,6 @@ def quiz_complete(
         cash_earned=cash,
         xp_earned=xp,
         weakness_summary=summary,
+        signal_detection=sdt_metrics,
+        calibration=calib_metrics,
     )

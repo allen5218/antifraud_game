@@ -16,7 +16,12 @@ export function BrandPlateBackground() {
           </radialGradient>
 
           {/* Micro-engraved dot matrix watermark */}
-          <pattern id="securityDots" width="28" height="28" patternUnits="userSpaceOnUse">
+          <pattern
+            id="securityDots"
+            width="28"
+            height="28"
+            patternUnits="userSpaceOnUse"
+          >
             <circle cx="14" cy="14" r="0.6" fill="rgba(255, 255, 255, 0.04)" />
           </pattern>
         </defs>
@@ -70,7 +75,11 @@ export function BrandPlateBackground() {
         </g>
 
         {/* Antique Celestial Astrolabe / Coordinate Rings centered at (360, 450) */}
-        <g transform="translate(360, 450)" stroke="rgba(255, 255, 255, 0.065)" fill="none">
+        <g
+          transform="translate(360, 450)"
+          stroke="rgba(255, 255, 255, 0.065)"
+          fill="none"
+        >
           {/* Concentric Spherical / Coordinate Circles */}
           <circle r="325" strokeWidth="0.75" strokeDasharray="3 6" />
           <circle r="295" strokeWidth="0.5" />
@@ -79,12 +88,40 @@ export function BrandPlateBackground() {
           <circle r="200" strokeWidth="0.4" strokeDasharray="2 4" />
 
           {/* Meridian Crosshairs (Cardinal Axes) */}
-          <line x1="-345" y1="0" x2="345" y2="0" strokeWidth="0.5" strokeDasharray="4 8" />
-          <line x1="0" y1="-345" x2="0" y2="345" strokeWidth="0.5" strokeDasharray="4 8" />
+          <line
+            x1="-345"
+            y1="0"
+            x2="345"
+            y2="0"
+            strokeWidth="0.5"
+            strokeDasharray="4 8"
+          />
+          <line
+            x1="0"
+            y1="-345"
+            x2="0"
+            y2="345"
+            strokeWidth="0.5"
+            strokeDasharray="4 8"
+          />
 
           {/* Diagonal Astrological / Geometric Ray Guides (45 deg) */}
-          <line x1="-245" y1="-245" x2="245" y2="245" strokeWidth="0.4" strokeDasharray="2 8" />
-          <line x1="-245" y1="245" x2="245" y2="-245" strokeWidth="0.4" strokeDasharray="2 8" />
+          <line
+            x1="-245"
+            y1="-245"
+            x2="245"
+            y2="245"
+            strokeWidth="0.4"
+            strokeDasharray="2 8"
+          />
+          <line
+            x1="-245"
+            y1="245"
+            x2="245"
+            y2="-245"
+            strokeWidth="0.4"
+            strokeDasharray="2 8"
+          />
 
           {/* Quadrant Micro Degree Tick Marks along the 295px circle */}
           <g stroke="rgba(255, 255, 255, 0.09)" strokeWidth="0.75">

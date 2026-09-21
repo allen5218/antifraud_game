@@ -7,7 +7,13 @@ import { VerificationQuestion } from "./VerificationQuestion"
 type QuizItem = QuizDeckResponse["items"][number]
 
 export type QuizDraftAnswer =
-  | { guess_is_scam: boolean }
+  | {
+      guess_is_scam: boolean
+      confidence?: number
+      response_time_ms?: number
+      option_switch_count?: number
+      interaction_obscured?: boolean
+    }
   | { selected_option: string }
   | { selected_tags: string[] }
   | { pairs: Record<string, string> }
@@ -36,7 +42,14 @@ export function QuizCard({
           index={index}
           total={total}
           disabled={disabled}
-          onSubmit={(guessIsScam) => onSubmit({ guess_is_scam: guessIsScam })}
+          onSubmit={(guessIsScam, signals) =>
+            onSubmit({
+              guess_is_scam: guessIsScam,
+              response_time_ms: signals?.response_time_ms,
+              option_switch_count: signals?.option_switch_count,
+              interaction_obscured: signals?.interaction_obscured,
+            })
+          }
         />
       )
     case "verification":

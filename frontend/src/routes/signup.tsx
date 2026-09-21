@@ -4,9 +4,11 @@ import {
   Link as RouterLink,
   redirect,
 } from "@tanstack/react-router"
+import { Sparkles } from "lucide-react"
 import { useForm } from "react-hook-form"
 import { z } from "zod"
 import { AuthLayout } from "@/components/Common/AuthLayout"
+import { LineAuthButton } from "@/components/Common/LineAuthButton"
 import {
   Form,
   FormControl,
@@ -58,7 +60,7 @@ export const Route = createFileRoute("/signup")({
 })
 
 function SignUp() {
-  const { signUpMutation } = useAuth()
+  const { signUpMutation, guestMutation } = useAuth()
   const form = useForm<FormData>({
     resolver: zodResolver(formSchema),
     mode: "onBlur",
@@ -87,7 +89,19 @@ function SignUp() {
           className="flex flex-col gap-6"
         >
           <div className="flex flex-col items-center gap-2 text-center">
-            <h1 className="text-2xl font-bold">建立帳號</h1>
+            <h1 className="text-2xl font-bold">建立探員檔案</h1>
+            <p className="text-xs text-slate-400">
+              登入即享 10,000 探員初始資產與跨端進度同步
+            </p>
+          </div>
+
+          <LineAuthButton mode="signup" />
+
+          <div className="relative flex items-center justify-center my-1">
+            <div className="border-t border-slate-800 w-full" />
+            <span className="bg-slate-950 px-3 text-[11px] text-slate-500 uppercase tracking-wider relative z-10">
+              或以 Email 傳統註冊
+            </span>
           </div>
 
           <div className="grid gap-4">
@@ -175,13 +189,12 @@ function SignUp() {
 
             <button
               type="button"
-              onClick={() => {
-                localStorage.setItem("access_token", "demo_token_123")
-                window.location.href = "/"
-              }}
+              onClick={() => guestMutation.mutate()}
+              disabled={guestMutation.isPending}
               className="w-full py-2.5 px-4 bg-emerald-600 hover:bg-emerald-500 text-white font-bold rounded-lg shadow-md transition-all flex items-center justify-center gap-2"
             >
-              🚀 免登入本機體驗模式 (Guest Demo Mode)
+              <Sparkles className="w-4 h-4" />
+              <span>{guestMutation.isPending ? "正在進入…" : "免登入，開始遊戲"}</span>
             </button>
           </div>
 

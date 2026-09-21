@@ -1,14 +1,28 @@
+from contextlib import asynccontextmanager
 import sentry_sdk
 from fastapi import FastAPI
 from fastapi.routing import APIRoute
+from sqlmodel import Session
 from starlette.middleware.cors import CORSMiddleware
 
 from app.api.main import api_router
 from app.core.config import settings
+from app.core.db import engine, init_db
 
 
 def custom_generate_unique_id(route: APIRoute) -> str:
     return f"{route.tags[0]}-{route.name}"
+
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    # Ensure database schema is initialized and seeded
+    try:
+        with Session(engine) as session:
+            init_db(session)
+    except Exception as exc:
+        pass
+    yield
 
 
 if settings.SENTRY_DSN and settings.ENVIRONMENT != "local":
@@ -18,6 +32,7 @@ app = FastAPI(
     title=settings.PROJECT_NAME,
     openapi_url=f"{settings.API_V1_STR}/openapi.json",
     generate_unique_id_function=custom_generate_unique_id,
+    lifespan=lifespan,
 )
 
 # Set all CORS enabled origins

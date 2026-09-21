@@ -95,6 +95,7 @@ class Settings(BaseSettings):
     FIRST_SUPERUSER_PASSWORD: str
 
     GOOGLE_API_KEY: str = ""
+    SCENARIO_DIALOGUE_MODEL: str = "google:gemini-3.5-flash-lite"
     LINE_CHANNEL_SECRET: str = ""
     LINE_CHANNEL_ACCESS_TOKEN: str = ""
     LINE_LIFF_ID: str = ""
@@ -120,5 +121,41 @@ class Settings(BaseSettings):
 
         return self
 
+    @model_validator(mode="after")
+    def _validate_dialogue_model_and_keys(self) -> Self:
+        import os
+        model = self.SCENARIO_DIALOGUE_MODEL
+        if not model.startswith("google:"):
+            raise ValueError(
+                f"SCENARIO_DIALOGUE_MODEL '{model}' must use provider 'google:'. "
+                "Cross-provider fallbacks or third-party providers are strictly prohibited."
+            )
+        if model not in ALLOWED_GEMINI_MODELS:
+            raise ValueError(
+                f"SCENARIO_DIALOGUE_MODEL '{model}' is not in the approved Gemini models allowlist: "
+                f"{sorted(ALLOWED_GEMINI_MODELS)}"
+            )
+        # Check API key fallback
+        if not self.GOOGLE_API_KEY and os.environ.get("GEMINI_API_KEY"):
+            warnings.warn(
+                "GEMINI_API_KEY is deprecated and will be removed in a future release. "
+                "Please use GOOGLE_API_KEY instead.",
+                DeprecationWarning,
+                stacklevel=2,
+            )
+            self.GOOGLE_API_KEY = os.environ["GEMINI_API_KEY"]
+        return self
+
+
+ALLOWED_GEMINI_MODELS: set[str] = {
+    "google:gemini-3.5-flash-lite",
+    "google:gemini-2.5-flash-lite",
+    "google:gemini-2.5-flash",
+    "google:gemini-2.5-pro",
+    "google:gemini-1.5-flash",
+    "google:gemini-1.5-pro",
+}
+
 
 settings = Settings()  # type: ignore
+

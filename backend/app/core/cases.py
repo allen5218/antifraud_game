@@ -34,6 +34,14 @@ class GameCaseRow(BaseModel):
 
 
 def _apply_safe_row(raw: dict[str, Any]) -> GameCaseRow | None:
+    if isinstance(raw.get("red_flags"), str):
+        import json
+        try:
+            raw["red_flags"] = json.loads(raw["red_flags"])
+        except Exception:
+            raw["red_flags"] = []
+    elif raw.get("red_flags") is None:
+        raw["red_flags"] = []
     row = GameCaseRow(**raw)
     proj, is_safe = project_case_safely(row)
     if not is_safe or proj is None:

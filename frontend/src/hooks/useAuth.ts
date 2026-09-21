@@ -8,10 +8,15 @@ import {
   type UserRegister,
   UsersService,
 } from "@/client"
+import { isDemoMode } from "@/lib/errorNormalizer"
 import { handleError } from "@/utils"
 import useCustomToast from "./useCustomToast"
 
 const isLoggedIn = () => {
+  if (localStorage.getItem("access_token") === "demo_token_123") {
+    localStorage.removeItem("access_token")
+    localStorage.removeItem("demo_mode")
+  }
   return localStorage.getItem("access_token") !== null
 }
 
@@ -25,14 +30,17 @@ const useAuth = () => {
     queryFn: async () => {
       try {
         return await UsersService.readUserMe()
-      } catch {
-        return {
-          id: "demo_user_id",
-          email: "demo@antifraud.game",
-          full_name: "反詐玩家 (本機體驗)",
-          is_active: true,
-          is_superuser: false,
-        } as any
+      } catch (err) {
+        if (isDemoMode()) {
+          return {
+            id: "demo_user_id",
+            email: "demo@antifraud.game",
+            full_name: "反詐玩家 (本機體驗)",
+            is_active: true,
+            is_superuser: false,
+          } as any
+        }
+        throw err
       }
     },
     enabled: isLoggedIn(),
@@ -55,7 +63,20 @@ const useAuth = () => {
       formData: data,
     })
     localStorage.setItem("access_token", response.access_token)
+    localStorage.removeItem("demo_mode")
+    queryClient.clear()
   }
+
+  const guestMutation = useMutation({
+    mutationFn: async () => {
+      const response = await LoginService.loginGuest()
+      localStorage.removeItem("demo_mode")
+      localStorage.setItem("access_token", response.access_token)
+      queryClient.clear()
+    },
+    onSuccess: () => { navigate({ to: "/" }) },
+    onError: handleError.bind(showErrorToast),
+  })
 
   const loginMutation = useMutation({
     mutationFn: login,
@@ -67,12 +88,15 @@ const useAuth = () => {
 
   const logout = () => {
     localStorage.removeItem("access_token")
+    localStorage.removeItem("demo_mode")
+    queryClient.clear()
     navigate({ to: "/login" })
   }
 
   return {
     signUpMutation,
     loginMutation,
+    guestMutation,
     logout,
     user,
   }

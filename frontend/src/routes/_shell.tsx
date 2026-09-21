@@ -13,13 +13,10 @@ export const Route = createFileRoute("/_shell")({
 
 function Shell() {
   return (
-    <div className="min-h-screen bg-slate-950 text-slate-100 flex items-center justify-center p-0 sm:p-4 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-slate-900/60 via-slate-950 to-slate-950">
-      <div className="relative w-full max-w-md h-dvh sm:h-[880px] flex flex-col bg-slate-900/80 backdrop-blur-xl border-0 sm:border border-white/20 sm:rounded-[36px] shadow-[0_0_40px_-10px_rgba(255,255,255,0.08)] overflow-hidden">
-        {/* Top Camera Notch Decorator for Mobile Frame */}
-        <div className="hidden sm:block absolute top-2 left-1/2 -translate-x-1/2 w-28 h-4 bg-slate-950 rounded-full z-30 border border-white/10 shadow-inner" />
-        
+    <div className="min-h-screen bg-slate-950 text-slate-100 flex items-center justify-center p-0 sm:p-4 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-slate-900/80 via-slate-950 to-slate-950">
+      <div className="relative w-full max-w-lg md:max-w-xl h-dvh sm:h-[840px] sm:max-h-[calc(100vh-2rem)] flex flex-col bg-slate-900/95 backdrop-blur-2xl border-0 sm:border-[1.5px] border-white/25 sm:rounded-3xl glow-shell overflow-hidden">
         <HeaderStatus />
-        <main className="flex-1 overflow-y-auto p-4 space-y-4 scrollbar-thin scrollbar-thumb-slate-800 scrollbar-track-transparent">
+        <main className="flex-1 overflow-y-auto p-4 space-y-3.5">
           <Outlet />
         </main>
         <BottomTabs />

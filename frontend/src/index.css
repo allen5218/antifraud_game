@@ -122,4 +122,59 @@
   [role="button"] {
     cursor: pointer;
   }
+
+  /* Sleek minimalist custom scrollbars */
+  ::-webkit-scrollbar {
+    width: 5px;
+    height: 5px;
+  }
+  ::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  ::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.15);
+    border-radius: 9999px;
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    background: rgba(255, 255, 255, 0.35);
+  }
+}
+
+/* Crisp White Lines & Subtle Ambient Aura Glow */
+.glow-shell {
+  border: 1.5px solid rgba(255, 255, 255, 0.28);
+  box-shadow:
+    0 0 30px rgba(255, 255, 255, 0.09),
+    0 0 80px rgba(15, 23, 42, 0.6);
+}
+
+.glow-card {
+  border: 1.5px solid rgba(255, 255, 255, 0.22);
+  box-shadow:
+    0 0 16px rgba(255, 255, 255, 0.07),
+    inset 0 1px 1px rgba(255, 255, 255, 0.12);
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.glow-card:hover {
+  border-color: rgba(255, 255, 255, 0.48);
+  box-shadow:
+    0 0 24px rgba(255, 255, 255, 0.18),
+    inset 0 1px 2px rgba(255, 255, 255, 0.25);
+}
+
+.glow-subcard {
+  border: 1.5px solid rgba(255, 255, 255, 0.16);
+  box-shadow: 0 0 10px rgba(255, 255, 255, 0.05);
+  transition: all 0.2s ease-in-out;
+}
+
+.glow-subcard:hover {
+  border-color: rgba(255, 255, 255, 0.35);
+  box-shadow: 0 0 14px rgba(255, 255, 255, 0.1);
+}
+
+.glow-badge {
+  border: 1.5px solid rgba(255, 255, 255, 0.25);
+  box-shadow: 0 0 10px rgba(255, 255, 255, 0.08);
 }

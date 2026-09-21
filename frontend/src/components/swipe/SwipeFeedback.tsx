@@ -13,14 +13,18 @@ export function SwipeFeedback({
 }: Props) {
   return (
     <div
-      className={`rounded-xl border p-3 text-xs ${
-        correct ? "border-green-300 bg-green-50" : "border-red-300 bg-red-50"
+      className={`rounded-2xl border p-4 text-xs shadow-lg backdrop-blur-xl ${
+        correct
+          ? "border-emerald-500/30 bg-emerald-950/40 text-slate-100"
+          : "border-red-500/30 bg-red-950/40 text-slate-100"
       }`}
     >
       <div
-        className={`font-bold ${correct ? "text-green-700" : "text-red-700"}`}
+        className={`text-sm font-bold flex items-center gap-1.5 ${
+          correct ? "text-emerald-400" : "text-red-400"
+        }`}
       >
-        {correct ? "答對！" : "答錯"}
+        <span>{correct ? "辨識正確" : "判斷失準"}</span>
       </div>
       <p className="mt-1 text-muted-foreground">{explanation}</p>
       {weaknessDetails.length > 0 && (

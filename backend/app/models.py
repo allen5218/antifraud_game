@@ -3,7 +3,7 @@ import uuid
 from datetime import date, datetime, timezone
 
 from pydantic import EmailStr
-from sqlalchemy import BigInteger, Column, DateTime
+from sqlalchemy import BigInteger, Column, DateTime, UniqueConstraint
 from sqlalchemy.dialects.postgresql import JSONB
 from sqlmodel import Field, Relationship, SQLModel
 
@@ -302,6 +302,7 @@ class SwipeCard(SQLModel, table=True):
 class ScenarioStatus(str, enum.Enum):
     ACTIVE = "active"
     COMPLETED = "completed"
+    PAUSED = "paused"
 
 
 class ScenarioSession(SQLModel, table=True):
@@ -330,12 +331,30 @@ class ScenarioSession(SQLModel, table=True):
 
     # G2:注入的 game_cases 素材(管線表,無 FK 約束——跨管理域引用);null = 純人格
     case_id: int | None = Field(default=None, sa_type=BigInteger())  # type: ignore
+
+    # 聊天式反詐養成擴充 (C1, C2)
+    story_id: str | None = Field(default=None, max_length=64, index=True)
+    story_version: str | None = Field(default="v1", max_length=16)
+    story_variant: str | None = Field(default="a", max_length=32)
+    story_snapshot: dict = Field(  # type: ignore
+        default={}, sa_column=Column(JSONB, nullable=False, server_default="{}")
+    )
+    contact_id: str | None = Field(default=None, max_length=64, index=True)
+    revision: int = Field(default=0)
+
     # 經濟數值於建場時自 config 複製（比照 SwipeCard 自帶資料）
     stake_loss: int
     reward_win: int
     reward_legit: int
     penalty_misreport: int
     outcome: str | None = Field(default=None, max_length=16)
+    reply_mode: str = Field(default="rules", max_length=16)
+    terminal_result: dict | None = Field(  # type: ignore
+        default=None, sa_column=Column(JSONB, nullable=True)
+    )
+    story_progress: dict = Field(  # type: ignore
+        default={}, sa_column=Column(JSONB, nullable=False, server_default="{}")
+    )
     created_at: datetime | None = Field(
         default_factory=get_datetime_utc,
         sa_type=DateTime(timezone=True),  # type: ignore
@@ -485,3 +504,131 @@ class UserVehicle(SQLModel, table=True):
         default_factory=get_datetime_utc,
         sa_type=DateTime(timezone=True),  # type: ignore
     )
+
+
+class UserSkill(SQLModel, table=True):
+    """防詐偵探技能樹天賦節點。"""
+
+    __tablename__ = "user_skill"
+
+    id: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True)
+    user_id: uuid.UUID = Field(
+        foreign_key="user.id", nullable=False, ondelete="CASCADE", index=True
+    )
+    skill_id: str = Field(max_length=64, index=True)
+    level: int = Field(default=1)
+    updated_at: datetime | None = Field(
+        default_factory=get_datetime_utc,
+        sa_type=DateTime(timezone=True),  # type: ignore
+    )
+
+
+class UserGuardianProgress(SQLModel, table=True):
+    """社區守護名單與委託人好感牽絆記錄。"""
+
+    __tablename__ = "user_guardian_progress"
+
+    id: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True)
+    user_id: uuid.UUID = Field(
+        foreign_key="user.id", nullable=False, ondelete="CASCADE", index=True
+    )
+    npc_id: str = Field(max_length=64, index=True)
+    trust_score: int = Field(default=0)
+    cases_protected: int = Field(default=0)
+    last_protected_at: datetime | None = Field(
+        default=None,
+        sa_type=DateTime(timezone=True),  # type: ignore
+    )
+
+
+class UserReflexCard(SQLModel, table=True):
+    """Gollwitzer 執行意圖 (Implementation Intentions) 認知反射卡與裝備槽記錄。"""
+
+    __tablename__ = "user_reflex_card"
+
+    id: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True)
+    user_id: uuid.UUID = Field(
+        foreign_key="user.id", nullable=False, ondelete="CASCADE", index=True
+    )
+    card_id: str = Field(max_length=64, index=True)
+    is_equipped: bool = Field(default=False)
+    slot_index: int | None = Field(default=None)  # 0 or 1
+    unlocked_at: datetime | None = Field(
+        default_factory=get_datetime_utc,
+        sa_type=DateTime(timezone=True),  # type: ignore
+    )
+
+
+class UserContactRelation(SQLModel, table=True):
+    """聊天式養成：聯絡人好感、可靠度與處置記憶（C4）。"""
+
+    __tablename__ = "user_contact_relation"
+    __table_args__ = (
+        UniqueConstraint("user_id", "contact_id", name="uq_user_contact"),
+    )
+
+    id: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True)
+    user_id: uuid.UUID = Field(
+        foreign_key="user.id", nullable=False, ondelete="CASCADE", index=True
+    )
+    contact_id: str = Field(max_length=64, index=True)
+    trust: int = Field(default=50)
+    reliability: int = Field(default=50)
+    event_flags: list[str] = Field(
+        default=[], sa_column=Column(JSONB, nullable=False, server_default="[]")
+    )
+    completed_story_ids: list[str] = Field(
+        default=[], sa_column=Column(JSONB, nullable=False, server_default="[]")
+    )
+    last_outcome: str | None = Field(default=None, max_length=32)
+    updated_at: datetime | None = Field(
+        default_factory=get_datetime_utc,
+        sa_type=DateTime(timezone=True),  # type: ignore
+    )
+
+
+class UserItemInventory(SQLModel, table=True):
+    """聊天式養成：持有道具清單與購買紀錄（C5）。"""
+
+    __tablename__ = "user_item_inventory"
+    __table_args__ = (
+        UniqueConstraint("user_id", "item_id", name="uq_user_item"),
+    )
+
+    id: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True)
+    user_id: uuid.UUID = Field(
+        foreign_key="user.id", nullable=False, ondelete="CASCADE", index=True
+    )
+    item_id: str = Field(max_length=64, index=True)
+    quantity: int = Field(default=1)
+    purchased_price: int = Field(default=0)
+    purchased_at: datetime | None = Field(
+        default_factory=get_datetime_utc,
+        sa_type=DateTime(timezone=True),  # type: ignore
+    )
+
+
+class ActionReceipt(SQLModel, table=True):
+    """持久化操作收據與冪等防刷紀錄（R5）。"""
+
+    __tablename__ = "action_receipt"
+    __table_args__ = (
+        UniqueConstraint("user_id", "request_id", name="uq_user_request_id"),
+    )
+
+    id: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True)
+    user_id: uuid.UUID = Field(
+        foreign_key="user.id", nullable=False, ondelete="CASCADE", index=True
+    )
+    request_id: str = Field(max_length=64, index=True)
+    endpoint: str = Field(max_length=64)
+    request_hash: str = Field(max_length=64)
+    response_data: dict = Field(  # type: ignore
+        default={}, sa_column=Column(JSONB, nullable=False, server_default="{}")
+    )
+    created_at: datetime | None = Field(
+        default_factory=get_datetime_utc,
+        sa_type=DateTime(timezone=True),  # type: ignore
+    )
+
+

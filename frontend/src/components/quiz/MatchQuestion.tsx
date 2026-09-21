@@ -52,7 +52,7 @@ export function MatchQuestion({
     <div className="flex h-full flex-col">
       <div className="flex items-center gap-3 px-4 pt-3 text-xs text-muted-foreground">
         <span className="rounded-md bg-primary/10 px-1.5 py-0.5 font-semibold text-primary">
-          配對題
+          看看哪裡怪
         </span>
         <span className="ml-auto">
           {index + 1} / {total}
@@ -66,7 +66,7 @@ export function MatchQuestion({
           </span>
         </div>
         <p className="mt-1 text-xs text-muted-foreground">
-          先點一則例句，再點它使用的話術
+          先點一句話，再點你覺得它用了哪一招
         </p>
 
         <div className="mt-4 grid gap-2">
@@ -144,7 +144,7 @@ export function MatchQuestion({
           onClick={() => onSubmit(pairs)}
           className="h-11 w-full rounded-xl font-bold"
         >
-          送出答案
+          配好了
         </Button>
       </div>
     </div>

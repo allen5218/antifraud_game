@@ -1,7 +1,7 @@
 import { motion } from "framer-motion"
 
 interface MascotPreviewProps {
-  equippedItems: { name: string; emoji: string }[]
+  equippedItems: { name: string; icon?: string }[]
 }
 
 export function MascotPreview({ equippedItems }: MascotPreviewProps) {
@@ -17,18 +17,22 @@ export function MascotPreview({ equippedItems }: MascotPreviewProps) {
           duration: 2.5,
           ease: "easeInOut",
         }}
-        className="text-7xl"
+        className="flex items-center justify-center w-20 h-20 rounded-2xl bg-white/5 border border-white/10"
       >
-        🛡️
+        <img
+          src="/assets/images/brand-icon-dark-v1.png"
+          alt="反詐吉祥物"
+          className="w-12 h-12 object-contain"
+        />
       </motion.div>
       {equippedItems.length > 0 ? (
         <div className="mt-4 flex flex-wrap justify-center gap-2">
           {equippedItems.map((item) => (
             <span
               key={item.name}
-              className="rounded-full bg-primary/10 px-3 py-1 text-sm"
+              className="rounded-full bg-primary/10 px-3 py-1 text-sm font-medium"
             >
-              {item.emoji} {item.name}
+              {item.name}
             </span>
           ))}
         </div>

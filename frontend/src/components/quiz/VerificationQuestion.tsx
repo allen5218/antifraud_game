@@ -10,7 +10,7 @@ interface VerificationQuestionProps {
   onSubmit: (selectedOption: string) => void
 }
 
-/** 查證問答題：針對情境選擇下一步最佳查證途徑或證據意涵。 */
+/** 生活選擇題：用短句讓玩家決定自己會怎麼做。 */
 export function VerificationQuestion({
   item,
   index,
@@ -24,7 +24,7 @@ export function VerificationQuestion({
     <div className="flex h-full flex-col">
       <div className="flex items-center gap-2 px-4 pt-3 text-xs text-muted-foreground">
         <span className="rounded-md bg-amber-500/10 px-1.5 py-0.5 font-semibold text-amber-600 dark:text-amber-400">
-          查證處置
+          你會怎麼做？
         </span>
         <span className="ml-auto">
           {index + 1} / {total}
@@ -75,7 +75,7 @@ export function VerificationQuestion({
           onClick={() => selectedKey && onSubmit(selectedKey)}
           className="w-full rounded-xl py-3 text-sm font-bold"
         >
-          確認送出查證決策
+          就選這個
         </Button>
       </div>
     </div>

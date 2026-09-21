@@ -1,18 +1,16 @@
 import { createFileRoute } from "@tanstack/react-router"
 import { AccrualBanner } from "@/components/Home/AccrualBanner"
-import { ChapterBanner } from "@/components/Home/ChapterBanner"
-import { PlayModeGrid } from "@/components/Home/PlayModeGrid"
+import { LadderJourney } from "@/components/Home/LadderJourney"
 
 export const Route = createFileRoute("/_shell/")({
   component: Home,
 })
 
-function Home() {
+export function Home() {
   return (
-    <>
+    <div className="space-y-3 pb-4">
+      <LadderJourney />
       <AccrualBanner />
-      <ChapterBanner />
-      <PlayModeGrid />
-    </>
+    </div>
   )
 }

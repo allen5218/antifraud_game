@@ -34,23 +34,22 @@ describe("<BottomTabs />", () => {
   it("renders four tabs", async () => {
     await renderWithRouter("/")
     expect(screen.getByText("首頁")).toBeTruthy()
-    expect(screen.getByText("情境")).toBeTruthy()
+    expect(screen.getByText("聊天")).toBeTruthy()
     expect(screen.getByText("資產")).toBeTruthy()
-    expect(screen.getByText("我")).toBeTruthy()
+    expect(screen.getByText("個人")).toBeTruthy()
   })
 
   it("highlights home tab on /", async () => {
     await renderWithRouter("/")
     const homeTab = screen.getByTestId("tab-home")
-    expect(homeTab.className).toContain("text-primary")
     expect(homeTab.className).toContain("font-bold")
   })
 
   it("highlights scenarios tab on /scenarios, not home", async () => {
     await renderWithRouter("/scenarios")
     const scen = screen.getByTestId("tab-scenarios")
-    expect(scen.className).toContain("text-primary")
+    expect(scen.className).toContain("font-bold")
     const home = screen.getByTestId("tab-home")
-    expect(home.className).not.toContain("text-primary")
+    expect(home.className).not.toContain("font-bold")
   })
 })

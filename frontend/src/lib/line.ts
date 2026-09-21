@@ -36,6 +36,6 @@ export function getSimulatedLineUser(): LineUser {
     userId: "U1234567890lineuser",
     displayName: "反詐玩家",
     pictureUrl: "https://api.dicebear.com/7.x/bottts/svg?seed=antifraud",
-    statusMessage: "防詐防護中 🛡️",
+    statusMessage: "防詐防護中",
   }
 }

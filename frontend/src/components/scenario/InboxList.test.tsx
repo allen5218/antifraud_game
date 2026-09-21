@@ -9,7 +9,7 @@ const items = [
     id: "1",
     fraud_type: "investment",
     display_name: "Kevin",
-    avatar: "📈",
+    avatar: "trend",
     preview: "先跟兩天看看績效再說!",
     status: "active",
     outcome: null,
@@ -19,7 +19,7 @@ const items = [
     id: "2",
     fraud_type: "romance",
     display_name: "Sunny",
-    avatar: "🧗",
+    avatar: "climb",
     preview: "你週末有空嗎?",
     status: "completed",
     outcome: "win_report",
@@ -39,5 +39,23 @@ describe("<InboxList />", () => {
   it("shows outcome badge for completed scenario", () => {
     render(<InboxList items={items} onOpen={() => {}} />)
     expect(screen.getByText("✓ 識破成功")).toBeTruthy()
+  })
+
+  it("shows paused badge for paused scenario", () => {
+    const pausedItems = [
+      {
+        id: "p1",
+        fraud_type: "investment",
+        display_name: "偉傑",
+        avatar: "trend",
+        preview: "我先想一想...",
+        status: "paused",
+        outcome: null,
+        unread: false,
+      },
+    ]
+    render(<InboxList items={pausedItems} onOpen={() => {}} />)
+    expect(screen.getByTestId("paused-badge-p1")).toBeTruthy()
+    expect(screen.getByText("暫停中")).toBeTruthy()
   })
 })

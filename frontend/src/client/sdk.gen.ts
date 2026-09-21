@@ -3,7 +3,116 @@
 import type { CancelablePromise } from './core/CancelablePromise';
 import { OpenAPI } from './core/OpenAPI';
 import { request as __request } from './core/request';
-import type { EconomyReadMeResponse, EconomyPostSettleResponse, EconomyClaimResponse, EconomyListPropertiesResponse, EconomyBuyPropertyData, EconomyBuyPropertyResponse, EconomyGetAssetsResponse, EconomyPostLiquidateData, EconomyPostLiquidateResponse, EconomyGetChaptersResponse, EconomyPostClaimStarterGrantResponse, EconomyGetHouseTaskResponse, EconomyVerifyHouseTaskData, EconomyVerifyHouseTaskResponse, EconomyResolveHouseTaskEndpointData, EconomyResolveHouseTaskEndpointResponse, EconomyGetMyHomeResponse, EconomyBuyHomeDecorData, EconomyBuyHomeDecorResponse, EconomyToggleHomeDecorData, EconomyToggleHomeDecorResponse, EconomyGetHomeEventResponse, EconomyResolveHomeEventResponse, EconomyGetVehicleResponse, EconomyBuyVehicleResponse, EconomyResolveVehicleEventResponse, ItemsReadItemsData, ItemsReadItemsResponse, ItemsCreateItemData, ItemsCreateItemResponse, ItemsReadItemData, ItemsReadItemResponse, ItemsUpdateItemData, ItemsUpdateItemResponse, ItemsDeleteItemData, ItemsDeleteItemResponse, LoginLoginAccessTokenData, LoginLoginAccessTokenResponse, LoginTestTokenResponse, LoginRecoverPasswordData, LoginRecoverPasswordResponse, LoginResetPasswordData, LoginResetPasswordResponse, LoginRecoverPasswordHtmlContentData, LoginRecoverPasswordHtmlContentResponse, MascotListMascotItemsResponse, MascotPurchaseItemData, MascotPurchaseItemResponse, MascotToggleEquipData, MascotToggleEquipResponse, MascotGetMyMascotResponse, PretestGetPretestQuestionsResponse, PretestSubmitPretestData, PretestSubmitPretestResponse, PrivateCreateUserData, PrivateCreateUserResponse, QuickSwipeDeckData, QuickSwipeDeckResponse, QuickSwipeAnswerData, QuickSwipeAnswerResponse, QuickSwipeCompleteData, QuickSwipeCompleteResponse, QuickQuizDeckData, QuickQuizDeckResponse, QuickQuizAnswerData, QuickQuizAnswerResponse, QuickQuizCompleteData, QuickQuizCompleteResponse, ScenarioInboxResponse, ScenarioCreateScenarioData, ScenarioCreateScenarioResponse, ScenarioReadScenarioData, ScenarioReadScenarioResponse, ScenarioSendMessageData, ScenarioSendMessageResponse, ScenarioVerifyScenarioData, ScenarioVerifyScenarioResponse, ScenarioJudgeScenarioData, ScenarioJudgeScenarioResponse, ScoreGetMyScoreResponse, UsersReadUsersData, UsersReadUsersResponse, UsersCreateUserData, UsersCreateUserResponse, UsersReadUserMeResponse, UsersDeleteUserMeResponse, UsersUpdateUserMeData, UsersUpdateUserMeResponse, UsersUpdatePasswordMeData, UsersUpdatePasswordMeResponse, UsersRegisterUserData, UsersRegisterUserResponse, UsersReadUserByIdData, UsersReadUserByIdResponse, UsersUpdateUserData, UsersUpdateUserResponse, UsersDeleteUserData, UsersDeleteUserResponse, UtilsTestEmailData, UtilsTestEmailResponse, UtilsHealthCheckResponse } from './types.gen';
+import type { CertificateGetMyCertificateResponse, CertificateGetDiagnosticDossierResponse, CollegiateLeagueReadUniversityCohortsResponse, CollegiateLeagueReadMyCohortData, CollegiateLeagueReadMyCohortResponse, CollegiateLeagueReadZpdFlowDiagnosisData, CollegiateLeagueReadZpdFlowDiagnosisResponse, CollegiateLeagueAffiliateUniversityData, CollegiateLeagueAffiliateUniversityResponse, EconomyReadMeResponse, EconomyPostSettleResponse, EconomyClaimResponse, EconomyListPropertiesResponse, EconomyBuyPropertyData, EconomyBuyPropertyResponse, EconomyGetAssetsResponse, EconomyPostLiquidateData, EconomyPostLiquidateResponse, EconomyGetJourneyResponse, EconomyGetChaptersResponse, EconomyPostClaimStarterGrantResponse, EconomyGetHouseTaskResponse, EconomyVerifyHouseTaskData, EconomyVerifyHouseTaskResponse, EconomyResolveHouseTaskEndpointData, EconomyResolveHouseTaskEndpointResponse, EconomyGetMyHomeResponse, EconomyBuyHomeDecorData, EconomyBuyHomeDecorResponse, EconomyToggleHomeDecorData, EconomyToggleHomeDecorResponse, EconomyGetHomeEventResponse, EconomyResolveHomeEventResponse, EconomyGetVehicleResponse, EconomyBuyVehicleResponse, EconomyResolveVehicleEventResponse, GuardiansGetGuardiansOverviewResponse, IntentionsGetIntentionsOverviewResponse, IntentionsEquipReflexCardData, IntentionsEquipReflexCardResponse, IntentionsUnequipReflexCardData, IntentionsUnequipReflexCardResponse, ItemsReadItemsData, ItemsReadItemsResponse, ItemsCreateItemData, ItemsCreateItemResponse, ItemsReadItemData, ItemsReadItemResponse, ItemsUpdateItemData, ItemsUpdateItemResponse, ItemsDeleteItemData, ItemsDeleteItemResponse, LineVerifyLineReportedMessageData, LineVerifyLineReportedMessageResponse, LineSimulateLineMessageData, LineSimulateLineMessageResponse, LineLineWebhookData, LineLineWebhookResponse, LineGetLineConfigResponse, LineUpdateLineConfigData, LineUpdateLineConfigResponse, LineTestLineConnectionResponse, LineAuthLineLoginData, LineAuthLineLoginResponse, LineAuthExchangeMagicTokenData, LineAuthExchangeMagicTokenResponse, LoginLoginGuestResponse, LoginLoginAccessTokenData, LoginLoginAccessTokenResponse, LoginTestTokenResponse, LoginRecoverPasswordData, LoginRecoverPasswordResponse, LoginResetPasswordData, LoginResetPasswordResponse, LoginRecoverPasswordHtmlContentData, LoginRecoverPasswordHtmlContentResponse, MascotListMascotItemsResponse, MascotPurchaseItemData, MascotPurchaseItemResponse, MascotToggleEquipData, MascotToggleEquipResponse, MascotGetMyMascotResponse, PretestGetPretestQuestionsResponse, PretestSubmitPretestData, PretestSubmitPretestResponse, PrivateCreateUserData, PrivateCreateUserResponse, QuickSwipeDeckData, QuickSwipeDeckResponse, QuickSwipeAnswerData, QuickSwipeAnswerResponse, QuickSwipeCompleteData, QuickSwipeCompleteResponse, QuickQuizDeckData, QuickQuizDeckResponse, QuickQuizAnswerData, QuickQuizAnswerResponse, QuickQuizCompleteData, QuickQuizCompleteResponse, SandboxRunSimulationData, SandboxRunSimulationResponse, SandboxGetSandboxPresetsResponse, ScenarioInboxResponse, ScenarioListContactsResponse, ScenarioListShopItemsResponse, ScenarioPurchaseItemData, ScenarioPurchaseItemResponse, ScenarioCreateScenarioData, ScenarioCreateScenarioResponse, ScenarioReadScenarioData, ScenarioReadScenarioResponse, ScenarioSendMessageData, ScenarioSendMessageResponse, ScenarioVerifyScenarioData, ScenarioVerifyScenarioResponse, ScenarioPerformScenarioActionData, ScenarioPerformScenarioActionResponse, ScenarioJudgeScenarioData, ScenarioJudgeScenarioResponse, ScenarioPauseScenarioData, ScenarioPauseScenarioResponse, ScenarioResumeScenarioData, ScenarioResumeScenarioResponse, ScoreGetMyScoreResponse, SkillsGetSkillsOverviewResponse, SkillsUpgradeSkillData, SkillsUpgradeSkillResponse, SkillsResetSkillsResponse, UsersReadUsersData, UsersReadUsersResponse, UsersCreateUserData, UsersCreateUserResponse, UsersReadUserMeResponse, UsersDeleteUserMeResponse, UsersUpdateUserMeData, UsersUpdateUserMeResponse, UsersUpdatePasswordMeData, UsersUpdatePasswordMeResponse, UsersGetUserCognitiveProfileResponse, UsersRegisterUserData, UsersRegisterUserResponse, UsersReadUserByIdData, UsersReadUserByIdResponse, UsersUpdateUserData, UsersUpdateUserResponse, UsersDeleteUserData, UsersDeleteUserResponse, UtilsTestEmailData, UtilsTestEmailResponse, UtilsHealthCheckResponse } from './types.gen';
+
+export class CertificateService {
+    /**
+     * Get My Certificate
+     * 取得當前使用者之正式認知免疫力檢定證書與防偽簽章。
+     * @returns CognitiveCertificateResponse Successful Response
+     * @throws ApiError
+     */
+    public static getMyCertificate(): CancelablePromise<CertificateGetMyCertificateResponse> {
+        return __request(OpenAPI, {
+            method: 'GET',
+            url: '/api/v1/certificate/me'
+        });
+    }
+    
+    /**
+     * Get Diagnostic Dossier
+     * 取得大專競賽評審專用之認知免疫學術研究診斷報告書（Dossier）。
+     * @returns DiagnosticDossierResponse Successful Response
+     * @throws ApiError
+     */
+    public static getDiagnosticDossier(): CancelablePromise<CertificateGetDiagnosticDossierResponse> {
+        return __request(OpenAPI, {
+            method: 'GET',
+            url: '/api/v1/certificate/dossier'
+        });
+    }
+}
+
+export class CollegiateLeagueService {
+    /**
+     * Read University Cohorts
+     * List all university cohorts sorted by national defense rank.
+     * @returns UniversityCohort Successful Response
+     * @throws ApiError
+     */
+    public static readUniversityCohorts(): CancelablePromise<CollegiateLeagueReadUniversityCohortsResponse> {
+        return __request(OpenAPI, {
+            method: 'GET',
+            url: '/api/v1/league/universities'
+        });
+    }
+    
+    /**
+     * Read My Cohort
+     * Get current user's university standing and personal contribution.
+     * @param data The data for the request.
+     * @param data.universityId
+     * @returns unknown Successful Response
+     * @throws ApiError
+     */
+    public static readMyCohort(data: CollegiateLeagueReadMyCohortData = {}): CancelablePromise<CollegiateLeagueReadMyCohortResponse> {
+        return __request(OpenAPI, {
+            method: 'GET',
+            url: '/api/v1/league/my-cohort',
+            query: {
+                university_id: data.universityId
+            },
+            errors: {
+                422: 'Validation Error'
+            }
+        });
+    }
+    
+    /**
+     * Read Zpd Flow Diagnosis
+     * Computes real-time Vygotsky ZPD Flow state and cognitive scaffolding.
+     * @param data The data for the request.
+     * @param data.dPrime
+     * @param data.brierScore
+     * @param data.latencySeconds
+     * @returns ZPDFlowDiagnosis Successful Response
+     * @throws ApiError
+     */
+    public static readZpdFlowDiagnosis(data: CollegiateLeagueReadZpdFlowDiagnosisData = {}): CancelablePromise<CollegiateLeagueReadZpdFlowDiagnosisResponse> {
+        return __request(OpenAPI, {
+            method: 'GET',
+            url: '/api/v1/league/zpd-flow',
+            query: {
+                d_prime: data.dPrime,
+                brier_score: data.brierScore,
+                latency_seconds: data.latencySeconds
+            },
+            errors: {
+                422: 'Validation Error'
+            }
+        });
+    }
+    
+    /**
+     * Affiliate University
+     * Affiliate current user with a university defense cohort.
+     * @param data The data for the request.
+     * @param data.requestBody
+     * @returns unknown Successful Response
+     * @throws ApiError
+     */
+    public static affiliateUniversity(data: CollegiateLeagueAffiliateUniversityData): CancelablePromise<CollegiateLeagueAffiliateUniversityResponse> {
+        return __request(OpenAPI, {
+            method: 'POST',
+            url: '/api/v1/league/affiliate',
+            body: data.requestBody,
+            mediaType: 'application/json',
+            errors: {
+                422: 'Validation Error'
+            }
+        });
+    }
+}
 
 export class EconomyService {
     /**
@@ -109,6 +218,19 @@ export class EconomyService {
             errors: {
                 422: 'Validation Error'
             }
+        });
+    }
+    
+    /**
+     * Get Journey
+     * 取得天梯主線旅程狀態與下一步指引（無副作用，唯讀）。
+     * @returns JourneyResponse Successful Response
+     * @throws ApiError
+     */
+    public static getJourney(): CancelablePromise<EconomyGetJourneyResponse> {
+        return __request(OpenAPI, {
+            method: 'GET',
+            url: '/api/v1/economy/journey'
         });
     }
     
@@ -310,6 +432,76 @@ export class EconomyService {
     }
 }
 
+export class GuardiansService {
+    /**
+     * Get Guardians Overview
+     * 取得玩家守護的社區委託人名單、好感度與感謝信件。
+     * @returns GuardiansOverviewResponse Successful Response
+     * @throws ApiError
+     */
+    public static getGuardiansOverview(): CancelablePromise<GuardiansGetGuardiansOverviewResponse> {
+        return __request(OpenAPI, {
+            method: 'GET',
+            url: '/api/v1/guardians/overview'
+        });
+    }
+}
+
+export class IntentionsService {
+    /**
+     * Get Intentions Overview
+     * 取得所有反射卡解鎖與裝備槽位狀態。
+     * @returns IntentionsOverviewResponse Successful Response
+     * @throws ApiError
+     */
+    public static getIntentionsOverview(): CancelablePromise<IntentionsGetIntentionsOverviewResponse> {
+        return __request(OpenAPI, {
+            method: 'GET',
+            url: '/api/v1/intentions/overview'
+        });
+    }
+    
+    /**
+     * Equip Reflex Card
+     * 將指定反射卡裝備至槽位 (0 或 1)。
+     * @param data The data for the request.
+     * @param data.requestBody
+     * @returns IntentionsOverviewResponse Successful Response
+     * @throws ApiError
+     */
+    public static equipReflexCard(data: IntentionsEquipReflexCardData): CancelablePromise<IntentionsEquipReflexCardResponse> {
+        return __request(OpenAPI, {
+            method: 'POST',
+            url: '/api/v1/intentions/equip',
+            body: data.requestBody,
+            mediaType: 'application/json',
+            errors: {
+                422: 'Validation Error'
+            }
+        });
+    }
+    
+    /**
+     * Unequip Reflex Card
+     * 從指定槽位 (0 或 1) 卸下反射卡。
+     * @param data The data for the request.
+     * @param data.requestBody
+     * @returns IntentionsOverviewResponse Successful Response
+     * @throws ApiError
+     */
+    public static unequipReflexCard(data: IntentionsUnequipReflexCardData): CancelablePromise<IntentionsUnequipReflexCardResponse> {
+        return __request(OpenAPI, {
+            method: 'POST',
+            url: '/api/v1/intentions/unequip',
+            body: data.requestBody,
+            mediaType: 'application/json',
+            errors: {
+                422: 'Validation Error'
+            }
+        });
+    }
+}
+
 export class ItemsService {
     /**
      * Read Items
@@ -421,7 +613,171 @@ export class ItemsService {
     }
 }
 
+export class LineService {
+    /**
+     * Verify Line Reported Message
+     * LINE 轉傳查核 Bot API：
+     * 接收玩家轉傳的可疑 LINE 訊息，評估風險並回傳結果
+     * @param data The data for the request.
+     * @param data.requestBody
+     * @returns LineReportResponse Successful Response
+     * @throws ApiError
+     */
+    public static verifyLineReportedMessage(data: LineVerifyLineReportedMessageData): CancelablePromise<LineVerifyLineReportedMessageResponse> {
+        return __request(OpenAPI, {
+            method: 'POST',
+            url: '/api/v1/line/verify-report',
+            body: data.requestBody,
+            mediaType: 'application/json',
+            errors: {
+                422: 'Validation Error'
+            }
+        });
+    }
+    
+    /**
+     * Simulate Line Message
+     * Web 擬真與大專生競賽線上展示用端點：
+     * 免憑證直接進行 1:1 LINE 官方頻道情境對話模擬與 Flex Message 驗證
+     * @param data The data for the request.
+     * @param data.requestBody
+     * @returns LineSimulateResponse Successful Response
+     * @throws ApiError
+     */
+    public static simulateLineMessage(data: LineSimulateLineMessageData): CancelablePromise<LineSimulateLineMessageResponse> {
+        return __request(OpenAPI, {
+            method: 'POST',
+            url: '/api/v1/line/simulate-message',
+            body: data.requestBody,
+            mediaType: 'application/json',
+            errors: {
+                422: 'Validation Error'
+            }
+        });
+    }
+    
+    /**
+     * Line Webhook
+     * LINE Official Account Production Webhook Handler with Signature Verification
+     * @param data The data for the request.
+     * @param data.xLineSignature
+     * @returns unknown Successful Response
+     * @throws ApiError
+     */
+    public static lineWebhook(data: LineLineWebhookData = {}): CancelablePromise<LineLineWebhookResponse> {
+        return __request(OpenAPI, {
+            method: 'POST',
+            url: '/api/v1/line/webhook',
+            headers: {
+                'x-line-signature': data.xLineSignature
+            },
+            errors: {
+                422: 'Validation Error'
+            }
+        });
+    }
+    
+    /**
+     * Get Line Config
+     * @returns LineConfigResponse Successful Response
+     * @throws ApiError
+     */
+    public static getLineConfig(): CancelablePromise<LineGetLineConfigResponse> {
+        return __request(OpenAPI, {
+            method: 'GET',
+            url: '/api/v1/line/config'
+        });
+    }
+    
+    /**
+     * Update Line Config
+     * @param data The data for the request.
+     * @param data.requestBody
+     * @returns LineConfigResponse Successful Response
+     * @throws ApiError
+     */
+    public static updateLineConfig(data: LineUpdateLineConfigData): CancelablePromise<LineUpdateLineConfigResponse> {
+        return __request(OpenAPI, {
+            method: 'POST',
+            url: '/api/v1/line/config',
+            body: data.requestBody,
+            mediaType: 'application/json',
+            errors: {
+                422: 'Validation Error'
+            }
+        });
+    }
+    
+    /**
+     * Test Line Connection
+     * @returns LineTestConnectionResponse Successful Response
+     * @throws ApiError
+     */
+    public static testLineConnection(): CancelablePromise<LineTestLineConnectionResponse> {
+        return __request(OpenAPI, {
+            method: 'POST',
+            url: '/api/v1/line/test-connection'
+        });
+    }
+}
+
+export class LineAuthService {
+    /**
+     * Line Login
+     * Web 端與 LIFF 專用：以 LINE 帳號一鍵註冊或快速登入。
+     * 若該 LINE 使用者為首次進入，自動開戶並配發 $10,000 探員初始資產。
+     * @param data The data for the request.
+     * @param data.requestBody
+     * @returns LineLoginResponse Successful Response
+     * @throws ApiError
+     */
+    public static lineLogin(data: LineAuthLineLoginData): CancelablePromise<LineAuthLineLoginResponse> {
+        return __request(OpenAPI, {
+            method: 'POST',
+            url: '/api/v1/auth/line/login',
+            body: data.requestBody,
+            mediaType: 'application/json',
+            errors: {
+                422: 'Validation Error'
+            }
+        });
+    }
+    
+    /**
+     * Exchange Magic Token
+     * 由 LINE 聊天室直通連結點擊進入 Web 版時，以單次 Token 換取正式 JWT Bearer Token。
+     * @param data The data for the request.
+     * @param data.requestBody
+     * @returns LineLoginResponse Successful Response
+     * @throws ApiError
+     */
+    public static exchangeMagicToken(data: LineAuthExchangeMagicTokenData): CancelablePromise<LineAuthExchangeMagicTokenResponse> {
+        return __request(OpenAPI, {
+            method: 'POST',
+            url: '/api/v1/auth/line/exchange-magic-token',
+            body: data.requestBody,
+            mediaType: 'application/json',
+            errors: {
+                422: 'Validation Error'
+            }
+        });
+    }
+}
+
 export class LoginService {
+    /**
+     * Login Guest
+     * Create an isolated guest with a normal signed gameplay credential.
+     * @returns Token Successful Response
+     * @throws ApiError
+     */
+    public static loginGuest(): CancelablePromise<LoginLoginGuestResponse> {
+        return __request(OpenAPI, {
+            method: 'POST',
+            url: '/api/v1/login/guest'
+        });
+    }
+    
     /**
      * Login Access Token
      * OAuth2 compatible token login, get an access token for future requests
@@ -534,7 +890,7 @@ export class MascotService {
     
     /**
      * Purchase Item
-     * 用積分購買裝飾品。
+     * 用現金購買裝飾品。
      * @param data The data for the request.
      * @param data.itemId
      * @returns unknown Successful Response
@@ -763,10 +1119,45 @@ export class QuickService {
     }
 }
 
+export class SandboxService {
+    /**
+     * Run Simulation
+     * 執行認知沙盒動態模擬演算。
+     * @param data The data for the request.
+     * @param data.requestBody
+     * @returns SandboxSimulationResult Successful Response
+     * @throws ApiError
+     */
+    public static runSimulation(data: SandboxRunSimulationData): CancelablePromise<SandboxRunSimulationResponse> {
+        return __request(OpenAPI, {
+            method: 'POST',
+            url: '/api/v1/sandbox/simulate',
+            body: data.requestBody,
+            mediaType: 'application/json',
+            errors: {
+                422: 'Validation Error'
+            }
+        });
+    }
+    
+    /**
+     * Get Sandbox Presets
+     * 取得沙盒預設原型與參數清單。
+     * @returns unknown Successful Response
+     * @throws ApiError
+     */
+    public static getSandboxPresets(): CancelablePromise<SandboxGetSandboxPresetsResponse> {
+        return __request(OpenAPI, {
+            method: 'GET',
+            url: '/api/v1/sandbox/presets'
+        });
+    }
+}
+
 export class ScenarioService {
     /**
      * Inbox
-     * 每 fraud_type 回傳最新一場;完全沒有時 bootstrap 一場。
+     * 聊天收件匣：回傳 5 位固定聯絡人的最新事件 (C1, C7)。
      * @returns ScenarioInboxItem Successful Response
      * @throws ApiError
      */
@@ -778,8 +1169,54 @@ export class ScenarioService {
     }
     
     /**
+     * List Contacts
+     * 列出 5 位聯絡人與玩家之好感、可靠度與事件記憶 (C4)。
+     * @returns ContactRelationPublic Successful Response
+     * @throws ApiError
+     */
+    public static listContacts(): CancelablePromise<ScenarioListContactsResponse> {
+        return __request(OpenAPI, {
+            method: 'GET',
+            url: '/api/v1/scenario/contacts'
+        });
+    }
+    
+    /**
+     * List Shop Items
+     * 列出 12 件可購買之調查/環境/社交道具與持有數量 (C5)。
+     * @returns ShopItemsListResponse Successful Response
+     * @throws ApiError
+     */
+    public static listShopItems(): CancelablePromise<ScenarioListShopItemsResponse> {
+        return __request(OpenAPI, {
+            method: 'GET',
+            url: '/api/v1/scenario/items'
+        });
+    }
+    
+    /**
+     * Purchase Item
+     * 原子交易購買道具：鎖定用戶、驗證價格、餘額與所有權 (C5 / A6)。
+     * @param data The data for the request.
+     * @param data.requestBody
+     * @returns PurchaseItemResponse Successful Response
+     * @throws ApiError
+     */
+    public static purchaseItem(data: ScenarioPurchaseItemData): CancelablePromise<ScenarioPurchaseItemResponse> {
+        return __request(OpenAPI, {
+            method: 'POST',
+            url: '/api/v1/scenario/items/purchase',
+            body: data.requestBody,
+            mediaType: 'application/json',
+            errors: {
+                422: 'Validation Error'
+            }
+        });
+    }
+    
+    /**
      * Create Scenario
-     * 對 completed 的類型開新一場;受每日上限。
+     * 開新對話：支援指定 contact_id 或 story_id，並受每日上限與資格約束 (T1, T2, T3)。
      * @param data The data for the request.
      * @param data.requestBody
      * @returns ScenarioInboxItem Successful Response
@@ -799,7 +1236,7 @@ export class ScenarioService {
     
     /**
      * Read Scenario
-     * 完整對話(斷線重連)。絕不回傳 persona_role / tactics_used。
+     * 完整對話(斷線重連)。絕不洩漏 persona_role、truth 或未解鎖事實 (C3 / A4 / T2)。
      * @param data The data for the request.
      * @param data.scenarioId
      * @returns ScenarioDetail Successful Response
@@ -820,7 +1257,7 @@ export class ScenarioService {
     
     /**
      * Send Message
-     * 玩家自由打字 → agent 以人格回覆。失敗不寫入、不扣回合。
+     * 自由打字 → agent 回覆。防重送/並發 revision 控制，失敗不扣回合 (T1, C2, C8)。
      * @param data The data for the request.
      * @param data.scenarioId
      * @param data.requestBody
@@ -844,7 +1281,7 @@ export class ScenarioService {
     
     /**
      * Verify Scenario
-     * 執行獨立查證工具（不呼叫 LLM，查閱客觀公開紀錄）。
+     * 執行獨立查證工具（冪等執行、查閱客觀固定公開紀錄，T1, C3 / A3）。
      * @param data The data for the request.
      * @param data.scenarioId
      * @param data.requestBody
@@ -867,8 +1304,32 @@ export class ScenarioService {
     }
     
     /**
+     * Perform Scenario Action
+     * 執行型別化分支行動：狀態查驗、CAS 控制、冪等防雙擊、消耗資產與更新對話紀錄（G2）。
+     * @param data The data for the request.
+     * @param data.scenarioId
+     * @param data.requestBody
+     * @returns ScenarioActionResponse Successful Response
+     * @throws ApiError
+     */
+    public static performScenarioAction(data: ScenarioPerformScenarioActionData): CancelablePromise<ScenarioPerformScenarioActionResponse> {
+        return __request(OpenAPI, {
+            method: 'POST',
+            url: '/api/v1/scenario/{scenario_id}/action',
+            path: {
+                scenario_id: data.scenarioId
+            },
+            body: data.requestBody,
+            mediaType: 'application/json',
+            errors: {
+                422: 'Validation Error'
+            }
+        });
+    }
+    
+    /**
      * Judge Scenario
-     * 確定性裁決 → 經濟入口 → 揭曉。鎖定順序：先 session 後 user。
+     * 確定性裁決 → 經濟入口 → 關係與事件標籤記憶更新 (T1, T2, T3, C4, C6 / A6, A7)。
      * @param data The data for the request.
      * @param data.scenarioId
      * @param data.requestBody
@@ -879,6 +1340,54 @@ export class ScenarioService {
         return __request(OpenAPI, {
             method: 'POST',
             url: '/api/v1/scenario/{scenario_id}/judge',
+            path: {
+                scenario_id: data.scenarioId
+            },
+            body: data.requestBody,
+            mediaType: 'application/json',
+            errors: {
+                422: 'Validation Error'
+            }
+        });
+    }
+    
+    /**
+     * Pause Scenario
+     * 專用暫停端點：封存當前對話進度與事證，絕不洩漏機密或變更經濟數值 (T2)。
+     * @param data The data for the request.
+     * @param data.scenarioId
+     * @param data.requestBody
+     * @returns ScenarioJudgeResponse Successful Response
+     * @throws ApiError
+     */
+    public static pauseScenario(data: ScenarioPauseScenarioData): CancelablePromise<ScenarioPauseScenarioResponse> {
+        return __request(OpenAPI, {
+            method: 'POST',
+            url: '/api/v1/scenario/{scenario_id}/pause',
+            path: {
+                scenario_id: data.scenarioId
+            },
+            body: data.requestBody,
+            mediaType: 'application/json',
+            errors: {
+                422: 'Validation Error'
+            }
+        });
+    }
+    
+    /**
+     * Resume Scenario
+     * 專用繼續端點：恢復暫停中之事件，保持相同快照、事證、回合數與歷史 (T2)。
+     * @param data The data for the request.
+     * @param data.scenarioId
+     * @param data.requestBody
+     * @returns ScenarioDetail Successful Response
+     * @throws ApiError
+     */
+    public static resumeScenario(data: ScenarioResumeScenarioData): CancelablePromise<ScenarioResumeScenarioResponse> {
+        return __request(OpenAPI, {
+            method: 'POST',
+            url: '/api/v1/scenario/{scenario_id}/resume',
             path: {
                 scenario_id: data.scenarioId
             },
@@ -902,6 +1411,54 @@ export class ScoreService {
         return __request(OpenAPI, {
             method: 'GET',
             url: '/api/v1/score/me'
+        });
+    }
+}
+
+export class SkillsService {
+    /**
+     * Get Skills Overview
+     * 取得玩家目前技能樹概覽、點數分佈與所有技能狀態。
+     * @returns SkillOverviewResponse Successful Response
+     * @throws ApiError
+     */
+    public static getSkillsOverview(): CancelablePromise<SkillsGetSkillsOverviewResponse> {
+        return __request(OpenAPI, {
+            method: 'GET',
+            url: '/api/v1/skills/overview'
+        });
+    }
+    
+    /**
+     * Upgrade Skill
+     * 升級指定的偵探天賦技能節點。
+     * @param data The data for the request.
+     * @param data.requestBody
+     * @returns SkillOverviewResponse Successful Response
+     * @throws ApiError
+     */
+    public static upgradeSkill(data: SkillsUpgradeSkillData): CancelablePromise<SkillsUpgradeSkillResponse> {
+        return __request(OpenAPI, {
+            method: 'POST',
+            url: '/api/v1/skills/upgrade',
+            body: data.requestBody,
+            mediaType: 'application/json',
+            errors: {
+                422: 'Validation Error'
+            }
+        });
+    }
+    
+    /**
+     * Reset Skills
+     * 花費 500 現金重置所有技能點數（洗點）。
+     * @returns SkillOverviewResponse Successful Response
+     * @throws ApiError
+     */
+    public static resetSkills(): CancelablePromise<SkillsResetSkillsResponse> {
+        return __request(OpenAPI, {
+            method: 'POST',
+            url: '/api/v1/skills/reset'
         });
     }
 }
@@ -1013,6 +1570,19 @@ export class UsersService {
             errors: {
                 422: 'Validation Error'
             }
+        });
+    }
+    
+    /**
+     * Get User Cognitive Profile
+     * 取得玩家個人認知免疫力雷達、信號偵測 (d'/c) 與反制反射評估。
+     * @returns unknown Successful Response
+     * @throws ApiError
+     */
+    public static getUserCognitiveProfile(): CancelablePromise<UsersGetUserCognitiveProfileResponse> {
+        return __request(OpenAPI, {
+            method: 'GET',
+            url: '/api/v1/users/me/cognitive-profile'
         });
     }
     

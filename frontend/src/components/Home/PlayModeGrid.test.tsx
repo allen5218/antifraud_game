@@ -26,6 +26,7 @@ mock.module("@/hooks/useEconomy", () => ({
   useLiquidate: () => ({ mutate: () => {} }),
 }))
 
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query"
 import { PlayModeGrid } from "./PlayModeGrid"
 
 async function renderWithRouter() {
@@ -39,9 +40,16 @@ async function renderWithRouter() {
     routeTree: rootRoute.addChildren([catchAll]),
     history: createMemoryHistory({ initialEntries: ["/"] }),
   })
+  const queryClient = new QueryClient({
+    defaultOptions: { queries: { retry: false } },
+  })
   await router.load()
   await act(async () => {
-    render(<RouterProvider router={router} />)
+    render(
+      <QueryClientProvider client={queryClient}>
+        <RouterProvider router={router} />
+      </QueryClientProvider>,
+    )
   })
 }
 
@@ -52,7 +60,7 @@ describe("<PlayModeGrid />", () => {
     await renderWithRouter()
     // default level 3 from mock
     const unlocked = screen.getByTestId("mode-題組訓練")
-    const locked = screen.getByTestId("mode-排行榜")
+    const locked = screen.getByTestId("mode-實驗沙盒")
     expect(unlocked.getAttribute("aria-disabled")).toBe("false")
     expect(unlocked.className).not.toContain("opacity-55")
     expect(locked.getAttribute("aria-disabled")).toBe("true")

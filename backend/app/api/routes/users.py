@@ -86,6 +86,8 @@ def update_user_me(
     """
 
     if user_in.email:
+        if current_user.email.endswith("@guest.example.com"):
+            raise HTTPException(status_code=403, detail="訪客帳號無法變更電子郵件，請另外註冊帳號")
         existing_user = crud.get_user_by_email(session=session, email=user_in.email)
         if existing_user and existing_user.id != current_user.id:
             raise HTTPException(
@@ -126,6 +128,74 @@ def read_user_me(current_user: CurrentUser) -> Any:
     Get current user.
     """
     return current_user
+
+
+@router.get("/me/cognitive-profile")
+def get_user_cognitive_profile(session: SessionDep, current_user: CurrentUser) -> Any:
+    """取得玩家個人認知免疫力雷達、信號偵測 (d'/c) 與反制反射評估。"""
+    from app.core.inoculation import compute_signal_detection_metrics
+    from app.core.weakness import WEAKNESS_TAGS
+    from app.models import SwipeSession
+
+    swipes = session.exec(
+        select(SwipeSession).where(
+            SwipeSession.user_id == current_user.id,
+            SwipeSession.completed == True,  # noqa: E712
+        )
+    ).all()
+
+    hits = 0
+    misses = 0
+    false_alarms = 0
+    correct_rejections = 0
+
+    for s in swipes:
+        answers = s.answers or {}
+        for _cid, ans in answers.items():
+            if not isinstance(ans, dict):
+                continue
+            is_correct = ans.get("is_correct")
+            action = ans.get("action")
+            if action == "skip":
+                continue
+            guessed_scam = action == "scam"
+            if is_correct:
+                if guessed_scam:
+                    hits += 1
+                else:
+                    correct_rejections += 1
+            else:
+                if guessed_scam:
+                    false_alarms += 1
+                else:
+                    misses += 1
+
+    if hits + misses + false_alarms + correct_rejections == 0:
+        sdt = {
+            "d_prime": 1.25,
+            "criterion_c": 0.05,
+            "bias_profile": "balanced",
+            "immunity_score": 55,
+        }
+    else:
+        sdt = compute_signal_detection_metrics(hits, misses, false_alarms, correct_rejections)
+
+    radar = {}
+    for tag in sorted(WEAKNESS_TAGS):
+        base_resilience = min(
+            95,
+            max(30, int(40 + current_user.completed_chapters * 10 + sdt["d_prime"] * 12)),
+        )
+        radar[tag] = base_resilience
+
+    return {
+        "d_prime": sdt["d_prime"],
+        "criterion_c": sdt["criterion_c"],
+        "bias_profile": sdt["bias_profile"],
+        "immunity_score": sdt["immunity_score"],
+        "total_cases_analyzed": hits + misses + false_alarms + correct_rejections,
+        "radar_scores": radar,
+    }
 
 
 @router.delete("/me", response_model=Message)

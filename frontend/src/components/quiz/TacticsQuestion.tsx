@@ -34,7 +34,7 @@ export function TacticsQuestion({
     <div className="flex h-full flex-col">
       <div className="flex items-center gap-2 px-4 pt-3 text-xs text-muted-foreground">
         <span className="rounded-md bg-primary/10 px-1.5 py-0.5 font-semibold text-primary">
-          話術辨識
+          他在用哪一招？
         </span>
         <span className="ml-auto">
           {index + 1} / {total}
@@ -52,25 +52,37 @@ export function TacticsQuestion({
           </span>
         </div>
         <div className="mt-3 grid gap-2">
-          {item.options.map((option) => {
-            const checked = selectedTags.includes(option.tag)
-            const checkboxId = `tactics-${item.item_id}-${option.tag}`
+          {item.options.map((option, optIdx) => {
+            const labelText =
+              typeof option === "string"
+                ? option
+                : option.label ||
+                  (option as any).text ||
+                  (option as any).prompt ||
+                  option.tag ||
+                  `選項 ${optIdx + 1}`
+            const tagVal =
+              typeof option === "string" ? option : option.tag || labelText
+            const checked = selectedTags.includes(tagVal)
+            const checkboxId = `tactics-${item.item_id}-${tagVal}`
             return (
               <label
-                key={option.tag}
+                key={tagVal}
                 htmlFor={checkboxId}
-                className={`flex cursor-pointer items-center gap-3 rounded-xl border p-3 text-sm transition-colors ${
-                  checked ? "border-primary bg-primary/10" : "bg-card"
+                className={`flex cursor-pointer items-center gap-3 rounded-xl border p-3.5 text-sm transition-colors ${
+                  checked
+                    ? "border-emerald-500/60 bg-emerald-500/10 text-emerald-100 shadow-sm"
+                    : "border-white/10 bg-slate-900/60 text-slate-200 hover:bg-slate-800/60"
                 } ${disabled ? "cursor-not-allowed opacity-60" : ""}`}
               >
                 <Checkbox
                   id={checkboxId}
-                  aria-label={option.label}
+                  aria-label={labelText}
                   checked={checked}
                   disabled={disabled}
-                  onCheckedChange={() => toggleTag(option.tag)}
+                  onCheckedChange={() => toggleTag(tagVal)}
                 />
-                <span className="font-medium">{option.label}</span>
+                <span className="font-medium leading-relaxed">{labelText}</span>
               </label>
             )
           })}
@@ -83,7 +95,7 @@ export function TacticsQuestion({
           onClick={() => onSubmit(selectedTags)}
           className="h-11 w-full rounded-xl font-bold"
         >
-          送出答案
+          選好了
         </Button>
       </div>
     </div>

@@ -1,3 +1,7 @@
+import logging
+from sqlalchemy import text
+from sqlalchemy.dialects.postgresql import JSONB
+from sqlalchemy.ext.compiler import compiles
 from sqlmodel import Session, create_engine, select
 
 from app import crud
@@ -5,7 +9,39 @@ from app.core.config import settings
 from app.game.seed import seed_mascot_items, seed_pretest_questions
 from app.models import PropertyTier, SwipeCard, User, UserCreate
 
-engine = create_engine(str(settings.SQLALCHEMY_DATABASE_URI))
+logger = logging.getLogger(__name__)
+
+@compiles(JSONB, "sqlite")
+def compile_jsonb_sqlite(type_, compiler, **kw):
+    return "JSON"
+
+import socket
+
+def is_postgres_alive(host: str, port: int) -> bool:
+    try:
+        with socket.create_connection((host, port), timeout=0.2):
+            return True
+    except (OSError, TimeoutError):
+        return False
+
+def get_engine():
+    if is_postgres_alive(settings.POSTGRES_SERVER, settings.POSTGRES_PORT):
+        try:
+            test_engine = create_engine(str(settings.SQLALCHEMY_DATABASE_URI))
+            with test_engine.connect() as conn:
+                conn.execute(text("SELECT 1"))
+            logger.info("Connected to PostgreSQL successfully.")
+            return test_engine
+        except Exception as e:
+            logger.warning("PostgreSQL connection failed (%s), falling back to SQLite.", e)
+
+    logger.info("Using local SQLite database for development and competition demonstration.")
+    return create_engine(
+        "sqlite:///./antifraud_dev.db",
+        connect_args={"check_same_thread": False},
+    )
+
+engine = get_engine()
 
 PROPERTY_TIERS_SEED = [
     (1, "雅房", "tier-1", 20000, 200, 1),
@@ -288,14 +324,120 @@ def seed_swipe_cards(session: Session) -> None:
     session.commit()
 
 
-def init_db(session: Session) -> None:
-    # Tables should be created with Alembic migrations
-    # But if you don't want to use migrations, create
-    # the tables un-commenting the next lines
-    # from sqlmodel import SQLModel
+def ensure_game_cases_table(session: Session) -> None:
+    dialect = session.bind.dialect.name if session.bind else "sqlite"
+    if dialect == "postgresql":
+        ddl = """
+        CREATE TABLE IF NOT EXISTS game_cases (
+            id bigserial PRIMARY KEY,
+            case_key text UNIQUE NOT NULL,
+            fraud_type text NOT NULL,
+            is_scam boolean NOT NULL,
+            title text NOT NULL,
+            narrative text NOT NULL,
+            red_flags jsonb NOT NULL DEFAULT '[]'::jsonb,
+            difficulty int NOT NULL DEFAULT 2,
+            source_document_ids bigint[] NOT NULL DEFAULT '{}',
+            provenance text NOT NULL,
+            mirror_of bigint REFERENCES game_cases(id),
+            status text NOT NULL DEFAULT 'draft',
+            review_notes text,
+            created_at timestamptz NOT NULL DEFAULT now(),
+            published_at timestamptz
+        );
+        """
+    else:
+        ddl = """
+        CREATE TABLE IF NOT EXISTS game_cases (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            case_key TEXT UNIQUE NOT NULL,
+            fraud_type TEXT NOT NULL,
+            is_scam BOOLEAN NOT NULL,
+            title TEXT NOT NULL,
+            narrative TEXT NOT NULL,
+            red_flags TEXT NOT NULL DEFAULT '[]',
+            difficulty INTEGER NOT NULL DEFAULT 2,
+            source_document_ids TEXT NOT NULL DEFAULT '[]',
+            provenance TEXT NOT NULL,
+            mirror_of INTEGER REFERENCES game_cases(id),
+            status TEXT NOT NULL DEFAULT 'draft',
+            review_notes TEXT,
+            created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+            published_at DATETIME
+        );
+        """
+    session.execute(text(ddl))
+    session.commit()
 
-    # This works because the models are already imported and registered from app.models
-    # SQLModel.metadata.create_all(engine)
+
+def seed_game_cases(session: Session) -> None:
+    ensure_game_cases_table(session)
+    count = session.execute(text("SELECT count(*) FROM game_cases")).scalar()
+    if count and count > 0:
+        return
+
+    import json
+    from app.core.case_curation import SAFE_CURATED_PROJECTIONS
+
+    dialect = session.bind.dialect.name if session.bind else "sqlite"
+    if dialect == "postgresql":
+        insert_sql = """
+        INSERT INTO game_cases
+            (id, case_key, fraud_type, is_scam, title, narrative, red_flags, difficulty, provenance, mirror_of, status)
+        VALUES
+            (:id, :key, :ft, :scam, :title, :narrative, CAST(:red_flags AS jsonb), :difficulty, :prov, NULL, 'published')
+        ON CONFLICT (case_key) DO NOTHING
+        """
+    else:
+        insert_sql = """
+        INSERT OR IGNORE INTO game_cases
+            (id, case_key, fraud_type, is_scam, title, narrative, red_flags, difficulty, provenance, mirror_of, status)
+        VALUES
+            (:id, :key, :ft, :scam, :title, :narrative, :red_flags, :difficulty, :prov, NULL, 'published')
+        """
+
+    weakness_map = {
+        "investment": ["greed", "authority"],
+        "shopping": ["greed", "time_pressure"],
+        "fake-sale": ["time_pressure", "trust_building"],
+        "romance": ["trust_building", "greed"],
+        "atm": ["fear", "authority"],
+    }
+
+    for proj in SAFE_CURATED_PROJECTIONS.values():
+        if proj.is_scam:
+            tags = weakness_map.get(proj.fraud_type, ["greed", "time_pressure"])
+            red_flags = [
+                {"tag": tags[0], "text": f"{proj.title} 關鍵破綻一"},
+                {"tag": tags[1], "text": f"{proj.title} 關鍵破綻二"},
+            ]
+        else:
+            red_flags = [
+                {"tag": None, "text": "正常交易或對話特徵"},
+                {"tag": None, "text": "符合正規流程無異常"},
+            ]
+
+        session.execute(
+            text(insert_sql),
+            {
+                "id": proj.case_id,
+                "key": proj.case_key,
+                "ft": proj.fraud_type,
+                "scam": proj.is_scam,
+                "title": proj.title,
+                "narrative": proj.narrative,
+                "red_flags": json.dumps(red_flags, ensure_ascii=False),
+                "difficulty": 2,
+                "prov": "curated_benchmark",
+            },
+        )
+    session.commit()
+
+
+def init_db(session: Session) -> None:
+    from sqlmodel import SQLModel
+
+    SQLModel.metadata.create_all(engine)
 
     user = session.exec(
         select(User).where(User.email == settings.FIRST_SUPERUSER)
@@ -312,3 +454,5 @@ def init_db(session: Session) -> None:
     seed_mascot_items(session)
     seed_property_tiers(session)
     seed_swipe_cards(session)
+    seed_game_cases(session)
+

@@ -1,5 +1,5 @@
-import { useState } from "react"
 import { FileText, Landmark, X } from "lucide-react"
+import { useState } from "react"
 
 export interface RealCase {
   id: string
@@ -20,7 +20,8 @@ const REAL_CASES: RealCase[] = [
     type: "買車/貸款詐欺",
     source: "臺中地院 110 年度訴字第 2430 號判決",
     date: "2022-08-31",
-    summary: "廣告宣稱低利率貸款買車，簽約與過戶後款項被撥走，但始終未交車。法院認定行使偽造私文書罪。",
+    summary:
+      "廣告宣稱低利率貸款買車，簽約與過戶後款項被撥走，但始終未交車。法院認定行使偽造私文書罪。",
     evidenceKey: "查核重點：核對實際車輛過戶授權與撥款受款對象。",
     unlocked: true,
   },
@@ -30,7 +31,8 @@ const REAL_CASES: RealCase[] = [
     type: "投資/合夥詐欺",
     source: "臺灣高等法院 114 年度上易字第 1123 號判決",
     date: "2025-10-02",
-    summary: "同一中古車投資案中，部分獲判有罪；另一投資人因曾有交易分潤報告，法院認事後未還本金不代表預謀詐欺。",
+    summary:
+      "同一中古車投資案中，部分獲判有罪；另一投資人因曾有交易分潤報告，法院認事後未還本金不代表預謀詐欺。",
     evidenceKey: "查核重點：曾收到利息/出金不能作為投資安全的充分證明。",
     unlocked: true,
   },
@@ -40,7 +42,8 @@ const REAL_CASES: RealCase[] = [
     type: "房產抵押/假檢警",
     source: "桃園地檢署 114 年地面師起訴案",
     date: "2025-05-21",
-    summary: "被害人先受投資話術引誘，再被介紹以不動產高利抵押借款，涉案專業人士甚至安排免責聲明作掩護。",
+    summary:
+      "被害人先受投資話術引誘，再被介紹以不動產高利抵押借款，涉案專業人士甚至安排免責聲明作掩護。",
     evidenceKey: "查核重點：專業人士與免責聲明不等於合法授權。",
     unlocked: true,
   },
@@ -50,7 +53,8 @@ const REAL_CASES: RealCase[] = [
     type: "建案/非法吸金",
     source: "桃園地檢署 115 年建案吸金案起訴新聞",
     date: "2026-07-22",
-    summary: "宣稱投資 9 個建案工程，約定年化 10-35% 報酬，實勘發現建案根本未動工或停工。",
+    summary:
+      "宣稱投資 9 個建案工程，約定年化 10-35% 報酬，實勘發現建案根本未動工或停工。",
     evidenceKey: "查核重點：必須獨立查核實體工程許可與實際進度。",
     unlocked: false,
   },
@@ -60,7 +64,8 @@ const REAL_CASES: RealCase[] = [
     type: "假交友/真人面交",
     source: "警察廣播電臺 114 年案件報導",
     date: "2025-01-07",
-    summary: "集團建立線上感情後，派真人男公關面交約會建立極高信任，再以公司周轉、生病為由借款。",
+    summary:
+      "集團建立線上感情後，派真人男公關面交約會建立極高信任，再以公司周轉、生病為由借款。",
     evidenceKey: "查核重點：打破『見過面就不是詐騙』的直覺迷思。",
     unlocked: true,
   },
@@ -70,7 +75,8 @@ const REAL_CASES: RealCase[] = [
     type: "假網拍/轉介客服",
     source: "內政部警政署 165 宣導報導",
     date: "2026-07-06",
-    summary: "網購接洽後收到假物流連結要求實名認證，隨後轉介假銀行人員引導操作網銀與無卡提款。",
+    summary:
+      "網購接洽後收到假物流連結要求實名認證，隨後轉介假銀行人員引導操作網銀與無卡提款。",
     evidenceKey: "查核重點：物流實名認證絕不需要進行金融匯款操作。",
     unlocked: true,
   },
@@ -96,8 +102,12 @@ export function FraudCaseMuseum({ isOpen, onClose }: FraudCaseMuseumProps) {
               <Landmark className="w-4 h-4" />
             </div>
             <div>
-              <h2 className="text-base font-bold text-white tracking-wide">真實防詐案件展覽館</h2>
-              <p className="text-xs text-slate-400">司法院裁判書與 165 官方起訴案情實錄</p>
+              <h2 className="text-base font-bold text-white tracking-wide">
+                真實防詐案件展覽館
+              </h2>
+              <p className="text-xs text-slate-400">
+                司法院裁判書與 165 官方起訴案情實錄
+              </p>
             </div>
           </div>
           <button
@@ -125,10 +135,14 @@ export function FraudCaseMuseum({ isOpen, onClose }: FraudCaseMuseumProps) {
                   <span className="text-[10px] bg-white/10 text-slate-200 border border-white/15 px-2 py-0.5 rounded font-medium">
                     {c.type}
                   </span>
-                  <span className="text-[11px] text-slate-400 font-mono">{c.date}</span>
+                  <span className="text-[11px] text-slate-400 font-mono">
+                    {c.date}
+                  </span>
                 </div>
                 <h3 className="font-bold text-sm text-slate-100">{c.title}</h3>
-                <p className="text-xs text-slate-400 line-clamp-1">{c.summary}</p>
+                <p className="text-xs text-slate-400 line-clamp-1">
+                  {c.summary}
+                </p>
               </div>
               <div className="text-right whitespace-nowrap">
                 {c.unlocked ? (
@@ -150,7 +164,9 @@ export function FraudCaseMuseum({ isOpen, onClose }: FraudCaseMuseumProps) {
         {selectedCase && (
           <div className="p-4 bg-slate-950 border-t border-white/10 space-y-3 animate-in slide-in-from-bottom duration-200">
             <div className="flex items-center justify-between">
-              <span className="text-xs text-slate-300 font-semibold">{selectedCase.source}</span>
+              <span className="text-xs text-slate-300 font-semibold">
+                {selectedCase.source}
+              </span>
               <button
                 onClick={() => setSelectedCase(null)}
                 className="text-xs text-slate-400 hover:text-white"
@@ -158,7 +174,9 @@ export function FraudCaseMuseum({ isOpen, onClose }: FraudCaseMuseumProps) {
                 收起
               </button>
             </div>
-            <p className="text-xs text-slate-200 leading-relaxed">{selectedCase.summary}</p>
+            <p className="text-xs text-slate-200 leading-relaxed">
+              {selectedCase.summary}
+            </p>
             <div className="bg-white/5 border border-white/15 p-2.5 rounded-lg text-xs text-slate-200 font-medium">
               查核要點：{selectedCase.evidenceKey}
             </div>

@@ -1,4 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
+import { Car } from "lucide-react"
 import { EconomyService } from "@/client"
 import { Button } from "@/components/ui/button"
 import { useEconomyMe } from "@/hooks/useEconomy"
@@ -47,18 +48,23 @@ export function VehicleSection() {
 
   return (
     <div className="mt-4 space-y-2">
-      <div className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
-        🚗 代步車輛資產
+      <div className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground flex items-center gap-1.5">
+        <Car className="w-3.5 h-3.5" />
+        <span>代步車輛資產</span>
       </div>
 
       <div className="rounded-xl border bg-card p-3 text-xs">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <span className="text-2xl">🚙</span>
+            <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-muted">
+              <Car className="w-5 h-5 text-slate-300" />
+            </div>
             <div>
               <div className="font-bold text-foreground">{vehicle.name}</div>
               <div className="text-muted-foreground">
-                {vehicle.is_owned ? "已登記持有" : `定價：${vehicle.price} 💰`}
+                {vehicle.is_owned
+                  ? "已登記持有"
+                  : `定價：$${vehicle.price.toLocaleString()}`}
               </div>
             </div>
           </div>
@@ -79,9 +85,9 @@ export function VehicleSection() {
         {vehicle.is_owned && (
           <div className="mt-3 rounded-lg border border-border/80 bg-muted/40 p-2.5">
             <div className="flex items-center justify-between font-bold">
-              <span>📋 車輛安全事件：{vehicle.follow_up_event_title}</span>
+              <span>車輛安全事件：{vehicle.follow_up_event_title}</span>
               {vehicle.follow_up_event_done ? (
-                <span className="text-green-600">✓ 產權乾淨</span>
+                <span className="text-green-600">產權查核完畢</span>
               ) : (
                 <span className="text-amber-600">待核實</span>
               )}
