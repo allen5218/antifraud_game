@@ -21,7 +21,7 @@ export const Route = createFileRoute("/_layout/items")({
   head: () => ({
     meta: [
       {
-        title: "Items - FastAPI Template",
+        title: "物品 - ScamGym 識詐練習場",
       },
     ],
   }),
