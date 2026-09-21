@@ -55,7 +55,7 @@ function VerdictReveal({ result }: { result: QuickQuizAnswerResponse }) {
           <li key={flag.text} className="text-xs leading-snug">
             {flag.tag ? "🚩" : "✅"} {flag.text}
             {flag.tag && (
-              <span className="ml-1 rounded bg-red-50 px-1 py-0.5 text-[9px] font-bold text-red-600 dark:bg-red-950">
+              <span className="ml-1 rounded bg-scam/15 px-1 py-0.5 text-[9px] font-bold text-scam">
                 {labelFor(flag.tag)}
               </span>
             )}
@@ -78,15 +78,15 @@ function TacticsReveal({ result }: { result: QuickQuizAnswerResponse }) {
     <>
       <div className="mt-3 grid gap-2 text-xs">
         <p>
-          <span className="font-bold text-green-600">正確話術：</span>
+          <span className="font-bold text-legit">正確話術：</span>
           {result.correct_tags.map(labelFor).join("、") || "無"}
         </p>
         <p>
-          <span className="font-bold text-amber-600">漏選：</span>
+          <span className="font-bold text-warning">漏選：</span>
           {result.missed_tags.map(labelFor).join("、") || "無"}
         </p>
         <p>
-          <span className="font-bold text-red-600">多選：</span>
+          <span className="font-bold text-scam">多選：</span>
           {result.extra_tags.map(labelFor).join("、") || "無"}
         </p>
       </div>
@@ -122,7 +122,7 @@ function MatchReveal({
               {prompts.get(pair.pair_id) ?? pair.pair_id}
             </p>
             <p
-              className={`mt-1 font-bold ${pair.correct ? "text-green-600" : "text-red-600"}`}
+              className={`mt-1 font-bold ${pair.correct ? "text-legit" : "text-scam"}`}
             >
               正解：{targets.get(pair.correct_tag) ?? "其他話術"}
             </p>
@@ -154,7 +154,7 @@ function VerificationReveal({
       <div className="mt-3 rounded-xl border p-3 text-xs">
         {/* 選項卡上的 A/B/C 是 aria-hidden 的視覺標記,螢幕閱讀器聽不到,
             所以這裡不能只報代號——只講選項文字才對得回去。 */}
-        <p className="font-bold text-green-600">
+        <p className="font-bold text-legit">
           <span aria-hidden="true">正解 {result.correct_key}：</span>
           <span className="sr-only">正解：</span>
           {correctOption?.text ?? ""}
@@ -187,7 +187,7 @@ export function QuizReveal({
       >
         <h3
           id="quiz-reveal-title"
-          className={`text-center text-lg font-extrabold ${result.correct ? "text-green-600" : "text-red-600"}`}
+          className={`text-center text-lg font-extrabold ${result.correct ? "text-legit" : "text-scam"}`}
         >
           {result.correct ? "✓ 答對了！" : "✗ 答錯了…"}
         </h3>

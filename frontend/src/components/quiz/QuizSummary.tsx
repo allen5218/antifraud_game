@@ -16,7 +16,7 @@ export function QuizSummary({ result, onRestart }: QuizSummaryProps) {
       <p className="text-sm text-muted-foreground">
         最佳連對 {result.best_streak}
       </p>
-      <p className="text-lg font-bold text-green-600">
+      <p className="text-lg font-bold text-legit">
         +${result.cash_earned.toLocaleString()} · +{result.xp_earned} XP
       </p>
       {result.weakness_summary.length > 0 && (
@@ -28,7 +28,7 @@ export function QuizSummary({ result, onRestart }: QuizSummaryProps) {
             {result.weakness_summary.map((w) => (
               <li
                 key={w.tag}
-                className="rounded-md bg-red-50 px-2 py-0.5 text-xs font-semibold text-red-600 dark:bg-red-950"
+                className="rounded-md bg-scam/15 px-2 py-0.5 text-xs font-semibold text-scam"
               >
                 {w.label} ×{w.count}
               </li>
