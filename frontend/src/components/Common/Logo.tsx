@@ -1,11 +1,6 @@
 import { Link } from "@tanstack/react-router"
 
-import { useTheme } from "@/components/theme-provider"
 import { cn } from "@/lib/utils"
-import icon from "/assets/images/fastapi-icon.svg"
-import iconLight from "/assets/images/fastapi-icon-light.svg"
-import logo from "/assets/images/fastapi-logo.svg"
-import logoLight from "/assets/images/fastapi-logo-light.svg"
 
 interface LogoProps {
   variant?: "full" | "icon" | "responsive"
@@ -13,43 +8,50 @@ interface LogoProps {
   asLink?: boolean
 }
 
+/**
+ * ScamGym 文字商標。
+ *
+ * 原本這裡直接引用 template 附帶的 fastapi-logo.svg，登入頁會掛著 FastAPI 的標誌。
+ * 尚未有正式視覺識別前，先以文字商標取代，避免對外顯示錯誤品牌。
+ * `variant` 的三種值沿用既有呼叫端語意：icon 只顯示縮寫，responsive 在側欄收合時退回縮寫。
+ */
 export function Logo({
   variant = "full",
   className,
   asLink = true,
 }: LogoProps) {
-  const { resolvedTheme } = useTheme()
-  const isDark = resolvedTheme === "dark"
-
-  const fullLogo = isDark ? logoLight : logo
-  const iconLogo = isDark ? iconLight : icon
+  const wordmark = (
+    <span className="whitespace-nowrap">
+      <span className="font-bold tracking-tight">ScamGym</span>
+      <span className="ml-2 text-muted-foreground">識詐練習場</span>
+    </span>
+  )
+  const shortmark = <span className="font-bold tracking-tight">SG</span>
 
   const content =
     variant === "responsive" ? (
-      <>
-        <img
-          src={fullLogo}
-          alt="FastAPI"
-          className={cn(
-            "h-6 w-auto group-data-[collapsible=icon]:hidden",
-            className,
-          )}
-        />
-        <img
-          src={iconLogo}
-          alt="FastAPI"
-          className={cn(
-            "size-5 hidden group-data-[collapsible=icon]:block",
-            className,
-          )}
-        />
-      </>
+      <span
+        className={cn("flex items-center text-base", className)}
+        role="img"
+        aria-label="ScamGym 識詐練習場"
+      >
+        <span className="group-data-[collapsible=icon]:hidden">{wordmark}</span>
+        <span className="hidden group-data-[collapsible=icon]:block">
+          {shortmark}
+        </span>
+      </span>
     ) : (
-      <img
-        src={variant === "full" ? fullLogo : iconLogo}
-        alt="FastAPI"
-        className={cn(variant === "full" ? "h-6 w-auto" : "size-5", className)}
-      />
+      <span
+        className={cn(
+          "flex items-center",
+          variant === "full" ? "text-xl" : "text-base",
+          className,
+        )}
+        role="img"
+        aria-label="ScamGym 識詐練習場"
+      >
+        {variant === "full" ? wordmark : shortmark}
+      </span>
     )
 
   if (!asLink) {
