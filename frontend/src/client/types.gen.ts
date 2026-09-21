@@ -135,6 +135,7 @@ export type PropertyTierPublic = {
 export type QuizAnswerRequest = {
     item_id: string;
     guess_is_scam?: (boolean | null);
+    selected_key?: (string | null);
     selected_tags?: (Array<(string)> | null);
     pairs?: ({
     [key: string]: (string);
@@ -157,7 +158,7 @@ export type QuizCompleteResponse = {
 
 export type QuizDeckResponse = {
     session_id: string;
-    items: Array<(QuizVerdictPublic | QuizTacticsPublic | QuizMatchPublic)>;
+    items: Array<(QuizVerdictPublic | QuizTacticsPublic | QuizMatchPublic | QuizVerificationPublic)>;
 };
 
 export type QuizMatchAnswerResponse = {
@@ -239,6 +240,31 @@ export type QuizVerdictPublic = {
     title: string;
     narrative: string;
     difficulty: number;
+};
+
+export type QuizVerificationAnswerResponse = {
+    type?: "verification";
+    correct: boolean;
+    correct_key: string;
+    explanation: string;
+    provenance: string;
+    tag_details: Array<QuizWeaknessDetail>;
+};
+
+export type QuizVerificationOption = {
+    key: string;
+    text: string;
+};
+
+export type QuizVerificationPublic = {
+    item_id: string;
+    type?: "verification";
+    fraud_type: string;
+    title: string;
+    narrative: string;
+    difficulty: number;
+    question: string;
+    options: Array<QuizVerificationOption>;
 };
 
 export type QuizWeaknessDetail = {
@@ -548,7 +574,7 @@ export type QuickQuizAnswerData = {
     requestBody: QuizAnswerRequest;
 };
 
-export type QuickQuizAnswerResponse = ((QuizVerdictAnswerResponse | QuizTacticsAnswerResponse | QuizMatchAnswerResponse));
+export type QuickQuizAnswerResponse = ((QuizVerdictAnswerResponse | QuizTacticsAnswerResponse | QuizMatchAnswerResponse | QuizVerificationAnswerResponse));
 
 export type QuickQuizCompleteData = {
     requestBody: QuizCompleteRequest;

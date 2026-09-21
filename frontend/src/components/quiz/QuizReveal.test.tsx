@@ -168,3 +168,68 @@ describe("<QuizReveal />", () => {
     expect(screen.getByText(/改編自:司法院判決/)).toBeTruthy()
   })
 })
+
+const verificationItem = {
+  item_id: "verif-1",
+  type: "verification" as const,
+  fraud_type: "atm",
+  title: "客服說今晚會扣款",
+  narrative: "有人自稱購物平台客服，說你被誤設成會員。",
+  difficulty: 1,
+  question: "接下來怎麼做比較好？",
+  options: [
+    { key: "A", text: "自己打開官方 App 查一次" },
+    { key: "B", text: "照對方給的連結操作" },
+    { key: "C", text: "先把款項匯出再說" },
+  ],
+}
+
+const verificationResult = {
+  type: "verification" as const,
+  correct: false,
+  correct_key: "A",
+  explanation: "不要跟著來電者操作，自己走官方管道查證。",
+  provenance: "改編自:內政部警政署假客服案例",
+  tag_details: [
+    {
+      tag: "authority",
+      label: "權威服從",
+      suggestion: "對方自稱官方時，掛掉電話自己打官方號碼",
+    },
+  ],
+}
+
+describe("<QuizReveal /> 查證題", () => {
+  it("顯示正解選項、解說與素材來源", () => {
+    render(
+      <QuizReveal
+        item={verificationItem}
+        result={verificationResult}
+        onNext={() => {}}
+        isLast={false}
+      />,
+    )
+
+    expect(screen.getByText(/正解 A/)).toBeDefined()
+    expect(screen.getByText(/自己打開官方 App 查一次/)).toBeDefined()
+    expect(
+      screen.getByText("不要跟著來電者操作，自己走官方管道查證。"),
+    ).toBeDefined()
+    // 四種題型的揭曉卡都要標素材來源。
+    expect(screen.getByText("📎 改編自:內政部警政署假客服案例")).toBeDefined()
+  })
+
+  it("不把其他選項當成正解顯示", () => {
+    render(
+      <QuizReveal
+        item={verificationItem}
+        result={verificationResult}
+        onNext={() => {}}
+        isLast={false}
+      />,
+    )
+
+    expect(screen.queryByText(/正解 B/)).toBeNull()
+    expect(screen.queryByText(/正解 C/)).toBeNull()
+  })
+})

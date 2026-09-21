@@ -550,6 +550,18 @@ export const QuizAnswerRequestSchema = {
             ],
             title: 'Guess Is Scam'
         },
+        selected_key: {
+            anyOf: [
+                {
+                    type: 'string',
+                    maxLength: 1
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Selected Key'
+        },
         selected_tags: {
             anyOf: [
                 {
@@ -659,6 +671,9 @@ export const QuizDeckResponseSchema = {
                     },
                     {
                         '$ref': '#/components/schemas/QuizMatchPublic'
+                    },
+                    {
+                        '$ref': '#/components/schemas/QuizVerificationPublic'
                     }
                 ],
                 discriminator: {
@@ -666,7 +681,8 @@ export const QuizDeckResponseSchema = {
                     mapping: {
                         match: '#/components/schemas/QuizMatchPublic',
                         tactics: '#/components/schemas/QuizTacticsPublic',
-                        verdict: '#/components/schemas/QuizVerdictPublic'
+                        verdict: '#/components/schemas/QuizVerdictPublic',
+                        verification: '#/components/schemas/QuizVerificationPublic'
                     }
                 }
             },
@@ -1009,6 +1025,104 @@ export const QuizVerdictPublicSchema = {
     type: 'object',
     required: ['item_id', 'fraud_type', 'title', 'narrative', 'difficulty'],
     title: 'QuizVerdictPublic'
+} as const;
+
+export const QuizVerificationAnswerResponseSchema = {
+    properties: {
+        type: {
+            type: 'string',
+            const: 'verification',
+            title: 'Type',
+            default: 'verification'
+        },
+        correct: {
+            type: 'boolean',
+            title: 'Correct'
+        },
+        correct_key: {
+            type: 'string',
+            title: 'Correct Key'
+        },
+        explanation: {
+            type: 'string',
+            title: 'Explanation'
+        },
+        provenance: {
+            type: 'string',
+            title: 'Provenance'
+        },
+        tag_details: {
+            items: {
+                '$ref': '#/components/schemas/QuizWeaknessDetail'
+            },
+            type: 'array',
+            title: 'Tag Details'
+        }
+    },
+    type: 'object',
+    required: ['correct', 'correct_key', 'explanation', 'provenance', 'tag_details'],
+    title: 'QuizVerificationAnswerResponse'
+} as const;
+
+export const QuizVerificationOptionSchema = {
+    properties: {
+        key: {
+            type: 'string',
+            title: 'Key'
+        },
+        text: {
+            type: 'string',
+            title: 'Text'
+        }
+    },
+    type: 'object',
+    required: ['key', 'text'],
+    title: 'QuizVerificationOption'
+} as const;
+
+export const QuizVerificationPublicSchema = {
+    properties: {
+        item_id: {
+            type: 'string',
+            title: 'Item Id'
+        },
+        type: {
+            type: 'string',
+            const: 'verification',
+            title: 'Type',
+            default: 'verification'
+        },
+        fraud_type: {
+            type: 'string',
+            title: 'Fraud Type'
+        },
+        title: {
+            type: 'string',
+            title: 'Title'
+        },
+        narrative: {
+            type: 'string',
+            title: 'Narrative'
+        },
+        difficulty: {
+            type: 'integer',
+            title: 'Difficulty'
+        },
+        question: {
+            type: 'string',
+            title: 'Question'
+        },
+        options: {
+            items: {
+                '$ref': '#/components/schemas/QuizVerificationOption'
+            },
+            type: 'array',
+            title: 'Options'
+        }
+    },
+    type: 'object',
+    required: ['item_id', 'fraud_type', 'title', 'narrative', 'difficulty', 'question', 'options'],
+    title: 'QuizVerificationPublic'
 } as const;
 
 export const QuizWeaknessDetailSchema = {

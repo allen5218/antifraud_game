@@ -27,4 +27,3 @@ def test_pretest_submit_response():
     )
     assert resp.weakest_type == "investment"
     assert resp.results_by_type["investment"].correct == 1
-

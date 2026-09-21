@@ -3,6 +3,7 @@ import { cleanup, fireEvent, render, screen } from "@testing-library/react"
 import { MatchQuestion } from "./MatchQuestion"
 import { TacticsQuestion } from "./TacticsQuestion"
 import { VerdictQuestion } from "./VerdictQuestion"
+import { VerificationQuestion } from "./VerificationQuestion"
 
 afterEach(cleanup)
 
@@ -117,5 +118,70 @@ describe("quiz 題型元件", () => {
       "pair-1": "time_pressure",
       "pair-2": "authority",
     })
+  })
+})
+
+describe("<VerificationQuestion />", () => {
+  const item = {
+    item_id: "verif-1",
+    type: "verification" as const,
+    fraud_type: "atm",
+    title: "客服說今晚會扣款",
+    narrative: "有人自稱購物平台客服，說你被誤設成會員。",
+    difficulty: 1,
+    question: "接下來怎麼做比較好？",
+    options: [
+      { key: "A", text: "自己打開官方 App 查一次" },
+      { key: "B", text: "照對方給的連結操作" },
+      { key: "C", text: "先把款項匯出再說" },
+    ],
+  }
+
+  it("沒選之前不能送出，選完才送出所選的 key", () => {
+    let submitted: string | null = null
+    render(
+      <VerificationQuestion
+        item={item}
+        index={0}
+        total={5}
+        disabled={false}
+        onSubmit={(key) => {
+          submitted = key
+        }}
+      />,
+    )
+
+    const submit = screen.getByRole("button", { name: "送出答案" })
+    expect(submit.hasAttribute("disabled")).toBe(true)
+
+    fireEvent.click(screen.getByRole("button", { name: /照對方給的連結操作/ }))
+    expect(submit.hasAttribute("disabled")).toBe(false)
+
+    // 送出前可以改答案。
+    fireEvent.click(
+      screen.getByRole("button", { name: /自己打開官方 App 查一次/ }),
+    )
+    fireEvent.click(submit)
+
+    expect(submitted).toBe("A")
+  })
+
+  it("題面不洩漏哪個是正解", () => {
+    render(
+      <VerificationQuestion
+        item={item}
+        index={0}
+        total={5}
+        disabled={false}
+        onSubmit={() => {}}
+      />,
+    )
+
+    for (const option of item.options) {
+      const button = screen.getByRole("button", {
+        name: new RegExp(option.text),
+      })
+      expect(button.getAttribute("aria-pressed")).toBe("false")
+    }
   })
 })

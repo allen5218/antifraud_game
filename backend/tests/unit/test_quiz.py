@@ -2,6 +2,7 @@ import pytest
 
 from app.core import quiz as quiz_core
 from app.core.cases import GameCaseRow
+from app.api.routes.quick import _cases_excluding
 from app.core.quiz import (
     _compose_deck,
     _match_candidates,
@@ -594,3 +595,35 @@ def test_select_quiz_material_relaxes_difficulty_before_mirrors() -> None:
     assert 3 in selected_ids
     assert not {1, 2} <= selected_ids
     assert material.mirror_relaxed_count == 0
+
+
+def _mirror_case(case_id: int, mirror_of: int | None) -> GameCaseRow:
+    return GameCaseRow(
+        id=case_id,
+        fraud_type="investment",
+        is_scam=mirror_of is None,
+        title="同一個情境的兩面",
+        narrative="敘事",
+        red_flags=[],
+        difficulty=1,
+        provenance="測試",
+        mirror_of=mirror_of,
+    )
+
+
+def test_cases_excluding_blocks_both_mirror_directions() -> None:
+    """查證題佔走一個案例時，它的鏡像兩個方向都要從選材池移除。
+
+    鏡像對的標題完全相同，同一副牌裡出現兩次會直接洩漏 verdict 題的答案。
+    只擋單一方向的話，80 副牌裡還是會漏幾副——實測過。
+    """
+    scam = _mirror_case(1, None)
+    legit = _mirror_case(2, mirror_of=1)
+    other = _mirror_case(3, None)
+
+    # 方向一：查證題佔走 scam，指向它的 legit 要被擋掉。
+    assert [c.id for c in _cases_excluding([scam, legit, other], {1})] == [3]
+    # 方向二：查證題佔走 legit，它指向的 scam 也要被擋掉。
+    assert [c.id for c in _cases_excluding([scam, legit, other], {2})] == [3]
+    # 沒有佔走任何案例時原樣回傳。
+    assert len(_cases_excluding([scam, legit, other], set())) == 3

@@ -2,7 +2,9 @@ from app.models import PropertyTier
 
 
 def test_property_tier_fields() -> None:
-    t = PropertyTier(id=1, name="雅房", svg_key="tier-1", price=1000, daily_income=5, unlock_level=1)
+    t = PropertyTier(
+        id=1, name="雅房", svg_key="tier-1", price=1000, daily_income=5, unlock_level=1
+    )
     assert t.id == 1
     assert t.daily_income == 5
 

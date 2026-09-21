@@ -10,13 +10,12 @@ from sqlmodel import Session, col, func, select
 
 from app.api.deps import CurrentUser, SessionDep
 from app.core.cases import (
-    VerificationQuestionRow,
+    GameCaseRow,
     get_case,
     list_published_for_quiz,
     list_published_verification_questions,
 )
 from app.core.quiz import (
-    QuizMaterial,
     case_tags,
     max_difficulty_for_level,
     score_match,
@@ -199,36 +198,29 @@ def _quiz_reward(correct_count: int, best_streak: int) -> tuple[int, int]:
     return cash, xp
 
 
-def _pick_verifications(
-    session: SessionDep,
-    *,
-    material: QuizMaterial,
-    max_difficulty: int | None,
-    quota: int,
-) -> list[VerificationQuestionRow]:
-    """取查證題，排除本副牌其他題型已用掉的母案例。
+def _cases_excluding(
+    cases: list[GameCaseRow], taken_case_ids: set[int]
+) -> list[GameCaseRow]:
+    """把已被查證題佔走的案例與其鏡像從選材池中移除。
 
-    同一個情境在一副牌裡出現兩次會讓玩家以為題庫很小，也會讓第二次的答案被第一次
-    的揭曉卡洩漏。
+    鏡像對是同一個情境的詐騙／正當兩面(標題完全相同),同時出現會直接洩漏
+    verdict 題的答案。**兩個方向都要擋**:被佔走的案例自己指向的鏡像,
+    以及反過來指向它的案例。
     """
-    if quota <= 0:
-        return []
-    used_cases = [
-        *material.verdict,
-        *material.tactics,
-        *(p.case for p in material.match),
+    if not taken_case_ids:
+        return cases
+    blocked = set(taken_case_ids)
+    blocked.update(
+        case.mirror_of
+        for case in cases
+        if case.id in taken_case_ids and case.mirror_of is not None
+    )
+    return [
+        case
+        for case in cases
+        if case.id not in blocked
+        and (case.mirror_of is None or case.mirror_of not in blocked)
     ]
-    used_case_ids = {case.id for case in used_cases}
-    # 另一個方向:已用案例自己指向的鏡像,也不能再被查證題帶進來。
-    used_case_ids.update(
-        case.mirror_of for case in used_cases if case.mirror_of is not None
-    )
-    return list_published_verification_questions(
-        session,
-        max_difficulty=max_difficulty,
-        exclude_case_ids=used_case_ids,
-        limit=quota,
-    )
 
 
 @router.get("/quiz/deck", response_model=QuizDeckResponse)
@@ -238,35 +230,22 @@ def quiz_deck(session: SessionDep, current_user: CurrentUser, size: int = 5) -> 
     cases = list_published_for_quiz(session)
     shuffle(cases)
 
-    # 查證題素材在另一張子表,可能不足配額。先照配額樂觀選材,取完查證題後若
-    # 真的不足(素材沒那麼多,或母案例已被其他題型用掉),再以實際題數重選一次,
-    # 讓 verdict/tactics 補回缺額——牌堆題數不能因此縮水。
-    quota = verification_quota(size)
+    # 查證題先選。它與案例題型互相排斥(同一個情境不能在一副牌出現兩次),
+    # 如果反過來先選案例題再挑查證題,兩邊的數量會互相牽動而收斂不了,
+    # 牌堆就會時多時少。先定版查證題、再把它佔走的案例從選材池移除,
+    # 剩下的缺額一律由 select_quiz_material 補滿,題數才穩定。
+    verifications = list_published_verification_questions(
+        session,
+        max_difficulty=max_difficulty,
+        limit=verification_quota(size),
+    )
+    taken_case_ids = {question.case_id for question in verifications}
     material = select_quiz_material(
-        cases,
+        _cases_excluding(cases, taken_case_ids),
         size=size,
         max_difficulty=max_difficulty,
-        verification_count=quota,
+        verification_count=len(verifications),
     )
-    verifications = _pick_verifications(
-        session,
-        material=material,
-        max_difficulty=max_difficulty,
-        quota=quota,
-    )
-    if len(verifications) < quota:
-        material = select_quiz_material(
-            cases,
-            size=size,
-            max_difficulty=max_difficulty,
-            verification_count=len(verifications),
-        )
-        verifications = _pick_verifications(
-            session,
-            material=material,
-            max_difficulty=max_difficulty,
-            quota=len(verifications),
-        )
 
     stored_items: list[dict[str, Any]] = []
     public_items: list[QuizDeckItem] = []

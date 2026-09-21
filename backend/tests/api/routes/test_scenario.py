@@ -15,7 +15,9 @@ def _test_user(db: Session) -> User:
     return user
 
 
-def _make_session(db: Session, user: User, *, role: str, **overrides) -> ScenarioSession:
+def _make_session(
+    db: Session, user: User, *, role: str, **overrides
+) -> ScenarioSession:
     values = dict(
         user_id=user.id,
         fraud_type="investment",
@@ -78,7 +80,10 @@ def test_read_scenario_hides_truth(
 
 
 def test_message_appends_history_and_counts_turns(
-    client: TestClient, db: Session, normal_user_token_headers: dict[str, str], monkeypatch
+    client: TestClient,
+    db: Session,
+    normal_user_token_headers: dict[str, str],
+    monkeypatch,
 ) -> None:
     monkeypatch.setattr("app.scenario.agent.generate_reply", _fake_reply)
     sc = _make_session(db, _test_user(db), role="scam")
@@ -101,7 +106,10 @@ def test_message_appends_history_and_counts_turns(
 
 
 def test_message_turn_limit(
-    client: TestClient, db: Session, normal_user_token_headers: dict[str, str], monkeypatch
+    client: TestClient,
+    db: Session,
+    normal_user_token_headers: dict[str, str],
+    monkeypatch,
 ) -> None:
     monkeypatch.setattr("app.scenario.agent.generate_reply", _fake_reply)
     sc = _make_session(db, _test_user(db), role="scam", player_turns=10)
@@ -243,8 +251,12 @@ def test_new_scenario_daily_limit(
     db.commit()
     for _ in range(3):
         _make_session(
-            db, user, role="scam", fraud_type="romance",
-            status=ScenarioStatus.COMPLETED, outcome="win_report",
+            db,
+            user,
+            role="scam",
+            fraud_type="romance",
+            status=ScenarioStatus.COMPLETED,
+            outcome="win_report",
             completed_at=datetime.now(timezone.utc),
         )
     r = client.post(
@@ -286,7 +298,9 @@ def test_bootstrap_fills_case_id(
     ).all():
         db.delete(s)
     db.commit()
-    r = client.get(f"{settings.API_V1_STR}/scenario/inbox", headers=normal_user_token_headers)
+    r = client.get(
+        f"{settings.API_V1_STR}/scenario/inbox", headers=normal_user_token_headers
+    )
     assert r.status_code == 200
     ids = [i["id"] for i in r.json()]
     sessions = [db.get(ScenarioSession, uuid.UUID(i)) for i in ids]
@@ -294,6 +308,7 @@ def test_bootstrap_fills_case_id(
     assert all(s is not None and s.case_id is not None for s in sessions)
     # case 的 stance 必須與 persona_role 一致
     from app.core.cases import get_case
+
     for s in sessions:
         assert s is not None and s.case_id is not None
         case = get_case(db, s.case_id)
@@ -304,6 +319,7 @@ def test_judge_returns_case_provenance(
     client: TestClient, db: Session, normal_user_token_headers: dict[str, str]
 ) -> None:
     from app.core.cases import pick_case
+
     case = pick_case(db, fraud_type="investment", is_scam=True)
     assert case is not None
     sc = _make_session(db, _test_user(db), role="scam", case_id=case.id)
