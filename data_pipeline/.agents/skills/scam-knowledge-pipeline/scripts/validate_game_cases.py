@@ -119,54 +119,61 @@ def semantic_errors(rec):
     return errors
 
 
-parser = argparse.ArgumentParser(description="Validate game_cases draft JSONL.")
-parser.add_argument("--input", required=True)
-parser.add_argument("--valid-output", required=True)
-parser.add_argument("--reject-output", required=True)
-args = parser.parse_args()
+def main():
+    parser = argparse.ArgumentParser(description="Validate game_cases draft JSONL.")
+    parser.add_argument("--input", required=True)
+    parser.add_argument("--valid-output", required=True)
+    parser.add_argument("--reject-output", required=True)
+    args = parser.parse_args()
 
-schema_validator = load_schema_validator()
-input_rows = list(read_jsonl(args.input))
-records_by_key = {
-    rec.get("case_key"): rec
-    for _, rec in input_rows
-    if "__json_error__" not in rec and rec.get("case_key")
-}
-seen_keys, valid, rejected = set(), [], []
-for line_no, rec in input_rows:
-    errors = []
-    if "__json_error__" in rec:
-        errors = [rec["__json_error__"]]
-    else:
-        if schema_validator is not None:
-            for e in sorted(
-                schema_validator.iter_errors(rec), key=lambda e: list(e.path)
+    schema_validator = load_schema_validator()
+    input_rows = list(read_jsonl(args.input))
+    records_by_key = {
+        rec.get("case_key"): rec
+        for _, rec in input_rows
+        if "__json_error__" not in rec and rec.get("case_key")
+    }
+    seen_keys, valid, rejected = set(), [], []
+    for line_no, rec in input_rows:
+        errors = []
+        if "__json_error__" in rec:
+            errors = [rec["__json_error__"]]
+        else:
+            if schema_validator is not None:
+                for e in sorted(
+                    schema_validator.iter_errors(rec), key=lambda e: list(e.path)
+                ):
+                    errors.append(
+                        f"{'.'.join(str(p) for p in e.path) or '<root>'}: {e.message}"
+                    )
+            errors.extend(semantic_errors(rec))
+            mirror_key = rec.get("mirror_of_key")
+            mirror = records_by_key.get(mirror_key)
+            if (
+                not rec.get("is_scam")
+                and mirror
+                and mirror.get("is_scam")
+                and rec.get("title") != mirror.get("title")
             ):
                 errors.append(
-                    f"{'.'.join(str(p) for p in e.path) or '<root>'}: {e.message}"
+                    f"mirror title must match {mirror_key}: "
+                    f"{rec.get('title')!r} != {mirror.get('title')!r}"
                 )
-        errors.extend(semantic_errors(rec))
-        mirror_key = rec.get("mirror_of_key")
-        mirror = records_by_key.get(mirror_key)
-        if (
-            not rec.get("is_scam")
-            and mirror
-            and mirror.get("is_scam")
-            and rec.get("title") != mirror.get("title")
-        ):
-            errors.append(
-                f"mirror title must match {mirror_key}: "
-                f"{rec.get('title')!r} != {mirror.get('title')!r}"
-            )
-        key = rec.get("case_key")
-        if key in seen_keys:
-            errors.append(f"duplicate case_key: {key}")
-        seen_keys.add(key)
-    (rejected if errors else valid).append(
-        {"line": line_no, "errors": errors, "record": rec} if errors else rec
-    )
+            key = rec.get("case_key")
+            if key in seen_keys:
+                errors.append(f"duplicate case_key: {key}")
+            seen_keys.add(key)
+        (rejected if errors else valid).append(
+            {"line": line_no, "errors": errors, "record": rec} if errors else rec
+        )
 
-write_jsonl(args.valid_output, valid)
-write_jsonl(args.reject_output, rejected)
-print(json.dumps({"valid": len(valid), "rejected": len(rejected)}, ensure_ascii=False))
-raise SystemExit(1 if rejected else 0)
+    write_jsonl(args.valid_output, valid)
+    write_jsonl(args.reject_output, rejected)
+    print(
+        json.dumps({"valid": len(valid), "rejected": len(rejected)}, ensure_ascii=False)
+    )
+    raise SystemExit(1 if rejected else 0)
+
+
+if __name__ == "__main__":
+    main()

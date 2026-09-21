@@ -167,3 +167,76 @@ legit 可填選填的 `surface_tag`，表示案例刻意帶有哪一種「表面
 - `status` 升級（`draft` → `reviewed` → `published`）必須經人工審核，並由
   操作者手動執行，或在使用者明確授權下執行。遊戲後端只讀取
   `status='published'` 的案例，因此草稿入庫後仍需人工審核才會上線。
+
+## 查證題資料管線
+
+`game_case_questions` 和 `game_cases` 都由 data_pipeline 管理，不歸 Alembic。
+草稿契約見 `schemas/game_case_question.schema.json`；用 `case_key` 指向母案例，
+入庫才換成 `case_id`。省略 `version` 時視為 1；`provenance` 省略或為 null
+代表遊戲端沿用母案例出處。五個合法 `weakness_tag` 以
+`backend/app/core/weakness.py` 為準，測試會核對草稿 schema 與其一致。
+
+### 怎麼出一題不洩題的查證題（實測過，照這個寫）
+
+**誘答項必須是「別的情境下的正解」**，不能是放諸四海皆錯的建議。
+
+第一版六題我刻意避開了「正解是唯一謹慎選項」這個陷阱，驗證器全過、
+選項長度相近、誘答項也含查證字樣——`verify` 探針仍然量到 **100% 洩題**
+（打亂正解位置重跑還是 100%，所以不是位置偏好，是真的內容洩題）。
+
+原因是誘答項寫成了「照對方給的連結操作」「先把款項匯出再說」這種
+**不看題幹也知道錯**的選項。玩家不必讀情境就能刪到只剩一個。
+
+改成三個選項**都是正當的查證管道**，差別只在哪一個適用於這個情境：
+
+```
+接下來用哪個方式查最合適？
+A 打開原本的銀行 App，從主選單查      ← App 內通知時的正解
+B 掛掉電話，改撥卡片背面的客服        ← 接到來電時的正解
+C 打 165 查證這個來電號碼             ← 對方不是既有往來機構時的正解
+```
+
+同一組選項可以橫跨多題，正解隨題幹而變。實測 **33.3%，正好等於隨機基準線**。
+
+驗證器擋不到這件事（它只看用詞與長度），**一定要跑 `verify` 探針**。
+
+在 repo 根目錄執行（`SK` 只是腳本路徑）：
+
+```bash
+SK=data_pipeline/.agents/skills/scam-knowledge-pipeline/scripts
+uv run python "$SK/validate_case_questions.py" \
+  --input questions.jsonl --valid-output questions.valid.jsonl \
+  --reject-output questions.rejected.jsonl
+uv run python "$SK/ingest_game_cases.py" --kind questions \
+  --input questions.valid.jsonl --env-file /path/to/curation.env
+# 檢視 dry-run 後才加 --apply；寫入仍一律是 draft。
+```
+
+validator 檢查正解 key 存在、選項 key 唯一、最長選項不超過最短的兩倍、
+正解不可獨占查證用語、`question_key/version` 不重複、問題／每個選項／解析
+皆去識別化，以及解析不可完全照抄正解。選項字數採去除頭尾空白後的字元數。
+同批每個案例最多兩題，而且 `next_action`、`evidence_scope` 各最多一題；
+整批案例數不得少於題數的一半。超額案例的所有題都拒絕，批次分散度不足則
+整批拒絕，避免輸入排序決定哪些題倖存。這些是輸入批次檢查，改版時請用
+本次要驗收的版本組成批次，不要把同案例同題型的歷史版本混入。
+
+入庫會重新驗證，查不到母案例或出處文件、已有非 draft 的同 key/version
+都會回報拒絕並在寫入前中止。既有 draft 可 upsert；已策展題請新增 version。
+子題與母案例都經人工發布後，`export_published_seed.py` 才會一併匯出；
+匯出包含雙表 schema、先母後子的 COPY、兩個 sequence，檔尾只有一個換行。
+
+查證題的洩題探針會呼叫 LLM，需設定 `GOOGLE_API_KEY`：
+
+```bash
+uv run python "$SK/leak_probe.py" --input questions.valid.jsonl \
+  --probe verify --fail-over 0.5 --json-output verify-report.json
+uv run python "$SK/leak_probe.py" --from-dump /path/to/seed.sql --probe verify
+```
+
+模型只看到 `question` 和選項 key／text，完全看不到母案例 title／narrative、
+正解、解析或出處。報表的 `baseline` 是有效量測題逐題 `1/選項數` 的平均，
+`leak_rate` 是實際命中率；三選一基準為 33.3%，四選一為 25%。明顯高於
+基準代表選項本身洩答案，範例的 `0.5` 是操作者設定的絕對命中率門檻，
+不是統計顯著性檢定。呼叫失敗／無效選項會排除計分並以 exit 1 回報量測錯誤。
+`--probe all` 包含 verify；查證題 JSONL 需單獨跑 verify，混合探針請讀雙表
+種子檔或資料庫。單元測試用注入模型回應驗證，不呼叫真實 LLM。

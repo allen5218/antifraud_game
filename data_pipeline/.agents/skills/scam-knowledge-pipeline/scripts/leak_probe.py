@@ -7,12 +7,13 @@
 玩家不需要懂反詐,只要看敘述者表態了什麼就能滿分——這是體裁層級的洩題,
 把「官方保障」之類的刻意字眼刪掉並不會修好它。
 
-四種探針(可疊加):
+五種探針(可疊加):
   lexical  純規則、免 API、可放進 CI:用結尾句式關鍵詞分類。
   match    純規則、免 API:逐句檢查 red_flag 是否洩漏自己 tag 或誤導到其他 tag。
   genre    LLM 探針,明令禁止使用反詐知識,只問「敘述者有沒有自己把答案講出來」,
            並回報是哪一句講的。
   title    只看標題判斷(標題本身也會洩題)。
+  verify   遮掉母案例，只看查證問題與選項猜答案；基準線為 1/選項數。
 
 另可用 --tag-balance 統計五種 tag 的出現次數、fraud_type 涵蓋與 tactics
 合格題數；--min-tag-count N 可作為 CI 最低素材量門檻。
@@ -150,11 +151,11 @@ def _unescape_copy(value):
     return "".join(out)
 
 
-def load_from_dump(path, published_only=True):
+def _load_dump_rows(path, table, published_only=True):
     """從 committed 的 pg_dump 種子檔讀取——免 DB、免 API,CI 也跑得動。"""
     with open(path, encoding="utf-8") as f:
         lines = f.read().splitlines()
-    header_re = re.compile(r"^COPY public\.game_cases \(([^)]*)\) FROM stdin;")
+    header_re = re.compile(rf"^COPY public\.{re.escape(table)} \(([^)]*)\) FROM stdin;")
     start, cols = None, None
     for idx, line in enumerate(lines):
         m = header_re.match(line)
@@ -163,18 +164,25 @@ def load_from_dump(path, published_only=True):
             cols = [c.strip() for c in m.group(1).split(",")]
             break
     if start is None:
-        raise SystemExit(f"找不到 game_cases 的 COPY 區塊: {path}")
+        raise SystemExit(f"找不到 {table} 的 COPY 區塊: {path}")
 
     cases = []
-    for line in lines[start:]:
+    for line_no, line in enumerate(lines[start:], start + 1):
         if line == r"\.":
             break
         values = [_unescape_copy(v) for v in line.split("\t")]
         if len(values) != len(cols):
-            continue
+            raise SystemExit(f"{path}:{line_no}: {table} COPY 欄位數不符")
         row = dict(zip(cols, values))
         if published_only and row.get("status") != "published":
             continue
+        cases.append(row)
+    return cases
+
+
+def load_from_dump(path, published_only=True):
+    cases = []
+    for row in _load_dump_rows(path, "game_cases", published_only):
         cases.append(
             {
                 "id": row.get("id"),
@@ -362,7 +370,7 @@ def _lenient_parse(text):
         }, True
 
 
-def _gemini_json(system, user, *, model, api_key, retries=1):
+def _gemini_json(system, user, *, model, api_key, retries=1, response_schema=None):
     url = (
         f"https://generativelanguage.googleapis.com/v1beta/models/"
         f"{model}:generateContent?key={api_key}"
@@ -373,7 +381,7 @@ def _gemini_json(system, user, *, model, api_key, retries=1):
         "generationConfig": {
             "temperature": 0,
             "responseMimeType": "application/json",
-            "responseSchema": RESPONSE_SCHEMA,
+            "responseSchema": response_schema or RESPONSE_SCHEMA,
         },
     }
     last_error = ""
@@ -390,15 +398,25 @@ def _gemini_json(system, user, *, model, api_key, retries=1):
             # 不吞錯:留下原始 body 讓失敗可診斷,而不是靜靜算成棄權
             last_error = f"{type(exc).__name__}: {exc} | raw={resp['body'][:600]}"
             continue
-        parsed, lenient = _lenient_parse(text)
+        if response_schema is None:
+            parsed, lenient = _lenient_parse(text)
+        else:
+            try:
+                parsed, lenient = json.loads(text), False
+                if not isinstance(parsed, dict):
+                    parsed = None
+            except ValueError:
+                parsed, lenient = None, False
         if parsed is not None:
             parsed["__lenient__"] = lenient
             return parsed
-        last_error = f"無法從模型輸出取出 verdict | text={text[:600]}"
+        last_error = f"無法解析模型輸出 | text={text[:600]}"
     return {"__error__": last_error}
 
 
 def probe_llm(case, *, system, field, model, api_key):
+    if field == "verify":
+        return probe_verify(case, model=model, api_key=api_key)
     content = case["title"] if field == "title" else case["narrative"]
     result = _gemini_json(system, content, model=model, api_key=api_key)
     if "__error__" in result:
@@ -417,6 +435,148 @@ def probe_llm(case, *, system, field, model, api_key):
         "confidence": result.get("confidence"),
         "lenient": bool(result.get("__lenient__")),
     }
+
+
+VERIFY_SYSTEM = """你在測試選擇題是否洩漏答案。母案例的標題與敘事已完全遮蔽。
+只依問題文字與選項猜最可能的正解，不得自行補出案例情節。
+必須選一個 option key，輸出 JSON：{"selected_key": "選項 key", "reason": "判斷原因"}。"""
+
+
+def check_probe_question(rec):
+    """量測前確認計分所需欄位；不套洩題規則，否則無法量測壞題。"""
+    if not isinstance(rec, dict) or not isinstance(rec.get("question"), str):
+        raise ValueError("查證題缺少 question 文字")
+    options = rec.get("options")
+    if not isinstance(options, list) or len(options) < 2:
+        raise ValueError("查證題至少需要兩個選項")
+    if any(
+        not isinstance(o, dict)
+        or not isinstance(o.get("key"), str)
+        or not isinstance(o.get("text"), str)
+        for o in options
+    ):
+        raise ValueError("選項必須包含 key 與 text")
+    keys = [o["key"] for o in options]
+    if len(set(keys)) != len(keys) or rec.get("correct_key") not in keys:
+        raise ValueError("選項 key 重複或 correct_key 不在選項中")
+    return rec
+
+
+def load_questions_from_jsonl(path):
+    rows = []
+    for line, rec in read_jsonl(path):
+        try:
+            rows.append(check_probe_question(rec))
+        except ValueError as exc:
+            raise SystemExit(f"{path}:{line}: {exc}") from exc
+    return rows
+
+
+def load_questions_from_dump(path, published_only=True):
+    parents = {
+        row["id"]: row for row in _load_dump_rows(path, "game_cases", published_only)
+    }
+    questions = []
+    for row in _load_dump_rows(path, "game_case_questions", published_only):
+        parent = parents.get(row["case_id"])
+        if parent is None:
+            continue
+        row["options"] = json.loads(row["options"])
+        row["version"] = int(row["version"])
+        row["case_key"] = parent["case_key"]
+        questions.append(check_probe_question(row))
+    return questions
+
+
+def load_questions_from_db(published_only=True):
+    where = (
+        "WHERE q.status = 'published' AND gc.status = 'published'"
+        if published_only
+        else ""
+    )
+    rows = json.loads(
+        psql_scalar(
+            "SELECT COALESCE(json_agg(row_to_json(t)), '[]'::json) FROM ("
+            "SELECT q.*, gc.case_key FROM game_case_questions q "
+            "JOIN game_cases gc ON gc.id = q.case_id " + where + " ORDER BY q.id) t;"
+        )
+    )
+    return [check_probe_question(row) for row in rows]
+
+
+def probe_verify(question, *, model, api_key):
+    # 明列允許欄位；不能把 case、correct_key、explanation 或其他後設資料送給模型。
+    content = json.dumps(
+        {
+            "question": question["question"],
+            "options": [
+                {"key": o["key"], "text": o["text"]} for o in question["options"]
+            ],
+        },
+        ensure_ascii=False,
+    )
+    keys = [o["key"] for o in question["options"]]
+    result = _gemini_json(
+        VERIFY_SYSTEM,
+        content,
+        model=model,
+        api_key=api_key,
+        response_schema={
+            "type": "OBJECT",
+            "properties": {
+                "selected_key": {"type": "STRING", "enum": keys},
+                "reason": {"type": "STRING"},
+            },
+            "required": ["selected_key", "reason"],
+        },
+    )
+    predicted = result.get("selected_key")
+    if "__error__" in result or predicted not in keys:
+        return {
+            "predicted_key": None,
+            "error": result.get("__error__", "模型未回傳有效選項 key"),
+        }
+    return {"predicted_key": predicted, "reason": str(result.get("reason", ""))}
+
+
+def verify_score(rows):
+    scored = [row for row in rows if not row.get("error")]
+    n = len(scored)
+    correct = sum(row["predicted_key"] == row["correct_key"] for row in scored)
+    baseline = sum(1 / len(row["options"]) for row in scored) / n if n else None
+    return {
+        "total": len(rows),
+        "errors": len(rows) - n,
+        "scored": n,
+        "correct": correct,
+        "wrong": n - correct,
+        "baseline": round(baseline, 4) if baseline is not None else None,
+        "leak_rate": round(correct / n, 4) if n else None,
+        "above_baseline": round(correct / n - baseline, 4) if n else None,
+    }
+
+
+def print_verify_report(rows, *, detail_limit=0):
+    summary = verify_score(rows)
+    print(f"\n{'=' * 66}\n探針:verify（遮掉母案例，只看問題與選項）\n{'=' * 66}")
+    if summary["leak_rate"] is None:
+        print(f"  無有效資料（呼叫失敗 {summary['errors']} 題）")
+        return summary
+    print(f"  隨機基準線        {summary['baseline']:>7.1%}（逐題 1/選項數的平均）")
+    print(
+        f"  實測命中率 leak_rate {summary['leak_rate']:>7.1%}  {_bar(summary['leak_rate'])}"
+    )
+    print(
+        f"  高於基準線        {summary['above_baseline']:>+7.1%}；明顯偏高代表選項本身洩答案"
+    )
+    print(
+        f"  猜對 {summary['correct']} / 猜錯 {summary['wrong']}；有效 {summary['scored']}/{summary['total']}，呼叫失敗 {summary['errors']} 題已排除"
+    )
+    for row in rows[:detail_limit]:
+        print(
+            f"    {row.get('question_key')} v{row.get('version', 1)}: 猜 {row['predicted_key']} / 正解 {row['correct_key']} {row.get('error') or row.get('reason', '')}"
+        )
+    return summary
 
 
 # ── 計分 ────────────────────────────────────────────────────
@@ -611,7 +771,7 @@ def main():
     p.add_argument(
         "--probe",
         default="lexical",
-        help="逗號分隔:lexical(免費) / match(免費) / genre(LLM) / title(LLM) / all。預設 lexical",
+        help="逗號分隔:lexical(免費) / match(免費) / genre(LLM) / title(LLM) / verify(LLM，遮掉案例) / all。預設 lexical",
     )
     p.add_argument(
         "--tag-balance",
@@ -645,25 +805,56 @@ def main():
     if args.env_file:
         load_env(args.env_file)
 
-    published_only = not args.all_statuses
-    if args.from_dump:
-        cases = load_from_dump(args.from_dump, published_only)
-    elif args.from_db:
-        cases = load_from_db(published_only)
-    else:
-        cases = load_from_jsonl(args.input)
-    if args.limit:
-        cases = cases[: args.limit]
-    if not cases:
-        raise SystemExit("沒有題目可量測")
-
     probes = [x.strip() for x in args.probe.split(",") if x.strip()]
     if "all" in probes:
-        probes = ["lexical", "lexical-tail", "match", "genre", "title"]
+        probes = ["lexical", "lexical-tail", "match", "genre", "title", "verify"]
+    unknown = set(probes) - {
+        "lexical",
+        "lexical-tail",
+        "match",
+        "genre",
+        "title",
+        "verify",
+    }
+    if unknown:
+        raise SystemExit(f"未知探針: {', '.join(sorted(unknown))}")
+    if (
+        args.input
+        and "verify" in probes
+        and (any(x != "verify" for x in probes) or args.tag_balance)
+    ):
+        raise SystemExit(
+            "查證題 JSONL 請單獨使用 --probe verify；混合探針請用 --from-dump 或 --from-db"
+        )
+    published_only = not args.all_statuses
+    cases, questions = [], []
+    if "verify" in probes:
+        if args.from_dump:
+            questions = load_questions_from_dump(args.from_dump, published_only)
+        elif args.from_db:
+            questions = load_questions_from_db(published_only)
+        else:
+            questions = load_questions_from_jsonl(args.input)
+        if args.limit:
+            questions = questions[: args.limit]
+        if not questions:
+            raise SystemExit("沒有查證題可量測")
+    if any(probe != "verify" for probe in probes) or args.tag_balance:
+        if args.from_dump:
+            cases = load_from_dump(args.from_dump, published_only)
+        elif args.from_db:
+            cases = load_from_db(published_only)
+        else:
+            cases = load_from_jsonl(args.input)
+        if args.limit:
+            cases = cases[: args.limit]
+        if not cases:
+            raise SystemExit("沒有題目可量測")
+
     if args.min_tag_count is not None and not args.tag_balance:
         raise SystemExit("--min-tag-count 必須搭配 --tag-balance")
 
-    needs_llm = any(x in probes for x in ("genre", "title"))
+    needs_llm = any(x in probes for x in ("genre", "title", "verify"))
     api_key = os.environ.get(args.api_key_env, "")
     if needs_llm and not api_key:
         raise SystemExit(
@@ -671,10 +862,31 @@ def main():
         )
 
     scam_n = sum(1 for c in cases if c["is_scam"])
-    print(f"題數:{len(cases)}(詐騙 {scam_n} / 正當 {len(cases) - scam_n})")
+    if cases:
+        print(f"題數:{len(cases)}(詐騙 {scam_n} / 正當 {len(cases) - scam_n})")
+    if questions:
+        print(f"查證題數:{len(questions)}")
 
     results, summary = {}, {}
     for probe in probes:
+        if probe == "verify":
+            with ThreadPoolExecutor(max_workers=max(1, args.concurrency)) as pool:
+                probed = list(
+                    pool.map(
+                        lambda q: probe_llm(
+                            q,
+                            system=VERIFY_SYSTEM,
+                            field="verify",
+                            model=args.model,
+                            api_key=api_key,
+                        ),
+                        questions,
+                    )
+                )
+            rows = [dict(q, **r) for q, r in zip(questions, probed)]
+            results[probe] = rows
+            summary[probe] = print_verify_report(rows, detail_limit=args.detail)
+            continue
         if probe == "lexical":
             rows = [dict(c, **probe_lexical(c, "full")) for c in cases]
             label = "lexical(全文關鍵詞,免 API)"
@@ -734,7 +946,9 @@ def main():
             )
         print(f"\n逐題結果已寫入 {args.json_output}")
 
-    exit_code = 0
+    exit_code = 1 if summary.get("verify", {}).get("errors") else 0
+    if exit_code:
+        print("\n✗ verify 有量測錯誤，請排除錯誤後重跑", file=sys.stderr)
     if args.fail_over is not None:
         breached = {
             k: v["leak_rate"]
@@ -744,7 +958,7 @@ def main():
         if breached:
             print(f"\n✗ 洩題率超過門檻 {args.fail_over}: {breached}", file=sys.stderr)
             exit_code = 1
-        else:
+        elif not exit_code:
             print(f"\n✓ 所有探針洩題率都在門檻 {args.fail_over} 以內")
 
     if args.min_tag_count is not None:
