@@ -472,12 +472,32 @@ def load_questions_from_jsonl(path):
     return rows
 
 
+def _latest_version_by_key(rows):
+    """每個 question_key 的最大 version——不分狀態,與後端發牌的判斷一致。"""
+    latest = {}
+    for row in rows:
+        key = row["question_key"]
+        version = int(row["version"])
+        if version > latest.get(key, -1):
+            latest[key] = version
+    return latest
+
+
 def load_questions_from_dump(path, published_only=True):
     parents = {
         row["id"]: row for row in _load_dump_rows(path, "game_cases", published_only)
     }
+    # 版本判斷必須看「全部狀態」的列再篩發布狀態,順序不能顛倒:
+    # 先濾掉 draft 的話,v2=draft 會消失、v1=published 變成最大版本,
+    # 於是量到一題後端根本不會發的舊題。
+    all_rows = _load_dump_rows(path, "game_case_questions", published_only=False)
+    latest = _latest_version_by_key(all_rows)
     questions = []
-    for row in _load_dump_rows(path, "game_case_questions", published_only):
+    for row in all_rows:
+        if int(row["version"]) != latest[row["question_key"]]:
+            continue
+        if published_only and row.get("status") != "published":
+            continue
         parent = parents.get(row["case_id"])
         if parent is None:
             continue
@@ -489,10 +509,16 @@ def load_questions_from_dump(path, published_only=True):
 
 
 def load_questions_from_db(published_only=True):
+    # 舊版本一律排除:量測集合要跟發牌集合完全一致,否則舊版猜錯會稀釋掉
+    # 新版的洩題率,讓實際會發出去的題目矇混過關。
+    latest_only = (
+        " q.version = (SELECT max(v.version) FROM game_case_questions v"
+        " WHERE v.question_key = q.question_key)"
+    )
     where = (
-        "WHERE q.status = 'published' AND gc.status = 'published'"
+        "WHERE q.status = 'published' AND gc.status = 'published' AND" + latest_only
         if published_only
-        else ""
+        else "WHERE" + latest_only
     )
     rows = json.loads(
         psql_scalar(

@@ -10,7 +10,11 @@ from sqlmodel import Session, select
 
 from app.api.routes import quick as quick_routes
 from app.core import quiz as quiz_core
-from app.core.cases import get_case, list_published_for_quiz
+from app.core.cases import (
+    get_case,
+    list_published_for_quiz,
+    list_published_verification_questions,
+)
 from app.core.config import settings
 from app.core.quiz import case_tags
 from app.models import QuizSession, User
@@ -1107,3 +1111,60 @@ def test_deck_omits_match_when_material_is_insufficient(
     assert types.count("verdict") == 3
     assert types.count("tactics") == 1
     assert types.count("verification") == 1
+
+
+def _case_id(db: Session, case_key: str) -> int:
+    row = db.execute(
+        text("SELECT id FROM game_cases WHERE case_key = :k"), {"k": case_key}
+    ).first()
+    assert row is not None, f"fixture 少了 {case_key}"
+    return int(row[0])
+
+
+def test_verification_exclusion_blocks_mirror_in_both_directions(
+    db: Session,
+) -> None:
+    """排除一個案例時,它的鏡像對面也要一起擋掉——兩個方向都要。
+
+    `mirror_of` 是單向欄位:fixture 裡只有 pytest-investment-legit 指向
+    pytest-investment-scam-a,scam-a 自己的 mirror_of 是 NULL。只寫
+    「候選的 mirror_of 在排除名單裡」這一條的話,排除 legit 時擋不住 scam-a。
+    鏡像對標題完全相同,同副出現等於把 verdict 題的答案寫在畫面上。
+    """
+    legit_id = _case_id(db, "pytest-investment-legit")
+    scam_id = _case_id(db, "pytest-investment-scam-a")
+
+    # 正向:候選(legit)的 mirror_of 指向被排除的 scam
+    forward = list_published_verification_questions(
+        db, exclude_case_ids={scam_id}, limit=50
+    )
+    assert all(q.case_id != legit_id for q in forward)
+
+    # 反向:被排除的 legit 指向候選(scam)——舊版漏的就是這條
+    reverse = list_published_verification_questions(
+        db, exclude_case_ids={legit_id}, limit=50
+    )
+    assert all(q.case_id != scam_id for q in reverse)
+
+
+def test_picked_verification_questions_never_collide(db: Session) -> None:
+    """連抽多題時,查證題彼此不得共用母案例或鏡像對。
+
+    一次 `ORDER BY random() LIMIT n` 做不到互斥:同一個母案例的兩個子題
+    (next_action / evidence_scope)會一起被抽出來,鏡像對的兩面也會。
+    """
+    mirrors = {
+        int(row[0]): row[1]
+        for row in db.execute(
+            text("SELECT id, mirror_of FROM game_cases WHERE status = 'published'")
+        ).all()
+    }
+    for _ in range(60):
+        picked = quick_routes._pick_verification_questions(
+            db, max_difficulty=3, limit=3
+        )
+        ids = [q.case_id for q in picked]
+        assert len(set(ids)) == len(ids), "同一個母案例被抽到兩次"
+        for case_id in ids:
+            partner = mirrors.get(case_id)
+            assert partner is None or partner not in ids, "鏡像對兩面同時被抽到"

@@ -54,6 +54,10 @@ SELECT json_build_object(
     SELECT count(*) FROM public.game_case_questions q
     JOIN public.game_cases parent ON parent.id = q.case_id
     WHERE q.status = 'published' AND parent.status = 'published'
+      AND q.version = (
+          SELECT max(v.version) FROM public.game_case_questions v
+          WHERE v.question_key = q.question_key
+      )
   ),
   'published', count(*),
   'scam', count(*) FILTER (WHERE gc.is_scam),
@@ -89,6 +93,14 @@ def copy_query():
     )
 
 
+# 後端發牌只認「該 question_key 的最大 version」(不分狀態)。匯出若不套同一條規則,
+# v1=published、v2=draft 的題目會在匯入後由 v1 變成最大版本而重新上架。
+LATEST_VERSION_ONLY = (
+    " AND q.version = (SELECT max(v.version) FROM public.game_case_questions v"
+    " WHERE v.question_key = q.question_key)"
+)
+
+
 def question_copy_query():
     return (
         "COPY (SELECT "
@@ -96,6 +108,7 @@ def question_copy_query():
         + " FROM public.game_case_questions q"
         + " JOIN public.game_cases gc ON gc.id = q.case_id"
         + " WHERE q.status = 'published' AND gc.status = 'published'"
+        + LATEST_VERSION_ONLY
         + " ORDER BY q.id) TO STDOUT;"
     )
 
@@ -109,6 +122,44 @@ def dump_schema_section(section):
         "--no-owner",
         "--no-privileges",
     )
+
+
+def dump_questions_schema_section(section):
+    """只 dump 子表——給「game_cases 已經在了、只缺子表」的既有環境用。"""
+    return run_pg_dump(
+        "--schema-only",
+        f"--section={section}",
+        "--table=public.game_case_questions",
+        "--no-owner",
+        "--no-privileges",
+    )
+
+
+def compose_questions_seed(pre_schema, question_data, post_schema):
+    """子表專用的升級種子:不碰 game_cases,所以既有的 120 題不會被動到。
+
+    完整種子檔(game_cases.sql)會 CREATE TABLE game_cases,在既有環境上直接炸,
+    而 FORCE=1 會把正式題庫整張 DROP 掉。既有環境要補子表只能用這一份。
+    """
+    if question_data and not question_data.endswith("\n"):
+        question_data += "\n"
+    sequence_sql = """
+SELECT pg_catalog.setval(
+  'public.game_case_questions_id_seq',
+  COALESCE((SELECT max(id) FROM public.game_case_questions), 1),
+  EXISTS (SELECT 1 FROM public.game_case_questions)
+);
+"""
+    return (
+        pre_schema.rstrip()
+        + "\n\n"
+        + f"COPY public.game_case_questions ({', '.join(QUESTION_COLUMNS)}) FROM stdin;\n"
+        + question_data
+        + "\\.\n\n"
+        + sequence_sql.strip()
+        + "\n\n"
+        + post_schema.lstrip()
+    ).rstrip() + "\n"
 
 
 def compose_seed(pre_schema, copy_data, post_schema, question_data=""):
@@ -151,6 +202,10 @@ def main():
     )
     parser.add_argument("--env-file", help="載入外部 .env（不覆蓋既有環境變數）")
     parser.add_argument("--output", help="輸出路徑；省略時只印統計，不執行匯出")
+    parser.add_argument(
+        "--questions-output",
+        help="子表專用升級種子的輸出路徑（給已有 game_cases 的既有環境補子表）",
+    )
     args = parser.parse_args()
     load_env(args.env_file)
 
@@ -168,6 +223,20 @@ def main():
     output.parent.mkdir(parents=True, exist_ok=True)
     output.write_text(seed, encoding="utf-8")
     print(f"已寫入 {output}（published={stats['published']}）")
+
+    if args.questions_output:
+        questions_seed = compose_questions_seed(
+            dump_questions_schema_section("pre-data"),
+            question_data,
+            dump_questions_schema_section("post-data"),
+        )
+        questions_output = Path(args.questions_output)
+        questions_output.parent.mkdir(parents=True, exist_ok=True)
+        questions_output.write_text(questions_seed, encoding="utf-8")
+        print(
+            f"已寫入 {questions_output}"
+            f"（published_questions={stats['published_questions']}）"
+        )
     return 0
 
 

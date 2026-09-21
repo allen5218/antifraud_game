@@ -194,6 +194,46 @@ class VerifyProbeTests(unittest.TestCase):
             self.assertEqual(rows[0]["options"], GOOD_QUESTION["options"])
             self.assertEqual(len(probe.load_questions_from_dump(path, False)), 3)
 
+    def test_dump_ignores_superseded_versions(self):
+        """改版後的舊題不能進量測集合——後端根本不會把它發出去。
+
+        關鍵在順序:必須先算出「所有狀態」裡的最大 version,再篩發布狀態。
+        反過來先濾 draft 的話,v2=draft 會消失、v1=published 變成最大版本,
+        於是量到一題實際上發不出來的舊題,還會稀釋掉新版的洩題率。
+        """
+        rows = [
+            # v1 published、v2 draft → 整個 question_key 都不該被量到
+            {"question_key": "superseded", "version": 1, "id": 1},
+            {"question_key": "superseded", "version": 2, "id": 2, "status": "draft"},
+            # v1 published、v2 published → 只量 v2
+            {"question_key": "revised", "version": 1, "id": 3},
+            {"question_key": "revised", "version": 2, "id": 4},
+        ]
+        dump = (
+            make_dump(
+                [
+                    (
+                        "published-parent",
+                        "shopping",
+                        True,
+                        "標題",
+                        "敘事",
+                        "published",
+                    )
+                ]
+            )
+            + f"COPY public.game_case_questions ({', '.join(exporter.QUESTION_COLUMNS)}) FROM stdin;\n"
+            + question_copy_data(rows)
+            + "\\.\n"
+        )
+        with tempfile.TemporaryDirectory() as td:
+            path = Path(td) / "seed.sql"
+            path.write_text(dump, encoding="utf-8")
+            loaded = probe.load_questions_from_dump(path)
+        self.assertEqual(
+            [(q["question_key"], q["version"]) for q in loaded], [("revised", 2)]
+        )
+
     def test_cli_jsonl_and_dump_fail_over_and_report_baseline(self):
         for source in ("--input", "--from-dump"):
             for selected, expected in (("A", 1), ("B", 0)):

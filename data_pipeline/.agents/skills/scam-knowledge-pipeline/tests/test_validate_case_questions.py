@@ -155,6 +155,17 @@ class QuestionValidationTests(unittest.TestCase):
                 valid, rejected = validator.validate_rows([(1, rec)])
                 self.assertEqual((len(valid), len(rejected)), (0, 1))
 
+    def test_option_key_with_trailing_newline_rejected(self):
+        """`^[A-D]$` 在 Python re 下也會匹配結尾換行,所以 "A\n" 過得了 pattern。
+
+        真的放行的話,前端送 "A" 對不上存進去的 "A\n",送 "A\n" 又會被 API 的
+        max_length=1 擋成 422——這題等於永遠答不對。schema 必須用 enum。
+        """
+        bad = copy.deepcopy(GOOD_QUESTION)
+        bad["options"][0]["key"] = "A\n"
+        bad["correct_key"] = "A\n"
+        self.rejected([bad], "is not one of")
+
     def test_schema_tags_match_backend_single_source(self):
         repo = SKILL.parents[3]
         tags = runpy.run_path(str(repo / "backend/app/core/weakness.py"))[

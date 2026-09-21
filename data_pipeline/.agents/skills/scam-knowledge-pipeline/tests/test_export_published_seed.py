@@ -148,3 +148,66 @@ class ExportPublishedSeedTests(unittest.TestCase):
         self.assertEqual(code, 0)
         dump.assert_not_called()
         self.assertIn('"published": 40', output.call_args.args[0])
+
+
+class SeedFileContractTests(unittest.TestCase):
+    """committed 種子檔的回歸測試。
+
+    這裡守的是一個沒有任何自動機制會提醒你的缺口:`game_case_questions` 不歸
+    Alembic 管,`backend/tests/api/conftest.py` 又會自己把表建起來——所以後端
+    248 個測試全綠,而照部署流程建起來的資料庫上 quiz_deck 會直接
+    `relation "game_case_questions" does not exist` 回 500。
+    """
+
+    REPO = Path(__file__).resolve().parents[5]
+    FULL_SEED = REPO / "deploy" / "seed" / "game_cases.sql"
+    QUESTIONS_SEED = REPO / "deploy" / "seed" / "game_case_questions.sql"
+
+    def test_full_seed_creates_both_tables(self):
+        sql = self.FULL_SEED.read_text(encoding="utf-8")
+        self.assertIn("CREATE TABLE public.game_cases (", sql)
+        self.assertIn("CREATE TABLE public.game_case_questions (", sql)
+        self.assertIn("COPY public.game_cases (", sql)
+        self.assertIn("COPY public.game_case_questions (", sql)
+
+    def test_questions_seed_does_not_touch_parent_table(self):
+        """子表升級種子用在「game_cases 已經在」的既有環境,碰到母表就會炸。"""
+        sql = self.QUESTIONS_SEED.read_text(encoding="utf-8")
+        self.assertIn("CREATE TABLE public.game_case_questions (", sql)
+        self.assertNotIn("CREATE TABLE public.game_cases (", sql)
+        self.assertNotIn("COPY public.game_cases (", sql)
+
+    def test_questions_seed_columns_match_exporter(self):
+        sql = self.QUESTIONS_SEED.read_text(encoding="utf-8")
+        expected = ", ".join(export_published_seed.QUESTION_COLUMNS)
+        self.assertIn(f"COPY public.game_case_questions ({expected}) FROM stdin;", sql)
+
+
+class LatestVersionOnlyTests(unittest.TestCase):
+    """後端只發「該 question_key 的最大 version」,匯出與探針必須套同一條規則。"""
+
+    def test_export_only_takes_latest_version(self):
+        sql = export_published_seed.question_copy_query()
+        self.assertIn("max(v.version)", sql)
+        self.assertIn("v.question_key = q.question_key", sql)
+
+    def test_export_stats_only_counts_latest_version(self):
+        captured = {}
+
+        def fake_scalar(sql):
+            captured["sql"] = sql
+            return "{}"
+
+        with patch.object(export_published_seed, "psql_scalar", fake_scalar):
+            export_published_seed.published_stats()
+        self.assertIn("max(v.version)", captured["sql"])
+
+    def test_latest_version_helper_ignores_status(self):
+        """v2 是 draft 時,v1 不可以因為「只看 published」而變成最大版本。"""
+        rows = [
+            {"question_key": "q-a", "version": "1", "status": "published"},
+            {"question_key": "q-a", "version": "2", "status": "draft"},
+            {"question_key": "q-b", "version": "3", "status": "published"},
+        ]
+        latest = leak_probe._latest_version_by_key(rows)
+        self.assertEqual(latest, {"q-a": 2, "q-b": 3})

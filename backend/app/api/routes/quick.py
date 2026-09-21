@@ -11,6 +11,7 @@ from sqlmodel import Session, col, func, select
 from app.api.deps import CurrentUser, SessionDep
 from app.core.cases import (
     GameCaseRow,
+    VerificationQuestionRow,
     get_case,
     list_published_for_quiz,
     list_published_verification_questions,
@@ -198,6 +199,34 @@ def _quiz_reward(correct_count: int, best_streak: int) -> tuple[int, int]:
     return cash, xp
 
 
+def _pick_verification_questions(
+    session: SessionDep, *, max_difficulty: int | None, limit: int
+) -> list[VerificationQuestionRow]:
+    """逐題挑查證題,每一題都避開前面已挑走的母案例與其鏡像。
+
+    不能一次 SQL 抽 N 題:`ORDER BY random() LIMIT n` 沒辦法讓同一次查詢裡的列
+    互相排除,同一個母案例的兩個子題(next_action / evidence_scope)會一起被抽出來,
+    鏡像對的兩面也會。鏡像對標題完全相同,同副出現等於把 verdict 題的答案寫在畫面上
+    ——實測現有題庫抽三題有 1.95% 會碰到。
+
+    limit 最多 3,所以多跑幾次查詢的成本可以忽略。
+    """
+    picked: list[VerificationQuestionRow] = []
+    taken: set[int] = set()
+    for _ in range(limit):
+        rows = list_published_verification_questions(
+            session,
+            max_difficulty=max_difficulty,
+            exclude_case_ids=taken,
+            limit=1,
+        )
+        if not rows:
+            break
+        picked.append(rows[0])
+        taken.add(rows[0].case_id)
+    return picked
+
+
 def _cases_excluding(
     cases: list[GameCaseRow], taken_case_ids: set[int]
 ) -> list[GameCaseRow]:
@@ -234,7 +263,7 @@ def quiz_deck(session: SessionDep, current_user: CurrentUser, size: int = 5) -> 
     # 如果反過來先選案例題再挑查證題,兩邊的數量會互相牽動而收斂不了,
     # 牌堆就會時多時少。先定版查證題、再把它佔走的案例從選材池移除,
     # 剩下的缺額一律由 select_quiz_material 補滿,題數才穩定。
-    verifications = list_published_verification_questions(
+    verifications = _pick_verification_questions(
         session,
         max_difficulty=max_difficulty,
         limit=verification_quota(size),

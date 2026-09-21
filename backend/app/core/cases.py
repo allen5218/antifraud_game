@@ -129,11 +129,19 @@ WHERE q.status = 'published'
         params["max_difficulty"] = max_difficulty
     if exclude_case_ids:
         # 同一副牌裡母案例不得重複,否則玩家會在同一輪看到同一個情境兩次。
-        # 鏡像也要擋:鏡像對是同一個情境的詐騙／正當兩面,同時出現會直接洩漏
-        # verdict 題的答案。
+        # 鏡像也要擋:鏡像對是同一個情境的詐騙／正當兩面,標題完全相同,
+        # 同時出現會直接洩漏 verdict 題的答案。
+        #
+        # mirror_of 是單向欄位(通常只有 legit 那側指向 scam),所以兩個方向都要擋:
+        #   1. 候選案例指向被排除的案例
+        #   2. 被排除的案例指向候選案例   ← 只寫第 1 條會漏掉這種
         sql += (
             " AND q.case_id <> ALL(:exclude_case_ids)"
             " AND (gc.mirror_of IS NULL OR gc.mirror_of <> ALL(:exclude_case_ids))"
+            " AND NOT EXISTS ("
+            "     SELECT 1 FROM game_cases ex"
+            "     WHERE ex.id = ANY(:exclude_case_ids) AND ex.mirror_of = q.case_id"
+            " )"
         )
         params["exclude_case_ids"] = list(exclude_case_ids)
     sql += " ORDER BY random() LIMIT :limit"

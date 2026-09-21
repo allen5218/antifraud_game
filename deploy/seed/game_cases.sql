@@ -2,10 +2,10 @@
 -- PostgreSQL database dump
 --
 
-\restrict IvTLp3aI8Pw1dixT6MlIxUswplNMrgPOqu0jAw0WOC3dB1JtuNaBRnuyA02zfI4
+\restrict 9aiTJX6bqnh00PpFcZLnIz9vlKAgq9Ji6kVYPBkwlfIgf5VtACwogD55fBWNaOA
 
--- Dumped from database version 17.6
--- Dumped by pg_dump version 17.11 (Debian 17.11-1.pgdg12+2)
+-- Dumped from database version 17.10 (Debian 17.10-1.pgdg12+1)
+-- Dumped by pg_dump version 17.10 (Debian 17.10-1.pgdg12+1)
 
 SET statement_timeout = 0;
 SET lock_timeout = 0;
@@ -22,6 +22,50 @@ SET row_security = off;
 SET default_tablespace = '';
 
 SET default_table_access_method = heap;
+
+--
+-- Name: game_case_questions; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.game_case_questions (
+    id bigint NOT NULL,
+    question_key text NOT NULL,
+    version integer DEFAULT 1 NOT NULL,
+    case_id bigint NOT NULL,
+    question_kind text NOT NULL,
+    question text NOT NULL,
+    options jsonb NOT NULL,
+    correct_key text NOT NULL,
+    explanation text NOT NULL,
+    weakness_tag text,
+    difficulty integer DEFAULT 2 NOT NULL,
+    source_document_ids bigint[] DEFAULT '{}'::bigint[] NOT NULL,
+    provenance text,
+    status text DEFAULT 'draft'::text NOT NULL,
+    review_notes text,
+    created_at timestamp with time zone DEFAULT now() NOT NULL,
+    published_at timestamp with time zone
+);
+
+
+--
+-- Name: game_case_questions_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.game_case_questions_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: game_case_questions_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.game_case_questions_id_seq OWNED BY public.game_case_questions.id;
+
 
 --
 -- Name: game_cases; Type: TABLE; Schema: public; Owner: -
@@ -66,6 +110,13 @@ ALTER SEQUENCE public.game_cases_id_seq OWNED BY public.game_cases.id;
 
 
 --
+-- Name: game_case_questions id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.game_case_questions ALTER COLUMN id SET DEFAULT nextval('public.game_case_questions_id_seq'::regclass);
+
+
+--
 -- Name: game_cases id; Type: DEFAULT; Schema: public; Owner: -
 --
 
@@ -76,7 +127,7 @@ ALTER TABLE ONLY public.game_cases ALTER COLUMN id SET DEFAULT nextval('public.g
 -- PostgreSQL database dump complete
 --
 
-\unrestrict IvTLp3aI8Pw1dixT6MlIxUswplNMrgPOqu0jAw0WOC3dB1JtuNaBRnuyA02zfI4
+\unrestrict 9aiTJX6bqnh00PpFcZLnIz9vlKAgq9Ji6kVYPBkwlfIgf5VtACwogD55fBWNaOA
 
 COPY public.game_cases (id, case_key, fraud_type, is_scam, title, narrative, red_flags, difficulty, source_document_ids, provenance, mirror_of, status, review_notes, created_at, published_at) FROM stdin;
 311	romance-scam-003-v2	romance	t	交往對象準備的那份禮物	在交友軟體上聊了兩個多月的對象說要寄一份禮物給我,說裡面有他攢下的一筆現金和一些貴重物品,想讓我先幫他保管。今天早上收到一封通知,署名是某國際組織配合的物流部門,說包裹已經到境內海關,但因為申報價值較高,需要先繳一筆進口稅與消費稅才能放行,金額是四萬多元。通知裡附了一張包裹外箱的照片,上面確實有我的名字。對方在訊息裡一直催,說海關的暫存期限只到今天下班,逾期包裹就會被退運回去,他人在海外沒辦法處理,只能拜託我先墊。我問能不能等我明天去問問看,他說那就來不及了。我看著那組要我匯款的帳號,手機還在震。	[{"tag": "greed", "text": "以包裹內有現金與貴重物品為誘餌,吸引你為領取而付費"}, {"tag": "authority", "text": "假冒國際組織與物流海關,以進口稅、消費稅等名目要你繳費"}, {"tag": "time_pressure", "text": "催促趕快繳費、否則包裹被退運,逼你在查證前先付款"}]	2	{72}	改編自:165 打詐儀錶板「假交友(徵婚詐財)詐騙」常見手法清單(寄件與清關稅費)	\N	published	\N	2026-09-07 08:30:23.786624+00	2026-09-07 08:31:22.548952+00
@@ -201,20 +252,58 @@ COPY public.game_cases (id, case_key, fraud_type, is_scam, title, narrative, red
 430	atm-legit-034	atm	f	跨境匯款的確認簡訊	我正在讀往來銀行應用程式的跨境匯款通知，內容顯示海外學費匯款因收款資料缺少欄位而暫待處理。我從匯款紀錄進入案件頁，看到相同金額、學校名稱與承辦分行電話。銀行請我在期限內補上學校地址，或由本人帶匯款水單到分行確認；不會要求另付保證款到其他帳戶。若不補件，原款會依規定退回我的扣款帳戶，相關費用也列在頁面。我正拿著校方繳費通知核對英文地址。	[{"tag": null, "text": "金額校名與分行電話可在匯款紀錄核對"}, {"tag": null, "text": "補件可在案件頁或本人到分行完成"}, {"tag": null, "text": "未完成時原款依規定退回扣款帳戶"}]	3	{1058}	依據：銀行公會國際匯款申請、補件及退匯作業流程	410	published	\N	2026-09-18 15:00:09.562087+00	\N
 \.
 
+COPY public.game_case_questions (id, question_key, version, case_id, question_kind, question, options, correct_key, explanation, weakness_tag, difficulty, source_document_ids, provenance, status, review_notes, created_at, published_at) FROM stdin;
+599	verif-atm-legit-031-1	1	427	next_action	依這段情境，接下來用哪個方式查最合適？	[{"key": "A", "text": "從主管機關官方入口查申請案件"}, {"key": "B", "text": "從往來銀行官方入口查匯款案件"}, {"key": "C", "text": "從原交易平台官方入口查帳戶案件"}]	A	目前要核對的是補卡申請與原卡停用，應從健保主管機關的既有入口查看案件時間及寄送資料。銀行入口適合查匯款處理，交易平台入口適合查購物帳戶；兩者都不掌管健保補卡案件。	authority	1	{}	\N	published	\N	2026-09-21 14:49:16.47201+00	2026-09-21 14:49:16.47201+00
+600	verif-atm-legit-034-1	1	430	next_action	依這段情境，接下來用哪個方式查最合適？	[{"key": "A", "text": "從主管機關官方入口查申請案件"}, {"key": "B", "text": "從往來銀行官方入口查匯款案件"}, {"key": "C", "text": "從原交易平台官方入口查帳戶案件"}]	B	這是自己已辦理的海外學費匯款，應從往來銀行的匯款紀錄核對缺件與承辦分行。主管機關入口適合查向該機關提出的申請，交易平台入口適合查平台帳戶；兩者不能取代承辦銀行確認這筆匯款。	authority	3	{}	\N	published	\N	2026-09-21 14:49:16.477501+00	2026-09-21 14:49:16.477501+00
+601	verif-atm-scam-022-1	1	368	next_action	依這段情境，接下來用哪個方式查最合適？	[{"key": "A", "text": "掛斷來電，改撥卡背官方客服查交易"}, {"key": "B", "text": "告知分行櫃檯完整經過，查證匯款用途"}, {"key": "C", "text": "聯絡往來銀行官方客服，查收款流程"}]	A	待核實的是來電聲稱的信用卡境外交易，先掛斷再撥卡背電話，才能向發卡銀行確認交易及案件。向分行櫃檯說明適合已在臨櫃被指示匯款時；詢問一般收款流程適合確認如何接收款項，都不是本案信用卡爭議的直接入口。	authority	2	{}	\N	published	\N	2026-09-21 14:49:16.481131+00	2026-09-21 14:49:16.481131+00
+602	verif-atm-scam-023-1	1	369	next_action	依這段情境，接下來用哪個方式查最合適？	[{"key": "A", "text": "掛斷來電，改撥卡背官方客服查交易"}, {"key": "B", "text": "告知分行櫃檯完整經過，查證匯款用途"}, {"key": "C", "text": "聯絡往來銀行官方客服，查收款流程"}]	B	人已在分行，正被要求把退款說成借款，應向眼前櫃檯完整說明電話指示，核對這次臨櫃操作的用途。卡背客服適合查信用卡交易；往來銀行客服適合查一般收款流程，但此刻櫃檯能直接查看將要辦理的匯款並釐清說詞。	authority	3	{}	\N	published	\N	2026-09-21 14:49:16.485491+00	2026-09-21 14:49:16.485491+00
+603	verif-atm-legit-021-1	1	387	evidence_scope	哪項最完整描述目前已查到的交易資訊？	[{"key": "A", "text": "僅取得聯絡者提供的交易相關資訊"}, {"key": "B", "text": "已自行核對平台後台的訂單付款狀態"}, {"key": "C", "text": "已向發卡機構核對這筆交易授權紀錄"}]	C	情境明確寫到銀行客服查得相同授權紀錄並建立爭議案件，因此有發卡機構的查詢依據；授權仍不等於最後請款。聯絡者提及交易資訊只描述收到說法的層次；平台工單是在查重複扣款，並未呈現平台後台的已付款狀態，不能用它替代銀行查核結果。	time_pressure	1	{}	\N	published	\N	2026-09-21 14:49:16.487335+00	2026-09-21 14:49:16.487335+00
+604	verif-atm-scam-001-v2-1	1	321	evidence_scope	哪項最完整描述目前已查到的交易資訊？	[{"key": "A", "text": "僅取得聯絡者提供的交易相關資訊"}, {"key": "B", "text": "已自行核對平台後台的訂單付款狀態"}, {"key": "C", "text": "已向發卡機構核對這筆交易授權紀錄"}]	A	來電者能說出姓名、商品與金額，直接支持的只是他掌握交易資訊。若自行登入平台看到付款狀態，才能支持平台留有付款紀錄；若獨立聯絡發卡機構查得授權，才能支持銀行已有授權紀錄。情境中這兩種查核都尚未發生，熟知訂單不等於身分已確認。	trust_building	2	{}	\N	published	\N	2026-09-21 14:49:16.489442+00	2026-09-21 14:49:16.489442+00
+605	verif-fake-sale-legit-023-1	1	377	next_action	依這段情境，接下來用哪個方式查最合適？	[{"key": "A", "text": "從售票系統官方入口核對轉讓條件"}, {"key": "B", "text": "自行撥餐廳公開電話核對訂位條件"}, {"key": "C", "text": "從報關系統官方入口核對稅費資料"}]	A	要確認的是電子票轉讓、場次與姓名，售票系統的原帳號及轉讓規則才直接對應這筆交易。餐廳公開電話適合查餐飲訂位，報關系統適合核對海外包裹稅費；兩者都不能查這張票是否已轉入自己的帳號。	social_proof	3	{}	\N	published	\N	2026-09-21 14:49:16.491188+00	2026-09-21 14:49:16.491188+00
+606	verif-fake-sale-legit-032-1	1	416	next_action	要查明情境中物件本身的疑點，哪種方式最合適？	[{"key": "A", "text": "約現場查看家電，核對型號並試機"}, {"key": "B", "text": "洽獨立鑑定機構，核對實物與憑證"}, {"key": "C", "text": "約現場查看房屋，核對權狀與身分"}]	A	便宜的二手家電是否符合需求，應利用已可安排的現場查看與插電測試，核對型號和當下功能。獨立鑑定適合確認收藏品或品牌商品的真偽與憑證，權狀核對適合確認出租人與房屋；這兩種方式都不能取代這台家電的試機。	greed	1	{}	\N	published	\N	2026-09-21 14:49:16.492997+00	2026-09-21 14:49:16.492997+00
+607	verif-fake-sale-scam-031-1	1	395	next_action	依這段情境，接下來用哪個方式查最合適？	[{"key": "A", "text": "從主管機關官方入口查申請案件"}, {"key": "B", "text": "從往來銀行官方入口查匯款案件"}, {"key": "C", "text": "從原交易平台官方入口查帳戶案件"}]	C	爭點是二手平台是否真有這筆訂單及實名要求，應自行從原平台入口查看帳戶案件，不能用買家轉來的畫面代替。主管機關入口適合查政府申請，銀行入口適合查已辦匯款；兩者無法確認平台賣場內是否成立了這筆訂單。	social_proof	1	{}	\N	published	\N	2026-09-21 14:49:16.495545+00	2026-09-21 14:49:16.495545+00
+608	verif-fake-sale-scam-024-1	1	358	next_action	要查明情境中物件本身的疑點，哪種方式最合適？	[{"key": "A", "text": "約現場查看家電，核對型號並試機"}, {"key": "B", "text": "洽獨立鑑定機構，核對實物與憑證"}, {"key": "C", "text": "約現場查看房屋，核對權狀與身分"}]	B	目前只有球鞋與局部購買證明照片，要確認真偽應要求可交由獨立鑑定機構核對實物及憑證的安排；未取得實物前不能當成已完成鑑定。現場試機適合家電功能，權狀與身分核對適合租屋，兩者都無法補足球鞋真偽的證據。	social_proof	2	{}	\N	published	\N	2026-09-21 14:49:16.498265+00	2026-09-21 14:49:16.498265+00
+609	verif-fake-sale-legit-034-1	1	418	evidence_scope	哪項最完整描述目前已查到的交易資訊？	[{"key": "A", "text": "僅取得聯絡者提供的交易相關資訊"}, {"key": "B", "text": "已自行核對平台後台的訂單付款狀態"}, {"key": "C", "text": "已向發卡機構核對這筆交易授權紀錄"}]	B	自己打開平台後台已找到同一訂單與已付款狀態，支持的是平台內這筆付款紀錄，還不是貨款已撥入自己的銀行。聯絡者提及交易資訊只描述郵件或對話；發卡機構的授權紀錄則需向銀行查得，本情境沒有這項查詢。	time_pressure	3	{}	\N	published	\N	2026-09-21 14:49:16.501443+00	2026-09-21 14:49:16.501443+00
+610	verif-fake-sale-scam-021-1	1	355	evidence_scope	哪項最完整描述目前已查到的交易資訊？	[{"key": "A", "text": "僅取得聯絡者提供的交易相關資訊"}, {"key": "B", "text": "已自行核對平台後台的訂單付款狀態"}, {"key": "C", "text": "已向發卡機構核對這筆交易授權紀錄"}]	A	目前有的是買家提供的付款截圖與金流人員的說法，因此只能確認對方提出了交易相關資訊。平台後台反而沒有訂單，不能支持平台已留有付款狀態；也沒有獨立向發卡機構查到授權。後兩項各需平台紀錄或銀行查詢，截圖本身不能替代。	social_proof	3	{}	\N	published	\N	2026-09-21 14:49:16.504208+00	2026-09-21 14:49:16.504208+00
+611	verif-investment-legit-033-1	1	413	next_action	要查明情境中物件本身的疑點，哪種方式最合適？	[{"key": "A", "text": "約現場查看家電，核對型號並試機"}, {"key": "B", "text": "洽獨立鑑定機構，核對實物與憑證"}, {"key": "C", "text": "約現場查看房屋，核對權狀與身分"}]	B	這是有公開預展與證書序號的金幣，應利用查看實物的機會，向獨立鑑定機構核對藏品與證書是否相符；這仍不保證轉售獲利。試機可查家電功能，權狀與身分可查租屋權限，但都不能回答金幣的品相與證書問題。	greed	3	{}	\N	published	\N	2026-09-21 14:49:16.505305+00	2026-09-21 14:49:16.505305+00
+612	verif-investment-legit-021-1	1	371	next_action	依這段情境，接下來用哪個方式查最合適？	[{"key": "A", "text": "從主管機關公開名單查投顧資格"}, {"key": "B", "text": "從往來券商申購頁查商品與扣款"}, {"key": "C", "text": "從商家登記資料查聯絡與訂單條件"}]	B	目前要核對新股申購的截止、抽籤與預扣款，應回往來券商自己的申購功能逐項查明。投顧名單適合確認提供投資建議者的資格；商家登記與訂單條件適合查一般商品交易，兩者都不能確認本人這次券商申購的扣款安排。	time_pressure	2	{}	\N	published	\N	2026-09-21 14:49:16.506953+00	2026-09-21 14:49:16.506953+00
+613	verif-investment-scam-032-1	1	392	next_action	依這段情境，接下來用哪個方式查最合適？	[{"key": "A", "text": "從主管機關官方入口查申請案件"}, {"key": "B", "text": "從往來銀行官方入口查匯款案件"}, {"key": "C", "text": "從原交易平台官方入口查帳戶案件"}]	C	帶領者聲稱平台審核通過並核給額度，應從自行確認的原交易平台官方入口核對帳戶審核、服務內容與通知。若找不到可獨立確認的入口，便仍屬未查明。主管機關入口適合查政府申請，銀行入口適合查已辦匯款；兩者不能替平台證實這項額度。	trust_building	2	{}	\N	published	\N	2026-09-21 14:49:16.507924+00	2026-09-21 14:49:16.507924+00
+614	verif-investment-scam-031-1	1	391	next_action	依這段情境，接下來用哪個方式查最合適？	[{"key": "A", "text": "從主管機關公開名單查投顧資格"}, {"key": "B", "text": "從往來券商申購頁查商品與扣款"}, {"key": "C", "text": "從商家登記資料查聯絡與訂單條件"}]	A	這裡由講師與助理收費提供即時帶進出服務，應先從主管機關公開資料核對機構資格與提供服務者的關係。券商申購頁適合查特定公開商品及扣款，商家登記適合查一般交易主體；都不能代替投顧資格的查核，也不能證實翻倍承諾。	greed	1	{}	\N	published	\N	2026-09-21 14:49:16.508628+00	2026-09-21 14:49:16.508628+00
+615	verif-investment-legit-012-1	1	336	evidence_scope	依情境中實際取得的資料，哪項判斷有直接依據？	[{"key": "A", "text": "文件列有商品過去的跌幅與各項費用"}, {"key": "B", "text": "群組列有成員對收藏計畫的預訂數量"}, {"key": "C", "text": "鑑定資料列有藏品的重量與品相紀錄"}]	A	理專交付的資料確實列出過去下跌走勢與手續費等項目，可用來理解歷史波動及成本，不能據此保證未來結果。成員預訂數量需有群組預訂內容，重量與品相需有藏品鑑定資料；本情境呈現的並不是後兩類證據。	greed	2	{}	\N	published	\N	2026-09-21 14:49:16.510118+00	2026-09-21 14:49:16.510118+00
+616	verif-investment-scam-034-1	1	394	evidence_scope	依情境中實際取得的資料，哪項判斷有直接依據？	[{"key": "A", "text": "文件列有商品過去的跌幅與各項費用"}, {"key": "B", "text": "群組列有成員對收藏計畫的預訂數量"}, {"key": "C", "text": "鑑定資料列有藏品的重量與品相紀錄"}]	B	情境出現群組的預訂數字與成員表態，可確認群組傳達了有人預訂的說法，仍不能證明實際付款、庫存或獲利。歷史跌幅與費用要靠商品資料核對，重量與品相要靠鑑定紀錄核對；顧問合照及預訂數並沒有提供後兩項內容。	social_proof	2	{}	\N	published	\N	2026-09-21 14:49:16.510906+00	2026-09-21 14:49:16.510906+00
+617	verif-romance-legit-023-1	1	385	next_action	依這段情境，接下來用哪個方式查最合適？	[{"key": "A", "text": "從售票系統官方入口核對轉讓條件"}, {"key": "B", "text": "自行撥餐廳公開電話核對訂位條件"}, {"key": "C", "text": "從報關系統官方入口核對稅費資料"}]	B	要核對餐廳訂金、抵用與取消期限，應由自行找到的餐廳公開電話及訂位系統確認。售票系統適合查演出票券轉讓，報關系統適合查包裹稅費；兩者都不能確認這家餐廳對本次訂位的要求。	time_pressure	3	{}	\N	published	\N	2026-09-21 14:49:16.512818+00	2026-09-21 14:49:16.512818+00
+618	verif-romance-legit-033-1	1	425	next_action	依這段情境，接下來用哪個方式查最合適？	[{"key": "A", "text": "自行聯絡院所收費窗口核對款項"}, {"key": "B", "text": "自行委請律師核對借款契約條款"}, {"key": "C", "text": "自行登入訂閱帳戶核對續費條件"}]	B	兩人正在討論的是尚未簽訂的創業借款契約，律師可協助核對利息、還款日及雙方權利。院所收費窗口適合查住院費用，訂閱帳戶適合查服務續費；兩者都不能釐清私人借款條款。審閱契約也不等於保證對方日後履約。	trust_building	1	{}	\N	published	\N	2026-09-21 14:49:16.516207+00	2026-09-21 14:49:16.516207+00
+619	verif-romance-scam-024-1	1	366	next_action	依這段情境，接下來用哪個方式查最合適？	[{"key": "A", "text": "自行聯絡院所收費窗口核對款項"}, {"key": "B", "text": "自行委請律師核對借款契約條款"}, {"key": "C", "text": "自行登入訂閱帳戶核對續費條件"}]	A	款項被說成手術押金，應先取得可獨立確認的院所資料，再向收費窗口詢問正式繳費管道，個案資料依院所身分核對程序處理。律師適合審閱借款約定，訂閱頁適合核對續費；兩者都無法確認這張缺少抬頭的醫療繳費通知。	time_pressure	2	{}	\N	published	\N	2026-09-21 14:49:16.517482+00	2026-09-21 14:49:16.517482+00
+620	verif-romance-scam-033-1	1	405	next_action	依這段情境，接下來用哪個方式查最合適？	[{"key": "A", "text": "掛斷來電，改撥卡背官方客服查交易"}, {"key": "B", "text": "告知分行櫃檯完整經過，查證匯款用途"}, {"key": "C", "text": "聯絡往來銀行官方客服，查收款流程"}]	C	對方稱寄出提款卡與密碼才能接收資助，應自行聯絡往來銀行，核對自己帳戶的收款方式及是否需要這些資料。卡背客服查爭議交易適合信用卡扣款；分行櫃檯核對臨櫃用途適合正在辦理匯款時。本案尚未寄卡，直接確認收款流程最切題。	trust_building	1	{}	\N	published	\N	2026-09-21 14:49:16.520022+00	2026-09-21 14:49:16.520022+00
+621	verif-romance-legit-024-1	1	386	evidence_scope	依情境中實際取得的資料，哪項判斷有直接依據？	[{"key": "A", "text": "包裹照片上的收件標籤寫有我的姓氏"}, {"key": "B", "text": "院內收費窗口已開出病人名下的收據"}, {"key": "C", "text": "訂位系統頁面已列出取消與抵用條件"}]	B	情境中本人在院內窗口刷卡，窗口開出病人名下收據，能支持這筆院內收費已留下收據紀錄。標籤姓氏適用於收到包裹照片的證據，訂位條件適用於餐廳系統頁面；兩者在此都未出現。醫療收據也不證明伴侶所有財務說法。	authority	2	{}	\N	published	\N	2026-09-21 14:49:16.523367+00	2026-09-21 14:49:16.523367+00
+622	verif-romance-scam-021-1	1	363	evidence_scope	依情境中實際取得的資料，哪項判斷有直接依據？	[{"key": "A", "text": "包裹照片上的收件標籤寫有我的姓氏"}, {"key": "B", "text": "院內收費窗口已開出病人名下的收據"}, {"key": "C", "text": "訂位系統頁面已列出取消與抵用條件"}]	A	眼前的包裹照片確實顯示自己的姓氏，能支持的範圍就是照片上的標籤內容，尚不足以證明物流已收件或費用真實。病人收據須由院內收費紀錄支持，取消與抵用條件須由訂位系統支持；兩種資料都沒有在這段情境出現。	trust_building	2	{}	\N	published	\N	2026-09-21 14:49:16.52465+00	2026-09-21 14:49:16.52465+00
+623	verif-shopping-legit-031-1	1	419	next_action	依這段情境，接下來用哪個方式查最合適？	[{"key": "A", "text": "從售票系統官方入口核對轉讓條件"}, {"key": "B", "text": "自行撥餐廳公開電話核對訂位條件"}, {"key": "C", "text": "從報關系統官方入口核對稅費資料"}]	C	要確認海外包裹的申報品名與稅額，應從既有報關系統入口核對同一運單的資料。售票系統適合核對票券轉讓，餐廳電話適合核對訂位，兩者都沒有這件包裹的申報紀錄。期限本身不代替對運單與金額的核對。	time_pressure	1	{}	\N	published	\N	2026-09-21 14:49:16.527051+00	2026-09-21 14:49:16.527051+00
+624	verif-shopping-legit-023-1	1	381	next_action	依這段情境，接下來用哪個方式查最合適？	[{"key": "A", "text": "自行聯絡院所收費窗口核對款項"}, {"key": "B", "text": "自行委請律師核對借款契約條款"}, {"key": "C", "text": "自行登入訂閱帳戶核對續費條件"}]	C	待決定的是影音方案是否續訂，應自己登入服務帳戶核對方案、價格與取消生效條件。院所窗口處理醫療費，律師審閱適合私人借款條款；兩者不能查這個服務帳戶的續費狀態。取消後也應保留帳戶內的確認紀錄。	time_pressure	3	{}	\N	published	\N	2026-09-21 14:49:16.527985+00	2026-09-21 14:49:16.527985+00
+625	verif-shopping-scam-003-v2-1	1	325	next_action	要查明情境中物件本身的疑點，哪種方式最合適？	[{"key": "A", "text": "約現場查看家電，核對型號並試機"}, {"key": "B", "text": "洽獨立鑑定機構，核對實物與憑證"}, {"key": "C", "text": "約現場查看房屋，核對權狀與身分"}]	C	目前尚未看房，聯絡者又自稱代理人，應先安排現場看屋，核對權狀、身分及代理出租的授權，再討論訂金。家電試機適合確認功能，獨立鑑定適合確認商品真偽與憑證，兩者都不能確認這名代理人是否有權出租這間房。	social_proof	2	{}	\N	published	\N	2026-09-21 14:49:16.531363+00	2026-09-21 14:49:16.531363+00
+626	verif-shopping-scam-022-1	1	360	next_action	依這段情境，接下來用哪個方式查最合適？	[{"key": "A", "text": "從主管機關公開名單查投顧資格"}, {"key": "B", "text": "從往來券商申購頁查商品與扣款"}, {"key": "C", "text": "從商家登記資料查聯絡與訂單條件"}]	C	爭點是蛋糕工作室的交易主體與製作、退款約定，應先找可獨立核對的商家登記及聯絡方式，確認書面訂單內容；若無法取得便仍未查明。投顧名單適合金融建議服務，券商申購頁適合投資商品，兩者不掌管客製蛋糕訂單。	time_pressure	3	{}	\N	published	\N	2026-09-21 14:49:16.532613+00	2026-09-21 14:49:16.532613+00
+627	verif-shopping-legit-013-1	1	345	evidence_scope	依情境中實際取得的資料，哪項判斷有直接依據？	[{"key": "A", "text": "屋主出示的證件與權狀姓名地址相符"}, {"key": "B", "text": "對方提供的住宿券載有住宿方案內容"}, {"key": "C", "text": "物流查詢紀錄顯示包裹已由業者收件"}]	A	現場已看到屋主證件與權狀，敘事明確說姓名地址相符，能支持這次文件的比對結果，仍須另看契約與訂金條件。住宿券只能呈現券面住宿內容，物流紀錄則用來確認業者收件；本情境沒有這兩種資料，不能把它們當作看房所得的證據。	trust_building	3	{}	\N	published	\N	2026-09-21 14:49:16.535467+00	2026-09-21 14:49:16.535467+00
+628	verif-shopping-scam-024-1	1	362	evidence_scope	依情境中實際取得的資料，哪項判斷有直接依據？	[{"key": "A", "text": "屋主出示的證件與權狀姓名地址相符"}, {"key": "B", "text": "對方提供的住宿券載有住宿方案內容"}, {"key": "C", "text": "物流查詢紀錄顯示包裹已由業者收件"}]	B	目前拿到的是小編傳來的住宿券，因此只能確認券面載有對方聲稱的住宿內容，還未向旅宿獨立確認訂房。權狀證件比對適合驗證屋主與房屋資料，物流紀錄適合確認包裹收件；這兩項資料都沒有出現，也不能拿券面格式替代旅宿確認。	social_proof	2	{}	\N	published	\N	2026-09-21 14:49:16.537227+00	2026-09-21 14:49:16.537227+00
+\.
+
 SELECT pg_catalog.setval(
   'public.game_cases_id_seq',
   COALESCE((SELECT max(id) FROM public.game_cases), 1),
   EXISTS (SELECT 1 FROM public.game_cases)
+);
+SELECT pg_catalog.setval(
+  'public.game_case_questions_id_seq',
+  COALESCE((SELECT max(id) FROM public.game_case_questions), 1),
+  EXISTS (SELECT 1 FROM public.game_case_questions)
 );
 
 --
 -- PostgreSQL database dump
 --
 
-\restrict SHNsVGX9DgSt11efBXpkAo7aiqNpe7ffev6eD6TOyP9fEHKiovoc59fbfqlDYvQ
+\restrict QpB5MY0ZF0oapRNoNbFEmt1CvnrwCemMvSBsFajXApMpX5TuqgbtqZ9doF1xlIk
 
--- Dumped from database version 17.6
--- Dumped by pg_dump version 17.11 (Debian 17.11-1.pgdg12+2)
+-- Dumped from database version 17.10 (Debian 17.10-1.pgdg12+1)
+-- Dumped by pg_dump version 17.10 (Debian 17.10-1.pgdg12+1)
 
 SET statement_timeout = 0;
 SET lock_timeout = 0;
@@ -229,6 +318,22 @@ SET client_min_messages = warning;
 SET row_security = off;
 
 SET default_tablespace = '';
+
+--
+-- Name: game_case_questions game_case_questions_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.game_case_questions
+    ADD CONSTRAINT game_case_questions_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: game_case_questions game_case_questions_question_key_version_key; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.game_case_questions
+    ADD CONSTRAINT game_case_questions_question_key_version_key UNIQUE (question_key, version);
+
 
 --
 -- Name: game_cases game_cases_case_key_key; Type: CONSTRAINT; Schema: public; Owner: -
@@ -254,6 +359,14 @@ CREATE INDEX game_cases_published_idx ON public.game_cases USING btree (fraud_ty
 
 
 --
+-- Name: game_case_questions game_case_questions_case_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.game_case_questions
+    ADD CONSTRAINT game_case_questions_case_id_fkey FOREIGN KEY (case_id) REFERENCES public.game_cases(id) ON DELETE CASCADE;
+
+
+--
 -- Name: game_cases game_cases_mirror_of_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -265,4 +378,4 @@ ALTER TABLE ONLY public.game_cases
 -- PostgreSQL database dump complete
 --
 
-\unrestrict SHNsVGX9DgSt11efBXpkAo7aiqNpe7ffev6eD6TOyP9fEHKiovoc59fbfqlDYvQ
+\unrestrict QpB5MY0ZF0oapRNoNbFEmt1CvnrwCemMvSBsFajXApMpX5TuqgbtqZ9doF1xlIk
