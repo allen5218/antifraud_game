@@ -45,7 +45,7 @@ test("Log in with valid email and password ", async ({ page }) => {
 
   await page.waitForURL("/")
 
-  await expect(page.getByText("今日挑戰")).toBeVisible()
+  await expect(page.getByTestId("home-hero")).toBeVisible()
 })
 
 test("Log in with invalid email", async ({ page }) => {
@@ -75,7 +75,7 @@ test("Successful log out", async ({ page }) => {
 
   await page.waitForURL("/")
 
-  await expect(page.getByText("今日挑戰")).toBeVisible()
+  await expect(page.getByTestId("home-hero")).toBeVisible()
 
   // 登入後落地在 _shell（底部分頁,無側欄）。登出選單只存在於 template 的
   // _layout 側欄,需先前往一個 _layout 路由(例如 /settings)才能取得 user-menu。
@@ -93,7 +93,7 @@ test("Logged-out user cannot access protected routes", async ({ page }) => {
 
   await page.waitForURL("/")
 
-  await expect(page.getByText("今日挑戰")).toBeVisible()
+  await expect(page.getByTestId("home-hero")).toBeVisible()
 
   await page.goto("/settings")
   await page.getByTestId("user-menu").click()

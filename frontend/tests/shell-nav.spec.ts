@@ -5,7 +5,7 @@ test.describe("App shell mobile nav", () => {
 
   test("can navigate between the 4 tabs", async ({ page }) => {
     await page.goto("/")
-    await expect(page.getByText("今日挑戰")).toBeVisible()
+    await expect(page.getByTestId("home-hero")).toBeVisible()
 
     await page.getByTestId("tab-assets").click()
     await expect(page.getByText("總身家")).toBeVisible()
@@ -19,7 +19,24 @@ test.describe("App shell mobile nav", () => {
 
     await page.getByTestId("tab-me").click()
     await page.getByTestId("tab-home").click()
-    await expect(page.getByText("今日挑戰")).toBeVisible()
+    await expect(page.getByTestId("home-hero")).toBeVisible()
+  })
+
+  test("桌機改用側欄導覽，底部分頁隱藏", async ({ page }) => {
+    // 底部分頁是拇指可及的手機慣例，橫跨桌機螢幕並不合適，所以 md 以上
+    // 換成左側 NavRail。兩者共用 tabs.ts 的同一份定義。
+    await page.setViewportSize({ width: 1280, height: 800 })
+    await page.goto("/")
+    await expect(page.getByTestId("home-hero")).toBeVisible()
+
+    await expect(page.getByTestId("tab-home")).toBeHidden()
+    await expect(page.getByTestId("rail-tab-home")).toBeVisible()
+
+    await page.getByTestId("rail-tab-assets").click()
+    await expect(page.getByText("總身家")).toBeVisible()
+
+    await page.getByTestId("rail-tab-home").click()
+    await expect(page.getByTestId("home-hero")).toBeVisible()
   })
 
   test("header shows the cash pill on every tab", async ({ page }) => {
