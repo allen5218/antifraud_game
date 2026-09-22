@@ -42,22 +42,34 @@ export function VerificationQuestion({
         <p className="mt-2 whitespace-pre-wrap text-sm leading-relaxed">
           {item.narrative}
         </p>
-        <h3 className="mt-4 text-sm font-bold">{item.question}</h3>
-        <div className="mt-3 grid gap-2">
+        <h3 id="verification-prompt" className="mt-4 text-sm font-bold">
+          {item.question}
+        </h3>
+        {/* 用原生 radio 而不是 role="radio" 的按鈕:三個選項互斥,需要成組語意,
+            否則螢幕閱讀器只會讀到三顆各自獨立的按鈕。原生 radio 還免費附帶
+            方向鍵切換;自己用按鈕實作得補 roving tabindex 才有同樣效果。
+            話術題是複選所以用核取方塊，這裡不能照抄。 */}
+        <fieldset disabled={disabled} className="mt-3 grid gap-2 border-0 p-0">
+          <legend className="sr-only">{item.question}</legend>
           {item.options.map((option) => {
             const checked = selectedKey === option.key
             return (
-              <button
+              <label
                 key={option.key}
-                type="button"
-                disabled={disabled}
-                aria-pressed={checked}
-                onClick={() => setSelectedKey(option.key)}
-                className={`flex items-start gap-3 rounded-xl border p-3 text-left text-sm transition-colors ${
+                className={`flex items-start gap-3 rounded-xl border p-3 text-left text-sm transition-colors focus-within:ring-2 focus-within:ring-ring ${
                   checked ? "border-primary bg-primary/10" : "bg-card"
-                } ${disabled ? "cursor-not-allowed opacity-60" : ""}`}
+                } ${disabled ? "cursor-not-allowed opacity-60" : "cursor-pointer"}`}
               >
+                <input
+                  type="radio"
+                  name="verification-option"
+                  value={option.key}
+                  checked={checked}
+                  onChange={() => setSelectedKey(option.key)}
+                  className="sr-only"
+                />
                 <span
+                  aria-hidden="true"
                   className={`mt-0.5 flex size-5 shrink-0 items-center justify-center rounded-full border text-[11px] font-bold ${
                     checked
                       ? "border-primary bg-primary text-primary-foreground"
@@ -67,10 +79,10 @@ export function VerificationQuestion({
                   {option.key}
                 </span>
                 <span className="font-medium">{option.text}</span>
-              </button>
+              </label>
             )
           })}
-        </div>
+        </fieldset>
       </div>
       <div className="border-t border-border bg-background p-3">
         <Button

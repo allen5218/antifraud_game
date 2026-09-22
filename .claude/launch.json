@@ -17,7 +17,7 @@
       "port": 8000,
       "env": {
         "POSTGRES_SERVER": "localhost",
-        "POSTGRES_PORT": "54399",
+        "POSTGRES_PORT": "54323",
         "POSTGRES_DB": "app",
         "POSTGRES_USER": "postgres",
         "POSTGRES_PASSWORD": "changethis",

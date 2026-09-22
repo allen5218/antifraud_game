@@ -130,10 +130,13 @@ describe("<VerificationQuestion />", () => {
     narrative: "有人自稱購物平台客服，說你被誤設成會員。",
     difficulty: 1,
     question: "接下來怎麼做比較好？",
+    // 三個選項都是正當管道,只差在這個情境該走哪一條——與正式題庫同一種寫法。
+    // 不要寫成「照對方連結操作」這種不看情境也知道錯的句子:策展文件明文禁止,
+    // 實測那樣會 100% 洩題,而且之後有人照測試抄題就會抄到廢棄寫法。
     options: [
-      { key: "A", text: "自己打開官方 App 查一次" },
-      { key: "B", text: "照對方給的連結操作" },
-      { key: "C", text: "先把款項匯出再說" },
+      { key: "A", text: "從原平台官方入口查帳戶狀態" },
+      { key: "B", text: "掛斷後自行改撥卡片背面客服" },
+      { key: "C", text: "從主管機關官方名單查資格" },
     ],
   }
 
@@ -154,12 +157,14 @@ describe("<VerificationQuestion />", () => {
     const submit = screen.getByRole("button", { name: "送出答案" })
     expect(submit.hasAttribute("disabled")).toBe(true)
 
-    fireEvent.click(screen.getByRole("button", { name: /照對方給的連結操作/ }))
+    fireEvent.click(
+      screen.getByRole("radio", { name: /掛斷後自行改撥卡片背面客服/ }),
+    )
     expect(submit.hasAttribute("disabled")).toBe(false)
 
     // 送出前可以改答案。
     fireEvent.click(
-      screen.getByRole("button", { name: /自己打開官方 App 查一次/ }),
+      screen.getByRole("radio", { name: /從原平台官方入口查帳戶狀態/ }),
     )
     fireEvent.click(submit)
 
@@ -178,10 +183,11 @@ describe("<VerificationQuestion />", () => {
     )
 
     for (const option of item.options) {
-      const button = screen.getByRole("button", {
+      // 原生 radio 沒有 aria-checked，選取狀態在 checked 屬性上。
+      const radio = screen.getByRole("radio", {
         name: new RegExp(option.text),
-      })
-      expect(button.getAttribute("aria-pressed")).toBe("false")
+      }) as HTMLInputElement
+      expect(radio.checked).toBe(false)
     }
   })
 })
