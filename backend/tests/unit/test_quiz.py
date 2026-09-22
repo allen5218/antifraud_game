@@ -1,5 +1,6 @@
 import pytest
 
+from app.api.routes.quick import _cases_excluding
 from app.core import quiz as quiz_core
 from app.core.cases import GameCaseRow
 from app.core.quiz import (
@@ -53,6 +54,39 @@ def test_compose_deck_keeps_one_match_and_splits_the_rest(
     composition = _compose_deck(size)
 
     assert (composition.verdict, composition.tactics, composition.match) == expected
+
+
+@pytest.mark.parametrize(
+    ("size", "expected"),
+    [
+        (1, (1, 0, 0, 0)),
+        (2, (1, 1, 0, 0)),
+        (3, (1, 1, 0, 1)),
+        (5, (2, 1, 1, 1)),
+        (10, (3, 3, 1, 3)),
+    ],
+)
+def test_compose_deck_with_verification_keeps_all_four_types(
+    size: int, expected: tuple[int, int, int, int]
+) -> None:
+    """查證題進來之後，四種題型都要還在，而且總題數不能縮水。"""
+    quota = quiz_core.verification_quota(size)
+    composition = _compose_deck(size, quota)
+
+    assert tuple(composition) == expected
+    assert sum(composition) == max(1, min(size, 10))
+
+
+def test_compose_deck_backfills_when_no_verification_material() -> None:
+    """查證題素材掛零時，verdict/tactics 要補回來，不能讓牌堆少一題。
+
+    協作者原型的作法是硬扣 size-2，素材不足就讓 tactics 永遠發不出來。
+    """
+    composition = _compose_deck(5, 0)
+
+    assert sum(composition) == 5
+    assert composition.verification == 0
+    assert composition.tactics > 0
 
 
 def test_tactics_requires_exact_set() -> None:
@@ -345,6 +379,7 @@ def test_select_quiz_material_skips_second_direction_at_theoretical_minimum(
         enforce_mirror: bool,
         max_difficulty: int | None,
         prefer_scam_on_tie: bool,
+        verification_count: int = 0,
     ) -> quiz_core.QuizMaterial:
         nonlocal selection_calls
         selection_calls += 1
@@ -354,6 +389,7 @@ def test_select_quiz_material_skips_second_direction_at_theoretical_minimum(
             enforce_mirror=enforce_mirror,
             max_difficulty=max_difficulty,
             prefer_scam_on_tie=prefer_scam_on_tie,
+            verification_count=verification_count,
         )
 
     monkeypatch.setattr(quiz_core, "_select_quiz_material", count_selection)
@@ -559,3 +595,35 @@ def test_select_quiz_material_relaxes_difficulty_before_mirrors() -> None:
     assert 3 in selected_ids
     assert not {1, 2} <= selected_ids
     assert material.mirror_relaxed_count == 0
+
+
+def _mirror_case(case_id: int, mirror_of: int | None) -> GameCaseRow:
+    return GameCaseRow(
+        id=case_id,
+        fraud_type="investment",
+        is_scam=mirror_of is None,
+        title="同一個情境的兩面",
+        narrative="敘事",
+        red_flags=[],
+        difficulty=1,
+        provenance="測試",
+        mirror_of=mirror_of,
+    )
+
+
+def test_cases_excluding_blocks_both_mirror_directions() -> None:
+    """查證題佔走一個案例時，它的鏡像兩個方向都要從選材池移除。
+
+    鏡像對的標題完全相同，同一副牌裡出現兩次會直接洩漏 verdict 題的答案。
+    只擋單一方向的話，80 副牌裡還是會漏幾副——實測過。
+    """
+    scam = _mirror_case(1, None)
+    legit = _mirror_case(2, mirror_of=1)
+    other = _mirror_case(3, None)
+
+    # 方向一：查證題佔走 scam，指向它的 legit 要被擋掉。
+    assert [c.id for c in _cases_excluding([scam, legit, other], {1})] == [3]
+    # 方向二：查證題佔走 legit，它指向的 scam 也要被擋掉。
+    assert [c.id for c in _cases_excluding([scam, legit, other], {2})] == [3]
+    # 沒有佔走任何案例時原樣回傳。
+    assert len(_cases_excluding([scam, legit, other], set())) == 3

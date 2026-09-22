@@ -3,6 +3,7 @@ import { cleanup, fireEvent, render, screen } from "@testing-library/react"
 import { MatchQuestion } from "./MatchQuestion"
 import { TacticsQuestion } from "./TacticsQuestion"
 import { VerdictQuestion } from "./VerdictQuestion"
+import { VerificationQuestion } from "./VerificationQuestion"
 
 afterEach(cleanup)
 
@@ -117,5 +118,76 @@ describe("quiz 題型元件", () => {
       "pair-1": "time_pressure",
       "pair-2": "authority",
     })
+  })
+})
+
+describe("<VerificationQuestion />", () => {
+  const item = {
+    item_id: "verif-1",
+    type: "verification" as const,
+    fraud_type: "atm",
+    title: "客服說今晚會扣款",
+    narrative: "有人自稱購物平台客服，說你被誤設成會員。",
+    difficulty: 1,
+    question: "接下來怎麼做比較好？",
+    // 三個選項都是正當管道,只差在這個情境該走哪一條——與正式題庫同一種寫法。
+    // 不要寫成「照對方連結操作」這種不看情境也知道錯的句子:策展文件明文禁止,
+    // 實測那樣會 100% 洩題,而且之後有人照測試抄題就會抄到廢棄寫法。
+    options: [
+      { key: "A", text: "從原平台官方入口查帳戶狀態" },
+      { key: "B", text: "掛斷後自行改撥卡片背面客服" },
+      { key: "C", text: "從主管機關官方名單查資格" },
+    ],
+  }
+
+  it("沒選之前不能送出，選完才送出所選的 key", () => {
+    let submitted: string | null = null
+    render(
+      <VerificationQuestion
+        item={item}
+        index={0}
+        total={5}
+        disabled={false}
+        onSubmit={(key) => {
+          submitted = key
+        }}
+      />,
+    )
+
+    const submit = screen.getByRole("button", { name: "送出答案" })
+    expect(submit.hasAttribute("disabled")).toBe(true)
+
+    fireEvent.click(
+      screen.getByRole("radio", { name: /掛斷後自行改撥卡片背面客服/ }),
+    )
+    expect(submit.hasAttribute("disabled")).toBe(false)
+
+    // 送出前可以改答案。
+    fireEvent.click(
+      screen.getByRole("radio", { name: /從原平台官方入口查帳戶狀態/ }),
+    )
+    fireEvent.click(submit)
+
+    expect(submitted).toBe("A")
+  })
+
+  it("題面不洩漏哪個是正解", () => {
+    render(
+      <VerificationQuestion
+        item={item}
+        index={0}
+        total={5}
+        disabled={false}
+        onSubmit={() => {}}
+      />,
+    )
+
+    for (const option of item.options) {
+      // 原生 radio 沒有 aria-checked，選取狀態在 checked 屬性上。
+      const radio = screen.getByRole("radio", {
+        name: new RegExp(option.text),
+      }) as HTMLInputElement
+      expect(radio.checked).toBe(false)
+    }
   })
 })

@@ -4,13 +4,39 @@
     {
       "name": "backend",
       "runtimeExecutable": "uv",
-      "runtimeArgs": ["run", "--directory", "backend", "fastapi", "dev", "app/main.py", "--port", "8000"],
-      "port": 8000
+      "runtimeArgs": [
+        "run",
+        "--directory",
+        "backend",
+        "fastapi",
+        "dev",
+        "app/main.py",
+        "--port",
+        "8000"
+      ],
+      "port": 8000,
+      "env": {
+        "POSTGRES_SERVER": "localhost",
+        "POSTGRES_PORT": "54323",
+        "POSTGRES_DB": "app",
+        "POSTGRES_USER": "postgres",
+        "POSTGRES_PASSWORD": "changethis",
+        "ENVIRONMENT": "local",
+        "SECRET_KEY": "ci-not-for-production",
+        "PROJECT_NAME": "ScamGym 識詐練習場",
+        "FIRST_SUPERUSER": "admin@example.com",
+        "FIRST_SUPERUSER_PASSWORD": "changethis",
+        "EMAILS_FROM_EMAIL": "noreply@example.com",
+        "FRONTEND_HOST": "http://localhost:5173"
+      }
     },
     {
       "name": "frontend",
       "runtimeExecutable": "bun",
-      "runtimeArgs": ["run", "dev"],
+      "runtimeArgs": [
+        "run",
+        "dev"
+      ],
       "port": 5173
     }
   ]

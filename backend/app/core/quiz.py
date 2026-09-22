@@ -21,6 +21,7 @@ class DeckComposition(NamedTuple):
     verdict: int
     tactics: int
     match: int
+    verification: int = 0
 
 
 @dataclass(frozen=True)
@@ -80,14 +81,26 @@ def _is_mirror_compatible(
     )
 
 
-def _compose_deck(size: int) -> DeckComposition:
-    """依總題數分配題型；match 是五對配對重型題，每副牌最多一題。"""
+def verification_quota(size: int) -> int:
+    """每三題配一題查證題；不足三題的小牌不出查證題。"""
+    return max(1, min(size, 10)) // 3
+
+
+def _compose_deck(size: int, verification_count: int = 0) -> DeckComposition:
+    """依總題數分配題型；match 是五對配對重型題，每副牌最多一題。
+
+    `verification_count` 由路由傳入「實際取到幾題」而非理論配額——查證題素材
+    來自另一張子表，可能不足。取不到就讓 verdict／tactics 補回去，
+    牌堆題數不會因此縮水。
+    """
     clamped = max(1, min(size, 10))
     match_count = 1 if clamped >= 5 else 0
-    remaining = clamped - match_count
+    remaining = clamped - match_count - verification_count
     verdict_count = (remaining + 1) // 2
     tactics_count = remaining // 2
-    return DeckComposition(verdict_count, tactics_count, match_count)
+    return DeckComposition(
+        verdict_count, tactics_count, match_count, verification_count
+    )
 
 
 def case_tags(red_flags: list[dict[str, Any]]) -> set[str]:
@@ -351,6 +364,11 @@ def _question_count(material: QuizMaterial) -> int:
     return len(material.verdict) + len(material.tactics) + bool(material.match)
 
 
+def _case_question_total(composition: DeckComposition) -> int:
+    """配額中「取自 game_cases 的題數」；查證題來自子表，不由此處選材。"""
+    return composition.verdict + composition.tactics + composition.match
+
+
 def _material_cases(material: QuizMaterial) -> list[GameCaseRow]:
     return [
         *material.verdict,
@@ -380,9 +398,10 @@ def _select_quiz_material(
     enforce_mirror: bool,
     max_difficulty: int | None,
     prefer_scam_on_tie: bool,
+    verification_count: int = 0,
 ) -> QuizMaterial:
     """先保留平衡 verdict，再選 tactics/match，並以 verdict 補足缺額。"""
-    composition = _compose_deck(size)
+    composition = _compose_deck(size, verification_count)
     used_case_ids: set[int] = set()
 
     verdict: list[GameCaseRow] = []
@@ -467,8 +486,10 @@ def _select_quiz_material(
     )
 
 
-def _log_material_shortages(material: QuizMaterial, *, size: int) -> None:
-    composition = _compose_deck(size)
+def _log_material_shortages(
+    material: QuizMaterial, *, size: int, verification_count: int = 0
+) -> None:
+    composition = _compose_deck(size, verification_count)
     missing_tactics = composition.tactics - len(material.tactics)
     if missing_tactics:
         logger.warning("quiz tactics 素材不足，缺少 %d 題", missing_tactics)
@@ -517,6 +538,7 @@ def _selection_candidates(
     enforce_mirror: bool,
     max_difficulty: int | None,
     prefer_scam_on_tie: bool,
+    verification_count: int = 0,
 ) -> list[QuizMaterial]:
     primary = _select_quiz_material(
         cases,
@@ -524,8 +546,9 @@ def _selection_candidates(
         enforce_mirror=enforce_mirror,
         max_difficulty=max_difficulty,
         prefer_scam_on_tie=prefer_scam_on_tie,
+        verification_count=verification_count,
     )
-    target_size = sum(_compose_deck(size))
+    target_size = _case_question_total(_compose_deck(size, verification_count))
     theoretical_minimum = len(primary.verdict) % 2
     if (
         _question_count(primary) == target_size
@@ -540,14 +563,23 @@ def _selection_candidates(
             enforce_mirror=enforce_mirror,
             max_difficulty=max_difficulty,
             prefer_scam_on_tie=not prefer_scam_on_tie,
+            verification_count=verification_count,
         ),
     ]
 
 
 def select_quiz_material(
-    cases: list[GameCaseRow], *, size: int, max_difficulty: int | None = None
+    cases: list[GameCaseRow],
+    *,
+    size: int,
+    max_difficulty: int | None = None,
+    verification_count: int = 0,
 ) -> QuizMaterial:
-    """依難度與鏡像規則分層選材；題數不足時依序放寬難度、鏡像。"""
+    """依難度與鏡像規則分層選材；題數不足時依序放寬難度、鏡像。
+
+    `verification_count` 是路由「實際取到的查證題數」，會從本函式要選的
+    案例題數中扣掉——查證題素材來自 game_case_questions 子表，不經此處。
+    """
     # 每副牌只擲一次硬幣；第二方向只在第一方向仍可能改善時才計算。
     prefer_scam_on_tie = random() < 0.5
     strict_candidates = _selection_candidates(
@@ -556,8 +588,9 @@ def select_quiz_material(
         enforce_mirror=True,
         max_difficulty=max_difficulty,
         prefer_scam_on_tie=prefer_scam_on_tie,
+        verification_count=verification_count,
     )
-    target_size = sum(_compose_deck(size))
+    target_size = _case_question_total(_compose_deck(size, verification_count))
     full_strict_candidates = [
         candidate
         for candidate in strict_candidates
@@ -565,7 +598,9 @@ def select_quiz_material(
     ]
     if full_strict_candidates:
         result = _choose_balanced_candidate(full_strict_candidates)
-        _log_material_shortages(result, size=size)
+        _log_material_shortages(
+            result, size=size, verification_count=verification_count
+        )
         return result
 
     relaxed_candidates = _selection_candidates(
@@ -574,6 +609,7 @@ def select_quiz_material(
         enforce_mirror=False,
         max_difficulty=max_difficulty,
         prefer_scam_on_tie=prefer_scam_on_tie,
+        verification_count=verification_count,
     )
     fullest_count = max(_question_count(candidate) for candidate in relaxed_candidates)
     fullest_candidates = [
@@ -589,5 +625,5 @@ def select_quiz_material(
         mirror_relaxed_count=_mirror_relaxed_count(relaxed),
         missing_match_tags=relaxed.missing_match_tags,
     )
-    _log_material_shortages(result, size=size)
+    _log_material_shortages(result, size=size, verification_count=verification_count)
     return result

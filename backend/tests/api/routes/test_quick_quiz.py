@@ -10,7 +10,11 @@ from sqlmodel import Session, select
 
 from app.api.routes import quick as quick_routes
 from app.core import quiz as quiz_core
-from app.core.cases import get_case, list_published_for_quiz
+from app.core.cases import (
+    get_case,
+    list_published_for_quiz,
+    list_published_verification_questions,
+)
 from app.core.config import settings
 from app.core.quiz import case_tags
 from app.models import QuizSession, User
@@ -77,6 +81,8 @@ def _correct_answer(
         answer["guess_is_scam"] = stored["is_scam"]
     elif stored["type"] == "tactics":
         answer["selected_tags"] = stored["correct_tags"]
+    elif stored["type"] == "verification":
+        answer["selected_key"] = stored["correct_key"]
     else:
         answer["pairs"] = {pair["pair_id"]: pair["tag"] for pair in stored["pairs"]}
     return answer
@@ -108,7 +114,12 @@ def test_deck_returns_mixed_items_without_answers(
     assert [item["item_id"] for item in items] == [
         item["item_id"] for item in _quiz(db, session_id).items
     ]
-    assert {item["type"] for item in items} <= {"verdict", "tactics", "match"}
+    assert {item["type"] for item in items} <= {
+        "verdict",
+        "tactics",
+        "match",
+        "verification",
+    }
     for item in items:
         assert "case_id" not in item
         assert "is_scam" not in item
@@ -119,6 +130,12 @@ def test_deck_returns_mixed_items_without_answers(
         if item["type"] == "match":
             assert len(item["match_prompts"]) == 5
             assert len(item["match_targets"]) == 5
+        if item["type"] == "verification":
+            # 正解與解說必須留在 session，發牌 payload 只有 key 與選項文字。
+            assert "correct_key" not in item
+            assert "explanation" not in item
+            assert len(item["options"]) >= 3
+            assert all(set(opt) == {"key", "text"} for opt in item["options"])
 
 
 def test_deck_never_reuses_case_and_tactics_are_scam(
@@ -155,6 +172,18 @@ def test_deck_never_reuses_case_and_tactics_are_scam(
     for item in quiz.items:
         if item["type"] in {"verdict", "tactics"}:
             assert {"item_id", "type", "case_id"} <= set(item)
+        elif item["type"] == "verification":
+            # 正解、解說與來源留在 session 端，發牌 payload 不帶。
+            assert set(item) == {
+                "item_id",
+                "type",
+                "question_id",
+                "case_id",
+                "correct_key",
+                "explanation",
+                "provenance",
+                "weakness_tag",
+            }
         else:
             assert set(item) == {"item_id", "type", "pairs"}
             assert all(
@@ -212,7 +241,9 @@ def test_deck_balances_verdicts_with_skewed_fixture(
     verdict_scam = sum(case is not None and case.is_scam for case in verdict_cases)
     verdict_legit = sum(case is not None and not case.is_scam for case in verdict_cases)
 
-    assert len(verdict_cases) >= 5
+    # size=10 的配額是 verdict 3 / tactics 3 / match 1 / verification 3。
+    # 查證題進來之後 verdict 從 5 降到 3——這個測的是「平衡」不是「題數」。
+    assert len(verdict_cases) >= 3
     assert minimum_gaps
     # 固定 <= 1 是錯的期望：match/tactics 會先消耗 scam，且 mirror、難度與
     # 唯一性仍須成立；完整候選有時只能達到差距 2。正確性質是最終選到
@@ -994,6 +1025,7 @@ def test_answer_rejects_oversized_nested_payload_with_422(
 
 def test_each_tactics_item_shuffles_its_own_options(
     client: TestClient,
+    db: Session,
     normal_user_token_headers: dict[str, str],
     monkeypatch: Any,
 ) -> None:
@@ -1008,13 +1040,43 @@ def test_each_tactics_item_shuffles_its_own_options(
 
     monkeypatch.setattr(quick_routes, "shuffle", deterministic_shuffle)
 
-    _, items = _deal(client, normal_user_token_headers, size=5)
+    # 這題測的是「每題各自洗牌」，不是配額。tactics 的題數取決於素材夠不夠，
+    # 在只有 fixture 資料的 CI 上隨機到 0～3 題都有可能，所以不能靠隨機發牌湊題數：
+    # 把素材固定成「每個案例都是同樣兩個紅旗」——tactics 只要求 ≥2 個標籤所以全部合格，
+    # match 需要五個相異標籤所以必定發不出來，空出來的 scam 案例正好餵給 tactics。
+    cases = list_published_for_quiz(db)
+    uniform_tags = [
+        case.model_copy(
+            update={
+                "red_flags": [
+                    {"tag": "time_pressure", "text": "限時處理"},
+                    {"tag": "authority", "text": "主管要求"},
+                ]
+            }
+        )
+        for case in cases
+    ]
+    monkeypatch.setattr(
+        quick_routes, "list_published_for_quiz", lambda _session: uniform_tags
+    )
+    # 查證題會從池子裡佔走案例，關掉才能讓 tactics 拿到穩定的題數。
+    monkeypatch.setattr(
+        quick_routes, "list_published_verification_questions", lambda *_, **__: []
+    )
+
+    _, items = _deal(client, normal_user_token_headers, size=10)
     tactics_items = [item for item in items if item["type"] == "tactics"]
     option_orders = [
         [option["tag"] for option in item["options"]] for item in tactics_items
     ]
 
-    assert tactics_shuffle_calls == len(tactics_items) == 2
+    assert len(items) == 10
+    # 素材固定後題數就不再隨機（目前 fixture 給得出 4 題）。這裡不釘死數字，
+    # 因為題數只反映 fixture 有幾個 scam 案例，擴充 fixture 不該弄壞這個測試。
+    assert len(tactics_items) >= 2
+    # 真正要守的不變式：每一題各自洗一次牌，不是全部共用同一個順序。
+    assert tactics_shuffle_calls == len(tactics_items)
+    # 洗牌函式每隔一次才反轉，所以相鄰兩題的選項順序必定不同。
     assert option_orders[0] != option_orders[1]
 
 
@@ -1042,7 +1104,69 @@ def test_deck_omits_match_when_material_is_insufficient(
 
     _, items = _deal(client, normal_user_token_headers, size=5)
 
+    types = [item["type"] for item in items]
     assert len(items) == 5
-    assert [item["type"] for item in items].count("match") == 0
-    assert [item["type"] for item in items].count("verdict") == 3
-    assert [item["type"] for item in items].count("tactics") == 2
+    assert types.count("match") == 0
+    # match 發不出來時由 verdict 補回缺額；查證題來自子表，不受案例素材不足影響。
+    assert types.count("verdict") == 3
+    assert types.count("tactics") == 1
+    assert types.count("verification") == 1
+
+
+def _case_id(db: Session, case_key: str) -> int:
+    row = db.execute(
+        text("SELECT id FROM game_cases WHERE case_key = :k"), {"k": case_key}
+    ).first()
+    assert row is not None, f"fixture 少了 {case_key}"
+    return int(row[0])
+
+
+def test_verification_exclusion_blocks_mirror_in_both_directions(
+    db: Session,
+) -> None:
+    """排除一個案例時,它的鏡像對面也要一起擋掉——兩個方向都要。
+
+    `mirror_of` 是單向欄位:fixture 裡只有 pytest-investment-legit 指向
+    pytest-investment-scam-a,scam-a 自己的 mirror_of 是 NULL。只寫
+    「候選的 mirror_of 在排除名單裡」這一條的話,排除 legit 時擋不住 scam-a。
+    鏡像對標題完全相同,同副出現等於把 verdict 題的答案寫在畫面上。
+    """
+    legit_id = _case_id(db, "pytest-investment-legit")
+    scam_id = _case_id(db, "pytest-investment-scam-a")
+
+    # 正向:候選(legit)的 mirror_of 指向被排除的 scam
+    forward = list_published_verification_questions(
+        db, exclude_case_ids={scam_id}, limit=50
+    )
+    assert all(q.case_id != legit_id for q in forward)
+
+    # 反向:被排除的 legit 指向候選(scam)——舊版漏的就是這條
+    reverse = list_published_verification_questions(
+        db, exclude_case_ids={legit_id}, limit=50
+    )
+    assert all(q.case_id != scam_id for q in reverse)
+
+
+def test_picked_verification_questions_never_collide(db: Session) -> None:
+    """連抽多題時,查證題彼此不得共用母案例或鏡像對。
+
+    一次 `ORDER BY random() LIMIT n` 做不到互斥:同一個母案例的兩個子題
+    (next_action / evidence_scope)會一起被抽出來,鏡像對的兩面也會。
+    """
+    mirrors = {
+        int(row[0]): row[1]
+        for row in db.execute(
+            text("SELECT id, mirror_of FROM game_cases WHERE status = 'published'")
+        ).all()
+    }
+    # 這是機率性的檢查,次數要夠。60 次時實測還原舊程式只有約 5/6 會變紅——
+    # fixture 的鏡像對被抽中的機率本來就不高。300 次跑一輪不到一秒。
+    for _ in range(300):
+        picked = quick_routes._pick_verification_questions(
+            db, max_difficulty=3, limit=3
+        )
+        ids = [q.case_id for q in picked]
+        assert len(set(ids)) == len(ids), "同一個母案例被抽到兩次"
+        for case_id in ids:
+            partner = mirrors.get(case_id)
+            assert partner is None or partner not in ids, "鏡像對兩面同時被抽到"

@@ -137,6 +137,38 @@ function MatchReveal({
   )
 }
 
+function VerificationReveal({
+  item,
+  result,
+}: {
+  item: QuizItem
+  result: QuickQuizAnswerResponse
+}) {
+  if (item.type !== "verification" || result.type !== "verification")
+    return null
+  const correctOption = item.options.find(
+    (option) => option.key === result.correct_key,
+  )
+  return (
+    <>
+      <div className="mt-3 rounded-xl border p-3 text-xs">
+        {/* 選項卡上的 A/B/C 是 aria-hidden 的視覺標記,螢幕閱讀器聽不到,
+            所以這裡不能只報代號——只講選項文字才對得回去。 */}
+        <p className="font-bold text-green-600">
+          <span aria-hidden="true">正解 {result.correct_key}：</span>
+          <span className="sr-only">正解：</span>
+          {correctOption?.text ?? ""}
+        </p>
+        <p className="mt-2 leading-relaxed">{result.explanation}</p>
+      </div>
+      <p className="mt-3 rounded-lg bg-muted px-3 py-2 text-[11px] text-muted-foreground">
+        📎 {result.provenance}
+      </p>
+      <WeaknessDetails details={result.tag_details} />
+    </>
+  )
+}
+
 /** 單題揭曉：依題型顯示答案差異，並共用後端提供的弱點建議。 */
 export function QuizReveal({
   item,
@@ -162,6 +194,7 @@ export function QuizReveal({
         <VerdictReveal result={result} />
         <TacticsReveal result={result} />
         <MatchReveal item={item} result={result} />
+        <VerificationReveal item={item} result={result} />
         <button
           type="button"
           disabled={disabled}

@@ -250,8 +250,25 @@ class QuizMatchPublic(BaseModel):
     match_targets: list[QuizMatchTarget]
 
 
+class QuizVerificationOption(BaseModel):
+    key: str
+    text: str
+
+
+class QuizVerificationPublic(BaseModel):
+    item_id: str
+    type: Literal["verification"] = "verification"
+    fraud_type: str
+    title: str
+    narrative: str
+    difficulty: int
+    question: str
+    # 只帶 key 與 text;正解 correct_key 留在 QuizSession,絕不隨發牌外流。
+    options: list[QuizVerificationOption]
+
+
 QuizDeckItem = Annotated[
-    QuizVerdictPublic | QuizTacticsPublic | QuizMatchPublic,
+    QuizVerdictPublic | QuizTacticsPublic | QuizMatchPublic | QuizVerificationPublic,
     Field(discriminator="type"),
 ]
 
@@ -269,6 +286,7 @@ QuizAnswerString64 = Annotated[str, StringConstraints(max_length=64)]
 class QuizAnswerItem(BaseModel):
     item_id: str = Field(max_length=64)
     guess_is_scam: bool | None = None
+    selected_key: str | None = Field(default=None, max_length=1)
     selected_tags: list[QuizAnswerString32] | None = Field(default=None, max_length=5)
     pairs: dict[QuizAnswerString64, QuizAnswerString64] | None = Field(
         default=None, max_length=5
@@ -317,8 +335,20 @@ class QuizMatchAnswerResponse(BaseModel):
     tag_details: list[QuizWeaknessDetail]
 
 
+class QuizVerificationAnswerResponse(BaseModel):
+    type: Literal["verification"] = "verification"
+    correct: bool
+    correct_key: str
+    explanation: str
+    provenance: str
+    tag_details: list[QuizWeaknessDetail]
+
+
 QuizAnswerResponse = Annotated[
-    QuizVerdictAnswerResponse | QuizTacticsAnswerResponse | QuizMatchAnswerResponse,
+    QuizVerdictAnswerResponse
+    | QuizTacticsAnswerResponse
+    | QuizMatchAnswerResponse
+    | QuizVerificationAnswerResponse,
     Field(discriminator="type"),
 ]
 
