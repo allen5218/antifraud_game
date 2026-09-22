@@ -67,14 +67,14 @@ export function ForcedSellModal() {
       <div className="w-full rounded-t-2xl bg-background p-4">
         <h3
           id="forced-sell-title"
-          className="mb-1 flex items-center gap-1 text-sm font-extrabold text-red-700"
+          className="mb-1 flex items-center gap-1 text-sm font-extrabold text-scam"
         >
           ⚠️ 你被詐騙了
         </h3>
         <p className="mb-2 text-[11px] text-muted-foreground">
           在「真實情境」的對話中，你匯了款項到對方指定帳戶。
         </p>
-        <div className="mb-3 rounded-lg border border-red-200 bg-red-50 px-2 py-1.5 text-[11px]">
+        <div className="mb-3 rounded-lg border border-scam/40 bg-scam/15 px-2 py-1.5 text-[11px]">
           <b>現金不足 ${deficit.toLocaleString()}</b>
           <div className="text-muted-foreground">
             需變賣資產補足。賣價為原價 60%。
@@ -92,7 +92,7 @@ export function ForcedSellModal() {
           <div className="mb-2 text-[10px] text-muted-foreground">
             選擇要變賣的房產：
             {insufficientAssets && (
-              <span className="text-red-700">
+              <span className="text-scam">
                 （全部變賣仍不足，可先部分清償，剩餘欠款以答題獎金償還）
               </span>
             )}
@@ -107,7 +107,7 @@ export function ForcedSellModal() {
                 key={p.id}
                 data-testid={`sell-row-${p.id}`}
                 className={`flex items-center gap-2 rounded-lg border px-2 py-1.5 text-[11px] ${
-                  isSel ? "border-red-500 bg-red-50" : "border-border bg-muted"
+                  isSel ? "border-scam bg-scam/15" : "border-border bg-muted"
                 }`}
               >
                 <input
@@ -126,7 +126,7 @@ export function ForcedSellModal() {
                       原價 ${p.tier.price.toLocaleString()}
                     </s>
                     {" · "}
-                    <span className="font-bold text-red-700">
+                    <span className="font-bold text-scam">
                       回收 ${sellPrice.toLocaleString()}
                     </span>
                   </div>
@@ -156,7 +156,7 @@ export function ForcedSellModal() {
                 type="button"
                 disabled={!canConfirm}
                 onClick={confirm}
-                className="rounded-lg bg-red-700 px-3 py-1.5 text-xs font-bold text-white disabled:opacity-50"
+                className="rounded-lg bg-scam px-3 py-1.5 text-xs font-bold text-scam-foreground disabled:opacity-50"
               >
                 確認變賣
               </button>

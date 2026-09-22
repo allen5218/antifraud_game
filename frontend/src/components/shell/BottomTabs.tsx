@@ -1,21 +1,14 @@
 import { Link, useLocation } from "@tanstack/react-router"
+import { isTabActive, TABS } from "./tabs"
 
-const TABS = [
-  { to: "/", icon: "🏠", label: "首頁", testId: "tab-home" },
-  { to: "/scenarios", icon: "💬", label: "情境", testId: "tab-scenarios" },
-  { to: "/assets", icon: "🏘️", label: "資產", testId: "tab-assets" },
-  { to: "/me", icon: "🐱", label: "我", testId: "tab-me" },
-] as const
-
+/** 手機版導覽。桌機改用 NavRail（見 _shell.tsx），所以這裡在 md 以上隱藏。 */
 export function BottomTabs() {
   const { pathname } = useLocation()
   return (
-    <nav className="sticky bottom-0 z-20 grid grid-cols-4 border-t bg-background py-2">
+    <nav className="sticky bottom-0 z-20 grid grid-cols-4 border-t bg-background py-2 md:hidden">
       {TABS.map((t) => {
-        const active =
-          t.to === "/"
-            ? pathname === "/"
-            : pathname === t.to || pathname.startsWith(`${t.to}/`)
+        const active = isTabActive(pathname, t.to)
+        const Icon = t.icon
         return (
           <Link
             key={t.to}
@@ -25,7 +18,7 @@ export function BottomTabs() {
               active ? "font-bold text-primary" : "text-muted-foreground"
             }`}
           >
-            <span className="text-xl leading-none">{t.icon}</span>
+            <Icon aria-hidden className="size-5" />
             <span>{t.label}</span>
           </Link>
         )
