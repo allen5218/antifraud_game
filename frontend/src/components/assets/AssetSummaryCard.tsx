@@ -9,7 +9,7 @@ export function AssetSummaryCard() {
   const ownedCount = data?.owned_count ?? 0
 
   return (
-    <div className="mb-3 rounded-2xl bg-slate-800 p-3 text-white">
+    <div className="mb-3 rounded-2xl border bg-surface-3 p-3 text-card-foreground">
       <div className="text-[10px] opacity-70">總身家</div>
       <div className="text-xl font-extrabold">
         $ {totalNetWorth.toLocaleString()}
@@ -24,7 +24,7 @@ export function AssetSummaryCard() {
       </div>
       <div className="flex justify-between text-[11px]">
         <span>每日被動收入</span>
-        <span className="text-green-400">
+        <span className="text-legit">
           + $ {dailyIncome.toLocaleString()} / 天
         </span>
       </div>

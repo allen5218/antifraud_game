@@ -39,7 +39,7 @@ export function VerdictQuestion({
           type="button"
           disabled={disabled}
           onClick={() => onSubmit(true)}
-          className="flex-1 rounded-xl bg-red-500 py-3 text-sm font-bold text-white disabled:opacity-50"
+          className="flex-1 rounded-xl bg-scam py-3 text-sm font-bold text-scam-foreground disabled:opacity-50"
         >
           🚩 這是詐騙
         </button>
@@ -47,7 +47,7 @@ export function VerdictQuestion({
           type="button"
           disabled={disabled}
           onClick={() => onSubmit(false)}
-          className="flex-1 rounded-xl bg-green-600 py-3 text-sm font-bold text-white disabled:opacity-50"
+          className="flex-1 rounded-xl bg-legit py-3 text-sm font-bold text-legit-foreground disabled:opacity-50"
         >
           ✅ 這是正當
         </button>

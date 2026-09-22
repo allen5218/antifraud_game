@@ -94,6 +94,6 @@ describe("<HeaderStatus />", () => {
     }))
     await renderWithRouter()
     const cashEl = screen.getByTestId("hdr-cash")
-    expect(cashEl.className).toMatch(/text-red/)
+    expect(cashEl.className).toMatch(/text-destructive/)
   })
 })
