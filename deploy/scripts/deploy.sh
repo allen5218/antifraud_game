@@ -10,6 +10,11 @@ if [ -z "${DOMAIN:-}" ] && [ -f .env ]; then
 fi
 : "${DOMAIN:?需設 DOMAIN(shell 環境變數,或寫進根 .env)}"
 echo "→ 拉最新鏡像"; $COMPOSE pull
+
+# 管線表(game_cases / game_case_questions)不歸 Alembic 管,prestart 不會建它們。
+# 新增管線表的版本上線時,如果沒跑這一步,服務會正常啟動但 quiz 端點整個 500
+# (relation ... does not exist)。腳本是冪等的:兩張表都在就跳過,只缺子表就補子表。
+echo "→ 確保遊戲內容已灌入"; bash deploy/scripts/seed-game-cases.sh
 echo "→ 啟動(prestart 會跑 alembic upgrade head)"; $COMPOSE up -d
 echo "→ 等 backend 健康"
 healthy=0

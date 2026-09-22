@@ -16,6 +16,71 @@ import leak_probe  # noqa: E402
 
 
 class ExportPublishedSeedTests(unittest.TestCase):
+    def test_questions_require_published_parent_and_child(self):
+        sql = export_published_seed.question_copy_query()
+        self.assertIn("JOIN public.game_cases gc ON gc.id = q.case_id", sql)
+        self.assertIn("q.status = 'published' AND gc.status = 'published'", sql)
+        self.assertIn("ORDER BY q.id", sql)
+        for column in export_published_seed.QUESTION_COLUMNS:
+            self.assertIn(f"q.{column}", sql)
+
+    def test_schema_dump_includes_both_tables_in_both_sections(self):
+        with patch.object(
+            export_published_seed, "run_pg_dump", return_value="-- schema"
+        ) as dump:
+            for section in ("pre-data", "post-data"):
+                export_published_seed.dump_schema_section(section)
+                self.assertIn("--table=public.game_cases", dump.call_args.args)
+                self.assertIn("--table=public.game_case_questions", dump.call_args.args)
+                self.assertIn(f"--section={section}", dump.call_args.args)
+
+    def test_copy_order_sequences_and_exactly_one_final_newline(self):
+        for trailing in ("", "\n", "\n\n\n", "\n  \n"):
+            seed = export_published_seed.compose_seed(
+                "-- pre\n", "parent-data", "-- post" + trailing, "child-data"
+            )
+            self.assertLess(
+                seed.index("parent-data"), seed.index("COPY public.game_case_questions")
+            )
+            self.assertLess(seed.index("child-data"), seed.index("-- post"))
+            for table in ("game_cases", "game_case_questions"):
+                self.assertIn(f"'public.{table}_id_seq'", seed)
+                self.assertIn(
+                    f"COALESCE((SELECT max(id) FROM public.{table}), 1)", seed
+                )
+                self.assertIn(f"EXISTS (SELECT 1 FROM public.{table})", seed)
+            self.assertTrue(seed.endswith("-- post\n"))
+            self.assertFalse(seed.endswith("\n\n"))
+
+    def test_main_exports_both_copy_blocks(self):
+        with tempfile.TemporaryDirectory() as td:
+            path = Path(td) / "seed.sql"
+            with (
+                patch.object(export_published_seed, "load_env"),
+                patch.object(
+                    export_published_seed,
+                    "published_stats",
+                    return_value={"published": 1, "published_questions": 1},
+                ),
+                patch.object(
+                    export_published_seed,
+                    "dump_schema_section",
+                    side_effect=["-- pre", "-- post\n\n"],
+                ),
+                patch.object(
+                    export_published_seed,
+                    "psql_copy_stdout",
+                    side_effect=["parent-data\n", "child-data\n"],
+                ) as copy,
+                patch("sys.argv", ["export_published_seed.py", "--output", str(path)]),
+                patch("builtins.print"),
+            ):
+                self.assertEqual(export_published_seed.main(), 0)
+            self.assertEqual(copy.call_count, 2)
+            seed = path.read_text()
+            self.assertIn("child-data\n\\.\n", seed)
+            self.assertTrue(seed.endswith("-- post\n"))
+
     def test_copy_query_filters_published_and_nulls_unpublished_mirror(self):
         sql = export_published_seed.copy_query()
         self.assertIn("WHERE gc.status = 'published'", sql)
@@ -83,3 +148,110 @@ class ExportPublishedSeedTests(unittest.TestCase):
         self.assertEqual(code, 0)
         dump.assert_not_called()
         self.assertIn('"published": 40', output.call_args.args[0])
+
+
+class SeedFileContractTests(unittest.TestCase):
+    """committed 種子檔的回歸測試。
+
+    這裡守的是一個沒有任何自動機制會提醒你的缺口:`game_case_questions` 不歸
+    Alembic 管,`backend/tests/api/conftest.py` 又會自己把表建起來——所以後端
+    248 個測試全綠,而照部署流程建起來的資料庫上 quiz_deck 會直接
+    `relation "game_case_questions" does not exist` 回 500。
+    """
+
+    REPO = Path(__file__).resolve().parents[5]
+    FULL_SEED = REPO / "deploy" / "seed" / "game_cases.sql"
+    QUESTIONS_SEED = REPO / "deploy" / "seed" / "game_case_questions.sql"
+
+    def test_full_seed_creates_both_tables(self):
+        sql = self.FULL_SEED.read_text(encoding="utf-8")
+        self.assertIn("CREATE TABLE public.game_cases (", sql)
+        self.assertIn("CREATE TABLE public.game_case_questions (", sql)
+        self.assertIn("COPY public.game_cases (", sql)
+        self.assertIn("COPY public.game_case_questions (", sql)
+
+    def test_questions_seed_does_not_touch_parent_table(self):
+        """子表升級種子用在「game_cases 已經在」的既有環境,碰到母表就會炸。"""
+        sql = self.QUESTIONS_SEED.read_text(encoding="utf-8")
+        self.assertIn("CREATE TABLE public.game_case_questions (", sql)
+        self.assertNotIn("CREATE TABLE public.game_cases (", sql)
+        self.assertNotIn("COPY public.game_cases (", sql)
+
+    def test_questions_seed_columns_match_exporter(self):
+        sql = self.QUESTIONS_SEED.read_text(encoding="utf-8")
+        expected = ", ".join(export_published_seed.QUESTION_COLUMNS)
+        self.assertIn(f"COPY public.game_case_questions ({expected}) FROM stdin;", sql)
+
+    @staticmethod
+    def _copy_rows(sql, table):
+        """抓出某張表 COPY 區塊的資料列(不含結尾的 \\.)。"""
+        marker = f"COPY public.{table} ("
+        start = sql.index(marker)
+        body = sql[sql.index("FROM stdin;\n", start) + len("FROM stdin;\n") :]
+        return [line for line in body.split("\n") if line and line != "\\."][
+            : body.split("\n").index("\\.")
+        ]
+
+    def test_seeds_actually_contain_rows(self):
+        """只斷言 CREATE TABLE / COPY 這幾行字串是不夠的。
+
+        把 COPY 區塊清空成 0 列,前面那幾條 assertIn 全部照過——
+        種子檔「結構正確但沒有資料」的情況會整批漏掉,而那正是部署後
+        查證題靜默消失的長相。
+        """
+        for path, table in (
+            (self.FULL_SEED, "game_cases"),
+            (self.FULL_SEED, "game_case_questions"),
+            (self.QUESTIONS_SEED, "game_case_questions"),
+        ):
+            rows = self._copy_rows(path.read_text(encoding="utf-8"), table)
+            self.assertGreater(len(rows), 0, f"{path.name} 的 {table} 沒有資料列")
+
+    def test_seed_rows_are_published_and_reference_real_cases(self):
+        """子題必須全部 published,而且 case_id 在母表 COPY 區塊裡找得到。
+
+        後者順便釘住外鍵一致性:母表 id 漂移時,灌入會在 ADD CONSTRAINT 失敗。
+        """
+        sql = self.FULL_SEED.read_text(encoding="utf-8")
+        case_cols = export_published_seed.COLUMNS
+        q_cols = export_published_seed.QUESTION_COLUMNS
+        case_ids = {
+            row.split("\t")[case_cols.index("id")]
+            for row in self._copy_rows(sql, "game_cases")
+        }
+        status_i = q_cols.index("status")
+        case_id_i = q_cols.index("case_id")
+        for row in self._copy_rows(sql, "game_case_questions"):
+            fields = row.split("\t")
+            self.assertEqual(fields[status_i], "published")
+            self.assertIn(fields[case_id_i], case_ids)
+
+
+class LatestVersionOnlyTests(unittest.TestCase):
+    """後端只發「該 question_key 的最大 version」,匯出與探針必須套同一條規則。"""
+
+    def test_export_only_takes_latest_version(self):
+        sql = export_published_seed.question_copy_query()
+        self.assertIn("max(v.version)", sql)
+        self.assertIn("v.question_key = q.question_key", sql)
+
+    def test_export_stats_only_counts_latest_version(self):
+        captured = {}
+
+        def fake_scalar(sql):
+            captured["sql"] = sql
+            return "{}"
+
+        with patch.object(export_published_seed, "psql_scalar", fake_scalar):
+            export_published_seed.published_stats()
+        self.assertIn("max(v.version)", captured["sql"])
+
+    def test_latest_version_helper_ignores_status(self):
+        """v2 是 draft 時,v1 不可以因為「只看 published」而變成最大版本。"""
+        rows = [
+            {"question_key": "q-a", "version": "1", "status": "published"},
+            {"question_key": "q-a", "version": "2", "status": "draft"},
+            {"question_key": "q-b", "version": "3", "status": "published"},
+        ]
+        latest = leak_probe._latest_version_by_key(rows)
+        self.assertEqual(latest, {"q-a": 2, "q-b": 3})

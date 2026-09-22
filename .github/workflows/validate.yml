@@ -29,17 +29,23 @@ jobs:
               - 'deploy/seed/**'
               - '.github/workflows/validate.yml'
 
+      # 管線腳本需要 jsonschema。先前靠 runner 映像剛好帶著,
+      # 換了映像就會有三個測試模組安靜地 ERROR 掉而沒人發現。
+      - name: Set up uv
+        if: steps.data-pipeline-paths.outputs.changed == 'true'
+        uses: astral-sh/setup-uv@v7
+
       - name: Test data pipeline
         if: steps.data-pipeline-paths.outputs.changed == 'true'
         working-directory: data_pipeline/.agents/skills/scam-knowledge-pipeline
-        run: python3 -m unittest discover -s tests
+        run: uv run --with jsonschema python -m unittest discover -s tests
 
       - name: Check game case leakage and tag balance
         if: steps.data-pipeline-paths.outputs.changed == 'true'
         working-directory: data_pipeline/.agents/skills/scam-knowledge-pipeline
         # 題庫擴充到 80 題後,五種 tag 最低者(social_proof)為 14 筆,門檻調到策展目標 6。
         run: >-
-          python3 scripts/leak_probe.py
+          uv run --with jsonschema python scripts/leak_probe.py
           --from-dump "$GITHUB_WORKSPACE/deploy/seed/game_cases.sql"
           --probe lexical,match
           --tag-balance

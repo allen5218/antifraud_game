@@ -684,6 +684,32 @@ CREATE TABLE IF NOT EXISTS game_cases (
 CREATE INDEX IF NOT EXISTS game_cases_published_idx
   ON game_cases (fraud_type, is_scam)
   WHERE status = 'published';
+
+-- 查證題子表：一個母案例可掛多題（問「下一步查什麼」與「證據代表什麼」）。
+-- 子題有自己的 status，母案例 published 不代表子題已審核。
+CREATE TABLE IF NOT EXISTS game_case_questions (
+    id bigserial PRIMARY KEY,
+    question_key text NOT NULL,
+    version int NOT NULL DEFAULT 1,
+    case_id bigint NOT NULL REFERENCES game_cases(id) ON DELETE CASCADE,
+    question_kind text NOT NULL,
+    question text NOT NULL,
+    options jsonb NOT NULL,
+    correct_key text NOT NULL,
+    explanation text NOT NULL,
+    weakness_tag text,
+    difficulty int NOT NULL DEFAULT 2,
+    source_document_ids bigint[] NOT NULL DEFAULT '{}',
+    provenance text,
+    status text NOT NULL DEFAULT 'draft',
+    review_notes text,
+    created_at timestamptz NOT NULL DEFAULT now(),
+    published_at timestamptz,
+    UNIQUE (question_key, version)
+);
+CREATE INDEX IF NOT EXISTS game_case_questions_published_idx
+  ON game_case_questions (case_id)
+  WHERE status = 'published';
 """,
         quiet=True,
     )

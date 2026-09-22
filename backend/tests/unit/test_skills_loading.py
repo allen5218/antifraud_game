@@ -15,7 +15,13 @@ EXPECTED_SKILLS = {
 }
 
 PERSONA_EXT = "soul.md"
-WEAKNESS_TAGS = {"time_pressure", "authority", "greed", "social_proof", "trust_building"}
+WEAKNESS_TAGS = {
+    "time_pressure",
+    "authority",
+    "greed",
+    "social_proof",
+    "trust_building",
+}
 PERSONA_SECTIONS = [
     "Identity",
     "Communication Style",
@@ -49,7 +55,9 @@ def test_skill_has_description():
 
 
 def test_fraud_investment_has_two_personas():
-    toolset = SkillsToolset(directories=[SKILLS_DIR], exclude_tools=["run_skill_script"])
+    toolset = SkillsToolset(
+        directories=[SKILLS_DIR], exclude_tools=["run_skill_script"]
+    )
     skill = toolset.skills["fraud-investment"]
     resource_names = {r.name for r in (skill.resources or [])}
     assert "personas/scammer.soul.md" in resource_names, resource_names
@@ -57,7 +65,9 @@ def test_fraud_investment_has_two_personas():
 
 
 def test_every_skill_has_scammer_and_legit_personas():
-    toolset = SkillsToolset(directories=[SKILLS_DIR], exclude_tools=["run_skill_script"])
+    toolset = SkillsToolset(
+        directories=[SKILLS_DIR], exclude_tools=["run_skill_script"]
+    )
     for name in EXPECTED_SKILLS:
         rnames = {r.name for r in (toolset.skills[name].resources or [])}
         assert f"personas/scammer.{PERSONA_EXT}" in rnames, (name, rnames)
@@ -116,7 +126,11 @@ def test_weakness_module_matches_game_constants():
     from app.core.weakness import WEAKNESS_LABELS, WEAKNESS_SUGGESTIONS, WEAKNESS_TAGS
 
     assert WEAKNESS_TAGS == {
-        "time_pressure", "authority", "greed", "social_proof", "trust_building"
+        "time_pressure",
+        "authority",
+        "greed",
+        "social_proof",
+        "trust_building",
     }
     assert set(WEAKNESS_LABELS) == WEAKNESS_TAGS
     assert set(WEAKNESS_SUGGESTIONS) == WEAKNESS_TAGS
