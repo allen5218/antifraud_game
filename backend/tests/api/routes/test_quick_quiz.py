@@ -1159,7 +1159,9 @@ def test_picked_verification_questions_never_collide(db: Session) -> None:
             text("SELECT id, mirror_of FROM game_cases WHERE status = 'published'")
         ).all()
     }
-    for _ in range(60):
+    # 這是機率性的檢查,次數要夠。60 次時實測還原舊程式只有約 5/6 會變紅——
+    # fixture 的鏡像對被抽中的機率本來就不高。300 次跑一輪不到一秒。
+    for _ in range(300):
         picked = quick_routes._pick_verification_questions(
             db, max_difficulty=3, limit=3
         )

@@ -6,8 +6,12 @@ import json
 from collections import Counter
 
 from common import ROOT, read_jsonl, write_jsonl
-from jsonschema import Draft202012Validator
 from validate_game_cases import PII_PATTERNS
+
+try:
+    from jsonschema import Draft202012Validator
+except ImportError:  # 裸 python3 也要能 import 這個模組(CI 用的就是裸 python3)
+    Draft202012Validator = None
 
 VERIFICATION_WORDS = (
     "查證",
@@ -29,6 +33,13 @@ def load_schema_validator():
             encoding="utf-8"
         )
     )
+    if Draft202012Validator is None:
+        # 不能像 validate_game_cases 那樣回傳 None 靜默跳過:
+        # 查證題的選項 key、長度上限全靠 schema 擋,跳過等於整批不驗。
+        raise SystemExit(
+            "缺少 jsonschema,無法驗證查證題 schema。請用 `uv run` 執行,"
+            "或先安裝 jsonschema。"
+        )
     Draft202012Validator.check_schema(schema)
     return Draft202012Validator(schema)
 
@@ -74,6 +85,55 @@ def semantic_errors(rec):
     return errors
 
 
+def _cluster_key(rec):
+    """同一組選項文字視為一個叢集(與順序無關)。"""
+    return frozenset(option["text"] for option in rec["options"])
+
+
+# 叢集分布只在夠大的批次上才有意義:一次只驗一兩題時,「這組選項用在幾題」
+# 根本無從判斷。低於這個數量就不套叢集規則,避免把單題驗證誤判成違規。
+MIN_BATCH_FOR_CLUSTER_RULES = 6
+
+
+def cluster_problems(records):
+    """檢查同領域叢集的兩條硬規則。
+
+    這兩條原本只寫在 curation.md 裡,沒有任何東西在執行。實測過:選項只用在
+    一兩題、或某個選項當正解的比例過半時,「知道叢集就固定挑眾數」的命中率
+    會明顯高過 1/選項數的基準線,而題庫長大時沒人會發現。
+    """
+    if len(records) < MIN_BATCH_FOR_CLUSTER_RULES:
+        return {}
+    groups = {}
+    for rec in records:
+        groups.setdefault(_cluster_key(rec), []).append(rec)
+    problems = {}
+    for key, members in groups.items():
+        errors = []
+        if len(members) < 3:
+            errors.append(
+                f"選項組只用在 {len(members)} 題；同一組選項至少要橫跨 3 題，"
+                "否則正解無法在組內分散"
+            )
+        correct_texts = Counter(
+            next(
+                option["text"]
+                for option in rec["options"]
+                if option["key"] == rec["correct_key"]
+            )
+            for rec in members
+        )
+        top_text, top_count = correct_texts.most_common(1)[0]
+        if top_count * 2 > len(members):
+            errors.append(
+                f"選項「{top_text}」在這組 {len(members)} 題裡當了 {top_count} 次正解，"
+                "超過一半；固定挑它就會贏"
+            )
+        if errors:
+            problems[key] = errors
+    return problems
+
+
 def validate_rows(input_rows):
     validator = load_schema_validator()
     checked = []
@@ -92,6 +152,7 @@ def validate_rows(input_rows):
     case_counts = Counter(rec["case_key"] for rec in candidates)
     kind_counts = Counter((rec["case_key"], rec["question_kind"]) for rec in candidates)
     concentrated = len(case_counts) * 2 < len(candidates)
+    cluster_errors = cluster_problems(candidates)
     seen, valid, rejected = set(), [], []
     for line_no, rec, errors in checked:
         if not errors:
@@ -104,6 +165,7 @@ def validate_rows(input_rows):
                 errors.append(f"case_key {rec['case_key']} 底下最多兩題")
             if kind_counts[(rec["case_key"], rec["question_kind"])] > 1:
                 errors.append("同一 case_key 每種 question_kind 最多一題")
+            errors.extend(cluster_errors.get(_cluster_key(rec), ()))
             if concentrated:
                 errors.append(
                     f"素材過度集中：案例數 {len(case_counts)} 不得少於查證題總數 "

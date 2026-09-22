@@ -16,7 +16,7 @@ description: 引導遊戲部署到自托管 Supabase + Cloudflare Tunnel 的單�
 | 1 | Docker 可用 | `docker compose version` | 有版本輸出 |
 | 2 | Cloudflare Tunnel 已建，**兩條** Public Hostname 都設好 | `dig +short <domain>` 與 `dig +short api.<domain>` | **兩者都要有 A 記錄** |
 | 3 | 兩個 `.env` 已填 | `grep -c '^CLOUDFLARE_TUNNEL_TOKEN=.\+' .env` | `1` |
-| 4 | 遊戲內容種子檔在 repo 內 | `wc -l deploy/seed/game_cases.sql` | 非空（部署後跑 `seed-game-cases.sh` 灌入） |
+| 4 | 遊戲內容種子檔在 repo 內 | `wc -l deploy/seed/game_cases.sql deploy/seed/game_case_questions.sql` | **兩份都非空**（`deploy.sh` 會自動灌入） |
 
 > **`api.<domain>` 這條 DNS 特別容易漏。** 前端映像把 `VITE_API_URL=https://api.<domain>` **build 時 baked 進靜態 JS**，runtime 改不了。少了這條記錄，前端會正常載入，但每一個 API 呼叫都失敗——症狀像前端壞了，其實是 DNS。
 >
@@ -74,9 +74,13 @@ relation "game_cases" does not exist
 bash deploy/scripts/seed-game-cases.sh
 ```
 
-- 資料來源：`deploy/seed/game_cases.sql`——由策展環境 `pg_dump --table=public.game_cases` 匯出，40 筆 `status='published'`（5 種 `fraud_type` × 4 詐騙 + 4 正常對照）。
-- **只有 `game_cases` 一張表**。`backend/app/core/cases.py` 是唯一讀取層，只讀這張；`documents` / `document_chunks`（含 embedding）純屬策展管線，production runtime 不需要，故不進 repo。
-- 腳本**冪等**：偵測到已有 `published` 資料就跳過。要重灌用 `FORCE=1`（會 `DROP TABLE ... CASCADE`）。
+- 資料來源：**兩份**種子檔，由策展環境的 `export_published_seed.py` 匯出：
+  - `deploy/seed/game_cases.sql`——母案例，目前 120 筆 `status='published'`（5 種 `fraud_type`，詐騙／正當各半），**同時含 `game_case_questions` 的建表與資料**，供全新環境使用。
+  - `deploy/seed/game_case_questions.sql`——只含查證題子表，供「`game_cases` 已存在、只缺子表」的既有環境升級用（完整種子檔的 `CREATE TABLE public.game_cases` 在既有環境會直接失敗）。
+- **只有 `game_cases` 與 `game_case_questions` 兩張表**。`backend/app/core/cases.py` 是唯一讀取層，只讀這兩張；`documents` / `document_chunks`（含 embedding）純屬策展管線，production runtime 不需要，故不進 repo。
+- 腳本**冪等**：兩張表都有 `published` 資料才跳過；只缺子表、或子表存在但沒資料，都會自動補上且不碰 `game_cases`。
+  種子檔一律以 `--single-transaction` 載入，中途失敗整份 rollback，不會留下「有表沒外鍵」的半成品。
+- `FORCE=1` 會 `DROP` 兩張表再重灌，**不要在 production 用**（見下方「更新內容」）。
 - 連線走 `supavisor:5432` + `postgres.<tenant-id>`，讀根 `.env` 的 `POSTGRES_*`，與遊戲 backend 完全同一條路徑。
 
 ### 更新內容
@@ -84,12 +88,26 @@ bash deploy/scripts/seed-game-cases.sh
 策展環境（跑過 `data_pipeline/` 管線、並在 Studio 人工把 `draft` 升為 `published` 的那套 DB）重新匯出即可：
 
 ```bash
-docker exec supabase-db pg_dump -U postgres -d postgres \
-  --table=public.game_cases --no-owner --no-privileges --no-comments \
-  > deploy/seed/game_cases.sql
+SK=data_pipeline/.agents/skills/scam-knowledge-pipeline
+uv run python "$SK/scripts/export_published_seed.py" \
+  --env-file curation.env \
+  --output deploy/seed/game_cases.sql \
+  --questions-output deploy/seed/game_case_questions.sql
 ```
 
-然後在 production 主機 `git pull` 後跑 `FORCE=1 bash deploy/scripts/seed-game-cases.sh`。
+**不要手寫 `pg_dump --table=public.game_cases`。** 那樣只會 dump 母表,
+產出的種子檔缺 `game_case_questions`,部署後 quiz 端點會整個 500
+（`relation "game_case_questions" does not exist`）。匯出器還會套用
+「同一 `question_key` 只取最大 version」的規則,手寫 pg_dump 不會——
+改版後被蓋掉的舊題會在新庫裡復活。
+
+然後在 production 主機 `git pull` 後跑 `bash deploy/scripts/deploy.sh`
+（它會呼叫 `seed-game-cases.sh`）。
+
+> ⚠️ **不要在 production 用 `FORCE=1`。** 那會先 `DROP` 兩張表再重灌,
+> 正式題庫會在期間消失。只缺子表或子表沒資料時,不帶 FORCE 的路徑
+> 就會自動補上且不碰 `game_cases`。真的要整批換掉題庫內容時才用 FORCE,
+> 且要先備份。
 
 > 為什麼不用 `data_pipeline/data/manual/seed_game_cases.jsonl`？那 40 筆草稿**不能獨立灌入**：`ingest_game_cases.py` 會驗證每筆的 `source_document_ids`（如 `[70]`、`[76]`）在 `documents` 表裡存在，否則 abort；而且它只寫入 `status='draft'`，發布到 `published` 是 Studio 上的人工步驟。那條路徑屬於策展環境，不是部署路徑。
 
@@ -99,6 +117,10 @@ docker exec supabase-db pg_dump -U postgres -d postgres \
 2. 執行 `git pull`。
 3. 把 `.env` 的 `TAG` 更新到要上線的版本（short-sha 或日期）。
 4. 執行 `bash deploy/scripts/deploy.sh`。
+
+> `deploy.sh` 內含 `seed-game-cases.sh`(冪等)。管線表不歸 Alembic 管,
+> `prestart.sh` 只跑 `alembic upgrade head`——新增管線表的版本上線時,
+> 少了這一步服務會「正常啟動」但 quiz 全掛。
 
 ## Rollback
 

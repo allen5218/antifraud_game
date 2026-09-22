@@ -182,6 +182,50 @@ class SeedFileContractTests(unittest.TestCase):
         expected = ", ".join(export_published_seed.QUESTION_COLUMNS)
         self.assertIn(f"COPY public.game_case_questions ({expected}) FROM stdin;", sql)
 
+    @staticmethod
+    def _copy_rows(sql, table):
+        """抓出某張表 COPY 區塊的資料列(不含結尾的 \\.)。"""
+        marker = f"COPY public.{table} ("
+        start = sql.index(marker)
+        body = sql[sql.index("FROM stdin;\n", start) + len("FROM stdin;\n") :]
+        return [line for line in body.split("\n") if line and line != "\\."][
+            : body.split("\n").index("\\.")
+        ]
+
+    def test_seeds_actually_contain_rows(self):
+        """只斷言 CREATE TABLE / COPY 這幾行字串是不夠的。
+
+        把 COPY 區塊清空成 0 列,前面那幾條 assertIn 全部照過——
+        種子檔「結構正確但沒有資料」的情況會整批漏掉,而那正是部署後
+        查證題靜默消失的長相。
+        """
+        for path, table in (
+            (self.FULL_SEED, "game_cases"),
+            (self.FULL_SEED, "game_case_questions"),
+            (self.QUESTIONS_SEED, "game_case_questions"),
+        ):
+            rows = self._copy_rows(path.read_text(encoding="utf-8"), table)
+            self.assertGreater(len(rows), 0, f"{path.name} 的 {table} 沒有資料列")
+
+    def test_seed_rows_are_published_and_reference_real_cases(self):
+        """子題必須全部 published,而且 case_id 在母表 COPY 區塊裡找得到。
+
+        後者順便釘住外鍵一致性:母表 id 漂移時,灌入會在 ADD CONSTRAINT 失敗。
+        """
+        sql = self.FULL_SEED.read_text(encoding="utf-8")
+        case_cols = export_published_seed.COLUMNS
+        q_cols = export_published_seed.QUESTION_COLUMNS
+        case_ids = {
+            row.split("\t")[case_cols.index("id")]
+            for row in self._copy_rows(sql, "game_cases")
+        }
+        status_i = q_cols.index("status")
+        case_id_i = q_cols.index("case_id")
+        for row in self._copy_rows(sql, "game_case_questions"):
+            fields = row.split("\t")
+            self.assertEqual(fields[status_i], "published")
+            self.assertIn(fields[case_id_i], case_ids)
+
 
 class LatestVersionOnlyTests(unittest.TestCase):
     """後端只發「該 question_key 的最大 version」,匯出與探針必須套同一條規則。"""

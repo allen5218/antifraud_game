@@ -166,6 +166,62 @@ class QuestionValidationTests(unittest.TestCase):
         bad["correct_key"] = "A\n"
         self.rejected([bad], "is not one of")
 
+    def _cluster_batch(self, correct_keys):
+        """受測叢集 + 一組合格的填充叢集。
+
+        叢集規則有批次下限（少於 MIN_BATCH_FOR_CLUSTER_RULES 筆就不套，
+        因為分布無從判斷），所以要補足數量才驗得到受測的那一組。
+        """
+        opts = [
+            {"key": "A", "text": "從原平台官方入口查帳戶狀態"},
+            {"key": "B", "text": "掛斷後自行改撥卡片背面客服"},
+            {"key": "C", "text": "從主管機關官方名單查資格"},
+        ]
+        # 三個都含查證字樣,免得先被「正解不得是唯一含查證字樣的選項」擋下,
+        # 那樣就驗不到叢集規則了。
+        filler_opts = [
+            {"key": "A", "text": "從官方入口查看實物的規格說明"},
+            {"key": "B", "text": "送獨立機構鑑定並取得官方報告"},
+            {"key": "C", "text": "向官方發證單位查詢憑證真偽"},
+        ]
+        batch = [
+            dict(
+                GOOD_QUESTION,
+                question_key=f"verify-cluster-{i:03d}",
+                case_key=f"shopping-scam-{i:03d}",
+                options=copy.deepcopy(opts),
+                correct_key=key,
+            )
+            for i, key in enumerate(correct_keys, 1)
+        ]
+        batch += [
+            dict(
+                GOOD_QUESTION,
+                question_key=f"verify-filler-{i:03d}",
+                case_key=f"fake-sale-scam-{i:03d}",
+                options=copy.deepcopy(filler_opts),
+                correct_key=key,
+            )
+            # 四筆,正解 A/B/C/A —— A 佔 2/4 未過半,填充叢集自己是合格的。
+            for i, key in enumerate("ABCA", 1)
+        ]
+        return batch
+
+    def test_cluster_used_in_too_few_questions_rejected(self):
+        """選項組只用在一兩題時,正解沒辦法在組內分散。"""
+        self.rejected(self._cluster_batch(["A", "B"]), "至少要橫跨 3 題")
+
+    def test_cluster_with_dominant_correct_option_rejected(self):
+        """同一個選項在組內當正解超過一半 → 固定挑它就會贏。"""
+        self.rejected(self._cluster_batch(["A", "A", "A", "B"]), "超過一半")
+
+    def test_balanced_cluster_passes(self):
+        valid, rejected = validator.validate_rows(
+            list(enumerate(self._cluster_batch(["A", "B", "C"]), 1))
+        )
+        self.assertEqual(len(valid), 7)
+        self.assertFalse(rejected)
+
     def test_schema_tags_match_backend_single_source(self):
         repo = SKILL.parents[3]
         tags = runpy.run_path(str(repo / "backend/app/core/weakness.py"))[

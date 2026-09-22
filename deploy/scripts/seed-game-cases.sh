@@ -51,6 +51,14 @@ psql_run() {
     psql -h "$DB_HOST" -p "$DB_PORT" -U "$DB_USER" -d "$DB_NAME" -v ON_ERROR_STOP=1 "$@"
 }
 
+# 灌種子檔一律走單一交易:中途失敗(例如外鍵建不起來)要整份 rollback。
+# 否則 CREATE TABLE 與 COPY 已 commit、ALTER TABLE ADD FOREIGN KEY 失敗,
+# 會留下一張「有表、有孤兒列、沒外鍵」的半成品,而下次執行會判定「兩張表都在」
+# 直接跳過 exit 0——查證題就這樣靜默消失,沒有任何 log。
+psql_load() {
+  psql_run --single-transaction -f - < "$1"
+}
+
 echo "→ 連線 $DB_HOST:$DB_PORT/$DB_NAME (user=$DB_USER, network=$SUPABASE_NETWORK)"
 table_exists() {
   psql_run -tAc \
@@ -65,13 +73,25 @@ if [ "$exists" != "0" ] && [ "${FORCE:-0}" != "1" ]; then
   if [ "$questions_exists" = "0" ]; then
     # 舊環境:game_cases 在、子表還沒建。quiz_deck 無條件查子表,不補就整個發牌端點 500。
     echo "→ game_cases 已存在(published=$published)但缺 game_case_questions,只補子表"
-    psql_run -f - < "$QUESTIONS_SEED" >/dev/null
+    psql_load "$QUESTIONS_SEED" >/dev/null
     questions=$(psql_run -tAc "select count(*) from public.game_case_questions where status='published'" </dev/null)
     echo "✓ 完成:published=$published,查證題=$questions"
     [ "$questions" -gt 0 ] || { echo "✗ 補完後仍無 published 查證題"; exit 1; }
     exit 0
   fi
-  echo "✓ 兩張表都已存在(published=$published),跳過。要重灌請用 FORCE=1"
+  # 表在不代表有資料:半成品或被清空的子表都會走到這裡。只檢查表存不存在
+  # 會讓查證題靜默消失,所以這裡要真的數一次。
+  questions=$(psql_run -tAc "select count(*) from public.game_case_questions where status='published'" </dev/null)
+  if [ "$questions" -eq 0 ]; then
+    echo "→ game_case_questions 存在但沒有 published 資料,重新補子表"
+    psql_run -c "DROP TABLE IF EXISTS public.game_case_questions CASCADE" </dev/null >/dev/null
+    psql_load "$QUESTIONS_SEED" >/dev/null
+    questions=$(psql_run -tAc "select count(*) from public.game_case_questions where status='published'" </dev/null)
+    echo "✓ 完成:published=$published,查證題=$questions"
+    [ "$questions" -gt 0 ] || { echo "✗ 補完後仍無 published 查證題"; exit 1; }
+    exit 0
+  fi
+  echo "✓ 兩張表都已存在(published=$published,查證題=$questions),跳過。要重灌請用 FORCE=1"
   exit 0
 fi
 
@@ -88,7 +108,7 @@ elif [ "$questions_exists" != "0" ]; then
 fi
 
 echo "→ 灌入 $SEED"
-psql_run -f - < "$SEED" >/dev/null
+psql_load "$SEED" >/dev/null
 
 published=$(psql_run -tAc "select count(*) from public.game_cases where status='published'" </dev/null)
 types=$(psql_run -tAc "select count(distinct fraud_type) from public.game_cases where status='published'" </dev/null)

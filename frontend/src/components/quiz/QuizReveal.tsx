@@ -152,8 +152,12 @@ function VerificationReveal({
   return (
     <>
       <div className="mt-3 rounded-xl border p-3 text-xs">
+        {/* 選項卡上的 A/B/C 是 aria-hidden 的視覺標記,螢幕閱讀器聽不到,
+            所以這裡不能只報代號——只講選項文字才對得回去。 */}
         <p className="font-bold text-green-600">
-          正解 {result.correct_key}：{correctOption?.text ?? ""}
+          <span aria-hidden="true">正解 {result.correct_key}：</span>
+          <span className="sr-only">正解：</span>
+          {correctOption?.text ?? ""}
         </p>
         <p className="mt-2 leading-relaxed">{result.explanation}</p>
       </div>

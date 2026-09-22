@@ -177,10 +177,12 @@ const verificationItem = {
   narrative: "有人自稱購物平台客服，說你被誤設成會員。",
   difficulty: 1,
   question: "接下來怎麼做比較好？",
+  // 與正式題庫同一種寫法:三個都是正當管道,只差在這個情境該走哪一條。
+  // 不要寫成「照對方連結操作」——策展文件明文禁止，之後有人照測試抄題會抄到廢棄寫法。
   options: [
-    { key: "A", text: "自己打開官方 App 查一次" },
-    { key: "B", text: "照對方給的連結操作" },
-    { key: "C", text: "先把款項匯出再說" },
+    { key: "A", text: "從原平台官方入口查帳戶狀態" },
+    { key: "B", text: "掛斷後自行改撥卡片背面客服" },
+    { key: "C", text: "從主管機關官方名單查資格" },
   ],
 }
 
@@ -188,7 +190,8 @@ const verificationResult = {
   type: "verification" as const,
   correct: false,
   correct_key: "A",
-  explanation: "不要跟著來電者操作，自己走官方管道查證。",
+  explanation:
+    "帳戶狀態只有原平台查得到；卡背客服處理卡片爭議，主管機關名單查的是機構資格。",
   provenance: "改編自:內政部警政署假客服案例",
   tag_details: [
     {
@@ -211,9 +214,11 @@ describe("<QuizReveal /> 查證題", () => {
     )
 
     expect(screen.getByText(/正解 A/)).toBeDefined()
-    expect(screen.getByText(/自己打開官方 App 查一次/)).toBeDefined()
+    expect(screen.getByText(/從原平台官方入口查帳戶狀態/)).toBeDefined()
     expect(
-      screen.getByText("不要跟著來電者操作，自己走官方管道查證。"),
+      screen.getByText(
+        "帳戶狀態只有原平台查得到；卡背客服處理卡片爭議，主管機關名單查的是機構資格。",
+      ),
     ).toBeDefined()
     // 四種題型的揭曉卡都要標素材來源。
     expect(screen.getByText("📎 改編自:內政部警政署假客服案例")).toBeDefined()

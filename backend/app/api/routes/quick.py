@@ -224,6 +224,10 @@ def _pick_verification_questions(
             break
         picked.append(rows[0])
         taken.add(rows[0].case_id)
+    if len(picked) < limit:
+        # 缺額會被 _compose_deck 補成 verdict,所以牌數看起來正常、玩家也不會察覺。
+        # 子表沒灌好時整個題型會靜默消失,沒有這行就查不出來。
+        logger.warning("quiz 查證題素材不足,配額 %d 只取到 %d", limit, len(picked))
     return picked
 
 

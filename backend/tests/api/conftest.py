@@ -153,14 +153,21 @@ def game_cases_fixture() -> Generator[None, None, None]:
                     },
                 )
         # 保留一組真正的鏡像關係，讓 API 發牌測試不會只做空洞斷言。
-        session.execute(
-            text(
-                "UPDATE game_cases AS legit SET mirror_of = scam.id "
-                "FROM game_cases AS scam "
-                "WHERE legit.case_key = 'pytest-investment-legit' "
-                "AND scam.case_key = 'pytest-investment-scam-a'"
+        # 兩組鏡像對。只留一組的話,「三題抽中同一對」的機率只有 2.86%,
+        # 碰撞回歸測試會有約六分之一的機率放過已知的 bug（實測 8 次紅 7 次）。
+        for fraud_type in ("investment", "romance"):
+            session.execute(
+                text(
+                    "UPDATE game_cases AS legit SET mirror_of = scam.id "
+                    "FROM game_cases AS scam "
+                    "WHERE legit.case_key = :legit_key "
+                    "AND scam.case_key = :scam_key"
+                ),
+                {
+                    "legit_key": f"pytest-{fraud_type}-legit",
+                    "scam_key": f"pytest-{fraud_type}-scam-a",
+                },
             )
-        )
         # 查證題子題:每個 fraud_type 掛一題 published,另外兩題用來驗「不該被發出來」。
         options = json.dumps(
             [
@@ -189,6 +196,24 @@ def game_cases_fixture() -> Generator[None, None, None]:
                         "status": "published",
                     },
                 )
+        # 同一個案例掛第二種 kind:子表允許一案例兩題(next_action / evidence_scope
+        # 各一)。沒有這筆的話,「同一母案例的兩個子題被一起抽出」測不到。
+        session.execute(
+            text(_CASE_QUESTIONS_INSERT),
+            {
+                "qkey": "pytest-verif-investment-scam-a-scope",
+                "case_key": "pytest-investment-scam-a",
+                "kind": "evidence_scope",
+                "question": "依目前手上的資料，哪一項描述成立？",
+                "options": options,
+                "correct_key": "A",
+                "explanation": "只能確認對方說了什麼，不能確認事實。",
+                "tag": _WEAKNESS_TAGS[0],
+                "difficulty": 1,
+                "prov": None,
+                "status": "published",
+            },
+        )
         # draft 子題:不該被發出來
         session.execute(
             text(_CASE_QUESTIONS_INSERT),
