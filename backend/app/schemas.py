@@ -25,6 +25,21 @@ class PretestSubmitResponse(BaseModel):
     ready_for_game: bool
 
 
+# ── Practice(練習重點) ────────────────────────────────────
+
+
+class PracticeProfilePublic(BaseModel):
+    """玩家目前的練習重點。題組、滑卡、情境收件匣都照這個比例出題。"""
+
+    focus_type: str | None
+    focus_label: str | None
+    note: str
+    weights: dict[str, float]
+    # gemini:分析器決定 / rule:規則計算 / pretest:只有前測結果 / none:還沒有紀錄
+    source: Literal["gemini", "rule", "pretest", "none"]
+    answers_seen: int
+
+
 # ── Economy ───────────────────────────────────────────────
 
 

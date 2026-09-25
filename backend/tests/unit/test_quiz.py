@@ -7,7 +7,10 @@ from app.core.quiz import (
     _compose_deck,
     _match_candidates,
     _select_match_material,
+    case_slots,
     case_tags,
+    focus_quota,
+    prioritize_fraud_type,
     score_match,
     score_tactics,
     select_quiz_material,
@@ -627,3 +630,93 @@ def test_cases_excluding_blocks_both_mirror_directions() -> None:
     assert [c.id for c in _cases_excluding([scam, legit, other], {2})] == [3]
     # 沒有佔走任何案例時原樣回傳。
     assert len(_cases_excluding([scam, legit, other], set())) == 3
+
+
+# ── 前測偏重(prioritize_fraud_type)────────────────────────────────
+
+
+def _bank() -> list[GameCaseRow]:
+    """五類 × (五詐騙 + 五正常),正常題 i 是詐騙題 i 的鏡像(與真實題庫相同的結構)。
+
+    每類至少要五對:互不為鏡像的組合最多等於對數,三對的話湊不滿 size=10 的四張。
+    """
+    types = ["investment", "shopping", "fake-sale", "romance", "atm"]
+    tags = ["time_pressure", "authority", "greed", "social_proof", "trust_building"]
+    cases: list[GameCaseRow] = []
+    for t_index, ft in enumerate(types):
+        for i in range(5):
+            scam_id = t_index * 100 + i
+            cases.append(
+                _case(
+                    scam_id,
+                    fraud_type=ft,
+                    is_scam=True,
+                    tags=[tags[t_index], tags[(t_index + i + 1) % 5]],
+                )
+            )
+            cases.append(
+                _case(
+                    scam_id + 50,
+                    fraud_type=ft,
+                    is_scam=False,
+                    tags=[None],
+                    mirror_of=scam_id,
+                )
+            )
+    return cases
+
+
+@pytest.mark.parametrize(("slots", "expected"), [(0, 0), (1, 1), (3, 2), (6, 4)])
+def test_focus_quota_rounds_up(slots: int, expected: int) -> None:
+    assert focus_quota(slots) == expected
+
+
+def test_prioritize_puts_balanced_non_mirrored_focus_cases_first() -> None:
+    cases = _bank()
+    shuffled = list(reversed(cases))
+    ordered = prioritize_fraud_type(
+        shuffled, "romance", verdict_slots=3, tactics_slots=3
+    )
+
+    front = ordered[: focus_quota(6)]
+    assert all(case.fraud_type == "romance" for case in front)
+    # verdict 的部分詐騙與正常輪流
+    assert [case.is_scam for case in front[:3]] in (
+        [True, False, True],
+        [False, True, False],
+    )
+    # 前排不能有鏡像對
+    ids = {case.id for case in front}
+    assert not any(case.mirror_of in ids for case in front)
+    # 其餘維持原本順序,一張不少
+    rest = [case for case in shuffled if case.id not in ids]
+    assert ordered[len(front) :] == rest
+    assert sorted(case.id for case in ordered) == sorted(case.id for case in cases)
+
+
+def test_prioritized_deck_draws_mostly_from_focus_type() -> None:
+    """交給 select_quiz_material 之後,verdict + tactics 至少 focus_quota 題是該類型。"""
+    slots = case_slots(5, 1)
+    verdict_slots, tactics_slots = slots.verdict, slots.tactics
+    for seed in range(20):
+        cases = _bank()
+        cases = cases[seed:] + cases[:seed]
+        ordered = prioritize_fraud_type(
+            cases,
+            "atm",
+            verdict_slots=verdict_slots,
+            tactics_slots=tactics_slots,
+            match_slots=slots.match,
+        )
+        material = select_quiz_material(ordered, size=5, verification_count=1)
+        picked = material.verdict + material.tactics
+        focused = sum(case.fraud_type == "atm" for case in picked)
+        assert focused >= focus_quota(verdict_slots + tactics_slots)
+
+
+def test_prioritize_without_focus_cases_keeps_order() -> None:
+    cases = [c for c in _bank() if c.fraud_type != "romance"]
+    assert (
+        prioritize_fraud_type(cases, "romance", verdict_slots=2, tactics_slots=1)
+        == cases
+    )

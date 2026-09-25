@@ -1,37 +1,11 @@
-import { FaGithub } from "react-icons/fa"
-
-const socialLinks = [
-  {
-    icon: FaGithub,
-    href: "https://github.com/allen5218/antifraud_game",
-    label: "GitHub",
-  },
-]
-
 export function Footer() {
   const currentYear = new Date().getFullYear()
 
   return (
     <footer className="border-t py-4 px-6">
-      <div className="flex flex-col items-center justify-between gap-4 sm:flex-row">
-        <p className="text-muted-foreground text-sm">
-          ScamGym 識詐練習場 - {currentYear}
-        </p>
-        <div className="flex items-center gap-4">
-          {socialLinks.map(({ icon: Icon, href, label }) => (
-            <a
-              key={label}
-              href={href}
-              target="_blank"
-              rel="noopener noreferrer"
-              aria-label={label}
-              className="text-muted-foreground hover:text-foreground transition-colors"
-            >
-              <Icon className="h-5 w-5" />
-            </a>
-          ))}
-        </div>
-      </div>
+      <p className="text-center text-muted-foreground text-sm sm:text-left">
+        ScamGym 識詐練習場 - {currentYear}
+      </p>
     </footer>
   )
 }

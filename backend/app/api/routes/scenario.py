@@ -3,13 +3,19 @@ import uuid
 from datetime import datetime, time, timezone
 from typing import Any
 
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, BackgroundTasks, HTTPException
 from sqlmodel import col, func, select
 
 from app.api.deps import CurrentUser, SessionDep
 from app.core.cases import get_case, pick_case
 from app.economy.service import add_xp, adjust_cash, lock_user
 from app.models import FraudType, ScenarioSession, ScenarioStatus
+from app.practice.service import (
+    practice_focus,
+    practice_weights,
+    queue_refresh,
+    record_answers,
+)
 from app.scenario import agent as scenario_agent
 from app.scenario import manager
 from app.scenario.config import (
@@ -17,6 +23,7 @@ from app.scenario.config import (
     DISPLAY_NAME_POOL,
     MAX_TURNS,
     SCAM_RATIO,
+    SCENARIO_DAILY_LIMIT_FOCUS,
     SCENARIO_DAILY_LIMIT_PER_TYPE,
     SCENARIO_ECONOMY,
     ScenarioEconomyConfig,
@@ -105,9 +112,14 @@ def _owned_session(
 
 @router.get("/inbox", response_model=list[ScenarioInboxItem])
 def inbox(session: SessionDep, current_user: CurrentUser) -> Any:
-    """每 fraud_type 回傳最新一場;完全沒有時 bootstrap 一場。"""
+    """每 fraud_type 回傳最新一場;完全沒有時 bootstrap 一場。
+
+    有練習重點的玩家,依各類比例由高到低排(最弱的在第一列,app/practice/)。
+    """
+    weights = practice_weights(session, current_user.id) or {}
     items: list[ScenarioInboxItem] = []
-    for ft in FraudType:
+    # sorted 是穩定排序:比例相同(或沒有紀錄)時維持 FraudType 的宣告順序
+    for ft in sorted(FraudType, key=lambda t: -weights.get(t.value, 0.0)):
         sc = session.exec(
             select(ScenarioSession)
             .where(
@@ -127,7 +139,7 @@ def inbox(session: SessionDep, current_user: CurrentUser) -> Any:
 def create_scenario(
     payload: ScenarioNewRequest, session: SessionDep, current_user: CurrentUser
 ) -> Any:
-    """對 completed 的類型開新一場;受每日上限。"""
+    """對 completed 的類型開新一場;受每日上限(練習重點那一類上限較高)。"""
     if payload.fraud_type not in {ft.value for ft in FraudType}:
         raise HTTPException(400, {"code": "invalid_fraud_type"})
     active = session.exec(
@@ -151,8 +163,13 @@ def create_scenario(
             col(ScenarioSession.created_at) >= today_start,
         )
     ).one()
-    if created_today >= SCENARIO_DAILY_LIMIT_PER_TYPE:
-        raise HTTPException(400, {"code": "daily_limit_reached"})
+    limit = (
+        SCENARIO_DAILY_LIMIT_FOCUS
+        if payload.fraud_type == practice_focus(session, current_user.id)
+        else SCENARIO_DAILY_LIMIT_PER_TYPE
+    )
+    if created_today >= limit:
+        raise HTTPException(400, {"code": "daily_limit_reached", "limit": limit})
     sc = _create_session(session, current_user.id, payload.fraud_type)
     return _to_inbox_item(sc)
 
@@ -242,6 +259,7 @@ def judge_scenario(
     current_user: CurrentUser,
     scenario_id: uuid.UUID,
     payload: ScenarioJudgeRequest,
+    background_tasks: BackgroundTasks,
 ) -> Any:
     """確定性裁決 → 經濟入口 → 揭曉。"""
     sc = _owned_session(session, current_user, scenario_id)
@@ -273,10 +291,15 @@ def judge_scenario(
 
     session.add(sc)
     session.add(current_user)
-    session.commit()
-    session.refresh(current_user)
-
-    return ScenarioJudgeResponse(
+    # 情境對抗也寫進共用的作答紀錄:判斷對了算答對;被騙時,對方用過的話術算漏掉的。
+    # 只記這場真的出現過的話術;人格預設的 primary_tactics 只拿來教學,不算進統計。
+    won = outcome in (manager.OUTCOME_WIN_REPORT, manager.OUTCOME_WIN_TRUST)
+    missed = list(sc.tactics_seen) if outcome == manager.OUTCOME_LOSE_SCAMMED else []
+    user_id = current_user.id
+    record_answers(session, user_id, "scenario", [(sc.fraud_type, won, missed)])
+    # 回應在 commit 前組好:current_user.cash 已經是 adjust_cash 之後的值(列已鎖),
+    # commit 之後就不再讀 ORM 屬性(理由見 queue_refresh)
+    response = ScenarioJudgeResponse(
         outcome=outcome,
         true_role=sc.persona_role,
         persona_name=meta.name,
@@ -287,3 +310,6 @@ def judge_scenario(
         triggers_forced_sell=current_user.cash < 0,
         case_provenance=case.provenance if case else None,
     )
+    session.commit()
+    queue_refresh(background_tasks, session, user_id)
+    return response

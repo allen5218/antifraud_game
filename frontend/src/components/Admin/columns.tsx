@@ -12,7 +12,7 @@ export type UserTableData = UserPublic & {
 export const columns: ColumnDef<UserTableData>[] = [
   {
     accessorKey: "full_name",
-    header: "Full Name",
+    header: "名稱",
     cell: ({ row }) => {
       const fullName = row.original.full_name
       return (
@@ -20,11 +20,11 @@ export const columns: ColumnDef<UserTableData>[] = [
           <span
             className={cn("font-medium", !fullName && "text-muted-foreground")}
           >
-            {fullName || "N/A"}
+            {fullName || "（未填）"}
           </span>
           {row.original.isCurrentUser && (
             <Badge variant="outline" className="text-xs">
-              You
+              你
             </Badge>
           )}
         </div>
@@ -33,40 +33,40 @@ export const columns: ColumnDef<UserTableData>[] = [
   },
   {
     accessorKey: "email",
-    header: "Email",
+    header: "電子郵件",
     cell: ({ row }) => (
       <span className="text-muted-foreground">{row.original.email}</span>
     ),
   },
   {
     accessorKey: "is_superuser",
-    header: "Role",
+    header: "身分",
     cell: ({ row }) => (
       <Badge variant={row.original.is_superuser ? "default" : "secondary"}>
-        {row.original.is_superuser ? "Superuser" : "User"}
+        {row.original.is_superuser ? "管理員" : "一般使用者"}
       </Badge>
     ),
   },
   {
     accessorKey: "is_active",
-    header: "Status",
+    header: "狀態",
     cell: ({ row }) => (
       <div className="flex items-center gap-2">
         <span
           className={cn(
             "size-2 rounded-full",
-            row.original.is_active ? "bg-green-500" : "bg-gray-400",
+            row.original.is_active ? "bg-legit" : "bg-muted-foreground",
           )}
         />
         <span className={row.original.is_active ? "" : "text-muted-foreground"}>
-          {row.original.is_active ? "Active" : "Inactive"}
+          {row.original.is_active ? "啟用" : "停用"}
         </span>
       </div>
     ),
   },
   {
     id: "actions",
-    header: () => <span className="sr-only">Actions</span>,
+    header: () => <span className="sr-only">操作</span>,
     cell: ({ row }) => (
       <div className="flex justify-end">
         <UserActionsMenu user={row.original} />

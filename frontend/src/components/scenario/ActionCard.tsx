@@ -1,3 +1,5 @@
+import { Hand } from "lucide-react"
+
 interface ActionCardProps {
   text: string
   onComply: () => void
@@ -7,7 +9,13 @@ interface ActionCardProps {
   refuseDisabled?: boolean
 }
 
-/** 對方提出具體要求(匯款/個資)時內嵌聊天流的行動卡;照做=終局 comply,拒絕=繼續聊 */
+/**
+ * 對方提出具體要求(匯款、個資、下載 App…)時內嵌在聊天裡的行動卡;
+ * 照做=終局 comply,拒絕=繼續聊。
+ *
+ * 顏色刻意中性:正常角色在正式流程裡也會提出要求,照做有時才是對的。
+ * 原本「照做」是紅色按鈕、整張卡是橘色警示,等於替玩家先下了判斷。
+ */
 export function ActionCard({
   text,
   onComply,
@@ -16,16 +24,17 @@ export function ActionCard({
   refuseDisabled = false,
 }: ActionCardProps) {
   return (
-    <div className="rounded-xl border border-orange-200 bg-orange-50 p-3 dark:border-orange-900 dark:bg-orange-950/40">
-      <p className="mb-2 text-xs font-semibold text-orange-900 dark:text-orange-200">
-        💸 對方要求:{text}
+    <div className="rounded-xl border border-primary/40 bg-card p-3">
+      <p className="mb-2 flex gap-1.5 text-xs font-semibold">
+        <Hand aria-hidden className="mt-px size-3.5 shrink-0 text-primary" />
+        <span>對方要求：{text}</span>
       </p>
       <div className="flex gap-2">
         <button
           type="button"
           disabled={disabled}
           onClick={onComply}
-          className="flex-1 rounded-lg bg-red-500 py-1.5 text-xs font-bold text-white disabled:opacity-50"
+          className="flex-1 rounded-lg bg-primary py-1.5 text-xs font-bold text-primary-foreground disabled:opacity-50"
         >
           照做
         </button>
@@ -33,7 +42,7 @@ export function ActionCard({
           type="button"
           disabled={disabled || refuseDisabled}
           onClick={onRefuse}
-          className="flex-1 rounded-lg bg-muted py-1.5 text-xs font-bold text-foreground disabled:opacity-50"
+          className="flex-1 rounded-lg border border-border bg-muted py-1.5 text-xs font-bold text-foreground disabled:opacity-50"
         >
           拒絕
         </button>

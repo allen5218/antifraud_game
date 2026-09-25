@@ -1,8 +1,11 @@
+import { Check, ChevronRight, CircleCheck, CircleX, X } from "lucide-react"
 import type {
   QuickQuizAnswerResponse,
   QuizDeckResponse,
   QuizWeaknessDetail,
 } from "@/client"
+import { useDialogFocus } from "@/hooks/useDialogFocus"
+import { Provenance, SignalItem } from "./Signals"
 
 type QuizItem = QuizDeckResponse["items"][number]
 
@@ -20,9 +23,9 @@ function WeaknessDetails({ details }: { details: QuizWeaknessDetail[] }) {
     <section className="mt-4" aria-labelledby="weakness-teaching-title">
       <h4
         id="weakness-teaching-title"
-        className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground"
+        className="text-[11px] font-bold text-muted-foreground"
       >
-        弱點提醒與建議
+        下次遇到可以這樣做
       </h4>
       <ul className="mt-2 grid gap-2">
         {details.map((detail) => (
@@ -45,26 +48,22 @@ function VerdictReveal({ result }: { result: QuickQuizAnswerResponse }) {
   return (
     <>
       <p className="mt-1 text-center text-xs text-muted-foreground">
-        正解：這則{result.is_scam ? "是詐騙" : "是正當內容"}
+        正解：{result.is_scam ? "這是詐騙" : "這不是詐騙"}
       </p>
-      <p className="mt-3 text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
-        {result.is_scam ? "紅旗解析" : "正當訊號"}
+      <p className="mt-3 text-[11px] font-bold text-muted-foreground">
+        {result.is_scam ? "可疑的地方" : "看得出是正常的地方"}
       </p>
       <ul className="mt-1.5 flex flex-col gap-1.5">
         {result.red_flags.map((flag) => (
-          <li key={flag.text} className="text-xs leading-snug">
-            {flag.tag ? "🚩" : "✅"} {flag.text}
-            {flag.tag && (
-              <span className="ml-1 rounded bg-scam/15 px-1 py-0.5 text-[9px] font-bold text-scam">
-                {labelFor(flag.tag)}
-              </span>
-            )}
-          </li>
+          <SignalItem
+            key={flag.text}
+            suspicious={Boolean(flag.tag)}
+            text={flag.text}
+            label={flag.tag ? labelFor(flag.tag) : undefined}
+          />
         ))}
       </ul>
-      <p className="mt-3 rounded-lg bg-muted px-3 py-2 text-[11px] text-muted-foreground">
-        📎 {result.provenance}
-      </p>
+      <Provenance text={result.provenance} className="mt-3" />
       <WeaknessDetails details={result.tag_details} />
     </>
   )
@@ -78,21 +77,19 @@ function TacticsReveal({ result }: { result: QuickQuizAnswerResponse }) {
     <>
       <div className="mt-3 grid gap-2 text-xs">
         <p>
-          <span className="font-bold text-legit">正確話術：</span>
+          <span className="font-bold text-legit">對方用了：</span>
           {result.correct_tags.map(labelFor).join("、") || "無"}
         </p>
         <p>
-          <span className="font-bold text-warning">漏選：</span>
+          <span className="font-bold text-warning">你漏掉：</span>
           {result.missed_tags.map(labelFor).join("、") || "無"}
         </p>
         <p>
-          <span className="font-bold text-scam">多選：</span>
+          <span className="font-bold text-scam">你多選了：</span>
           {result.extra_tags.map(labelFor).join("、") || "無"}
         </p>
       </div>
-      <p className="mt-3 rounded-lg bg-muted px-3 py-2 text-[11px] text-muted-foreground">
-        📎 {result.provenance}
-      </p>
+      <Provenance text={result.provenance} className="mt-3" />
       <WeaknessDetails details={result.tag_details} />
     </>
   )
@@ -115,22 +112,26 @@ function MatchReveal({
   return (
     <>
       <ul className="mt-3 grid gap-2">
-        {result.results.map((pair) => (
-          <li key={pair.pair_id} className="rounded-xl border p-3 text-xs">
-            <p className="leading-relaxed">
-              {pair.correct ? "✓" : "✗"}{" "}
-              {prompts.get(pair.pair_id) ?? pair.pair_id}
-            </p>
-            <p
-              className={`mt-1 font-bold ${pair.correct ? "text-legit" : "text-scam"}`}
-            >
-              正解：{targets.get(pair.correct_tag) ?? "其他話術"}
-            </p>
-            <p className="mt-1 text-[10px] text-muted-foreground">
-              📎 {pair.provenance}
-            </p>
-          </li>
-        ))}
+        {result.results.map((pair) => {
+          const Mark = pair.correct ? Check : X
+          return (
+            <li key={pair.pair_id} className="rounded-xl border p-3 text-xs">
+              <p className="flex gap-1.5 leading-relaxed">
+                <Mark
+                  aria-label={pair.correct ? "配對正確" : "配對錯誤"}
+                  className={`mt-0.5 size-3.5 shrink-0 ${pair.correct ? "text-legit" : "text-scam"}`}
+                />
+                <span>{prompts.get(pair.pair_id) ?? pair.pair_id}</span>
+              </p>
+              <p
+                className={`mt-1 font-bold ${pair.correct ? "text-legit" : "text-scam"}`}
+              >
+                正解：{targets.get(pair.correct_tag) ?? "其他話術"}
+              </p>
+              <Provenance text={pair.provenance} className="mt-2 px-2 py-1.5" />
+            </li>
+          )
+        })}
       </ul>
       <WeaknessDetails details={result.tag_details} />
     </>
@@ -161,9 +162,7 @@ function VerificationReveal({
         </p>
         <p className="mt-2 leading-relaxed">{result.explanation}</p>
       </div>
-      <p className="mt-3 rounded-lg bg-muted px-3 py-2 text-[11px] text-muted-foreground">
-        📎 {result.provenance}
-      </p>
+      <Provenance text={result.provenance} className="mt-3" />
       <WeaknessDetails details={result.tag_details} />
     </>
   )
@@ -177,19 +176,24 @@ export function QuizReveal({
   isLast,
   disabled = false,
 }: QuizRevealProps) {
+  const Verdict = result.correct ? CircleCheck : CircleX
+  const dialogRef = useDialogFocus<HTMLDivElement>(true)
   return (
-    <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/40">
+    <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/50">
       <div
+        ref={dialogRef}
+        tabIndex={-1}
         role="dialog"
         aria-modal="true"
         aria-labelledby="quiz-reveal-title"
-        className="max-h-[85vh] w-full max-w-md overflow-y-auto rounded-t-2xl bg-background p-4 pb-6"
+        className="max-h-[85vh] w-full max-w-md overflow-y-auto rounded-t-2xl border-t border-border bg-card p-4 pb-6 outline-none"
       >
         <h3
           id="quiz-reveal-title"
-          className={`text-center text-lg font-extrabold ${result.correct ? "text-legit" : "text-scam"}`}
+          className={`flex items-center justify-center gap-1.5 text-lg font-extrabold ${result.correct ? "text-legit" : "text-scam"}`}
         >
-          {result.correct ? "✓ 答對了！" : "✗ 答錯了…"}
+          <Verdict aria-hidden className="size-5" />
+          {result.correct ? "答對了！" : "答錯了"}
         </h3>
         <VerdictReveal result={result} />
         <TacticsReveal result={result} />
@@ -199,9 +203,10 @@ export function QuizReveal({
           type="button"
           disabled={disabled}
           onClick={onNext}
-          className="mt-4 w-full rounded-xl bg-foreground py-2.5 text-sm font-bold text-background disabled:opacity-50"
+          className="mt-4 flex w-full items-center justify-center gap-1 rounded-xl bg-primary py-2.5 text-sm font-bold text-primary-foreground disabled:opacity-50"
         >
-          {isLast ? "看結算 ›" : "下一題 ›"}
+          {isLast ? "看結算" : "下一題"}
+          <ChevronRight aria-hidden className="size-4" />
         </button>
       </div>
     </div>

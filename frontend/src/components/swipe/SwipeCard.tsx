@@ -1,4 +1,5 @@
 import { motion, type PanInfo } from "framer-motion"
+import { ArrowLeft, ArrowRight } from "lucide-react"
 
 interface Card {
   id: string
@@ -40,20 +41,22 @@ export function SwipeCard({
         <button
           type="button"
           onClick={() => onJudge(true)}
-          className="flex-1 rounded-xl border border-red-300 bg-red-50 py-3 font-bold text-red-700"
+          className="flex flex-1 items-center justify-center gap-1.5 rounded-xl border border-scam/50 bg-scam/10 py-3 font-bold text-scam"
         >
-          ← 詐騙
+          <ArrowLeft aria-hidden className="size-4" />
+          詐騙
         </button>
         <button
           type="button"
           onClick={() => onJudge(false)}
-          className="flex-1 rounded-xl border border-green-300 bg-green-50 py-3 font-bold text-green-700"
+          className="flex flex-1 items-center justify-center gap-1.5 rounded-xl border border-legit/50 bg-legit/10 py-3 font-bold text-legit"
         >
-          正常 →
+          正常
+          <ArrowRight aria-hidden className="size-4" />
         </button>
       </div>
       <p className="mt-2 text-center text-[11px] text-muted-foreground">
-        左滑＝詐騙 · 右滑＝正常
+        往左滑是詐騙，往右滑是正常
       </p>
     </div>
   )

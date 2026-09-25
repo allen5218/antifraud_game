@@ -12,6 +12,16 @@ from tests.utils.user import authentication_token_from_email
 from tests.utils.utils import get_superuser_token_headers
 
 
+@pytest.fixture(autouse=True)
+def _no_real_analyzer(monkeypatch: pytest.MonkeyPatch) -> None:
+    """測試不呼叫真的 Gemini。
+
+    .env 裡有金鑰時,每次交卷的背景分析都會真的打 API(又慢又花錢,結果也不固定)。
+    練習重點一律走規則版;要測分析器的測試自己用 TestModel 覆寫。
+    """
+    monkeypatch.setattr("app.practice.analyzer.enabled", lambda: False)
+
+
 @pytest.fixture(scope="session", autouse=True)
 def db() -> Generator[Session, None, None]:
     with Session(engine) as session:

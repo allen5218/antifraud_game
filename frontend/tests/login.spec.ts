@@ -26,22 +26,20 @@ test("Inputs are visible, empty and editable", async ({ page }) => {
 test("Log In button is visible", async ({ page }) => {
   await page.goto("/login")
 
-  await expect(page.getByRole("button", { name: "Log In" })).toBeVisible()
+  await expect(page.getByRole("button", { name: "登入" })).toBeVisible()
 })
 
 test("Forgot Password link is visible", async ({ page }) => {
   await page.goto("/login")
 
-  await expect(
-    page.getByRole("link", { name: "Forgot your password?" }),
-  ).toBeVisible()
+  await expect(page.getByRole("link", { name: "忘記密碼？" })).toBeVisible()
 })
 
 test("Log in with valid email and password ", async ({ page }) => {
   await page.goto("/login")
 
   await fillForm(page, firstSuperuser, firstSuperuserPassword)
-  await page.getByRole("button", { name: "Log In" }).click()
+  await page.getByRole("button", { name: "登入" }).click()
 
   await page.waitForURL("/")
 
@@ -52,9 +50,9 @@ test("Log in with invalid email", async ({ page }) => {
   await page.goto("/login")
 
   await fillForm(page, "invalidemail", firstSuperuserPassword)
-  await page.getByRole("button", { name: "Log In" }).click()
+  await page.getByRole("button", { name: "登入" }).click()
 
-  await expect(page.getByText("Invalid email address")).toBeVisible()
+  await expect(page.getByText("電子郵件格式不正確")).toBeVisible()
 })
 
 test("Log in with invalid password", async ({ page }) => {
@@ -62,16 +60,16 @@ test("Log in with invalid password", async ({ page }) => {
 
   await page.goto("/login")
   await fillForm(page, firstSuperuser, password)
-  await page.getByRole("button", { name: "Log In" }).click()
+  await page.getByRole("button", { name: "登入" }).click()
 
-  await expect(page.getByText("Incorrect email or password")).toBeVisible()
+  await expect(page.getByText("電子郵件或密碼不正確")).toBeVisible()
 })
 
 test("Successful log out", async ({ page }) => {
   await page.goto("/login")
 
   await fillForm(page, firstSuperuser, firstSuperuserPassword)
-  await page.getByRole("button", { name: "Log In" }).click()
+  await page.getByRole("button", { name: "登入" }).click()
 
   await page.waitForURL("/")
 
@@ -81,7 +79,7 @@ test("Successful log out", async ({ page }) => {
   // _layout 側欄,需先前往一個 _layout 路由(例如 /settings)才能取得 user-menu。
   await page.goto("/settings")
   await page.getByTestId("user-menu").click()
-  await page.getByRole("menuitem", { name: "Log out" }).click()
+  await page.getByRole("menuitem", { name: "登出" }).click()
   await page.waitForURL("/login")
 })
 
@@ -89,7 +87,7 @@ test("Logged-out user cannot access protected routes", async ({ page }) => {
   await page.goto("/login")
 
   await fillForm(page, firstSuperuser, firstSuperuserPassword)
-  await page.getByRole("button", { name: "Log In" }).click()
+  await page.getByRole("button", { name: "登入" }).click()
 
   await page.waitForURL("/")
 
@@ -97,7 +95,7 @@ test("Logged-out user cannot access protected routes", async ({ page }) => {
 
   await page.goto("/settings")
   await page.getByTestId("user-menu").click()
-  await page.getByRole("menuitem", { name: "Log out" }).click()
+  await page.getByRole("menuitem", { name: "登出" }).click()
   await page.waitForURL("/login")
 
   await page.goto("/settings")

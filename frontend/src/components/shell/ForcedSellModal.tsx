@@ -1,3 +1,4 @@
+import { TriangleAlert } from "lucide-react"
 import { useMemo, useState } from "react"
 import { useEconomyMe, useLiquidate, useProperties } from "@/hooks/useEconomy"
 import { LIQUIDATION_RATIO } from "@/lib/economy"
@@ -64,20 +65,21 @@ export function ForcedSellModal() {
       aria-labelledby="forced-sell-title"
       className="fixed inset-0 z-50 flex items-end bg-black/50"
     >
-      <div className="w-full rounded-t-2xl bg-background p-4">
+      <div className="mx-auto w-full max-w-md rounded-t-2xl border-t border-border bg-card p-4">
         <h3
           id="forced-sell-title"
           className="mb-1 flex items-center gap-1 text-sm font-extrabold text-scam"
         >
-          ⚠️ 你被詐騙了
+          <TriangleAlert aria-hidden className="size-4" />
+          你被詐騙了
         </h3>
         <p className="mb-2 text-[11px] text-muted-foreground">
-          在「真實情境」的對話中，你匯了款項到對方指定帳戶。
+          你在情境對抗裡照對方的要求匯了款。
         </p>
         <div className="mb-3 rounded-lg border border-scam/40 bg-scam/15 px-2 py-1.5 text-[11px]">
           <b>現金不足 ${deficit.toLocaleString()}</b>
           <div className="text-muted-foreground">
-            需變賣資產補足。賣價為原價 60%。
+            要賣掉房產補上，賣價是原價的六成。
           </div>
         </div>
         {owned.length === 0 ? (
@@ -85,15 +87,16 @@ export function ForcedSellModal() {
             data-testid="no-assets-notice"
             className="mb-2 rounded-lg border border-border bg-muted px-2 py-2 text-[11px] text-muted-foreground"
           >
-            你目前沒有可變賣的房產。別擔心——完成題組與滑卡訓練獲得的獎金
-            會自動用來償還欠款，還清後即可恢復正常遊戲。
+            {
+              "你現在沒有房產可以賣。玩題組和滑卡拿到的獎金會先拿去還欠款，還清就恢復正常。"
+            }
           </div>
         ) : (
           <div className="mb-2 text-[10px] text-muted-foreground">
-            選擇要變賣的房產：
+            選擇要賣掉的房產：
             {insufficientAssets && (
               <span className="text-scam">
-                （全部變賣仍不足，可先部分清償，剩餘欠款以答題獎金償還）
+                （全部賣掉也不夠，可以先賣一部分，剩下的用答題獎金還）
               </span>
             )}
           </div>
@@ -116,9 +119,14 @@ export function ForcedSellModal() {
                   onChange={() => toggle(p.id)}
                   className="h-4 w-4"
                 />
-                <span aria-hidden="true" className="text-xl">
-                  🏠
-                </span>
+                <img
+                  src={`/assets/property/${p.tier.svg_key}.webp`}
+                  alt=""
+                  aria-hidden="true"
+                  width={32}
+                  height={32}
+                  className="size-8 shrink-0 rounded-md object-cover"
+                />
                 <div className="flex-1">
                   <div className="text-xs font-bold">{p.tier.name}</div>
                   <div className="text-[10px]">
@@ -137,7 +145,7 @@ export function ForcedSellModal() {
         </div>
         <div className="mt-3 flex items-center justify-between text-[11px]">
           <span>
-            已勾選回收 <b>${recovered.toLocaleString()}</b> / 缺口 $
+            已選回收 <b>${recovered.toLocaleString()}</b> / 缺口 $
             {deficit.toLocaleString()}
           </span>
           <div className="flex items-center gap-2">

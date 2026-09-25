@@ -47,8 +47,8 @@ describe("quiz 題型元件", () => {
           difficulty: 2,
           question: "用了哪些話術？",
           options: [
-            { tag: "time_pressure", label: "時間壓力" },
-            { tag: "authority", label: "權威服從" },
+            { tag: "time_pressure", label: "催你快點決定" },
+            { tag: "authority", label: "冒充官方或專家" },
           ],
         }}
         index={1}
@@ -60,10 +60,10 @@ describe("quiz 題型元件", () => {
       />,
     )
 
-    fireEvent.click(screen.getByRole("checkbox", { name: "時間壓力" }))
+    fireEvent.click(screen.getByRole("checkbox", { name: "催你快點決定" }))
     expect(screen.getByText("已選 1 個")).toBeTruthy()
-    fireEvent.click(screen.getByRole("checkbox", { name: "權威服從" }))
-    fireEvent.click(screen.getByRole("checkbox", { name: "時間壓力" }))
+    fireEvent.click(screen.getByRole("checkbox", { name: "冒充官方或專家" }))
+    fireEvent.click(screen.getByRole("checkbox", { name: "催你快點決定" }))
     expect(screen.getByText("已選 1 個")).toBeTruthy()
     fireEvent.click(screen.getByRole("button", { name: "送出答案" }))
 
@@ -83,8 +83,8 @@ describe("quiz 題型元件", () => {
             { pair_id: "pair-2", text: "我是警察" },
           ],
           match_targets: [
-            { tag: "time_pressure", label: "時間壓力" },
-            { tag: "authority", label: "權威服從" },
+            { tag: "time_pressure", label: "催你快點決定" },
+            { tag: "authority", label: "冒充官方或專家" },
           ],
         }}
         index={2}
@@ -100,7 +100,7 @@ describe("quiz 題型元件", () => {
     expect(submit.hasAttribute("disabled")).toBe(true)
 
     fireEvent.click(screen.getByRole("button", { name: /今晚前匯款/ }))
-    fireEvent.click(screen.getByRole("button", { name: "時間壓力" }))
+    fireEvent.click(screen.getByRole("button", { name: "催你快點決定" }))
     expect(screen.getByText("已配對 1 / 2")).toBeTruthy()
     fireEvent.click(
       screen.getByRole("button", { name: "取消「今晚前匯款」的配對" }),
@@ -108,9 +108,9 @@ describe("quiz 題型元件", () => {
     expect(screen.getByText("已配對 0 / 2")).toBeTruthy()
 
     fireEvent.click(screen.getByRole("button", { name: /今晚前匯款/ }))
-    fireEvent.click(screen.getByRole("button", { name: "時間壓力" }))
+    fireEvent.click(screen.getByRole("button", { name: "催你快點決定" }))
     fireEvent.click(screen.getByRole("button", { name: /我是警察/ }))
-    fireEvent.click(screen.getByRole("button", { name: "權威服從" }))
+    fireEvent.click(screen.getByRole("button", { name: "冒充官方或專家" }))
     expect(submit.hasAttribute("disabled")).toBe(false)
     fireEvent.click(submit)
 

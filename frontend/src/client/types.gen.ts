@@ -94,6 +94,22 @@ export type OwnedPropertyPublic = {
     purchased_at: string;
 };
 
+/**
+ * 玩家目前的練習重點。題組、滑卡、情境收件匣都照這個比例出題。
+ */
+export type PracticeProfilePublic = {
+    focus_type: (string | null);
+    focus_label: (string | null);
+    note: string;
+    weights: {
+        [key: string]: (number);
+    };
+    source: 'gemini' | 'rule' | 'pretest' | 'none';
+    answers_seen: number;
+};
+
+export type source = 'gemini' | 'rule' | 'pretest' | 'none';
+
 export type PretestAnswer = {
     question_id: string;
     selected_option: string;
@@ -531,6 +547,8 @@ export type MascotToggleEquipData = {
 export type MascotToggleEquipResponse = (unknown);
 
 export type MascotGetMyMascotResponse = (unknown);
+
+export type PracticeReadProfileResponse = (PracticeProfilePublic);
 
 export type PretestGetPretestQuestionsResponse = (unknown);
 

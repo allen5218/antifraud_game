@@ -18,8 +18,8 @@ from app.schemas import (
 )
 
 EXPECTED_SUGGESTIONS = {
-    "time_pressure": "遇到「限時」「緊急」等話術時，先深呼吸，給自己 24 小時冷靜期",
-    "authority": "不要因為對方自稱專家或官員就輕信，主動查證對方身份",
+    "time_pressure": "對方越催，越要停下來。銀行、政府和正規商家都不會要你幾分鐘內做決定。",
+    "authority": "自稱警察、檢察官、銀行人員或專家，都先掛斷，自己查官方電話打回去問。",
 }
 
 
@@ -179,12 +179,12 @@ def test_quiz_complete_request_contains_only_session_id() -> None:
 
 def test_weakness_summary_item_keeps_backend_provided_label() -> None:
     item = WeaknessSummaryItem.model_validate(
-        {"tag": "authority", "label": "權威服從", "count": 1}
+        {"tag": "authority", "label": "冒充官方或專家", "count": 1}
     )
 
     assert item.model_dump() == {
         "tag": "authority",
-        "label": "權威服從",
+        "label": "冒充官方或專家",
         "count": 1,
     }
 

@@ -17,17 +17,26 @@ from app.core.cases import (
 )
 from app.core.config import settings
 from app.core.quiz import case_tags
-from app.models import QuizSession, User
+from app.models import PretestAttempt, QuizSession, User
 
 EXPECTED_WEAKNESS_DETAILS = {
     "time_pressure": (
-        "時間壓力",
-        "遇到「限時」「緊急」等話術時，先深呼吸，給自己 24 小時冷靜期",
+        "催你快點決定",
+        "對方越催，越要停下來。銀行、政府和正規商家都不會要你幾分鐘內做決定。",
     ),
-    "authority": ("權威服從", "不要因為對方自稱專家或官員就輕信，主動查證對方身份"),
-    "greed": ("貪念誘惑", "記住「高報酬必伴隨高風險」，保證獲利幾乎都是詐騙"),
-    "social_proof": ("社會認同", "不要因為「很多人都在做」就跟風，獨立思考很重要"),
-    "trust_building": ("信任建立", "即使對方展示了真實資訊，也不代表整件事是真的"),
+    "authority": (
+        "冒充官方或專家",
+        "自稱警察、檢察官、銀行人員或專家，都先掛斷，自己查官方電話打回去問。",
+    ),
+    "greed": ("用好處引誘你", "保證賺錢、穩賺不賠、價格低得離譜，都是詐騙最常用的餌。"),
+    "social_proof": (
+        "說大家都在做",
+        "群組裡的人都說賺到了，他們可能是同一夥的，截圖也能造假。",
+    ),
+    "trust_building": (
+        "先跟你套交情",
+        "聊得再久、對你再好，只要開口借錢、要你匯款或下載 App，就先停下來查證。",
+    ),
 }
 
 
@@ -657,11 +666,11 @@ def test_complete_tactics_counts_only_missed_tags(
         {
             "tag": missed,
             "label": {
-                "time_pressure": "時間壓力",
-                "authority": "權威服從",
-                "greed": "貪念誘惑",
-                "social_proof": "社會認同",
-                "trust_building": "信任建立",
+                "time_pressure": "催你快點決定",
+                "authority": "冒充官方或專家",
+                "greed": "用好處引誘你",
+                "social_proof": "說大家都在做",
+                "trust_building": "先跟你套交情",
             }[missed],
             "count": 1,
         }
@@ -701,11 +710,11 @@ def test_complete_match_counts_each_incorrect_pair_tag(
         {
             "tag": correct_tag,
             "label": {
-                "time_pressure": "時間壓力",
-                "authority": "權威服從",
-                "greed": "貪念誘惑",
-                "social_proof": "社會認同",
-                "trust_building": "信任建立",
+                "time_pressure": "催你快點決定",
+                "authority": "冒充官方或專家",
+                "greed": "用好處引誘你",
+                "social_proof": "說大家都在做",
+                "trust_building": "先跟你套交情",
             }[correct_tag],
             "count": 1,
         }
@@ -1170,3 +1179,59 @@ def test_picked_verification_questions_never_collide(db: Session) -> None:
         for case_id in ids:
             partner = mirrors.get(case_id)
             assert partner is None or partner not in ids, "鏡像對兩面同時被抽到"
+
+
+def test_deck_prioritizes_weakest_pretest_type(
+    client: TestClient, superuser_token_headers: dict[str, str], db: Session
+) -> None:
+    """做過前測的玩家,發牌偏重最弱類型。
+
+    fixture 題庫每類只有三張(兩詐騙一正常,romance 的正常題是 scam-a 的鏡像),
+    size=5 時查證題與配對題幾乎會把 romance 的案例吃光,案例題量不出偏重。
+    所以拆成兩個牌型各驗一件事:
+      - size=5:查證題每一副都來自最弱類型(每類都有已發布的查證題)
+      - size=2:沒有查證題也沒有配對題,只剩 verdict + tactics,
+        每一副至少一題、整體至少六成來自最弱類型(隨機約兩成)
+    真實題庫(每類 24 張)的比例見 docs/handoff/2026-09-24-pretest-driven-practice.md。
+    """
+    user = db.exec(select(User).where(User.email == settings.FIRST_SUPERUSER)).one()
+    attempt = PretestAttempt(user_id=user.id, weakest_type="romance")
+    db.add(attempt)
+    db.commit()
+    try:
+        for _ in range(10):
+            _, items = _deal(client, superuser_token_headers, size=5)
+            verification = [i for i in items if i["type"] == "verification"]
+            assert [i["fraud_type"] for i in verification] == ["romance"]
+
+        focused = total = 0
+        for _ in range(20):
+            _, items = _deal(client, superuser_token_headers, size=2)
+            hits = sum(i["fraud_type"] == "romance" for i in items)
+            assert hits >= 1, [(i["type"], i["fraud_type"]) for i in items]
+            focused += hits
+            total += len(items)
+        assert focused / total >= 0.6, f"{focused}/{total}"
+    finally:
+        db.delete(attempt)
+        db.commit()
+
+
+def test_deck_without_pretest_is_not_biased(
+    client: TestClient, superuser_token_headers: dict[str, str], db: Session
+) -> None:
+    """沒做過前測就維持原本的全隨機:同一類不會每一副都佔多數。"""
+    user = db.exec(select(User).where(User.email == settings.FIRST_SUPERUSER)).one()
+    db.expire_all()
+    assert (
+        db.exec(select(PretestAttempt).where(PretestAttempt.user_id == user.id)).first()
+        is None
+    )
+    majority = 0
+    for _ in range(12):
+        _, items = _deal(client, superuser_token_headers, size=5)
+        single = [i for i in items if i["type"] != "match"]
+        if sum(i["fraud_type"] == "romance" for i in single) >= 2:
+            majority += 1
+    # 隨機的話 romance 佔兩題以上的機率遠低於一半;偏重的話會是 12/12
+    assert majority < 12

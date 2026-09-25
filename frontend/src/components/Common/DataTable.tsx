@@ -83,7 +83,7 @@ export function DataTable<TData, TValue>({
                 colSpan={columns.length}
                 className="h-32 text-center text-muted-foreground"
               >
-                No results found.
+                沒有資料
               </TableCell>
             </TableRow>
           )}
@@ -94,22 +94,22 @@ export function DataTable<TData, TValue>({
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 p-4 border-t bg-muted/20">
           <div className="flex flex-col sm:flex-row sm:items-center gap-4">
             <div className="text-sm text-muted-foreground">
-              Showing{" "}
+              第{" "}
               {table.getState().pagination.pageIndex *
                 table.getState().pagination.pageSize +
                 1}{" "}
-              to{" "}
+              到{" "}
               {Math.min(
                 (table.getState().pagination.pageIndex + 1) *
                   table.getState().pagination.pageSize,
                 data.length,
               )}{" "}
-              of{" "}
+              筆，共{" "}
               <span className="font-medium text-foreground">{data.length}</span>{" "}
-              entries
+              筆
             </div>
             <div className="flex items-center gap-x-2">
-              <p className="text-sm text-muted-foreground">Rows per page</p>
+              <p className="text-sm text-muted-foreground">每頁筆數</p>
               <Select
                 value={`${table.getState().pagination.pageSize}`}
                 onValueChange={(value) => {
@@ -134,14 +134,15 @@ export function DataTable<TData, TValue>({
 
           <div className="flex items-center gap-x-6">
             <div className="flex items-center gap-x-1 text-sm text-muted-foreground">
-              <span>Page</span>
+              <span>第</span>
               <span className="font-medium text-foreground">
                 {table.getState().pagination.pageIndex + 1}
               </span>
-              <span>of</span>
+              <span>/</span>
               <span className="font-medium text-foreground">
                 {table.getPageCount()}
               </span>
+              <span>頁</span>
             </div>
 
             <div className="flex items-center gap-x-1">
@@ -152,7 +153,7 @@ export function DataTable<TData, TValue>({
                 onClick={() => table.setPageIndex(0)}
                 disabled={!table.getCanPreviousPage()}
               >
-                <span className="sr-only">Go to first page</span>
+                <span className="sr-only">第一頁</span>
                 <ChevronsLeft className="h-4 w-4" />
               </Button>
               <Button
@@ -162,7 +163,7 @@ export function DataTable<TData, TValue>({
                 onClick={() => table.previousPage()}
                 disabled={!table.getCanPreviousPage()}
               >
-                <span className="sr-only">Go to previous page</span>
+                <span className="sr-only">上一頁</span>
                 <ChevronLeft className="h-4 w-4" />
               </Button>
               <Button
@@ -172,7 +173,7 @@ export function DataTable<TData, TValue>({
                 onClick={() => table.nextPage()}
                 disabled={!table.getCanNextPage()}
               >
-                <span className="sr-only">Go to next page</span>
+                <span className="sr-only">下一頁</span>
                 <ChevronRight className="h-4 w-4" />
               </Button>
               <Button
@@ -182,7 +183,7 @@ export function DataTable<TData, TValue>({
                 onClick={() => table.setPageIndex(table.getPageCount() - 1)}
                 disabled={!table.getCanNextPage()}
               >
-                <span className="sr-only">Go to last page</span>
+                <span className="sr-only">最後一頁</span>
                 <ChevronsRight className="h-4 w-4" />
               </Button>
             </div>

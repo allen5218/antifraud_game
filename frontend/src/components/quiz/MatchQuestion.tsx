@@ -1,3 +1,4 @@
+import { CornerDownRight } from "lucide-react"
 import { useState } from "react"
 import type { QuizMatchPublic } from "@/client"
 import { Button } from "@/components/ui/button"
@@ -94,8 +95,9 @@ export function MatchQuestion({
                 </button>
                 {pairedTag && (
                   <div className="mt-2 flex items-center justify-between gap-2 border-t pt-2">
-                    <span className="text-xs font-semibold text-primary">
-                      ↳ {targetLabel(pairedTag)}
+                    <span className="flex items-center gap-1 text-xs font-semibold text-primary">
+                      <CornerDownRight aria-hidden className="size-3.5" />
+                      {targetLabel(pairedTag)}
                     </span>
                     <button
                       type="button"

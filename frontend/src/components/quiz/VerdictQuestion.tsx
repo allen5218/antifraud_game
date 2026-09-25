@@ -1,5 +1,6 @@
+import { Flag, ShieldCheck } from "lucide-react"
 import type { QuizVerdictPublic } from "@/client"
-import { FRAUD_TYPE_LABELS } from "@/components/scenario/labels"
+import { QuestionMeta } from "./QuestionMeta"
 
 interface VerdictQuestionProps {
   item: QuizVerdictPublic
@@ -19,15 +20,12 @@ export function VerdictQuestion({
 }: VerdictQuestionProps) {
   return (
     <div className="flex h-full flex-col">
-      <div className="flex items-center gap-2 px-4 pt-3 text-xs text-muted-foreground">
-        <span className="rounded-md bg-primary/10 px-1.5 py-0.5 font-semibold text-primary">
-          {FRAUD_TYPE_LABELS[item.fraud_type] ?? "其他類型"}
-        </span>
-        <span>{"★".repeat(item.difficulty)}</span>
-        <span className="ml-auto">
-          {index + 1} / {total}
-        </span>
-      </div>
+      <QuestionMeta
+        fraudType={item.fraud_type}
+        difficulty={item.difficulty}
+        index={index}
+        total={total}
+      />
       <h2 className="px-4 pt-2 text-base font-bold">{item.title}</h2>
       <div className="mt-2 flex-1 overflow-y-auto px-4 pb-4">
         <p className="whitespace-pre-wrap text-sm leading-relaxed">
@@ -39,17 +37,19 @@ export function VerdictQuestion({
           type="button"
           disabled={disabled}
           onClick={() => onSubmit(true)}
-          className="flex-1 rounded-xl bg-scam py-3 text-sm font-bold text-scam-foreground disabled:opacity-50"
+          className="flex flex-1 items-center justify-center gap-1.5 rounded-xl bg-scam py-3 text-sm font-bold text-scam-foreground disabled:opacity-50"
         >
-          🚩 這是詐騙
+          <Flag aria-hidden className="size-4" />
+          這是詐騙
         </button>
         <button
           type="button"
           disabled={disabled}
           onClick={() => onSubmit(false)}
-          className="flex-1 rounded-xl bg-legit py-3 text-sm font-bold text-legit-foreground disabled:opacity-50"
+          className="flex flex-1 items-center justify-center gap-1.5 rounded-xl bg-legit py-3 text-sm font-bold text-legit-foreground disabled:opacity-50"
         >
-          ✅ 這是正當
+          <ShieldCheck aria-hidden className="size-4" />
+          這是正常的
         </button>
       </div>
     </div>

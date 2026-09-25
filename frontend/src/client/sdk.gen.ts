@@ -3,7 +3,7 @@
 import type { CancelablePromise } from './core/CancelablePromise';
 import { OpenAPI } from './core/OpenAPI';
 import { request as __request } from './core/request';
-import type { EconomyReadMeResponse, EconomyPostSettleResponse, EconomyClaimResponse, EconomyListPropertiesResponse, EconomyBuyPropertyData, EconomyBuyPropertyResponse, EconomyGetAssetsResponse, EconomyPostLiquidateData, EconomyPostLiquidateResponse, ItemsReadItemsData, ItemsReadItemsResponse, ItemsCreateItemData, ItemsCreateItemResponse, ItemsReadItemData, ItemsReadItemResponse, ItemsUpdateItemData, ItemsUpdateItemResponse, ItemsDeleteItemData, ItemsDeleteItemResponse, LoginLoginAccessTokenData, LoginLoginAccessTokenResponse, LoginTestTokenResponse, LoginRecoverPasswordData, LoginRecoverPasswordResponse, LoginResetPasswordData, LoginResetPasswordResponse, LoginRecoverPasswordHtmlContentData, LoginRecoverPasswordHtmlContentResponse, MascotListMascotItemsResponse, MascotPurchaseItemData, MascotPurchaseItemResponse, MascotToggleEquipData, MascotToggleEquipResponse, MascotGetMyMascotResponse, PretestGetPretestQuestionsResponse, PretestSubmitPretestData, PretestSubmitPretestResponse, PrivateCreateUserData, PrivateCreateUserResponse, QuickSwipeDeckData, QuickSwipeDeckResponse, QuickSwipeAnswerData, QuickSwipeAnswerResponse, QuickSwipeCompleteData, QuickSwipeCompleteResponse, QuickQuizDeckData, QuickQuizDeckResponse, QuickQuizAnswerData, QuickQuizAnswerResponse, QuickQuizCompleteData, QuickQuizCompleteResponse, ScenarioInboxResponse, ScenarioCreateScenarioData, ScenarioCreateScenarioResponse, ScenarioReadScenarioData, ScenarioReadScenarioResponse, ScenarioSendMessageData, ScenarioSendMessageResponse, ScenarioJudgeScenarioData, ScenarioJudgeScenarioResponse, ScoreGetMyScoreResponse, UsersReadUsersData, UsersReadUsersResponse, UsersCreateUserData, UsersCreateUserResponse, UsersReadUserMeResponse, UsersDeleteUserMeResponse, UsersUpdateUserMeData, UsersUpdateUserMeResponse, UsersUpdatePasswordMeData, UsersUpdatePasswordMeResponse, UsersRegisterUserData, UsersRegisterUserResponse, UsersReadUserByIdData, UsersReadUserByIdResponse, UsersUpdateUserData, UsersUpdateUserResponse, UsersDeleteUserData, UsersDeleteUserResponse, UtilsTestEmailData, UtilsTestEmailResponse, UtilsHealthCheckResponse } from './types.gen';
+import type { EconomyReadMeResponse, EconomyPostSettleResponse, EconomyClaimResponse, EconomyListPropertiesResponse, EconomyBuyPropertyData, EconomyBuyPropertyResponse, EconomyGetAssetsResponse, EconomyPostLiquidateData, EconomyPostLiquidateResponse, ItemsReadItemsData, ItemsReadItemsResponse, ItemsCreateItemData, ItemsCreateItemResponse, ItemsReadItemData, ItemsReadItemResponse, ItemsUpdateItemData, ItemsUpdateItemResponse, ItemsDeleteItemData, ItemsDeleteItemResponse, LoginLoginAccessTokenData, LoginLoginAccessTokenResponse, LoginTestTokenResponse, LoginRecoverPasswordData, LoginRecoverPasswordResponse, LoginResetPasswordData, LoginResetPasswordResponse, LoginRecoverPasswordHtmlContentData, LoginRecoverPasswordHtmlContentResponse, MascotListMascotItemsResponse, MascotPurchaseItemData, MascotPurchaseItemResponse, MascotToggleEquipData, MascotToggleEquipResponse, MascotGetMyMascotResponse, PracticeReadProfileResponse, PretestGetPretestQuestionsResponse, PretestSubmitPretestData, PretestSubmitPretestResponse, PrivateCreateUserData, PrivateCreateUserResponse, QuickSwipeDeckData, QuickSwipeDeckResponse, QuickSwipeAnswerData, QuickSwipeAnswerResponse, QuickSwipeCompleteData, QuickSwipeCompleteResponse, QuickQuizDeckData, QuickQuizDeckResponse, QuickQuizAnswerData, QuickQuizAnswerResponse, QuickQuizCompleteData, QuickQuizCompleteResponse, ScenarioInboxResponse, ScenarioCreateScenarioData, ScenarioCreateScenarioResponse, ScenarioReadScenarioData, ScenarioReadScenarioResponse, ScenarioSendMessageData, ScenarioSendMessageResponse, ScenarioJudgeScenarioData, ScenarioJudgeScenarioResponse, ScoreGetMyScoreResponse, UsersReadUsersData, UsersReadUsersResponse, UsersCreateUserData, UsersCreateUserResponse, UsersReadUserMeResponse, UsersDeleteUserMeResponse, UsersUpdateUserMeData, UsersUpdateUserMeResponse, UsersUpdatePasswordMeData, UsersUpdatePasswordMeResponse, UsersRegisterUserData, UsersRegisterUserResponse, UsersReadUserByIdData, UsersReadUserByIdResponse, UsersUpdateUserData, UsersUpdateUserResponse, UsersDeleteUserData, UsersDeleteUserResponse, UtilsTestEmailData, UtilsTestEmailResponse, UtilsHealthCheckResponse } from './types.gen';
 
 export class EconomyService {
     /**
@@ -391,10 +391,26 @@ export class MascotService {
     }
 }
 
+export class PracticeService {
+    /**
+     * Read Profile
+     * @returns PracticeProfilePublic Successful Response
+     * @throws ApiError
+     */
+    public static readProfile(): CancelablePromise<PracticeReadProfileResponse> {
+        return __request(OpenAPI, {
+            method: 'GET',
+            url: '/api/v1/practice/profile'
+        });
+    }
+}
+
 export class PretestService {
     /**
      * Get Pretest Questions
-     * 每種詐騙類型隨機抽 3 題，共 15 題。回傳時不包含 is_correct 欄位。
+     * 每類抽 QUESTIONS_PER_TYPE 題(詐騙與正常情境各半),打散順序後回傳。
+     *
+     * 回傳時不包含 is_correct 與 is_scam。
      * @returns unknown Successful Response
      * @throws ApiError
      */
@@ -570,6 +586,8 @@ export class ScenarioService {
     /**
      * Inbox
      * 每 fraud_type 回傳最新一場;完全沒有時 bootstrap 一場。
+     *
+     * 有練習重點的玩家,依各類比例由高到低排(最弱的在第一列,app/practice/)。
      * @returns ScenarioInboxItem Successful Response
      * @throws ApiError
      */
@@ -582,7 +600,7 @@ export class ScenarioService {
     
     /**
      * Create Scenario
-     * 對 completed 的類型開新一場;受每日上限。
+     * 對 completed 的類型開新一場;受每日上限(練習重點那一類上限較高)。
      * @param data The data for the request.
      * @param data.requestBody
      * @returns ScenarioInboxItem Successful Response

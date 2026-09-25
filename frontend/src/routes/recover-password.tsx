@@ -25,7 +25,7 @@ import useCustomToast from "@/hooks/useCustomToast"
 import { handleError } from "@/utils"
 
 const formSchema = z.object({
-  email: z.email(),
+  email: z.email({ message: "電子郵件格式不正確" }),
 })
 
 type FormData = z.infer<typeof formSchema>
@@ -66,7 +66,7 @@ function RecoverPassword() {
   const mutation = useMutation({
     mutationFn: recoverPassword,
     onSuccess: () => {
-      showSuccessToast("Password recovery email sent successfully")
+      showSuccessToast("已寄出重設密碼的信件，請到信箱收信")
       form.reset()
     },
     onError: handleError.bind(showErrorToast),
@@ -85,7 +85,7 @@ function RecoverPassword() {
           className="flex flex-col gap-6"
         >
           <div className="flex flex-col items-center gap-2 text-center">
-            <h1 className="text-2xl font-bold">Password Recovery</h1>
+            <h1 className="text-2xl font-bold">找回密碼</h1>
           </div>
 
           <div className="grid gap-4">
@@ -94,7 +94,7 @@ function RecoverPassword() {
               name="email"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Email</FormLabel>
+                  <FormLabel>電子郵件</FormLabel>
                   <FormControl>
                     <Input
                       data-testid="email-input"
@@ -113,14 +113,14 @@ function RecoverPassword() {
               className="w-full"
               loading={mutation.isPending}
             >
-              Continue
+              寄出重設信
             </LoadingButton>
           </div>
 
           <div className="text-center text-sm">
-            Remember your password?{" "}
+            想起密碼了？{" "}
             <RouterLink to="/login" className="underline underline-offset-4">
-              Log in
+              登入
             </RouterLink>
           </div>
         </form>
