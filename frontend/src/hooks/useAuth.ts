@@ -55,6 +55,8 @@ const useAuth = () => {
 
   const logout = () => {
     localStorage.removeItem("access_token")
+    // 查詢的 key 不含使用者,不清掉的話下一個登入的帳號會先看到上一位的資料
+    queryClient.clear()
     navigate({ to: "/login" })
   }
 

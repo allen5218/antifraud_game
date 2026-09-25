@@ -399,6 +399,57 @@ export const OwnedPropertyPublicSchema = {
     title: 'OwnedPropertyPublic'
 } as const;
 
+export const PracticeProfilePublicSchema = {
+    properties: {
+        focus_type: {
+            anyOf: [
+                {
+                    type: 'string'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Focus Type'
+        },
+        focus_label: {
+            anyOf: [
+                {
+                    type: 'string'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Focus Label'
+        },
+        note: {
+            type: 'string',
+            title: 'Note'
+        },
+        weights: {
+            additionalProperties: {
+                type: 'number'
+            },
+            type: 'object',
+            title: 'Weights'
+        },
+        source: {
+            type: 'string',
+            enum: ['gemini', 'rule', 'pretest', 'none'],
+            title: 'Source'
+        },
+        answers_seen: {
+            type: 'integer',
+            title: 'Answers Seen'
+        }
+    },
+    type: 'object',
+    required: ['focus_type', 'focus_label', 'note', 'weights', 'source', 'answers_seen'],
+    title: 'PracticeProfilePublic',
+    description: '玩家目前的練習重點。題組、滑卡、情境收件匣都照這個比例出題。'
+} as const;
+
 export const PretestAnswerSchema = {
     properties: {
         question_id: {

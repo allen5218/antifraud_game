@@ -99,11 +99,11 @@ class IngestQuestionTests(unittest.TestCase):
             self.assertIn(f"{field} = EXCLUDED.{field}", sql)
 
     def test_version_provenance_and_quotes_are_preserved(self):
-        record = dict(GOOD_QUESTION, version=3, provenance="改編自測試 '來源'")
+        record = dict(GOOD_QUESTION, version=3, provenance="改編自：測試 '來源'")
         code, _, queries, _ = self.run_ingest([record], apply=True)
         self.assertEqual(code, 0)
         self.assertIn("'verify-test-001', 3, 17", queries[-1])
-        self.assertIn("改編自測試 ''來源''", queries[-1])
+        self.assertIn("改編自：測試 ''來源''", queries[-1])
 
     def test_non_draft_conflict_is_not_overwritten(self):
         for status in ("reviewed", "published", "archived"):

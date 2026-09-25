@@ -175,8 +175,8 @@ backend/
 │  │  └─ db.py        init_db()：建 superuser + seed pretest/swipe/mascot/property
 │  ├─ scenario/
 │  │  ├─ manager.py   純規則：裁決、獎懲、回合上限、揭曉卡（絕不由 LLM 判定真相）
-│  │  ├─ agent.py     Pydantic AI Agent（"google:gemini-3.5-flash"）
-│  │  └─ config.py    MAX_TURNS=10、每類型每日 3 場、SCAM_RATIO=0.5
+│  │  ├─ agent.py     Pydantic AI Agent（"google:gemini-3.8-flash"）
+│  │  └─ config.py    MAX_TURNS=10、每類型每日 3 場（練習重點那一類 5 場）、SCAM_RATIO=0.5
 │  ├─ economy/        service.py（adjust_cash / add_xp 唯一入口）· levels.py
 │  ├─ game/seed.py    pretest 題目與吉祥物道具的種子資料
 │  └─ alembic/        env_filters.py 的 include_object 白名單
@@ -239,17 +239,22 @@ data_pipeline/        詐騙知識策展管線（產出 game_cases）
 
 ```python
 Agent(
-    "google:gemini-3.5-flash",
+    "google:gemini-3.8-flash",
     output_type=ScenarioReply,
     defer_model_check=True,
+    model_settings=GoogleModelSettings(
+        google_thinking_config={"thinking_level": ThinkingLevel.LOW}
+    ),
 )
 ```
 
 `defer_model_check=True` 讓模型字串在 import 期不驗證，換供應商不會在載入時報錯。
+思考等級設 low：聊天要回得快，預設等級每則多等好幾秒。`google_` 開頭的設定只有 Gemini 會讀，換供應商時其他模型會忽略。
+練習重點分析器（`backend/app/practice/analyzer.py`）用同一個模型與設定。
 
 | 供應商 | 模型字串範例 | 環境變數 | 取得金鑰 |
 |--------|--------------|----------|----------|
-| Google | `google:gemini-3.5-flash` | `GOOGLE_API_KEY` | [AI Studio](https://aistudio.google.com/apikey) |
+| Google | `google:gemini-3.8-flash` | `GOOGLE_API_KEY` | [AI Studio](https://aistudio.google.com/apikey) |
 | Anthropic | `anthropic:claude-haiku-4-5-20251001` | `ANTHROPIC_API_KEY` | [Anthropic Console](https://console.anthropic.com/) |
 | OpenAI | `openai:gpt-4o-mini` | `OPENAI_API_KEY` | [OpenAI Platform](https://platform.openai.com/api-keys) |
 | Groq | `groq:llama-3.3-70b-versatile` | `GROQ_API_KEY` | [Groq Console](https://console.groq.com/keys) |

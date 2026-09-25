@@ -33,11 +33,11 @@ import { handleError } from "@/utils"
 
 const formSchema = z
   .object({
-    email: z.email({ message: "Invalid email address" }),
+    email: z.email({ message: "電子郵件格式不正確" }),
     full_name: z.string().optional(),
     password: z
       .string()
-      .min(8, { message: "Password must be at least 8 characters" })
+      .min(8, { message: "密碼至少要 8 個字元" })
       .optional()
       .or(z.literal("")),
     confirm_password: z.string().optional(),
@@ -45,7 +45,7 @@ const formSchema = z
     is_active: z.boolean().optional(),
   })
   .refine((data) => !data.password || data.password === data.confirm_password, {
-    message: "The passwords don't match",
+    message: "兩次輸入的密碼不一樣",
     path: ["confirm_password"],
   })
 
@@ -77,7 +77,7 @@ const EditUser = ({ user, onSuccess }: EditUserProps) => {
     mutationFn: (data: FormData) =>
       UsersService.updateUser({ userId: user.id, requestBody: data }),
     onSuccess: () => {
-      showSuccessToast("User updated successfully")
+      showSuccessToast("已更新使用者")
       setIsOpen(false)
       onSuccess()
     },
@@ -103,16 +103,14 @@ const EditUser = ({ user, onSuccess }: EditUserProps) => {
         onClick={() => setIsOpen(true)}
       >
         <Pencil />
-        Edit User
+        編輯使用者
       </DropdownMenuItem>
       <DialogContent className="sm:max-w-md">
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)}>
             <DialogHeader>
-              <DialogTitle>Edit User</DialogTitle>
-              <DialogDescription>
-                Update the user details below.
-              </DialogDescription>
+              <DialogTitle>編輯使用者</DialogTitle>
+              <DialogDescription>修改下面的使用者資料。</DialogDescription>
             </DialogHeader>
             <div className="grid gap-4 py-4">
               <FormField
@@ -121,11 +119,11 @@ const EditUser = ({ user, onSuccess }: EditUserProps) => {
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>
-                      Email <span className="text-destructive">*</span>
+                      電子郵件 <span className="text-destructive">*</span>
                     </FormLabel>
                     <FormControl>
                       <Input
-                        placeholder="Email"
+                        placeholder="電子郵件"
                         type="email"
                         {...field}
                         required
@@ -141,9 +139,9 @@ const EditUser = ({ user, onSuccess }: EditUserProps) => {
                 name="full_name"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Full Name</FormLabel>
+                    <FormLabel>名稱</FormLabel>
                     <FormControl>
-                      <Input placeholder="Full name" type="text" {...field} />
+                      <Input placeholder="名稱" type="text" {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -155,13 +153,9 @@ const EditUser = ({ user, onSuccess }: EditUserProps) => {
                 name="password"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Set Password</FormLabel>
+                    <FormLabel>設定新密碼</FormLabel>
                     <FormControl>
-                      <Input
-                        placeholder="Password"
-                        type="password"
-                        {...field}
-                      />
+                      <Input placeholder="密碼" type="password" {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -173,13 +167,9 @@ const EditUser = ({ user, onSuccess }: EditUserProps) => {
                 name="confirm_password"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Confirm Password</FormLabel>
+                    <FormLabel>確認密碼</FormLabel>
                     <FormControl>
-                      <Input
-                        placeholder="Password"
-                        type="password"
-                        {...field}
-                      />
+                      <Input placeholder="密碼" type="password" {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -197,7 +187,7 @@ const EditUser = ({ user, onSuccess }: EditUserProps) => {
                         onCheckedChange={field.onChange}
                       />
                     </FormControl>
-                    <FormLabel className="font-normal">Is superuser?</FormLabel>
+                    <FormLabel className="font-normal">管理員</FormLabel>
                   </FormItem>
                 )}
               />
@@ -213,7 +203,7 @@ const EditUser = ({ user, onSuccess }: EditUserProps) => {
                         onCheckedChange={field.onChange}
                       />
                     </FormControl>
-                    <FormLabel className="font-normal">Is active?</FormLabel>
+                    <FormLabel className="font-normal">啟用</FormLabel>
                   </FormItem>
                 )}
               />
@@ -222,11 +212,11 @@ const EditUser = ({ user, onSuccess }: EditUserProps) => {
             <DialogFooter>
               <DialogClose asChild>
                 <Button variant="outline" disabled={mutation.isPending}>
-                  Cancel
+                  取消
                 </Button>
               </DialogClose>
               <LoadingButton type="submit" loading={mutation.isPending}>
-                Save
+                儲存
               </LoadingButton>
             </DialogFooter>
           </form>

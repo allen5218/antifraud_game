@@ -42,18 +42,18 @@ def test_answer_returns_correctness_and_explanation(
         {
             "tag": tag,
             "label": {
-                "time_pressure": "時間壓力",
-                "authority": "權威服從",
-                "greed": "貪念誘惑",
-                "social_proof": "社會認同",
-                "trust_building": "信任建立",
+                "time_pressure": "催你快點決定",
+                "authority": "冒充官方或專家",
+                "greed": "用好處引誘你",
+                "social_proof": "說大家都在做",
+                "trust_building": "先跟你套交情",
             }[tag],
             "suggestion": {
-                "time_pressure": "遇到「限時」「緊急」等話術時，先深呼吸，給自己 24 小時冷靜期",
-                "authority": "不要因為對方自稱專家或官員就輕信，主動查證對方身份",
-                "greed": "記住「高報酬必伴隨高風險」，保證獲利幾乎都是詐騙",
-                "social_proof": "不要因為「很多人都在做」就跟風，獨立思考很重要",
-                "trust_building": "即使對方展示了真實資訊，也不代表整件事是真的",
+                "time_pressure": "對方越催，越要停下來。銀行、政府和正規商家都不會要你幾分鐘內做決定。",
+                "authority": "自稱警察、檢察官、銀行人員或專家，都先掛斷，自己查官方電話打回去問。",
+                "greed": "保證賺錢、穩賺不賠、價格低得離譜，都是詐騙最常用的餌。",
+                "social_proof": "群組裡的人都說賺到了，他們可能是同一夥的，截圖也能造假。",
+                "trust_building": "聊得再久、對你再好，只要開口借錢、要你匯款或下載 App，就先停下來查證。",
             }[tag],
         }
         for tag in sorted(card.weakness_tags)
@@ -82,7 +82,7 @@ def test_complete_returns_localized_weakness_summary(
     authority = next(
         item for item in r.json()["weakness_summary"] if item["tag"] == "authority"
     )
-    assert authority == {"tag": "authority", "label": "權威服從", "count": 1}
+    assert authority == {"tag": "authority", "label": "冒充官方或專家", "count": 1}
 
 
 def test_complete_revalidates_and_grants_reward(

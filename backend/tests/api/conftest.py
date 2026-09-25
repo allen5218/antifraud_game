@@ -8,9 +8,10 @@ from collections.abc import Generator
 
 import pytest
 from sqlalchemy import text
-from sqlmodel import Session
+from sqlmodel import Session, delete
 
 from app.core.db import engine
+from app.models import PracticeAnswer, PracticeProfile, PretestAttempt
 
 # 5 個弱點標籤(見 app/core/weakness.py)
 _WEAKNESS_TAGS = [
@@ -240,4 +241,19 @@ def game_cases_fixture() -> Generator[None, None, None]:
             text("DELETE FROM game_case_questions WHERE question_key LIKE 'pytest-%'")
         )
         session.execute(text("DELETE FROM game_cases WHERE case_key LIKE 'pytest-%'"))
+        session.commit()
+
+
+@pytest.fixture(autouse=True)
+def _reset_practice_state() -> Generator[None, None, None]:
+    """每個測試結束後清掉練習重點與作答紀錄。
+
+    superuser 是全部 API 測試共用的帳號。前一個測試交過卷就會留下練習重點,
+    後面的發牌測試會被偏重到某一類,斷言「沒有偏重」或特定牌型的測試就會隨機失敗。
+    """
+    yield
+    with Session(engine) as session:
+        session.execute(delete(PracticeProfile))
+        session.execute(delete(PracticeAnswer))
+        session.execute(delete(PretestAttempt))
         session.commit()

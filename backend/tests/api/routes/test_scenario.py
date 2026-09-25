@@ -6,7 +6,18 @@ from fastapi.testclient import TestClient
 from sqlmodel import Session, select
 
 from app.core.config import settings
-from app.models import FraudType, ScenarioSession, ScenarioStatus, User
+from app.models import (
+    FraudType,
+    PracticeProfile,
+    PretestAttempt,
+    ScenarioSession,
+    ScenarioStatus,
+    User,
+)
+from app.scenario.config import (
+    SCENARIO_DAILY_LIMIT_FOCUS,
+    SCENARIO_DAILY_LIMIT_PER_TYPE,
+)
 from app.schemas import ScenarioReply
 
 
@@ -63,6 +74,31 @@ def test_inbox_bootstraps_five_types_without_leaking_role(
         assert "persona_role" not in item
     assert "persona_role" not in r.text
     assert "tactics" not in r.text
+
+
+def test_inbox_puts_weakest_pretest_type_first(
+    client: TestClient, db: Session, normal_user_token_headers: dict[str, str]
+) -> None:
+    url = f"{settings.API_V1_STR}/scenario/inbox"
+    before = [
+        i["fraud_type"]
+        for i in client.get(url, headers=normal_user_token_headers).json()
+    ]
+    assert before == [ft.value for ft in FraudType]  # 沒做過前測:宣告順序
+
+    attempt = PretestAttempt(user_id=_test_user(db).id, weakest_type="atm")
+    db.add(attempt)
+    db.commit()
+    try:
+        after = [
+            i["fraud_type"]
+            for i in client.get(url, headers=normal_user_token_headers).json()
+        ]
+        # 最弱類型排第一,其餘維持宣告順序
+        assert after == ["atm", *[ft.value for ft in FraudType if ft.value != "atm"]]
+    finally:
+        db.delete(attempt)
+        db.commit()
 
 
 def test_read_scenario_hides_truth(
@@ -237,36 +273,69 @@ def test_judge_twice_rejected(
     assert second.status_code == 400
 
 
-def test_new_scenario_daily_limit(
-    client: TestClient, db: Session, normal_user_token_headers: dict[str, str]
-) -> None:
-    user = _test_user(db)
-    # 先把 romance 的 active 場清掉,再塞 3 場今天已完成
+def _fill_today(db: Session, user: User, fraud_type: str, count: int) -> None:
+    """清掉這一類的舊場次,再塞 `count` 場今天已完成的。"""
     for s in db.exec(
         select(ScenarioSession).where(
             ScenarioSession.user_id == user.id,
-            ScenarioSession.fraud_type == "romance",
+            ScenarioSession.fraud_type == fraud_type,
         )
     ).all():
         db.delete(s)
     db.commit()
-    for _ in range(3):
+    for _ in range(count):
         _make_session(
             db,
             user,
             role="scam",
-            fraud_type="romance",
+            fraud_type=fraud_type,
             status=ScenarioStatus.COMPLETED,
             outcome="win_report",
             completed_at=datetime.now(timezone.utc),
         )
-    r = client.post(
+
+
+def _new(client: TestClient, headers: dict[str, str], fraud_type: str) -> Any:
+    return client.post(
         f"{settings.API_V1_STR}/scenario/new",
-        headers=normal_user_token_headers,
-        json={"fraud_type": "romance"},
+        headers=headers,
+        json={"fraud_type": fraud_type},
     )
+
+
+def test_new_scenario_daily_limit(
+    client: TestClient, db: Session, normal_user_token_headers: dict[str, str]
+) -> None:
+    _fill_today(db, _test_user(db), "romance", SCENARIO_DAILY_LIMIT_PER_TYPE)
+    r = _new(client, normal_user_token_headers, "romance")
     assert r.status_code == 400
-    assert r.json()["detail"]["code"] == "daily_limit_reached"
+    assert r.json()["detail"] == {
+        "code": "daily_limit_reached",
+        "limit": SCENARIO_DAILY_LIMIT_PER_TYPE,
+    }
+
+
+def test_focus_type_gets_a_higher_daily_limit(
+    client: TestClient, db: Session, normal_user_token_headers: dict[str, str]
+) -> None:
+    """練習重點是假交友:一般類型 3 場就滿,假交友可以開到 5 場。"""
+    user = _test_user(db)
+    db.add(
+        PracticeProfile(
+            user_id=user.id, weights={}, focus_type="romance", source="rule"
+        )
+    )
+    db.commit()
+    _fill_today(db, user, "romance", SCENARIO_DAILY_LIMIT_PER_TYPE)
+    assert _new(client, normal_user_token_headers, "romance").status_code == 200
+
+    _fill_today(db, user, "romance", SCENARIO_DAILY_LIMIT_FOCUS)
+    r = _new(client, normal_user_token_headers, "romance")
+    assert r.status_code == 400
+    assert r.json()["detail"]["limit"] == SCENARIO_DAILY_LIMIT_FOCUS
+
+    _fill_today(db, user, "atm", SCENARIO_DAILY_LIMIT_PER_TYPE)
+    assert _new(client, normal_user_token_headers, "atm").status_code == 400
 
 
 def test_not_your_scenario(

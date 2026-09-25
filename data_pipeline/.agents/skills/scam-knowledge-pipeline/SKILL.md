@@ -45,6 +45,8 @@ The pipeline is skill-driven: Codex performs source inspection and LLM-assisted 
     - Use `scripts/audit_pipeline.py`.
 11. Curate game cases.
     - Read `references/curation.md` and `schemas/game_case.schema.json`.
+    - 題目上的每個字玩家都看得到：全形標點、不用破折號、不用 AI 腔與公文用語、出處寫「改編自：」或「依據：」、
+      選項不寫理由、話術 tag 要跟句子對得上。細節見 `references/curation.md`「玩家看得到的文字」。
     - Codex adapts case_narrative documents into game_case drafts (scam + legit mirrors), then validates with `scripts/validate_game_cases.py`.
     - Measure genre leakage with `scripts/leak_probe.py` before ingest. Drafts whose `is_scam` is guessable from narrative form alone (retrospective endings, "正因為…我才放心" closings) are free points for the player. 50% = clean, ~100% = giving the answer away. Gate with `--fail-over 0.75`.
 12. Ingest game case drafts.

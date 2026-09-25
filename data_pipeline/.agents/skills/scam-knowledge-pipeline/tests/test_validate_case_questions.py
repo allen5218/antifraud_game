@@ -120,6 +120,30 @@ class QuestionValidationTests(unittest.TestCase):
                         bad[field] = value
                     self.rejected([bad], f"possible {name}")
 
+    def test_player_text_writing_rules(self):
+        cases = {
+            "全形標點": dict(
+                GOOD_QUESTION, explanation="聯絡方式要自己找,才不會再接到同一方。"
+            ),
+            "破折號": dict(GOOD_QUESTION, question="接下來——應該如何確認？"),
+            "改編自：": dict(GOOD_QUESTION, provenance="金管會公告的合法業者名單"),
+        }
+        for message, record in cases.items():
+            with self.subTest(message=message):
+                self.rejected([record], message)
+        self.assertEqual(
+            validator.validate_rows(
+                [(1, dict(GOOD_QUESTION, provenance="依據：金管會合法業者名單"))]
+            )[1],
+            [],
+        )
+
+    def test_option_must_not_carry_the_reason(self):
+        """理由只寫在正解時,不看題目也知道選它。"""
+        bad = copy.deepcopy(GOOD_QUESTION)
+        bad["options"][0]["text"] = "打原本的客服專線，以免被轉接"
+        self.rejected([bad], "選項只寫做法")
+
     def test_explanation_cannot_copy_correct_text(self):
         self.rejected(
             [dict(GOOD_QUESTION, explanation=GOOD_QUESTION["options"][0]["text"])],

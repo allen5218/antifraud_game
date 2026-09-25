@@ -1,5 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
 import { QuickService, type QuizAnswerRequest } from "@/client"
+import { refreshPracticeProfileSoon } from "@/hooks/usePractice"
 
 /**
  * 題組牌組(預設 5 題)。每副牌對應一個一次性結算 session,故 query key 帶
@@ -34,6 +35,9 @@ export function useQuizComplete() {
       QuickService.quizComplete({
         requestBody: { session_id: sessionId },
       }),
-    onSuccess: () => qc.invalidateQueries({ queryKey: ["economy"] }),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["economy"] })
+      refreshPracticeProfileSoon(qc)
+    },
   })
 }

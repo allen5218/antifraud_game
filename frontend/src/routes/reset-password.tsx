@@ -33,14 +33,12 @@ const formSchema = z
   .object({
     new_password: z
       .string()
-      .min(1, { message: "Password is required" })
-      .min(8, { message: "Password must be at least 8 characters" }),
-    confirm_password: z
-      .string()
-      .min(1, { message: "Password confirmation is required" }),
+      .min(1, { message: "請輸入密碼" })
+      .min(8, { message: "密碼至少要 8 個字元" }),
+    confirm_password: z.string().min(1, { message: "請再輸入一次密碼" }),
   })
   .refine((data) => data.new_password === data.confirm_password, {
-    message: "The passwords don't match",
+    message: "兩次輸入的密碼不一樣",
     path: ["confirm_password"],
   })
 
@@ -85,7 +83,7 @@ function ResetPassword() {
     mutationFn: (data: { new_password: string; token: string }) =>
       LoginService.resetPassword({ requestBody: data }),
     onSuccess: () => {
-      showSuccessToast("Password updated successfully")
+      showSuccessToast("密碼已更新")
       form.reset()
       navigate({ to: "/login" })
     },
@@ -104,7 +102,7 @@ function ResetPassword() {
           className="flex flex-col gap-6"
         >
           <div className="flex flex-col items-center gap-2 text-center">
-            <h1 className="text-2xl font-bold">Reset Password</h1>
+            <h1 className="text-2xl font-bold">重設密碼</h1>
           </div>
 
           <div className="grid gap-4">
@@ -113,11 +111,11 @@ function ResetPassword() {
               name="new_password"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>New Password</FormLabel>
+                  <FormLabel>新密碼</FormLabel>
                   <FormControl>
                     <PasswordInput
                       data-testid="new-password-input"
-                      placeholder="New Password"
+                      placeholder="新密碼"
                       {...field}
                     />
                   </FormControl>
@@ -131,11 +129,11 @@ function ResetPassword() {
               name="confirm_password"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Confirm Password</FormLabel>
+                  <FormLabel>確認密碼</FormLabel>
                   <FormControl>
                     <PasswordInput
                       data-testid="confirm-password-input"
-                      placeholder="Confirm Password"
+                      placeholder="再輸入一次新密碼"
                       {...field}
                     />
                   </FormControl>
@@ -149,14 +147,14 @@ function ResetPassword() {
               className="w-full"
               loading={mutation.isPending}
             >
-              Reset Password
+              重設密碼
             </LoadingButton>
           </div>
 
           <div className="text-center text-sm">
-            Remember your password?{" "}
+            想起密碼了？{" "}
             <RouterLink to="/login" className="underline underline-offset-4">
-              Log in
+              登入
             </RouterLink>
           </div>
         </form>

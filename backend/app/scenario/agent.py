@@ -12,7 +12,9 @@ import re
 from dataclasses import dataclass
 from typing import Any
 
+from google.genai.types import ThinkingLevel
 from pydantic_ai import Agent, RunContext
+from pydantic_ai.models.google import GoogleModelSettings
 
 from app.core.cases import GameCaseRow
 from app.models import ScenarioSession
@@ -115,10 +117,14 @@ class ScenarioDeps:
 
 def create_scenario_agent() -> Agent[ScenarioDeps, ScenarioReply]:
     agent: Agent[ScenarioDeps, ScenarioReply] = Agent(
-        "google:gemini-3.5-flash",
+        "google:gemini-3.8-flash",
         deps_type=ScenarioDeps,
         output_type=ScenarioReply,
         defer_model_check=True,
+        # 思考等級 low:聊天要回得快,預設等級每則多等好幾秒。
+        model_settings=GoogleModelSettings(
+            google_thinking_config={"thinking_level": ThinkingLevel.LOW}
+        ),
     )
 
     @agent.instructions

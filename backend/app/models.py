@@ -163,7 +163,12 @@ class PretestQuestion(SQLModel, table=True):
     __tablename__ = "pretest_question"
 
     id: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True)
+    # 種子資料的穩定代號。init_db 依它同步題目(改寫措詞、新增題目都會進到既有資料庫);
+    # 沒有這個欄位時,種子只在空表時灌一次,改稿永遠到不了 production。
+    seed_key: str | None = Field(default=None, max_length=64, unique=True)
     fraud_type: str = Field(max_length=32, index=True)
+    # 情境本身是不是詐騙。出題時每類各抽一半,避免「選最保守的就對」
+    is_scam: bool | None = Field(default=None)
     question_text: str
     options: list[dict] = Field(default=[], sa_column=Column(JSONB, nullable=False))  # type: ignore
     explanation: str = ""
@@ -188,6 +193,81 @@ class PretestResult(SQLModel, table=True):
     selected_option: str = Field(max_length=4)
     is_correct: bool = False
     created_at: datetime | None = Field(
+        default_factory=get_datetime_utc,
+        sa_type=DateTime(timezone=True),  # type: ignore
+    )
+
+
+class PretestAttempt(SQLModel, table=True):
+    """一次前測作答的結論。題組發牌與情境收件匣讀它來決定優先練哪一類。
+
+    不從 `pretest_result` 反推:那張表一題一列、沒有「第幾次作答」的欄位,
+    要靠 created_at 把 15 列湊回一次作答,玩家重做前測時很容易湊錯。
+    """
+
+    __tablename__ = "pretest_attempt"
+
+    id: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True)
+    user_id: uuid.UUID = Field(
+        foreign_key="user.id", nullable=False, ondelete="CASCADE", index=True
+    )
+    weakest_type: str = Field(max_length=32)
+    created_at: datetime | None = Field(
+        default_factory=get_datetime_utc,
+        sa_type=DateTime(timezone=True),  # type: ignore
+    )
+
+
+class PracticeAnswer(SQLModel, table=True):
+    """所有玩法共用的作答紀錄,一題一列。練習重點(PracticeProfile)從這裡算。
+
+    前測、滑卡、題組、情境對抗原本各存各的(滑卡甚至完全不存),
+    「任何玩法的弱項都要影響所有玩法」就需要一份統一的紀錄。
+    """
+
+    __tablename__ = "practice_answer"
+
+    id: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True)
+    user_id: uuid.UUID = Field(
+        foreign_key="user.id", nullable=False, ondelete="CASCADE", index=True
+    )
+    # pretest / swipe / quiz / scenario
+    mode: str = Field(max_length=16)
+    fraud_type: str = Field(max_length=32)
+    correct: bool
+    # 答錯時漏掉的話術標籤(weakness tag);答對或沒有標籤時為空
+    missed_tags: list[str] = Field(
+        default=[], sa_column=Column(JSONB, nullable=False, server_default="[]")
+    )
+    created_at: datetime | None = Field(
+        default_factory=get_datetime_utc,
+        sa_type=DateTime(timezone=True),  # type: ignore
+        index=True,
+    )
+
+
+class PracticeProfile(SQLModel, table=True):
+    """每位玩家目前的練習重點:各類詐騙的出題比例,由分析器在每輪結束後更新。
+
+    發牌只讀這張表,**不在請求當下呼叫 AI**。見 app/practice/。
+    """
+
+    __tablename__ = "practice_profile"
+
+    user_id: uuid.UUID = Field(
+        foreign_key="user.id", primary_key=True, ondelete="CASCADE"
+    )
+    # {fraud_type: 比例},五類合計 1
+    weights: dict[str, float] = Field(
+        default={}, sa_column=Column(JSONB, nullable=False, server_default="{}")
+    )
+    focus_type: str = Field(max_length=32)
+    # 給玩家看的一句話(為什麼接下來多練這一類)
+    note: str = Field(default="", max_length=200)
+    # gemini / rule:這次的比例是誰決定的
+    source: str = Field(max_length=16)
+    answers_seen: int = 0
+    updated_at: datetime | None = Field(
         default_factory=get_datetime_utc,
         sa_type=DateTime(timezone=True),  # type: ignore
     )
@@ -275,6 +355,8 @@ class SwipeCard(SQLModel, table=True):
     __tablename__ = "swipe_card"
 
     id: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True)
+    # 種子資料的穩定代號,理由同 PretestQuestion.seed_key
+    seed_key: str | None = Field(default=None, max_length=64, unique=True)
     scenario: str
     source_label: str = Field(max_length=64)
     is_scam: bool

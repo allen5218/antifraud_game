@@ -37,7 +37,7 @@ export function MessageList({ entries, typing, trailing }: MessageListProps) {
               key={`${i}-${j}`}
               initial={{ opacity: 0, y: 8 }}
               animate={{ opacity: 1, y: 0 }}
-              className="max-w-[78%] self-start rounded-2xl rounded-tl-sm bg-background px-3 py-2 text-sm shadow-sm"
+              className="max-w-[78%] self-start rounded-2xl rounded-tl-sm border border-border bg-card px-3 py-2 text-sm shadow-sm"
             >
               {m}
             </motion.div>
@@ -47,7 +47,7 @@ export function MessageList({ entries, typing, trailing }: MessageListProps) {
             key={i}
             initial={{ opacity: 0, y: 8 }}
             animate={{ opacity: 1, y: 0 }}
-            className="max-w-[78%] self-end rounded-2xl rounded-tr-sm bg-green-200 px-3 py-2 text-sm dark:bg-green-900"
+            className="max-w-[78%] self-end rounded-2xl rounded-tr-sm bg-primary px-3 py-2 text-sm text-primary-foreground"
           >
             {entry.text}
           </motion.div>
@@ -57,7 +57,7 @@ export function MessageList({ entries, typing, trailing }: MessageListProps) {
       {typing && (
         <div
           data-testid="typing-indicator"
-          className="self-start rounded-2xl bg-background px-3 py-2 text-sm text-muted-foreground shadow-sm"
+          className="self-start rounded-2xl border border-border bg-card px-3 py-2 text-sm text-muted-foreground shadow-sm"
         >
           輸入中…
         </div>

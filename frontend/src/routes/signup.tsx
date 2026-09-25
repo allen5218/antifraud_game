@@ -22,18 +22,16 @@ import useAuth, { isLoggedIn } from "@/hooks/useAuth"
 
 const formSchema = z
   .object({
-    email: z.email(),
-    full_name: z.string().min(1, { message: "Full Name is required" }),
+    email: z.email({ message: "電子郵件格式不正確" }),
+    full_name: z.string().min(1, { message: "請輸入名稱" }),
     password: z
       .string()
-      .min(1, { message: "Password is required" })
-      .min(8, { message: "Password must be at least 8 characters" }),
-    confirm_password: z
-      .string()
-      .min(1, { message: "Password confirmation is required" }),
+      .min(1, { message: "請輸入密碼" })
+      .min(8, { message: "密碼至少要 8 個字元" }),
+    confirm_password: z.string().min(1, { message: "請再輸入一次密碼" }),
   })
   .refine((data) => data.password === data.confirm_password, {
-    message: "The passwords don't match",
+    message: "兩次輸入的密碼不一樣",
     path: ["confirm_password"],
   })
 
@@ -87,7 +85,7 @@ function SignUp() {
           className="flex flex-col gap-6"
         >
           <div className="flex flex-col items-center gap-2 text-center">
-            <h1 className="text-2xl font-bold">Create an account</h1>
+            <h1 className="text-2xl font-bold">建立帳號</h1>
           </div>
 
           <div className="grid gap-4">
@@ -96,11 +94,11 @@ function SignUp() {
               name="full_name"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Full Name</FormLabel>
+                  <FormLabel>名稱</FormLabel>
                   <FormControl>
                     <Input
                       data-testid="full-name-input"
-                      placeholder="User"
+                      placeholder="你的名字或暱稱"
                       type="text"
                       {...field}
                     />
@@ -115,7 +113,7 @@ function SignUp() {
               name="email"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Email</FormLabel>
+                  <FormLabel>電子郵件</FormLabel>
                   <FormControl>
                     <Input
                       data-testid="email-input"
@@ -134,11 +132,11 @@ function SignUp() {
               name="password"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Password</FormLabel>
+                  <FormLabel>密碼</FormLabel>
                   <FormControl>
                     <PasswordInput
                       data-testid="password-input"
-                      placeholder="Password"
+                      placeholder="密碼"
                       {...field}
                     />
                   </FormControl>
@@ -152,11 +150,11 @@ function SignUp() {
               name="confirm_password"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Confirm Password</FormLabel>
+                  <FormLabel>確認密碼</FormLabel>
                   <FormControl>
                     <PasswordInput
                       data-testid="confirm-password-input"
-                      placeholder="Confirm Password"
+                      placeholder="再輸入一次密碼"
                       {...field}
                     />
                   </FormControl>
@@ -170,14 +168,14 @@ function SignUp() {
               className="w-full"
               loading={signUpMutation.isPending}
             >
-              Sign Up
+              註冊
             </LoadingButton>
           </div>
 
           <div className="text-center text-sm">
-            Already have an account?{" "}
+            已經有帳號了？{" "}
             <RouterLink to="/login" className="underline underline-offset-4">
-              Log in
+              登入
             </RouterLink>
           </div>
         </form>

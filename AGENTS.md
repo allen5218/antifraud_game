@@ -84,26 +84,35 @@ pre-commit 有 `generate-frontend-sdk` hook，當 `backend/` 變更時會自動�
 
 前端有**兩套殼並存**：`_shell.tsx`（手機版 BottomTabs，玩家實際走的流程）與 `_layout.tsx`（template 遺留的 sidebar，掛著 admin / items / settings / mascot）。
 
+### 前端慣例
+
+- **介面不用表情符號。** 文字旁的小圖示用 lucide（與頁首的 coin／flame／star 一致）；圖片用 `public/assets/` 的插圖（grok 生成，256px WebP，扁平向量、紫靛色系）：`property/`、`avatar/`（情境頭貼，代號 `<類型>-1..3`）、`outcome/`（情境結局）、`mascot/`、`misc/`。聊天內容裡角色打的表情符號是模擬真實對話，不算。
+- **顏色只用主題 token**（`scam`／`legit`／`warning`／`primary`／`surface-2`／`surface-3`／`muted`…，定義在 `src/index.css`）。不要寫死 `bg-green-50`、`text-red-600`、`bg-white` 這類淺色，深色模式下會變成突兀的亮塊。遮罩層的 `bg-black/50` 例外。
+- **文案用白話中文**，不夾英文、不用破折號與 AI 腔；template 帳號 API 回的英文錯誤訊息在 `src/utils.ts` 的 `BACKEND_MESSAGES` 翻譯。
+- 詐騙類型的中文名只用 `src/lib/fraudTypes.ts`（與後端 `app/core/fraud_types.py` 一致）。
+
 ## 三種玩法，三種形態（理解本專案的關鍵）
 
-**AI 只服務情境模擬。題組與滑卡零 LLM 呼叫。**
+**AI 只負責兩件事：扮演情境對抗裡的角色，以及在背景分析作答紀錄、調整出題比例。對錯永遠由規則判定，AI 不出題、不判分。**
+題組、滑卡、前測的發牌與判定都沒有 LLM 呼叫（分析器見下方「練習重點」）。
 
-### 1. 題組 quiz／滑卡 swipe — 純資料庫讀取，無 AI
+### 1. 題組 quiz／滑卡 swipe — 判定純資料庫比對，無 AI
 
 - `backend/app/core/cases.py` — `game_cases` 的**唯一讀取層**。以原生 SQL 查詢，刻意不入 SQLModel / Alembic（見「資料邊界」）。
 - `backend/app/api/routes/quick.py` — 六個端點。`quiz_deck` 發牌時建立一次性的 `QuizSession`（鎖定 `case_ids`）；`quiz_complete` 以 `SELECT … FOR UPDATE` 鎖住它，且只認發牌時那批 case，防止重放刷分。
 - 判定純比對 `guess_is_scam == case.is_scam`，全檔沒有任何 `pydantic_ai` import。
 - swipe 讀 `swipe_card` 表，結構同構、獎勵係數較低。
+- 兩者發牌都照「練習重點」的比例偏重玩家最弱的類型。
 
 ### 2. 情境模擬 scenario — 三層：確定性規則 / LLM / 編排
 
 1. **`backend/app/scenario/manager.py`** — 純函式、**不碰 DB** 的規則層：裁決（`resolve_judgment`）、獎懲、回合上限、揭曉卡 flags。
    **真相來自 `ScenarioSession.persona_role`，絕不由 LLM 判定。** 這層完全可單元測試。
-2. **`backend/app/scenario/agent.py`** — Pydantic AI Agent，模型字串 `"google:gemini-3.5-flash"`，`output_type=ScenarioReply`，`defer_model_check=True`（換 provider 不會在 import 期報錯）。唯一 LLM 入口是 `generate_reply()`。
+2. **`backend/app/scenario/agent.py`** — Pydantic AI Agent，模型字串 `"google:gemini-3.8-flash"`（思考等級 low，`GoogleModelSettings.google_thinking_config`），`output_type=ScenarioReply`，`defer_model_check=True`（換 provider 不會在 import 期報錯）。唯一 LLM 入口是 `generate_reply()`。
 3. **`backend/app/api/routes/scenario.py`** — 編排層。`POST /scenario/{id}/message` 呼叫 LLM，失敗回 502 且**不寫入、不扣回合**；`POST /scenario/{id}/judge` 是確定性裁決，不呼叫 LLM。
 
 對話歷史存在 `ScenarioSession.conversation_history`（JSON list），`role` 為 `"npc"` / `"player"`。
-設定集中在 `backend/app/scenario/config.py`：`MAX_TURNS=10`、`SCENARIO_DAILY_LIMIT_PER_TYPE=3`、`SCAM_RATIO=0.5`。
+設定集中在 `backend/app/scenario/config.py`：`MAX_TURNS=10`、`SCENARIO_DAILY_LIMIT_PER_TYPE=3`（練習重點那一類 `SCENARIO_DAILY_LIMIT_FOCUS=5`）、`SCAM_RATIO=0.5`。
 
 ### 3. economy — 唯一入口原則
 
@@ -152,21 +161,36 @@ description: 一句話描述  # 必填，≤1024 字
 - swipe — `swipe_card.weakness_tags`
 - scenario — `ScenarioReply.tactics_used`，模型被硬性要求只能從這五個裡選
 
-> **前測不使用 `weakness_tag`。** `pretest.py` 只計算每種 `fraud_type` 的正確率並取最低者（`weakest_type`）。
->
-> ⚠️ `weakest_type` **目前沒有任何下游消費者**——只在前測結果頁顯示。`quiz_deck` 不帶 `fraud_type` 篩選，`scenario/inbox` 直接迭代全部類型。不要假設它會影響選題。
+中文名稱是白話的「催你快點決定／冒充官方或專家／用好處引誘你／說大家都在做／先跟你套交情」，不要改回「時間壓力、權威服從」這種四字術語。
+
+> **前測不使用 `weakness_tag`。** `pretest.py` 只計算每種 `fraud_type` 的正確率並取最低者（`weakest_type`），存進 `pretest_attempt`。
+
+## 練習重點（每輪分析、調整出題比例）
+
+`backend/app/practice/`。玩家在任何玩法答錯最多的詐騙類型，接下來所有玩法都會多練。
+
+1. **作答紀錄** `practice_answer`：前測、滑卡、題組、情境結算時各自寫入（`service.record_answers`），一題一列（類型、對錯、漏掉的話術）。
+2. **每輪結算後在背景重算**（FastAPI `BackgroundTasks` → `service.refresh_profile`）：最近 80 題的統計交給 `analyzer.py`（Gemini，`google:gemini-3.8-flash`，思考等級 low）決定五類比例與一句給玩家看的說明。
+   比例先過 `profile.apply_rules`：表現完全一樣的類型取平均；表現明顯比較差的類型（`worse_than`：錯的不比較少、對的不比較多）比例比較低，就整份改用規則版。
+   之後一律經過 `profile.clamp_weights`（每類 8%–50%、合計 1）與 `settle_focus`；說明夾英文、太長、或出現統計表裡沒有的數字，就換成規則版。沒有金鑰、逾時、格式錯 → `profile.rule_plan`。少於 5 題不調整。結果存 `practice_profile`（一位玩家一列）。
+   `refresh_profile` 是 async（在主事件迴圈上跑，分析器的 HTTP 連線池綁定事件迴圈，不要改回同步 `run_sync`），同一位玩家同時只跑一次、期間的結算合併成跑完後補一次，呼叫 Gemini 時兩次至少隔 `REFRESH_COOLDOWN` 秒；`save_profile` 比對作答筆數，分析期間有新作答就不存（晚回來的舊結果不會蓋掉新的）。
+3. **發牌只讀存好的 profile，路徑上沒有 AI 呼叫**：題組 `prioritize_fraud_type()`（約六成，**不改 `select_quiz_material` 的約束**，只調候選順序）、滑卡 `weighted_order()`（依類型比例加權抽樣）、收件匣依比例排序；情境對抗的練習重點那一類每日上限較高，結束卡有「再練一場」直接開這一類。
+4. 沒有 profile 的玩家退回最近一次前測（`app/core/pretest.py` 的 `latest_weakest_type()`）；兩者都沒有就全隨機。
+5. `GET /practice/profile` 供前端的練習重點卡（首頁、個人頁）與「本輪加強」小標（題組、滑卡、收件匣）。
+
+測試注意：`tests/conftest.py` 以 autouse fixture 關閉分析器（`.env` 有金鑰時，否則每次交卷都會真的呼叫 Gemini）；`tests/api/conftest.py` 每個測試後清空作答紀錄與練習重點（superuser 是共用帳號，不清會讓後面的發牌測試被偏重）。
 
 ## 五種詐騙類型
 
 `FraudType`（`backend/app/models.py`）：
 
-| slug | 中文 | 技能目錄 |
-|------|------|----------|
-| `investment` | 投資詐欺 | `fraud-investment` |
-| `fake-sale` | 假網路拍賣 | `fraud-fake-sale` |
-| `shopping` | 一般購物詐欺（偽稱買賣） | `fraud-shopping` |
-| `romance` | 假愛情交友詐騙 | `fraud-romance` |
-| `atm` | 解除分期付款（ATM）詐騙 | `fraud-atm` |
+| slug | 中文 | 畫面上的名稱 | 技能目錄 |
+|------|------|------|----------|
+| `investment` | 投資詐欺 | 投資詐騙 | `fraud-investment` |
+| `fake-sale` | 假網路拍賣 | 假網拍 | `fraud-fake-sale` |
+| `shopping` | 一般購物詐欺（偽稱買賣） | 購物詐騙 | `fraud-shopping` |
+| `romance` | 假愛情交友詐騙 | 假交友 | `fraud-romance` |
+| `atm` | 解除分期付款（ATM）詐騙 | 解除分期 | `fraud-atm` |
 
 ## 資料邊界（重要）
 
@@ -176,14 +200,16 @@ description: 一句話描述  # 必填，≤1024 字
 - backend 只透過 `backend/app/core/cases.py` **唯讀** `game_cases`；`documents` / `document_chunks` 在 backend 程式碼中一次都沒被讀取。
 - **全新 DB 上 `game_cases` 不存在**（`init_db()` 只 seed `pretest_question` / `swipe_card` / `mascot_item` / `property_tier` 與 superuser）。不灌的話 quiz 與 scenario 會 500：
   `relation "game_cases" does not exist`。
-- 灌入：`bash deploy/scripts/seed-game-cases.sh`（種子為 `deploy/seed/game_cases.sql`，40 筆 published）。
+- 灌入：`bash deploy/scripts/seed-game-cases.sh`（種子為 `deploy/seed/game_cases.sql`，120 筆 published、34 題查證題）。
+- **已上線的環境改題庫文字要另跑 UPDATE**：`seed-game-cases.sh` 遇到表已存在會跳過。做法見 `deploy/sql/`（例：`2026-09-25-question-bank-wording.sql`，可重複執行）。原稿 `data_pipeline/data/manual/*.jsonl` 與兩份種子要一起改；`tests/unit/test_player_text.py` 會擋下中文旁的半形標點與破折號。
+- **新題目**由 `data_pipeline/.agents/skills/scam-knowledge-pipeline` 產生（`references/curation.md`）。它的驗證器（`scripts/common.py` 的 `WRITING_RULES`）會擋半形標點、破折號、AI 腔、公文用語、出處沒寫「改編自：」／「依據：」、選項寫理由；規則改了兩邊要一起改。
 - `status='draft' → 'published'` 是 Supabase Studio 上的人工策展步驟，不在部署路徑內。
 
 ## API 金鑰
 
 Pydantic AI **自動從環境變數讀取金鑰**（Gemini 用 `GOOGLE_API_KEY`），程式中不需手動傳入。`backend/app/core/config.py` 的 `GOOGLE_API_KEY` 欄位主要用於設定驗證與文件化，並未寫回 `os.environ`。
 
-**只有 scenario 需要金鑰。** quiz / swipe / pretest / economy / mascot 全部不呼叫 LLM。
+**情境對抗與練習重點分析器需要金鑰。** 沒有金鑰時分析器自動改用規則版，發牌照常；只有情境對抗的 `POST /scenario/{id}/message` 會回 502。quiz / swipe / pretest / economy / mascot 的請求路徑上都沒有 LLM 呼叫。
 
 ## CI / 部署
 

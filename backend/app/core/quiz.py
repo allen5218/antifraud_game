@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import logging
+import math
 from dataclasses import dataclass
 from itertools import islice, permutations
 from random import random
@@ -79,6 +80,109 @@ def _is_mirror_compatible(
         case.mirror_of != selected_id and cases_by_id[selected_id].mirror_of != case.id
         for selected_id in selected_ids
     )
+
+
+FOCUS_SHARE = 0.6
+"""做過前測的玩家,題組裡最弱類型佔的比例。
+
+不給 100%:配對題需要五個不同類型的素材,整副同一類就湊不出來;
+玩家一直看到同一類,也很快就膩了。
+"""
+
+
+def focus_quota(slots: int) -> int:
+    """`slots` 個位置裡要留給最弱類型幾個。"""
+    return math.ceil(slots * FOCUS_SHARE) if slots > 0 else 0
+
+
+def case_slots(size: int, verification_count: int) -> DeckComposition:
+    """一副牌的題型配置(查證題取實際抽到的數量)。"""
+    return _compose_deck(size, verification_count)
+
+
+def prioritize_fraud_type(
+    cases: list[GameCaseRow],
+    fraud_type: str,
+    *,
+    verdict_slots: int,
+    tactics_slots: int,
+    match_slots: int = 0,
+    max_difficulty: int | None = None,
+) -> list[GameCaseRow]:
+    """把指定類型的幾張案例排到最前面,其餘維持原本(已打亂)的順序。
+
+    `select_quiz_material` 依候選順序挑題,排在前面的先被選到,所以不必改動它
+    那一整套約束(鏡像、詐騙與正常平衡、配對題需要不同類型、難度上限)。
+
+    排在前面的有兩段,**順序對應選材的順序**:
+    1. 給 verdict 的:詐騙與正常**輪流**。verdict 會輪流補較少的一邊,前排如果
+       全是同一邊,另一邊就會從後面(別的類型)補。
+    2. 給 tactics 的:只放**有兩個以上話術標籤的詐騙案例**,tactics 只收這種。
+    兩段都不能有鏡像對 —— 鏡像對不能同副出現,會被選材規則跳過,
+    實際偏重的比例就不準。
+
+    **難度上限只管 verdict**(見 `_select_quiz_material`):新手的 verdict 只收難度 1,
+    這一類剩下的案例如果都太難,verdict 那段就排不滿 —— 用不到的名額轉給 tactics,
+    tactics 不看難度。不轉的話,低等級玩家的偏重會悄悄掉到只剩查證題。
+
+    **配對題會拿走一張**:它需要五個不同類型,選材順序在 tactics 之前,
+    這一類的名額會用掉排在最前面、符合標籤的那張詐騙案例 —— 常常正是留給 tactics 的。
+    所以有配對題時,tactics 段多留一張備用。實測(新手、假交友):
+    不留備用只有 13%,等於沒偏重。
+    """
+    quota = focus_quota(verdict_slots + tactics_slots)
+
+    pool = [case for case in cases if case.fraud_type == fraud_type]
+    easy = [
+        case
+        for case in pool
+        if max_difficulty is None or case.difficulty <= max_difficulty
+    ]
+    scams = [case for case in easy if case.is_scam]
+    legits = [case for case in easy if not case.is_scam]
+    tactics_ready = [
+        case for case in pool if case.is_scam and len(case_tags(case.red_flags)) >= 2
+    ]
+
+    chosen: list[GameCaseRow] = []
+    chosen_ids: set[int] = set()
+
+    def first_free(candidates: list[GameCaseRow]) -> GameCaseRow | None:
+        """第一張還沒被選、也不和已選的任何一張互為鏡像的案例。"""
+        return next(
+            (
+                case
+                for case in candidates
+                if case.id not in chosen_ids
+                and case.mirror_of not in chosen_ids
+                and not any(other.mirror_of == case.id for other in chosen)
+            ),
+            None,
+        )
+
+    def add(case: GameCaseRow) -> None:
+        chosen.append(case)
+        chosen_ids.add(case.id)
+
+    # verdict 段:每一步都找「需要的那一邊」裡第一張不衝突的,找不到才拿另一邊。
+    # 不能先交錯排好再逐張檢查 —— 題庫裡每則正常訊息幾乎都是某則詐騙的鏡像,
+    # 固定交錯的話正常題會全部因為鏡像被跳過,前排只剩詐騙。
+    want_scam = True
+    for _ in range(min(quota, verdict_slots)):
+        primary, fallback = (scams, legits) if want_scam else (legits, scams)
+        case = first_free(primary) or first_free(fallback)
+        if case is None:
+            break
+        add(case)
+        want_scam = not case.is_scam
+
+    for _ in range(min(quota - len(chosen), tactics_slots) + match_slots):
+        case = first_free(tactics_ready)
+        if case is None:
+            break
+        add(case)
+
+    return chosen + [case for case in cases if case.id not in chosen_ids]
 
 
 def verification_quota(size: int) -> int:

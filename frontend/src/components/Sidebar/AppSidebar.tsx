@@ -1,4 +1,4 @@
-import { Briefcase, Shield, ShoppingBag, Users } from "lucide-react"
+import { ClipboardList, House, ShoppingBag, Users } from "lucide-react"
 
 import { SidebarAppearance } from "@/components/Common/Appearance"
 import { Logo } from "@/components/Common/Logo"
@@ -12,17 +12,18 @@ import useAuth from "@/hooks/useAuth"
 import { type Item, Main } from "./Main"
 import { User } from "./User"
 
+// Items 是 template 附的示範頁,與遊戲無關,不放進選單(路由仍保留給 E2E 測試)
 const baseItems: Item[] = [
-  { icon: Shield, title: "防詐訓練", path: "/pretest" },
+  { icon: House, title: "回到遊戲", path: "/" },
+  { icon: ClipboardList, title: "前測", path: "/pretest" },
   { icon: ShoppingBag, title: "吉祥物商店", path: "/mascot" },
-  { icon: Briefcase, title: "Items", path: "/items" },
 ]
 
 export function AppSidebar() {
   const { user: currentUser } = useAuth()
 
   const items = currentUser?.is_superuser
-    ? [...baseItems, { icon: Users, title: "Admin", path: "/admin" }]
+    ? [...baseItems, { icon: Users, title: "管理", path: "/admin" }]
     : baseItems
 
   return (

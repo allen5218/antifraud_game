@@ -5,6 +5,7 @@ from app.scenario.config import (
     LEGIT_SIGNALS,
     MAX_TURNS,
     SCAM_RATIO,
+    SCENARIO_DAILY_LIMIT_FOCUS,
     SCENARIO_DAILY_LIMIT_PER_TYPE,
     SCENARIO_ECONOMY,
 )
@@ -35,4 +36,5 @@ def test_name_pool_and_signals_cover_all_fraud_types():
 def test_limits():
     assert MAX_TURNS == 10
     assert SCENARIO_DAILY_LIMIT_PER_TYPE == 3
+    assert SCENARIO_DAILY_LIMIT_FOCUS > SCENARIO_DAILY_LIMIT_PER_TYPE
     assert 0.0 < SCAM_RATIO < 1.0

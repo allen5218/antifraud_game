@@ -4,7 +4,7 @@ from datetime import datetime, timezone
 from random import shuffle
 from typing import Any
 
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, BackgroundTasks, HTTPException
 from pydantic import ValidationError
 from sqlmodel import Session, col, func, select
 
@@ -17,8 +17,11 @@ from app.core.cases import (
     list_published_verification_questions,
 )
 from app.core.quiz import (
+    case_slots,
     case_tags,
+    focus_quota,
     max_difficulty_for_level,
+    prioritize_fraud_type,
     score_match,
     score_tactics,
     select_quiz_material,
@@ -32,6 +35,13 @@ from app.core.weakness import (
 from app.economy.levels import level_of
 from app.economy.service import add_xp, adjust_cash, lock_user
 from app.models import QuizSession, SwipeCard
+from app.practice.profile import weighted_order
+from app.practice.service import (
+    practice_focus,
+    practice_weights,
+    queue_refresh,
+    record_answers,
+)
 from app.schemas import (
     QuizAnswerItem,
     QuizAnswerRequest,
@@ -97,9 +107,16 @@ def _weakness_summary(weakness: dict[str, int]) -> list[WeaknessSummaryItem]:
 
 @router.get("/swipe/deck", response_model=list[SwipeCardPublic])
 def swipe_deck(session: SessionDep, current_user: CurrentUser, size: int = 12) -> Any:
-    _ = current_user
     size = max(1, min(size, 30))
-    cards = session.exec(select(SwipeCard).order_by(func.random()).limit(size)).all()
+    # 依練習重點的比例抽卡:最弱的類型抽得比較多。沒有紀錄的玩家就全隨機。
+    weights = practice_weights(session, current_user.id)
+    if weights:
+        pool = session.exec(select(SwipeCard)).all()
+        cards = weighted_order(pool, lambda c: c.fraud_type, weights)[:size]
+    else:
+        cards = list(
+            session.exec(select(SwipeCard).order_by(func.random()).limit(size)).all()
+        )
     return [
         SwipeCardPublic(
             id=str(c.id),
@@ -131,7 +148,10 @@ def swipe_answer(
 
 @router.post("/swipe/complete", response_model=SwipeCompleteResponse)
 def swipe_complete(
-    payload: SwipeCompleteRequest, session: SessionDep, current_user: CurrentUser
+    payload: SwipeCompleteRequest,
+    session: SessionDep,
+    current_user: CurrentUser,
+    background_tasks: BackgroundTasks,
 ) -> Any:
     if not payload.answers:
         raise HTTPException(400, {"code": "empty_answers"})
@@ -159,11 +179,15 @@ def swipe_complete(
     best_streak = 0
     streak = 0
     weakness: dict[str, int] = {}
+    practice: list[tuple[str, bool, list[str]]] = []
     for a in deduped:
         card = cards.get(uuid.UUID(a.card_id))
         if card is None:
             continue
-        if a.guess_is_scam == card.is_scam:
+        judged_right = a.guess_is_scam == card.is_scam
+        missed = card.weakness_tags if not judged_right and card.is_scam else []
+        practice.append((card.fraud_type, judged_right, list(missed)))
+        if judged_right:
             correct_count += 1
             streak += 1
             best_streak = max(best_streak, streak)
@@ -177,7 +201,10 @@ def swipe_complete(
     adjust_cash(current_user, cash, reason="swipe_reward")
     add_xp(current_user, xp, reason="swipe_reward")
     session.add(current_user)
+    user_id = current_user.id
+    record_answers(session, user_id, "swipe", practice)
     session.commit()
+    queue_refresh(background_tasks, session, user_id)
 
     summary = _weakness_summary(weakness)
     return SwipeCompleteResponse(
@@ -200,7 +227,11 @@ def _quiz_reward(correct_count: int, best_streak: int) -> tuple[int, int]:
 
 
 def _pick_verification_questions(
-    session: SessionDep, *, max_difficulty: int | None, limit: int
+    session: SessionDep,
+    *,
+    max_difficulty: int | None,
+    limit: int,
+    focus: str | None = None,
 ) -> list[VerificationQuestionRow]:
     """逐題挑查證題,每一題都避開前面已挑走的母案例與其鏡像。
 
@@ -210,16 +241,30 @@ def _pick_verification_questions(
     ——實測現有題庫抽三題有 1.95% 會碰到。
 
     limit 最多 3,所以多跑幾次查詢的成本可以忽略。
+
+    `focus` 是前測找出的最弱類型:前 focus_quota(limit) 題先從這一類抽,
+    這一類抽不到就退回不限類型。
     """
     picked: list[VerificationQuestionRow] = []
     taken: set[int] = set()
-    for _ in range(limit):
-        rows = list_published_verification_questions(
-            session,
-            max_difficulty=max_difficulty,
-            exclude_case_ids=taken,
-            limit=1,
-        )
+    focused = focus_quota(limit) if focus else 0
+    for index in range(limit):
+        rows: list[VerificationQuestionRow] = []
+        if index < focused:
+            rows = list_published_verification_questions(
+                session,
+                max_difficulty=max_difficulty,
+                exclude_case_ids=taken,
+                fraud_type=focus,
+                limit=1,
+            )
+        if not rows:
+            rows = list_published_verification_questions(
+                session,
+                max_difficulty=max_difficulty,
+                exclude_case_ids=taken,
+                limit=1,
+            )
         if not rows:
             break
         picked.append(rows[0])
@@ -262,6 +307,8 @@ def quiz_deck(session: SessionDep, current_user: CurrentUser, size: int = 5) -> 
     max_difficulty = max_difficulty_for_level(level_of(current_user.xp))
     cases = list_published_for_quiz(session)
     shuffle(cases)
+    # 練習重點(或前測的最弱類型)那一類約佔六成;沒有任何紀錄就維持全隨機。
+    focus = practice_focus(session, current_user.id)
 
     # 查證題先選。它與案例題型互相排斥(同一個情境不能在一副牌出現兩次),
     # 如果反過來先選案例題再挑查證題,兩邊的數量會互相牽動而收斂不了,
@@ -271,10 +318,22 @@ def quiz_deck(session: SessionDep, current_user: CurrentUser, size: int = 5) -> 
         session,
         max_difficulty=max_difficulty,
         limit=verification_quota(size),
+        focus=focus,
     )
     taken_case_ids = {question.case_id for question in verifications}
+    candidates = _cases_excluding(cases, taken_case_ids)
+    if focus:
+        slots = case_slots(size, len(verifications))
+        candidates = prioritize_fraud_type(
+            candidates,
+            focus,
+            verdict_slots=slots.verdict,
+            tactics_slots=slots.tactics,
+            match_slots=slots.match,
+            max_difficulty=max_difficulty,
+        )
     material = select_quiz_material(
-        _cases_excluding(cases, taken_case_ids),
+        candidates,
         size=size,
         max_difficulty=max_difficulty,
         verification_count=len(verifications),
@@ -702,6 +761,48 @@ def _score_quiz_item(
     return None
 
 
+def _practice_entries(
+    session: Session,
+    quiz: QuizSession,
+    item: dict[str, Any],
+    answer: QuizAnswerItem,
+    scored: tuple[bool, list[str]],
+) -> list[tuple[str, bool, list[str]]]:
+    """一題寫進作答紀錄的樣子:(詐騙類型, 答對與否, 漏掉的話術)。
+
+    配對題的五組例句來自五種不同類型,一題無法歸到單一類型,
+    所以拆成五筆,每組配對各算各的。
+    """
+    correct, weakness_tags = scored
+    if item.get("type") != "match":
+        case = _item_case(session, quiz, item)
+        return [(case.fraud_type, correct, weakness_tags)] if case else []
+
+    pairs = item.get("pairs")
+    if not isinstance(pairs, list):
+        return []
+    result = score_match(
+        {
+            str(p.get("pair_id")): str(p.get("tag"))
+            for p in pairs
+            if isinstance(p, dict)
+        },
+        answer.pairs,
+    )
+    entries: list[tuple[str, bool, list[str]]] = []
+    for pair in pairs:
+        if not isinstance(pair, dict) or not isinstance(pair.get("case_id"), int):
+            continue
+        case = get_case(session, pair["case_id"])
+        if case is None:
+            continue
+        pair_ok = result.pair_correct.get(str(pair.get("pair_id")), False)
+        entries.append(
+            (case.fraud_type, pair_ok, [] if pair_ok else [str(pair.get("tag"))])
+        )
+    return entries
+
+
 def _dealt_quiz_items(quiz: QuizSession) -> dict[str, dict[str, Any]]:
     dealt: dict[str, dict[str, Any]] = {}
     for item in _quiz_items(quiz):
@@ -722,7 +823,10 @@ def _stored_quiz_answer(item_id: str, raw_answer: Any) -> QuizAnswerItem | None:
 
 @router.post("/quiz/complete", response_model=QuizCompleteResponse)
 def quiz_complete(
-    payload: QuizCompleteRequest, session: SessionDep, current_user: CurrentUser
+    payload: QuizCompleteRequest,
+    session: SessionDep,
+    current_user: CurrentUser,
+    background_tasks: BackgroundTasks,
 ) -> Any:
     # 驗證一次性結算 token:必須存在、屬於本人、且尚未結算(防跨請求重放刷獎)。
     # 以 SELECT ... FOR UPDATE 鎖列,讓同 session_id 的並發結算(雙擊/重試)序列化——
@@ -745,6 +849,7 @@ def quiz_complete(
     best_streak = 0
     streak = 0
     weakness: dict[str, int] = {}
+    practice: list[tuple[str, bool, list[str]]] = []
     for item_id, item in dealt.items():
         answer = _stored_quiz_answer(item_id, stored_answers.get(item_id))
         if answer is None:
@@ -761,6 +866,7 @@ def quiz_complete(
             streak = 0
             continue
         correct, weakness_tags = scored
+        practice.extend(_practice_entries(session, quiz, item, answer, scored))
         if correct:
             correct_count += 1
             streak += 1
@@ -781,7 +887,10 @@ def quiz_complete(
     quiz.completed_at = datetime.now(timezone.utc)
     session.add(current_user)
     session.add(quiz)
+    user_id = current_user.id
+    record_answers(session, user_id, "quiz", practice)
     session.commit()
+    queue_refresh(background_tasks, session, user_id)
 
     summary = _weakness_summary(weakness)
     return QuizCompleteResponse(

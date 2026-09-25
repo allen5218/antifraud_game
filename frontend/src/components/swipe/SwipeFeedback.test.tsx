@@ -13,14 +13,14 @@ describe("<SwipeFeedback />", () => {
         weaknessDetails={[
           {
             tag: "authority",
-            label: "權威服從",
+            label: "冒充官方或專家",
             suggestion: "主動查證對方身份",
           },
         ]}
       />,
     )
 
-    expect(screen.getByText("權威服從")).toBeTruthy()
+    expect(screen.getByText("冒充官方或專家")).toBeTruthy()
     expect(screen.getByText("主動查證對方身份")).toBeTruthy()
     expect(screen.queryByText("authority")).toBeNull()
   })

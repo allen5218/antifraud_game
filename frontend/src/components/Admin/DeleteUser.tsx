@@ -37,7 +37,7 @@ const DeleteUser = ({ id, onSuccess }: DeleteUserProps) => {
   const mutation = useMutation({
     mutationFn: deleteUser,
     onSuccess: () => {
-      showSuccessToast("The user was deleted successfully")
+      showSuccessToast("已刪除使用者")
       setIsOpen(false)
       onSuccess()
     },
@@ -59,23 +59,22 @@ const DeleteUser = ({ id, onSuccess }: DeleteUserProps) => {
         onClick={() => setIsOpen(true)}
       >
         <Trash2 />
-        Delete User
+        刪除使用者
       </DropdownMenuItem>
       <DialogContent className="sm:max-w-md">
         <form onSubmit={handleSubmit(onSubmit)}>
           <DialogHeader>
-            <DialogTitle>Delete User</DialogTitle>
+            <DialogTitle>刪除使用者</DialogTitle>
             <DialogDescription>
-              All items associated with this user will also be{" "}
-              <strong>permanently deleted.</strong> Are you sure? You will not
-              be able to undo this action.
+              這個使用者的所有資料都會<strong>永久刪除</strong>
+              ，無法復原。確定要刪除嗎？
             </DialogDescription>
           </DialogHeader>
 
           <DialogFooter className="mt-4">
             <DialogClose asChild>
               <Button variant="outline" disabled={mutation.isPending}>
-                Cancel
+                取消
               </Button>
             </DialogClose>
             <LoadingButton
@@ -83,7 +82,7 @@ const DeleteUser = ({ id, onSuccess }: DeleteUserProps) => {
               type="submit"
               loading={mutation.isPending}
             >
-              Delete
+              刪除
             </LoadingButton>
           </DialogFooter>
         </form>

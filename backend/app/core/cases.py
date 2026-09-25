@@ -95,6 +95,7 @@ def list_published_verification_questions(
     *,
     max_difficulty: int | None = None,
     exclude_case_ids: set[int] | None = None,
+    fraud_type: str | None = None,
     limit: int = 10,
 ) -> list[VerificationQuestionRow]:
     """取查證題素材。
@@ -127,6 +128,10 @@ WHERE q.status = 'published'
     if max_difficulty is not None:
         sql += " AND q.difficulty <= :max_difficulty"
         params["max_difficulty"] = max_difficulty
+    if fraud_type is not None:
+        # 前測找出的最弱類型;見 app/core/pretest.py
+        sql += " AND gc.fraud_type = :fraud_type"
+        params["fraud_type"] = fraud_type
     if exclude_case_ids:
         # 同一副牌裡母案例不得重複,否則玩家會在同一輪看到同一個情境兩次。
         # 鏡像也要擋:鏡像對是同一個情境的詐騙／正當兩面,標題完全相同,

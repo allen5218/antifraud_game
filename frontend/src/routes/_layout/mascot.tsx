@@ -7,7 +7,7 @@ import { ShopItem } from "@/components/Mascot/ShopItem"
 export const Route = createFileRoute("/_layout/mascot")({
   component: MascotShopPage,
   head: () => ({
-    meta: [{ title: "吉祥物商店 - 反詐騙訓練" }],
+    meta: [{ title: "吉祥物商店 - ScamGym 識詐練習場" }],
   }),
 })
 
@@ -16,7 +16,7 @@ interface ShopItemData {
   name: string
   category: string
   cost: number
-  emoji: string
+  image_url: string
   owned: boolean
   equipped: boolean
 }
@@ -65,7 +65,7 @@ function MascotShopPage() {
 
   const equippedItems = items
     .filter((i) => i.equipped)
-    .map((i) => ({ name: i.name, emoji: i.emoji }))
+    .map((i) => ({ name: i.name, image_url: i.image_url }))
 
   if (loading) {
     return (
@@ -80,7 +80,7 @@ function MascotShopPage() {
       <div>
         <h1 className="text-2xl font-bold">吉祥物商店</h1>
         <p className="text-muted-foreground">
-          使用遊戲積分購買裝飾品，打扮你的防詐小衛士！
+          用遊戲積分買配件，幫你的防詐小衛士換裝。
         </p>
         <p className="mt-1 text-sm font-medium">
           目前積分：<span className="text-primary">{totalScore}</span>
@@ -96,7 +96,7 @@ function MascotShopPage() {
             name={item.name}
             category={item.category}
             cost={item.cost}
-            emoji={item.emoji}
+            imageUrl={item.image_url}
             owned={item.owned}
             equipped={item.equipped}
             canAfford={totalScore >= item.cost}
@@ -108,7 +108,7 @@ function MascotShopPage() {
 
       {items.length === 0 && (
         <p className="py-10 text-center text-muted-foreground">
-          商店尚未上架商品，敬請期待！
+          商店目前沒有商品。
         </p>
       )}
     </div>

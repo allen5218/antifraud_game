@@ -19,7 +19,7 @@ export function AssetSummaryCard() {
         <span>$ {cash.toLocaleString()}</span>
       </div>
       <div className="flex justify-between text-[11px]">
-        <span>房產 ({ownedCount} 間)</span>
+        <span>房產（{ownedCount} 間）</span>
         <span>$ {propertyValue.toLocaleString()}</span>
       </div>
       <div className="flex justify-between text-[11px]">

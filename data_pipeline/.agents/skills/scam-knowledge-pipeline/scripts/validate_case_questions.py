@@ -5,7 +5,14 @@ import argparse
 import json
 from collections import Counter
 
-from common import ROOT, read_jsonl, write_jsonl
+from common import (
+    OPTION_REASON_WORDS,
+    PROVENANCE_PREFIXES,
+    ROOT,
+    read_jsonl,
+    write_jsonl,
+    writing_errors,
+)
 from validate_game_cases import PII_PATTERNS
 
 try:
@@ -80,6 +87,19 @@ def semantic_errors(rec):
         for name, pattern in PII_PATTERNS:
             if pattern.search(text):
                 errors.append(f"{field}: possible {name}（去識別化違規）")
+        errors.extend(writing_errors(field, text))
+    for i, option in enumerate(options):
+        if match := OPTION_REASON_WORDS.search(option["text"]):
+            errors.append(
+                f"options[{i}].text: 選項只寫做法，理由放在解析（「{match.group(0)}」）"
+            )
+    provenance = rec.get("provenance")
+    if provenance is not None:
+        errors.extend(writing_errors("provenance", provenance))
+        if not provenance.startswith(PROVENANCE_PREFIXES):
+            errors.append(
+                "provenance 要以「改編自：」（真實案例）或「依據：」（官方流程）開頭"
+            )
     if correct and rec["explanation"] == correct[0]["text"]:
         errors.append("explanation 不得完全照抄正解選項文字")
     return errors
