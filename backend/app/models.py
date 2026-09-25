@@ -1,6 +1,7 @@
 import enum
 import uuid
 from datetime import date, datetime, timezone
+from typing import Any
 
 from pydantic import EmailStr
 from sqlalchemy import BigInteger, Column, DateTime
@@ -444,6 +445,44 @@ class QuizSession(SQLModel, table=True):
         default={}, sa_column=Column(JSONB, nullable=False, server_default="{}")
     )
     completed: bool = Field(default=False)
+    created_at: datetime | None = Field(
+        default_factory=get_datetime_utc,
+        sa_type=DateTime(timezone=True),  # type: ignore
+    )
+    completed_at: datetime | None = Field(
+        default=None,
+        sa_type=DateTime(timezone=True),  # type: ignore
+    )
+
+
+class SwipeSession(SQLModel, table=True):
+    """滑卡的一次性牌局:發牌時建立、結算時標記 completed。
+
+    理由同 QuizSession。原本結算直接吃前端送來的卡片與答案:同一批卡可以重送
+    無限次刷獎勵、灌練習紀錄;/swipe/answer 又會先告訴你答案,等於能先查答案
+    再交一份全對的。現在只認發牌時的卡片、每張卡第一次的作答(存在伺服器端),
+    同一局只能結算一次。
+    """
+
+    __tablename__ = "swipe_session"
+
+    id: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True)
+    user_id: uuid.UUID = Field(
+        foreign_key="user.id", nullable=False, ondelete="CASCADE", index=True
+    )
+    # 發牌順序的 swipe_card id(字串)
+    card_ids: list[str] = Field(
+        default=[], sa_column=Column(JSONB, nullable=False, server_default="[]")
+    )
+    # {card_id: 第一次作答的快照}:guess、correct、is_scam、fraud_type、
+    # weakness_tags、explanation。重送作答與結算都只讀快照,不再讀題庫,
+    # 卡片之後被改或被刪,結果也和玩家當時看到的一樣。
+    answers: dict[str, dict[str, Any]] = Field(
+        default={}, sa_column=Column(JSONB, nullable=False, server_default="{}")
+    )
+    completed: bool = Field(default=False)
+    # 第一次結算的回應。重送結算時原樣回傳,不重新計分(之後卡片被改或刪也不影響)
+    result: dict[str, Any] | None = Field(default=None, sa_column=Column(JSONB))
     created_at: datetime | None = Field(
         default_factory=get_datetime_utc,
         sa_type=DateTime(timezone=True),  # type: ignore

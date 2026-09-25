@@ -469,7 +469,7 @@ export class QuickService {
      * Swipe Deck
      * @param data The data for the request.
      * @param data.size
-     * @returns SwipeCardPublic Successful Response
+     * @returns SwipeDeckResponse Successful Response
      * @throws ApiError
      */
     public static swipeDeck(data: QuickSwipeDeckData = {}): CancelablePromise<QuickSwipeDeckResponse> {

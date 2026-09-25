@@ -1,17 +1,53 @@
+import uuid
+from typing import Any
+
 from fastapi.testclient import TestClient
+from sqlmodel import Session, select
 
 from app.core.config import settings
+from app.models import PracticeAnswer, SwipeCard, User
+
+API = settings.API_V1_STR
+
+
+def _deal(client: TestClient, headers: dict[str, str], size: int = 5) -> dict[str, Any]:
+    r = client.get(f"{API}/quick/swipe/deck?size={size}", headers=headers)
+    assert r.status_code == 200
+    return r.json()
+
+
+def _answer(
+    client: TestClient,
+    headers: dict[str, str],
+    session_id: str,
+    card_id: str,
+    guess: bool,
+) -> Any:
+    return client.post(
+        f"{API}/quick/swipe/answer",
+        headers=headers,
+        json={"session_id": session_id, "card_id": card_id, "guess_is_scam": guess},
+    )
+
+
+def _complete(client: TestClient, headers: dict[str, str], session_id: str) -> Any:
+    return client.post(
+        f"{API}/quick/swipe/complete", headers=headers, json={"session_id": session_id}
+    )
+
+
+def _truth(db: Session, card_id: str) -> SwipeCard:
+    card = db.get(SwipeCard, uuid.UUID(card_id))
+    assert card is not None
+    return card
 
 
 def test_deck_returns_cards_without_answers(
     client: TestClient, normal_user_token_headers: dict[str, str]
 ) -> None:
-    r = client.get(
-        f"{settings.API_V1_STR}/quick/swipe/deck?size=5",
-        headers=normal_user_token_headers,
-    )
-    assert r.status_code == 200
-    cards = r.json()
+    deck = _deal(client, normal_user_token_headers)
+    assert deck["session_id"]
+    cards = deck["cards"]
     assert 1 <= len(cards) <= 5
     assert "is_scam" not in cards[0]
     assert "explanation" not in cards[0]
@@ -21,18 +57,12 @@ def test_deck_returns_cards_without_answers(
 
 
 def test_answer_returns_correctness_and_explanation(
-    client: TestClient, db, normal_user_token_headers: dict[str, str]
+    client: TestClient, db: Session, normal_user_token_headers: dict[str, str]
 ) -> None:
-    from sqlmodel import select
-
-    from app.models import SwipeCard
-
-    card = db.exec(select(SwipeCard).where(SwipeCard.is_scam == True)).first()  # noqa: E712
-    r = client.post(
-        f"{settings.API_V1_STR}/quick/swipe/answer",
-        headers=normal_user_token_headers,
-        json={"card_id": str(card.id), "guess_is_scam": True},
-    )
+    deck = _deal(client, normal_user_token_headers, size=30)
+    scam_id = next(c["id"] for c in deck["cards"] if _truth(db, c["id"]).is_scam)
+    card = _truth(db, scam_id)
+    r = _answer(client, normal_user_token_headers, deck["session_id"], scam_id, True)
     assert r.status_code == 200
     data = r.json()
     assert data["correct"] is True
@@ -61,22 +91,17 @@ def test_answer_returns_correctness_and_explanation(
 
 
 def test_complete_returns_localized_weakness_summary(
-    client: TestClient, db, normal_user_token_headers: dict[str, str]
+    client: TestClient, db: Session, normal_user_token_headers: dict[str, str]
 ) -> None:
-    from sqlmodel import select
-
-    from app.models import SwipeCard
-
-    card = db.exec(
-        select(SwipeCard).where(SwipeCard.weakness_tags.contains(["authority"]))
-    ).first()
-    r = client.post(
-        f"{settings.API_V1_STR}/quick/swipe/complete",
-        headers=normal_user_token_headers,
-        json={
-            "answers": [{"card_id": str(card.id), "guess_is_scam": not card.is_scam}]
-        },
+    deck = _deal(client, normal_user_token_headers, size=30)
+    card_id = next(
+        c["id"]
+        for c in deck["cards"]
+        if "authority" in _truth(db, c["id"]).weakness_tags
     )
+    wrong = not _truth(db, card_id).is_scam
+    _answer(client, normal_user_token_headers, deck["session_id"], card_id, wrong)
+    r = _complete(client, normal_user_token_headers, deck["session_id"])
 
     assert r.status_code == 200
     authority = next(
@@ -85,68 +110,197 @@ def test_complete_returns_localized_weakness_summary(
     assert authority == {"tag": "authority", "label": "冒充官方或專家", "count": 1}
 
 
-def test_complete_revalidates_and_grants_reward(
-    client: TestClient, db, normal_user_token_headers: dict[str, str]
+def test_complete_grants_reward_for_stored_answers(
+    client: TestClient, db: Session, normal_user_token_headers: dict[str, str]
 ) -> None:
-    from sqlmodel import select
-
-    from app.models import SwipeCard, User
-
-    cards = db.exec(select(SwipeCard).limit(3)).all()
-    answers = [{"card_id": str(c.id), "guess_is_scam": c.is_scam} for c in cards]
-    user = db.exec(select(User).where(User.email == settings.EMAIL_TEST_USER)).first()
+    deck = _deal(client, normal_user_token_headers, size=3)
+    for c in deck["cards"]:
+        truth = _truth(db, c["id"]).is_scam
+        assert (
+            _answer(
+                client, normal_user_token_headers, deck["session_id"], c["id"], truth
+            ).status_code
+            == 200
+        )
+    user = db.exec(select(User).where(User.email == settings.EMAIL_TEST_USER)).one()
     cash_before, xp_before = user.cash, user.xp
 
-    r = client.post(
-        f"{settings.API_V1_STR}/quick/swipe/complete",
-        headers=normal_user_token_headers,
-        json={"answers": answers},
-    )
+    r = _complete(client, normal_user_token_headers, deck["session_id"])
     assert r.status_code == 200
     data = r.json()
-    assert data["correct_count"] == 3
-    assert data["total"] == 3
+    assert data["correct_count"] == data["total"] == len(deck["cards"])
     assert data["cash_earned"] > 0
-    assert data["xp_earned"] == 30
+    assert data["xp_earned"] == 10 * len(deck["cards"])
     db.refresh(user)
     assert user.cash == cash_before + data["cash_earned"]
     assert user.xp == xp_before + data["xp_earned"]
 
 
-def test_complete_ignores_client_lies(
-    client: TestClient, db, normal_user_token_headers: dict[str, str]
+def test_complete_replay_returns_same_result_without_paying_again(
+    client: TestClient, db: Session, normal_user_token_headers: dict[str, str]
 ) -> None:
-    from sqlmodel import select
+    """同一局重送結算(例如回應在網路上遺失):回傳同樣的結果,但不再發獎、不再記錄。"""
+    deck = _deal(client, normal_user_token_headers, size=2)
+    for c in deck["cards"]:
+        truth = _truth(db, c["id"]).is_scam
+        _answer(client, normal_user_token_headers, deck["session_id"], c["id"], truth)
+    first = _complete(client, normal_user_token_headers, deck["session_id"])
+    assert first.status_code == 200
+    user = db.exec(select(User).where(User.email == settings.EMAIL_TEST_USER)).one()
+    db.refresh(user)
+    cash, xp = user.cash, user.xp
+    logged = db.exec(
+        select(PracticeAnswer).where(PracticeAnswer.user_id == user.id)
+    ).all()
 
-    from app.models import SwipeCard
+    again = _complete(client, normal_user_token_headers, deck["session_id"])
+    assert again.status_code == 200
+    assert again.json() == first.json()
+    db.refresh(user)
+    assert (user.cash, user.xp) == (cash, xp)
+    db.expire_all()
+    assert len(
+        db.exec(select(PracticeAnswer).where(PracticeAnswer.user_id == user.id)).all()
+    ) == len(logged)
+    # 結算後不能再作答
+    card_id = deck["cards"][0]["id"]
+    late = _answer(client, normal_user_token_headers, deck["session_id"], card_id, True)
+    assert late.status_code == 400
 
-    cards = db.exec(select(SwipeCard).limit(4)).all()
-    answers = [{"card_id": str(c.id), "guess_is_scam": False} for c in cards]
-    r = client.post(
-        f"{settings.API_V1_STR}/quick/swipe/complete",
-        headers=normal_user_token_headers,
-        json={"answers": answers},
-    )
-    data = r.json()
-    expected_correct = sum(1 for c in cards if c.is_scam is False)
-    assert data["correct_count"] == expected_correct
 
-
-def test_complete_dedupes_repeated_cards(
-    client: TestClient, db, normal_user_token_headers: dict[str, str]
+def test_only_the_first_answer_counts(
+    client: TestClient, db: Session, normal_user_token_headers: dict[str, str]
 ) -> None:
-    from sqlmodel import select
-
-    from app.models import SwipeCard
-
-    card = db.exec(select(SwipeCard).where(SwipeCard.is_scam == True)).first()  # noqa: E712
-    # submit the same correct card 10 times → must count as 1
-    answers = [{"card_id": str(card.id), "guess_is_scam": True} for _ in range(10)]
-    r = client.post(
-        f"{settings.API_V1_STR}/quick/swipe/complete",
-        headers=normal_user_token_headers,
-        json={"answers": answers},
+    """先答錯看到答案,再改答對:第二次作答被拒絕,結算照第一次算。"""
+    deck = _deal(client, normal_user_token_headers, size=1)
+    card_id = deck["cards"][0]["id"]
+    truth = _truth(db, card_id).is_scam
+    first = _answer(
+        client, normal_user_token_headers, deck["session_id"], card_id, not truth
     )
-    data = r.json()
-    assert data["correct_count"] == 1
-    assert data["total"] == 1
+    assert first.json()["correct"] is False
+    same = _answer(
+        client, normal_user_token_headers, deck["session_id"], card_id, not truth
+    )
+    assert same.status_code == 200 and same.json()["correct"] is False  # 重送同樣答案
+    retry = _answer(
+        client, normal_user_token_headers, deck["session_id"], card_id, truth
+    )
+    assert retry.status_code == 400  # 換答案不行
+    r = _complete(client, normal_user_token_headers, deck["session_id"])
+    assert r.json()["correct_count"] == 0
+
+
+def test_cards_outside_the_session_are_rejected(
+    client: TestClient, db: Session, normal_user_token_headers: dict[str, str]
+) -> None:
+    deck = _deal(client, normal_user_token_headers, size=1)
+    dealt = {c["id"] for c in deck["cards"]}
+    other = next(
+        str(c.id) for c in db.exec(select(SwipeCard)).all() if str(c.id) not in dealt
+    )
+    r = _answer(client, normal_user_token_headers, deck["session_id"], other, True)
+    assert r.status_code == 404
+
+
+def test_complete_needs_at_least_one_answer(
+    client: TestClient, normal_user_token_headers: dict[str, str]
+) -> None:
+    deck = _deal(client, normal_user_token_headers, size=2)
+    r = _complete(client, normal_user_token_headers, deck["session_id"])
+    assert r.status_code == 400
+
+
+def test_session_belongs_to_its_player(
+    client: TestClient,
+    normal_user_token_headers: dict[str, str],
+    superuser_token_headers: dict[str, str],
+) -> None:
+    deck = _deal(client, normal_user_token_headers, size=1)
+    r = _complete(client, superuser_token_headers, deck["session_id"])
+    assert r.status_code == 403
+
+
+def test_complete_replay_ignores_later_card_changes(
+    client: TestClient, db: Session, normal_user_token_headers: dict[str, str]
+) -> None:
+    """結算後卡片答案被改:重送結算仍回傳第一次的結果(存在牌局裡,不重新計分)。"""
+    deck = _deal(client, normal_user_token_headers, size=1)
+    card_id = deck["cards"][0]["id"]
+    card = _truth(db, card_id)
+    _answer(
+        client, normal_user_token_headers, deck["session_id"], card_id, card.is_scam
+    )
+    first = _complete(client, normal_user_token_headers, deck["session_id"])
+    assert first.json()["correct_count"] == 1
+
+    card.is_scam = not card.is_scam
+    db.add(card)
+    db.commit()
+    try:
+        again = _complete(client, normal_user_token_headers, deck["session_id"])
+        assert again.status_code == 200
+        assert again.json() == first.json()
+    finally:
+        card.is_scam = not card.is_scam
+        db.add(card)
+        db.commit()
+
+
+def test_answer_snapshot_is_used_after_card_changes(
+    client: TestClient, db: Session, normal_user_token_headers: dict[str, str]
+) -> None:
+    """作答後卡片被改:重送作答與結算都照作答當時的快照,和玩家看到的回饋一致。"""
+    deck = _deal(client, normal_user_token_headers, size=1)
+    card_id = deck["cards"][0]["id"]
+    card = _truth(db, card_id)
+    first = _answer(
+        client, normal_user_token_headers, deck["session_id"], card_id, card.is_scam
+    )
+    assert first.json()["correct"] is True
+
+    card.is_scam = not card.is_scam
+    db.add(card)
+    db.commit()
+    try:
+        retry = _answer(
+            client,
+            normal_user_token_headers,
+            deck["session_id"],
+            card_id,
+            not card.is_scam,
+        )
+        assert retry.status_code == 200 and retry.json() == first.json()
+        done = _complete(client, normal_user_token_headers, deck["session_id"])
+        assert done.json()["correct_count"] == 1
+    finally:
+        card.is_scam = not card.is_scam
+        db.add(card)
+        db.commit()
+
+
+def test_round_ends_after_three_wrong_answers(
+    client: TestClient, db: Session, normal_user_token_headers: dict[str, str]
+) -> None:
+    """答錯 3 張這一輪就結束(和前端的警覺值一致),之後的作答不收。"""
+    deck = _deal(client, normal_user_token_headers, size=4)
+    cards = deck["cards"]
+    assert len(cards) == 4
+    for c in cards[:3]:
+        wrong = not _truth(db, c["id"]).is_scam
+        r = _answer(
+            client, normal_user_token_headers, deck["session_id"], c["id"], wrong
+        )
+        assert r.status_code == 200
+    last = cards[3]["id"]
+    r = _answer(
+        client,
+        normal_user_token_headers,
+        deck["session_id"],
+        last,
+        _truth(db, last).is_scam,
+    )
+    assert r.status_code == 400
+    assert r.json()["detail"]["code"] == "swipe_round_over"
+    done = _complete(client, normal_user_token_headers, deck["session_id"])
+    assert done.json()["total"] == 3 and done.json()["correct_count"] == 0

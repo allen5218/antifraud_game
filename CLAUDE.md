@@ -102,6 +102,10 @@ pre-commit 有 `generate-frontend-sdk` hook，當 `backend/` 變更時會自動�
 - `backend/app/api/routes/quick.py` — 六個端點。`quiz_deck` 發牌時建立一次性的 `QuizSession`（鎖定 `case_ids`）；`quiz_complete` 以 `SELECT … FOR UPDATE` 鎖住它，且只認發牌時那批 case，防止重放刷分。
 - 判定純比對 `guess_is_scam == case.is_scam`，全檔沒有任何 `pydantic_ai` import。
 - swipe 讀 `swipe_card` 表，結構同構、獎勵係數較低。
+- 滑卡也有一次性牌局 `SwipeSession`（原本直接吃前端送的答案，可以重送刷獎勵）：
+  - `swipe_deck` 記下發出的卡。
+  - `swipe_answer` 只接受這一局的卡，第一次作答存成快照（對錯、類型、話術、解說）；重送同樣答案回傳快照，換答案 400。
+  - `swipe_complete` 鎖住該局，只讀快照計分，發獎與存結果（`result`）同一個 commit；重送結算原樣回傳 `result`，不會再發獎。
 - 兩者發牌都照「練習重點」的比例偏重玩家最弱的類型。
 
 ### 2. 情境模擬 scenario — 三層：確定性規則 / LLM / 編排

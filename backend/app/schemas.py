@@ -106,7 +106,14 @@ class SwipeCardPublic(BaseModel):
     difficulty: int
 
 
+class SwipeDeckResponse(BaseModel):
+    # 一次性牌局:answer / complete 都要帶,結算只認這一局發的卡(防重送刷獎勵)
+    session_id: str
+    cards: list[SwipeCardPublic]
+
+
 class SwipeAnswerRequest(BaseModel):
+    session_id: str
     card_id: str
     guess_is_scam: bool
 
@@ -131,7 +138,8 @@ class SwipeAnswerItem(BaseModel):
 
 
 class SwipeCompleteRequest(BaseModel):
-    answers: list[SwipeAnswerItem]
+    # 答案已逐張存在伺服器端(/swipe/answer),結算只帶牌局 id
+    session_id: str
 
 
 class WeaknessSummaryItem(BaseModel):
