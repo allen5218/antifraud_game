@@ -78,13 +78,17 @@ class GameCaseValidateTests(unittest.TestCase):
         """玩家看得到的文字:全形標點、不用破折號、不用 AI 腔與公文用語、出處開頭。"""
         flags = GOOD_SCAM["red_flags"]
         cases = {
-            "全形標點": dict(GOOD_SCAM, narrative=GOOD_SCAM["narrative"] + "三個月,他常談未來。"),
+            "全形標點": dict(
+                GOOD_SCAM, narrative=GOOD_SCAM["narrative"] + "三個月,他常談未來。"
+            ),
             "破折號": dict(GOOD_SCAM, title="群組裡的邀請——穩賺"),
             "AI 腔": dict(
                 GOOD_SCAM,
                 red_flags=[dict(flags[0], text="關鍵在於每月收益遠高於定存"), flags[1]],
             ),
-            "公文用語": dict(GOOD_SCAM, narrative=GOOD_SCAM["narrative"] + "請予以配合。"),
+            "公文用語": dict(
+                GOOD_SCAM, narrative=GOOD_SCAM["narrative"] + "請予以配合。"
+            ),
             "改編自：": dict(GOOD_SCAM, provenance="165 反詐騙案例"),
         }
         for message, record in cases.items():
@@ -95,7 +99,9 @@ class GameCaseValidateTests(unittest.TestCase):
 
     def test_bad_field_type_rejects_only_that_record(self):
         """provenance 是數字:那一筆被拒絕,同批其他筆照常通過,不會整批中斷。"""
-        code, out, rejected = run_validate([dict(GOOD_SCAM, provenance=123), GOOD_LEGIT])
+        code, out, rejected = run_validate(
+            [dict(GOOD_SCAM, provenance=123), GOOD_LEGIT]
+        )
         self.assertEqual((code, out["valid"], out["rejected"]), (1, 1, 1))
         self.assertIn("provenance", " ".join(rejected[0]["errors"]))
 

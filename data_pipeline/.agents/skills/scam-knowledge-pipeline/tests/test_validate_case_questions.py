@@ -122,7 +122,9 @@ class QuestionValidationTests(unittest.TestCase):
 
     def test_player_text_writing_rules(self):
         cases = {
-            "全形標點": dict(GOOD_QUESTION, explanation="聯絡方式要自己找,才不會再接到同一方。"),
+            "全形標點": dict(
+                GOOD_QUESTION, explanation="聯絡方式要自己找,才不會再接到同一方。"
+            ),
             "破折號": dict(GOOD_QUESTION, question="接下來——應該如何確認？"),
             "改編自：": dict(GOOD_QUESTION, provenance="金管會公告的合法業者名單"),
         }

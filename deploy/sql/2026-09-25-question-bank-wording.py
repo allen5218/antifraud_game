@@ -23,7 +23,15 @@ import sys
 from pathlib import Path
 
 CJK = "一-鿿"
-HALF_TO_FULL = {",": "，", ":": "：", ";": "；", "!": "！", "?": "？", "(": "（", ")": "）"}
+HALF_TO_FULL = {
+    ",": "，",
+    ":": "：",
+    ";": "；",
+    "!": "！",
+    "?": "？",
+    "(": "（",
+    ")": "）",
+}
 _after_cjk = re.compile(rf"(?<=[{CJK}])([,:;!?()])")
 _before_cjk = re.compile(rf"([,:;!?()])(?=[{CJK}])")
 
@@ -40,7 +48,10 @@ WORDING: list[tuple[str, str]] = [
         "那位客服說問題出在我這邊，因為我是賣家，卻還沒完成認證、也沒簽金流協定，",
     ),
     # 案例 329 fake-sale-scam-003-v2
-    ("可以先寄再付一半——但講完又改口說平台規定不行。", "可以先寄再付一半，但講完又改口說平台規定不行。"),
+    (
+        "可以先寄再付一半——但講完又改口說平台規定不行。",
+        "可以先寄再付一半，但講完又改口說平台規定不行。",
+    ),
     # 案例 337 investment-legit-013 的紅旗說明
     (
         "人頭帳戶詐騙的關鍵在於取得可實際操作帳戶的實體卡片與密碼，影本本身無法操作帳戶",
@@ -51,7 +62,10 @@ WORDING: list[tuple[str, str]] = [
         "再撥卡片背面印的號碼——那是唯一不會被對方指定的管道。開程式雖然也安全，",
         "再撥卡片背面印的號碼，那是唯一不會被對方指定的管道。打開銀行 App 雖然也安全，",
     ),
-    ("對方在電話裡要你別說出匯款原因——那句話本身就是警訊。", "對方在電話裡要你別說出匯款原因，光是這句話就是警訊。"),
+    (
+        "對方在電話裡要你別說出匯款原因——那句話本身就是警訊。",
+        "對方在電話裡要你別說出匯款原因，光是這句話就是警訊。",
+    ),
     (
         "剩下的只有把實物送進獨立鑑定——而他願不願意讓鞋先進鑑定，本身就是答案。",
         "剩下的只有把實物送進獨立鑑定，而他願不願意讓鞋先送鑑定，本身就是答案。",
@@ -87,7 +101,15 @@ def normalize(text: str) -> str:
     return text
 
 
-COPY_ESCAPES = {"b": "\b", "f": "\f", "n": "\n", "r": "\r", "t": "\t", "v": "\v", "\\": "\\"}
+COPY_ESCAPES = {
+    "b": "\b",
+    "f": "\f",
+    "n": "\n",
+    "r": "\r",
+    "t": "\t",
+    "v": "\v",
+    "\\": "\\",
+}
 
 
 def _unescape(field: str) -> str | None:
@@ -100,8 +122,12 @@ def _unescape(field: str) -> str | None:
 def copy_rows(dump: str, table: str) -> list[dict[str, str | None]]:
     """讀出 pg_dump 裡某張表的 COPY 資料。"""
     lines = dump.splitlines()
-    head = next(i for i, ln in enumerate(lines) if ln.startswith(f"COPY public.{table} ("))
-    columns = lines[head][lines[head].index("(") + 1 : lines[head].index(")")].split(", ")
+    head = next(
+        i for i, ln in enumerate(lines) if ln.startswith(f"COPY public.{table} (")
+    )
+    columns = lines[head][lines[head].index("(") + 1 : lines[head].index(")")].split(
+        ", "
+    )
     rows = []
     for ln in lines[head + 1 :]:
         if ln == "\\.":
@@ -118,7 +144,11 @@ def _literal(value: str) -> str:
 
 # 每張表:(用來找列的欄位, 要更新的欄位, 其中是 jsonb 的)
 TABLES = {
-    "game_cases": (("case_key",), ("title", "narrative", "provenance", "red_flags"), {"red_flags"}),
+    "game_cases": (
+        ("case_key",),
+        ("title", "narrative", "provenance", "red_flags"),
+        {"red_flags"},
+    ),
     "game_case_questions": (
         ("question_key", "version"),
         ("question", "explanation", "provenance", "options"),
@@ -179,6 +209,8 @@ if __name__ == "__main__":
         p = Path(name)
         before = p.read_text()
         after = normalize(before)
-        changed = sum(1 for a, b in zip(before.splitlines(), after.splitlines()) if a != b)
+        changed = sum(
+            1 for a, b in zip(before.splitlines(), after.splitlines()) if a != b
+        )
         p.write_text(after)
         print(f"{changed:4d} 行  {name}")
