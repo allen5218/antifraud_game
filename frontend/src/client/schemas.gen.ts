@@ -1420,24 +1420,12 @@ export const ScenarioNewRequestSchema = {
     title: 'ScenarioNewRequest'
 } as const;
 
-export const SwipeAnswerItemSchema = {
-    properties: {
-        card_id: {
-            type: 'string',
-            title: 'Card Id'
-        },
-        guess_is_scam: {
-            type: 'boolean',
-            title: 'Guess Is Scam'
-        }
-    },
-    type: 'object',
-    required: ['card_id', 'guess_is_scam'],
-    title: 'SwipeAnswerItem'
-} as const;
-
 export const SwipeAnswerRequestSchema = {
     properties: {
+        session_id: {
+            type: 'string',
+            title: 'Session Id'
+        },
         card_id: {
             type: 'string',
             title: 'Card Id'
@@ -1448,7 +1436,7 @@ export const SwipeAnswerRequestSchema = {
         }
     },
     type: 'object',
-    required: ['card_id', 'guess_is_scam'],
+    required: ['session_id', 'card_id', 'guess_is_scam'],
     title: 'SwipeAnswerRequest'
 } as const;
 
@@ -1516,16 +1504,13 @@ export const SwipeCardPublicSchema = {
 
 export const SwipeCompleteRequestSchema = {
     properties: {
-        answers: {
-            items: {
-                '$ref': '#/components/schemas/SwipeAnswerItem'
-            },
-            type: 'array',
-            title: 'Answers'
+        session_id: {
+            type: 'string',
+            title: 'Session Id'
         }
     },
     type: 'object',
-    required: ['answers'],
+    required: ['session_id'],
     title: 'SwipeCompleteRequest'
 } as const;
 
@@ -1562,6 +1547,25 @@ export const SwipeCompleteResponseSchema = {
     type: 'object',
     required: ['correct_count', 'total', 'best_streak', 'cash_earned', 'xp_earned', 'weakness_summary'],
     title: 'SwipeCompleteResponse'
+} as const;
+
+export const SwipeDeckResponseSchema = {
+    properties: {
+        session_id: {
+            type: 'string',
+            title: 'Session Id'
+        },
+        cards: {
+            items: {
+                '$ref': '#/components/schemas/SwipeCardPublic'
+            },
+            type: 'array',
+            title: 'Cards'
+        }
+    },
+    type: 'object',
+    required: ['session_id', 'cards'],
+    title: 'SwipeDeckResponse'
 } as const;
 
 export const TokenSchema = {

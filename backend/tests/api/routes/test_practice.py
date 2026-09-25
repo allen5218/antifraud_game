@@ -5,11 +5,12 @@
 """
 
 import asyncio
+import uuid
 from collections import Counter
 
 import pytest
 from fastapi.testclient import TestClient
-from sqlmodel import Session, col, select
+from sqlmodel import Session, select
 
 from app.core.config import settings
 from app.models import (
@@ -56,6 +57,34 @@ def _make_romance_the_weak_spot(db: Session, user: User) -> None:
     asyncio.run(refresh_profile(user.id))
 
 
+def _swipe_deal(
+    client: TestClient, headers: dict[str, str], db: Session, size: int = 30
+) -> tuple[str, list[SwipeCard]]:
+    """發一局滑卡,回傳牌局 id 與發到的卡(依發牌順序)。"""
+    deck = client.get(f"{API}/quick/swipe/deck?size={size}", headers=headers).json()
+    cards = [db.get(SwipeCard, uuid.UUID(c["id"])) for c in deck["cards"]]
+    return deck["session_id"], [c for c in cards if c is not None]
+
+
+def _swipe_answer(
+    client: TestClient,
+    headers: dict[str, str],
+    session_id: str,
+    card: SwipeCard,
+    guess: bool,
+) -> None:
+    r = client.post(
+        f"{API}/quick/swipe/answer",
+        headers=headers,
+        json={
+            "session_id": session_id,
+            "card_id": str(card.id),
+            "guess_is_scam": guess,
+        },
+    )
+    assert r.status_code == 200
+
+
 def test_profile_without_any_record(
     client: TestClient, superuser_token_headers: dict[str, str]
 ) -> None:
@@ -91,7 +120,7 @@ def test_weak_spot_changes_swipe_inbox_and_quiz(
         deck = client.get(
             f"{API}/quick/swipe/deck?size=10", headers=superuser_token_headers
         )
-        counts.update(card["fraud_type"] for card in deck.json())
+        counts.update(card["fraud_type"] for card in deck.json()["cards"])
     assert counts["romance"] / sum(counts.values()) > 0.35, counts
 
     # 收件匣:romance 排第一
@@ -110,13 +139,14 @@ def test_swipe_complete_records_every_card(
     client: TestClient, normal_user_token_headers: dict[str, str], db: Session
 ) -> None:
     user = _user(db, settings.EMAIL_TEST_USER)
-    cards = db.exec(select(SwipeCard).where(col(SwipeCard.is_scam)).limit(3)).all()
+    session_id, cards = _swipe_deal(client, normal_user_token_headers, db)
+    cards = [c for c in cards if c.is_scam][:3]
+    for c in cards:
+        _swipe_answer(client, normal_user_token_headers, session_id, c, guess=False)
     r = client.post(
         f"{API}/quick/swipe/complete",
         headers=normal_user_token_headers,
-        json={
-            "answers": [{"card_id": str(c.id), "guess_is_scam": False} for c in cards]
-        },
+        json={"session_id": session_id},
     )
     assert r.status_code == 200
 
@@ -145,14 +175,15 @@ def test_settlement_releases_db_connection_before_background_work(
         checked_out.append(engine.pool.checkedout())
 
     monkeypatch.setattr(service, "refresh_profile", fake_refresh)
-    cards = db.exec(select(SwipeCard).limit(2)).all()
-    answers = [{"card_id": str(c.id), "guess_is_scam": True} for c in cards]
+    session_id, cards = _swipe_deal(client, normal_user_token_headers, db, size=2)
+    for c in cards:
+        _swipe_answer(client, normal_user_token_headers, session_id, c, guess=True)
     db.commit()  # 測試自己的 session 先放掉連線(之後不再讀 ORM 屬性),才量得準
     before = engine.pool.checkedout()
     r = client.post(
         f"{API}/quick/swipe/complete",
         headers=normal_user_token_headers,
-        json={"answers": answers},
+        json={"session_id": session_id},
     )
     assert r.status_code == 200
     assert checked_out == [before]

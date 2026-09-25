@@ -1,12 +1,13 @@
 import logging
 import uuid
+from dataclasses import dataclass
 from datetime import datetime, timezone
 from random import shuffle
 from typing import Any
 
 from fastapi import APIRouter, BackgroundTasks, HTTPException
 from pydantic import ValidationError
-from sqlmodel import Session, col, func, select
+from sqlmodel import Session, func, select
 
 from app.api.deps import CurrentUser, SessionDep
 from app.core.cases import (
@@ -34,7 +35,7 @@ from app.core.weakness import (
 )
 from app.economy.levels import level_of
 from app.economy.service import add_xp, adjust_cash, lock_user
-from app.models import QuizSession, SwipeCard
+from app.models import QuizSession, SwipeCard, SwipeSession
 from app.practice.profile import weighted_order
 from app.practice.service import (
     practice_focus,
@@ -65,17 +66,22 @@ from app.schemas import (
     QuizVerificationOption,
     QuizVerificationPublic,
     QuizWeaknessDetail,
-    SwipeAnswerItem,
     SwipeAnswerRequest,
     SwipeAnswerResponse,
     SwipeCardPublic,
     SwipeCompleteRequest,
     SwipeCompleteResponse,
+    SwipeDeckResponse,
     WeaknessSummaryItem,
 )
 
 router = APIRouter(prefix="/quick", tags=["quick"])
 logger = logging.getLogger(__name__)
+
+
+SWIPE_MAX_WRONG = 3
+"""滑卡答錯 3 張這一輪就結束(前端的警覺值 MAX_ALERTNESS)。伺服器也要擋,
+不然用腳本答錯之後繼續答,一輪能拿到比正常玩多的獎勵。"""
 
 
 def _reward(correct_count: int, best_streak: int) -> tuple[int, int]:
@@ -105,7 +111,7 @@ def _weakness_summary(weakness: dict[str, int]) -> list[WeaknessSummaryItem]:
     ]
 
 
-@router.get("/swipe/deck", response_model=list[SwipeCardPublic])
+@router.get("/swipe/deck", response_model=SwipeDeckResponse)
 def swipe_deck(session: SessionDep, current_user: CurrentUser, size: int = 12) -> Any:
     size = max(1, min(size, 30))
     # 依練習重點的比例抽卡:最弱的類型抽得比較多。沒有紀錄的玩家就全隨機。
@@ -117,33 +123,123 @@ def swipe_deck(session: SessionDep, current_user: CurrentUser, size: int = 12) -
         cards = list(
             session.exec(select(SwipeCard).order_by(func.random()).limit(size)).all()
         )
-    return [
-        SwipeCardPublic(
-            id=str(c.id),
-            scenario=c.scenario,
-            source_label=c.source_label,
-            fraud_type=c.fraud_type,
-            difficulty=c.difficulty,
-        )
-        for c in cards
-    ]
+    # 一次性牌局:結算只認這裡發出去的卡(見 SwipeSession)
+    swipe = SwipeSession(user_id=current_user.id, card_ids=[str(c.id) for c in cards])
+    session.add(swipe)
+    session.commit()
+    return SwipeDeckResponse(
+        session_id=str(swipe.id),
+        cards=[
+            SwipeCardPublic(
+                id=str(c.id),
+                scenario=c.scenario,
+                source_label=c.source_label,
+                fraud_type=c.fraud_type,
+                difficulty=c.difficulty,
+            )
+            for c in cards
+        ],
+    )
+
+
+def _get_swipe_session(
+    session: Session, *, raw_session_id: str, user_id: uuid.UUID
+) -> SwipeSession:
+    """鎖住這一局(SELECT … FOR UPDATE):同一局的並發作答與結算會排隊,不會重複發獎。"""
+    try:
+        session_id = uuid.UUID(raw_session_id)
+    except ValueError:
+        raise HTTPException(404, {"code": "swipe_session_not_found"}) from None
+    swipe = session.exec(
+        select(SwipeSession).where(SwipeSession.id == session_id).with_for_update()
+    ).first()
+    if swipe is None:
+        raise HTTPException(404, {"code": "swipe_session_not_found"})
+    if swipe.user_id != user_id:
+        raise HTTPException(403, {"code": "not_your_swipe_session"})
+    return swipe
 
 
 @router.post("/swipe/answer", response_model=SwipeAnswerResponse)
 def swipe_answer(
     payload: SwipeAnswerRequest, session: SessionDep, current_user: CurrentUser
 ) -> Any:
-    _ = current_user
+    swipe = _get_swipe_session(
+        session, raw_session_id=payload.session_id, user_id=current_user.id
+    )
+    if swipe.completed:
+        raise HTTPException(400, {"code": "swipe_already_completed"})
+    if payload.card_id not in swipe.card_ids:
+        raise HTTPException(404, {"code": "swipe_card_not_in_session"})
+    snap = swipe.answers.get(payload.card_id)
+    if snap is not None:
+        # 已經答過:同樣的答案當成重送(上一次的回應可能在網路上遺失),回傳當時的結果;
+        # 換答案就拒絕——不然先答錯看到答案、再改答對就能刷分。
+        if snap["guess"] != payload.guess_is_scam:
+            raise HTTPException(400, {"code": "swipe_card_already_answered"})
+        return _swipe_answer_response(snap)
+    wrong = sum(1 for a in swipe.answers.values() if not a["correct"])
+    if wrong >= SWIPE_MAX_WRONG:
+        raise HTTPException(400, {"code": "swipe_round_over"})
     card = session.get(SwipeCard, uuid.UUID(payload.card_id))
     if not card:
         raise HTTPException(404, "card not found")
+    snap = {
+        "guess": payload.guess_is_scam,
+        "correct": payload.guess_is_scam == card.is_scam,
+        "is_scam": card.is_scam,
+        "fraud_type": card.fraud_type,
+        "weakness_tags": list(card.weakness_tags),
+        "explanation": card.explanation,
+    }
+    # JSONB 就地修改 ORM 偵測不到,要整個重新指派
+    swipe.answers = {**swipe.answers, payload.card_id: snap}
+    session.add(swipe)
+    session.commit()
+    return _swipe_answer_response(snap)
+
+
+def _swipe_answer_response(snap: dict[str, Any]) -> SwipeAnswerResponse:
     return SwipeAnswerResponse(
-        correct=payload.guess_is_scam == card.is_scam,
-        is_scam=card.is_scam,
-        explanation=card.explanation,
-        weakness_tags=card.weakness_tags,
-        tag_details=_weakness_details(set(card.weakness_tags)),
+        correct=snap["correct"],
+        is_scam=snap["is_scam"],
+        explanation=snap["explanation"],
+        weakness_tags=snap["weakness_tags"],
+        tag_details=_weakness_details(set(snap["weakness_tags"])),
     )
+
+
+@dataclass(frozen=True)
+class _SwipeScore:
+    correct_count: int
+    best_streak: int
+    weakness: dict[str, int]
+    practice: list[tuple[str, bool, list[str]]]
+
+
+def _score_swipe(swipe: SwipeSession) -> _SwipeScore:
+    """照發牌順序、只算這一局有作答的卡(警覺值歸零會提早結算,不要求每張都答)。
+    只讀作答快照,和玩家當時看到的回饋一致。"""
+    correct_count = best_streak = streak = 0
+    weakness: dict[str, int] = {}
+    practice: list[tuple[str, bool, list[str]]] = []
+    for cid in swipe.card_ids:
+        snap = swipe.answers.get(cid)
+        if snap is None:
+            continue
+        judged_right = bool(snap["correct"])
+        tags = list(snap["weakness_tags"])
+        missed = tags if not judged_right and snap["is_scam"] else []
+        practice.append((snap["fraud_type"], judged_right, missed))
+        if judged_right:
+            correct_count += 1
+            streak += 1
+            best_streak = max(best_streak, streak)
+        else:
+            streak = 0
+            for tag in tags:
+                weakness[tag] = weakness.get(tag, 0) + 1
+    return _SwipeScore(correct_count, best_streak, weakness, practice)
 
 
 @router.post("/swipe/complete", response_model=SwipeCompleteResponse)
@@ -153,68 +249,41 @@ def swipe_complete(
     current_user: CurrentUser,
     background_tasks: BackgroundTasks,
 ) -> Any:
-    if not payload.answers:
+    swipe = _get_swipe_session(
+        session, raw_session_id=payload.session_id, user_id=current_user.id
+    )
+    # 已經結算過:當成重送(上一次的回應可能遺失),原樣回傳第一次的結果,
+    # 不重新計分、不再發獎、不再記錄
+    if swipe.completed:
+        if swipe.result is None:  # 結算與存結果同一個 commit,不該發生;保險起見不再發獎
+            raise HTTPException(400, {"code": "swipe_already_completed"})
+        return SwipeCompleteResponse.model_validate(swipe.result)
+    score = _score_swipe(swipe)
+    if not score.practice:
         raise HTTPException(400, {"code": "empty_answers"})
-
-    # Anti-cheat: dedupe card_ids (count each unique card once, first occurrence)
-    # and cap the answer count to prevent reward inflation
-    MAX_ANSWERS = 30
-    seen: set[str] = set()
-    deduped: list[SwipeAnswerItem] = []
-    for a in payload.answers:
-        if a.card_id in seen:
-            continue
-        seen.add(a.card_id)
-        deduped.append(a)
-        if len(deduped) >= MAX_ANSWERS:
-            break
-
-    ids = [uuid.UUID(a.card_id) for a in deduped]
-    cards = {
-        c.id: c
-        for c in session.exec(select(SwipeCard).where(col(SwipeCard.id).in_(ids))).all()
-    }
-
-    correct_count = 0
-    best_streak = 0
-    streak = 0
-    weakness: dict[str, int] = {}
-    practice: list[tuple[str, bool, list[str]]] = []
-    for a in deduped:
-        card = cards.get(uuid.UUID(a.card_id))
-        if card is None:
-            continue
-        judged_right = a.guess_is_scam == card.is_scam
-        missed = card.weakness_tags if not judged_right and card.is_scam else []
-        practice.append((card.fraud_type, judged_right, list(missed)))
-        if judged_right:
-            correct_count += 1
-            streak += 1
-            best_streak = max(best_streak, streak)
-        else:
-            streak = 0
-            for tag in card.weakness_tags:
-                weakness[tag] = weakness.get(tag, 0) + 1
-
-    cash, xp = _reward(correct_count, best_streak)
+    cash, xp = _reward(score.correct_count, score.best_streak)
+    response = SwipeCompleteResponse(
+        correct_count=score.correct_count,
+        total=len(score.practice),
+        best_streak=score.best_streak,
+        cash_earned=cash,
+        xp_earned=xp,
+        weakness_summary=_weakness_summary(score.weakness),
+    )
     current_user = lock_user(session, current_user)
     adjust_cash(current_user, cash, reason="swipe_reward")
     add_xp(current_user, xp, reason="swipe_reward")
+    # 標記已結算與發獎同一個 commit:不會有「已發獎但還能再結算」的中間狀態
+    swipe.completed = True
+    swipe.completed_at = datetime.now(timezone.utc)
+    swipe.result = response.model_dump()
     session.add(current_user)
+    session.add(swipe)
     user_id = current_user.id
-    record_answers(session, user_id, "swipe", practice)
+    record_answers(session, user_id, "swipe", score.practice)
     session.commit()
     queue_refresh(background_tasks, session, user_id)
-
-    summary = _weakness_summary(weakness)
-    return SwipeCompleteResponse(
-        correct_count=correct_count,
-        total=len(deduped),
-        best_streak=best_streak,
-        cash_earned=cash,
-        xp_earned=xp,
-        weakness_summary=summary,
-    )
+    return response
 
 
 # ── Quiz（混合題型）───────────────────────────────────────

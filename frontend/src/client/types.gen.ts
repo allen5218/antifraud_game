@@ -346,12 +346,8 @@ export type ScenarioNewRequest = {
     fraud_type: string;
 };
 
-export type SwipeAnswerItem = {
-    card_id: string;
-    guess_is_scam: boolean;
-};
-
 export type SwipeAnswerRequest = {
+    session_id: string;
     card_id: string;
     guess_is_scam: boolean;
 };
@@ -373,7 +369,7 @@ export type SwipeCardPublic = {
 };
 
 export type SwipeCompleteRequest = {
-    answers: Array<SwipeAnswerItem>;
+    session_id: string;
 };
 
 export type SwipeCompleteResponse = {
@@ -383,6 +379,11 @@ export type SwipeCompleteResponse = {
     cash_earned: number;
     xp_earned: number;
     weakness_summary: Array<WeaknessSummaryItem>;
+};
+
+export type SwipeDeckResponse = {
+    session_id: string;
+    cards: Array<SwipeCardPublic>;
 };
 
 export type Token = {
@@ -568,7 +569,7 @@ export type QuickSwipeDeckData = {
     size?: number;
 };
 
-export type QuickSwipeDeckResponse = (Array<SwipeCardPublic>);
+export type QuickSwipeDeckResponse = (SwipeDeckResponse);
 
 export type QuickSwipeAnswerData = {
     requestBody: SwipeAnswerRequest;
