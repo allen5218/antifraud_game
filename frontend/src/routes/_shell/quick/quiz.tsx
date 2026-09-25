@@ -1,6 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router"
 import { useState } from "react"
 import type { QuickQuizAnswerResponse, QuizCompleteResponse } from "@/client"
+import { PracticeFocusBadge } from "@/components/practice/PracticeFocus"
 import { QuizCard, type QuizDraftAnswer } from "@/components/quiz/QuizCard"
 import { QuizReveal } from "@/components/quiz/QuizReveal"
 import { QuizSummary } from "@/components/quiz/QuizSummary"
@@ -34,7 +35,7 @@ function QuizPage() {
   if (deck.items.length === 0) {
     return (
       <p className="py-12 text-center text-xs text-muted-foreground">
-        題庫暫無題目
+        目前沒有題目
       </p>
     )
   }
@@ -80,17 +81,21 @@ function QuizPage() {
   }
 
   return (
-    <div className="h-full">
-      <QuizCard
-        key={current.item_id}
-        item={current}
-        index={index}
-        total={deck.items.length}
-        onSubmit={submitAnswer}
-        disabled={answerM.isPending || reveal !== null}
-      />
+    <div className="flex h-full flex-col">
+      {/* 整輪的偏重只在第一題提示一次,之後把空間留給題目 */}
+      {index === 0 && <PracticeFocusBadge className="mx-4 mt-1" />}
+      <div className="min-h-0 flex-1">
+        <QuizCard
+          key={current.item_id}
+          item={current}
+          index={index}
+          total={deck.items.length}
+          onSubmit={submitAnswer}
+          disabled={answerM.isPending || reveal !== null}
+        />
+      </div>
       {answerM.isError && reveal === null && (
-        <p className="fixed inset-x-4 bottom-20 z-40 rounded-xl bg-destructive px-3 py-2 text-center text-xs font-semibold text-white shadow-lg">
+        <p className="fixed inset-x-4 bottom-20 z-40 rounded-xl bg-destructive px-3 py-2 text-center text-xs font-semibold text-primary-foreground shadow-lg">
           答案送出失敗，請再試一次
         </p>
       )}
@@ -104,7 +109,7 @@ function QuizPage() {
         />
       )}
       {completeM.isError && (
-        <p className="fixed inset-x-4 bottom-4 z-[60] rounded-xl bg-destructive px-3 py-2 text-center text-xs font-semibold text-white shadow-lg">
+        <p className="fixed inset-x-4 bottom-4 z-[60] rounded-xl bg-destructive px-3 py-2 text-center text-xs font-semibold text-primary-foreground shadow-lg">
           結算失敗，請再按一次「看結算」
         </p>
       )}

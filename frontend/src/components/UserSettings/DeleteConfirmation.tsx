@@ -27,7 +27,7 @@ const DeleteConfirmation = () => {
   const mutation = useMutation({
     mutationFn: () => UsersService.deleteUserMe(),
     onSuccess: () => {
-      showSuccessToast("Your account has been successfully deleted")
+      showSuccessToast("帳號已刪除")
       logout()
     },
     onError: handleError.bind(showErrorToast),
@@ -44,25 +44,23 @@ const DeleteConfirmation = () => {
     <Dialog>
       <DialogTrigger asChild>
         <Button variant="destructive" className="mt-3">
-          Delete Account
+          刪除帳號
         </Button>
       </DialogTrigger>
       <DialogContent>
         <form onSubmit={handleSubmit(onSubmit)}>
           <DialogHeader>
-            <DialogTitle>Confirmation Required</DialogTitle>
+            <DialogTitle>確定要刪除帳號嗎？</DialogTitle>
             <DialogDescription>
-              All your account data will be{" "}
-              <strong>permanently deleted.</strong> If you are sure, please
-              click <strong>"Confirm"</strong> to proceed. This action cannot be
-              undone.
+              帳號與所有遊戲紀錄都會<strong>永久刪除</strong>
+              ，無法復原。確定的話，請按「刪除」。
             </DialogDescription>
           </DialogHeader>
 
           <DialogFooter className="mt-4">
             <DialogClose asChild>
               <Button variant="outline" disabled={mutation.isPending}>
-                Cancel
+                取消
               </Button>
             </DialogClose>
             <LoadingButton
@@ -70,7 +68,7 @@ const DeleteConfirmation = () => {
               type="submit"
               loading={mutation.isPending}
             >
-              Delete
+              刪除
             </LoadingButton>
           </DialogFooter>
         </form>

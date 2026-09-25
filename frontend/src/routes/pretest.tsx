@@ -1,3 +1,4 @@
+import { useQuery, useQueryClient } from "@tanstack/react-query"
 import {
   createFileRoute,
   Outlet,
@@ -10,6 +11,7 @@ import { PretestService } from "@/client"
 import { PretestProgress } from "@/components/Pretest/PretestProgress"
 import { PretestQuestion } from "@/components/Pretest/PretestQuestion"
 import { isLoggedIn } from "@/hooks/useAuth"
+import { refreshPracticeProfileSoon } from "@/hooks/usePractice"
 
 export const Route = createFileRoute("/pretest")({
   component: PretestPage,
@@ -19,7 +21,7 @@ export const Route = createFileRoute("/pretest")({
     }
   },
   head: () => ({
-    meta: [{ title: "前測評估 - 反詐騙訓練" }],
+    meta: [{ title: "前測 - ScamGym 識詐練習場" }],
   }),
 })
 
@@ -37,26 +39,31 @@ interface Answer {
 
 function PretestPage() {
   const navigate = useNavigate()
+  const queryClient = useQueryClient()
   const childMatch = useMatch({ from: "/pretest/result", shouldThrow: false })
-  const [questions, setQuestions] = useState<QuestionData[]>([])
   const [currentIndex, setCurrentIndex] = useState(0)
   const [answers, setAnswers] = useState<Answer[]>([])
-  const [loading, setLoading] = useState(true)
   const [submitting, setSubmitting] = useState(false)
-  const [error, setError] = useState<string | null>(null)
+  const [submitError, setSubmitError] = useState<string | null>(null)
 
-  // 載入題目
-  useState(() => {
-    PretestService.getPretestQuestions()
-      .then((data: any) => {
-        setQuestions(data.questions ?? [])
-        setLoading(false)
-      })
-      .catch(() => {
-        setError("無法載入題目，請稍後再試。")
-        setLoading(false)
-      })
+  // 題目每次都重新抽、順序也打亂。原本在 useState 的初始化函式裡直接呼叫 API:
+  // 開發模式的 StrictMode 會跑兩次初始化,發出兩個請求、拿到兩種題序,
+  // 畫面用的是後回來的那一份。改用 useQuery,同一時間只會有一個請求。
+  // gcTime 0:離開再回來(重新做前測)要抽新的一組,不沿用快取。
+  const questionsQuery = useQuery({
+    queryKey: ["pretest", "questions"],
+    queryFn: () => PretestService.getPretestQuestions(),
+    staleTime: Number.POSITIVE_INFINITY,
+    gcTime: 0,
+    refetchOnWindowFocus: false,
   })
+  const questions: QuestionData[] =
+    (questionsQuery.data as { questions?: QuestionData[] } | undefined)
+      ?.questions ?? []
+  const loading = questionsQuery.isPending
+  const error = questionsQuery.isError
+    ? "無法載入題目，請稍後再試。"
+    : submitError
 
   const handleAnswer = async (selectedKey: string) => {
     const question = questions[currentIndex]
@@ -69,17 +76,30 @@ function PretestPage() {
     if (currentIndex + 1 < questions.length) {
       setCurrentIndex(currentIndex + 1)
     } else {
-      setSubmitting(true)
-      try {
-        const result = await PretestService.submitPretest({
-          requestBody: { answers: newAnswers },
-        })
-        sessionStorage.setItem("pretestResult", JSON.stringify(result))
-        navigate({ to: "/pretest/result" })
-      } catch {
-        setError("送出失敗，請稍後再試。")
-        setSubmitting(false)
-      }
+      await submit(newAnswers)
+    }
+  }
+
+  const submit = async (all: Answer[]) => {
+    setSubmitting(true)
+    setSubmitError(null)
+    try {
+      const result = await PretestService.submitPretest({
+        requestBody: { answers: all },
+      })
+      sessionStorage.setItem("pretestResult", JSON.stringify(result))
+      refreshPracticeProfileSoon(queryClient)
+      // 結果頁是這一頁的子路由,這一頁不會卸載。交卷後把作答清掉並取代這筆瀏覽紀錄,
+      // 否則按上一頁會回到最後一題,再選一次就把整份前測又交一次。
+      setAnswers([])
+      setCurrentIndex(0)
+      setSubmitting(false)
+      navigate({ to: "/pretest/result", replace: true })
+      queryClient.resetQueries({ queryKey: ["pretest", "questions"] })
+    } catch {
+      // 答案留著,讓玩家直接重送,不必把 20 題重做一次
+      setSubmitError("送出失敗，請再送一次。")
+      setSubmitting(false)
     }
   }
 
@@ -93,7 +113,7 @@ function PretestPage() {
       <div className="flex min-h-screen items-center justify-center">
         <div className="text-center">
           <div className="mx-auto mb-4 h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent" />
-          <p className="text-muted-foreground">載入題目中...</p>
+          <p className="text-muted-foreground">載入題目中…</p>
         </div>
       </div>
     )
@@ -103,7 +123,18 @@ function PretestPage() {
     return (
       <div className="flex min-h-screen items-center justify-center">
         <div className="rounded-xl border border-destructive/50 bg-destructive/10 p-6 text-center">
-          <p className="text-destructive">{error}</p>
+          <p role="alert" className="text-destructive">
+            {error}
+          </p>
+          {submitError && answers.length > 0 && (
+            <button
+              type="button"
+              onClick={() => submit(answers)}
+              className="mt-3 rounded-xl bg-primary px-4 py-2 text-sm font-bold text-primary-foreground"
+            >
+              再送一次
+            </button>
+          )}
         </div>
       </div>
     )
@@ -114,7 +145,7 @@ function PretestPage() {
       <div className="flex min-h-screen items-center justify-center">
         <div className="text-center">
           <div className="mx-auto mb-4 h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent" />
-          <p className="text-muted-foreground">分析你的作答結果...</p>
+          <p className="text-muted-foreground">正在計算結果…</p>
         </div>
       </div>
     )
@@ -127,7 +158,7 @@ function PretestPage() {
       <div className="mb-2 text-center">
         <h1 className="text-2xl font-bold">防詐能力前測</h1>
         <p className="mt-1 text-sm text-muted-foreground">
-          回答以下問題，讓我們了解你對各類詐騙的認知程度
+          先做 {questions.length} 題，看看你對哪一類詐騙最沒把握
         </p>
       </div>
 

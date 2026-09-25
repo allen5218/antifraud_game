@@ -4,7 +4,7 @@ interface ShopItemProps {
   name: string
   category: string
   cost: number
-  emoji: string
+  imageUrl: string
   owned: boolean
   equipped: boolean
   canAfford: boolean
@@ -16,7 +16,7 @@ export function ShopItem({
   name,
   category,
   cost,
-  emoji,
+  imageUrl,
   owned,
   equipped,
   canAfford,
@@ -30,11 +30,23 @@ export function ShopItem({
         equipped
           ? "border-primary bg-primary/5"
           : owned
-            ? "border-green-500/30 bg-green-500/5"
+            ? "border-legit/40 bg-legit/5"
             : "border-border bg-card"
       }`}
     >
-      <div className="mb-3 text-center text-4xl">{emoji}</div>
+      {imageUrl ? (
+        <img
+          src={imageUrl}
+          alt=""
+          aria-hidden="true"
+          width={80}
+          height={80}
+          loading="lazy"
+          className="mx-auto mb-3 size-20 rounded-xl object-cover"
+        />
+      ) : (
+        <div className="mx-auto mb-3 size-20 rounded-xl bg-muted" />
+      )}
       <h3 className="text-center text-sm font-semibold">{name}</h3>
       <p className="mb-3 text-center text-xs text-muted-foreground">
         {category}

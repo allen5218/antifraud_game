@@ -4,6 +4,8 @@ from dataclasses import dataclass
 
 MAX_TURNS = 10
 SCENARIO_DAILY_LIMIT_PER_TYPE = 3
+SCENARIO_DAILY_LIMIT_FOCUS = 5
+"""練習重點那一類每天多兩場(app/practice/):弱項要能多練,其他類維持 3 場。"""
 SCAM_RATIO = 0.5
 
 
@@ -32,13 +34,12 @@ DISPLAY_NAME_POOL: dict[str, list[str]] = {
     "atm": ["客服 Peggy", "客服 Mark", "客服 Judy"],
 }
 
-# scam/legit 共用同一池,避免 avatar↔角色相關性洩題
+# scam/legit 共用同一池,避免 avatar↔角色相關性洩題。
+# 值是插圖代號,圖在 frontend/public/assets/avatar/<代號>.webp。
+# 原本是 emoji;換成插圖時由遷移 3c1e5b7a9d20 把舊場次一併換掉。
 AVATAR_POOL: dict[str, list[str]] = {
-    "investment": ["🧑‍💼", "📊", "💹"],
-    "shopping": ["🛍️", "📦", "🧸"],
-    "fake-sale": ["🛎️", "📮", "🧑‍💻"],
-    "romance": ["🙂", "🌻", "📷"],
-    "atm": ["☎️", "🎧", "📞"],
+    ft: [f"{ft}-{n}" for n in (1, 2, 3)]
+    for ft in ("investment", "shopping", "fake-sale", "romance", "atm")
 }
 
 # legit 結局揭曉卡的「正當訊號」文案(確定性、非 LLM)

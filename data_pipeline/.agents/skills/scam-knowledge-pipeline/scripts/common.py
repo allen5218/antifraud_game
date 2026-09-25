@@ -58,6 +58,39 @@ GAME_FRAUD_TYPES = {
     "atm_installment_cancellation_fraud": "atm",
 }
 
+# ── 玩家看得到的文字(題目、敘事、選項、解析、出處)的寫法 ────────────────
+# 2026-09-25 題庫整理時發現 120 題裡有 80 題用半形逗號、13 處破折號,
+# 一看就是 AI 寫的。規範見 references/curation.md「玩家看得到的文字」;
+# 遊戲端的守門測試是 backend/tests/unit/test_player_text.py,兩邊要一致。
+_CJK = "\u4e00-\u9fff"
+WRITING_RULES = [
+    (
+        "中文旁要用全形標點（，：；！？（））",
+        re.compile(rf"[{_CJK}][,:;!?()]|[,:;!?()][{_CJK}]"),
+    ),
+    ("不要用破折號", re.compile(r"—|--")),
+    (
+        "不要用 AI 腔的套話",
+        re.compile(r"關鍵在於|值得注意的是|總而言之|綜上所述|不難發現|至關重要"),
+    ),
+    ("不要用公文用語", re.compile(r"予以|係指|係屬|之虞|爰此")),
+]
+PROVENANCE_PREFIXES = ("改編自：", "依據：")
+"""出處開頭:改編自真實案例寫「改編自：」,依官方流程寫的正常案例寫「依據：」。"""
+OPTION_REASON_WORDS = re.compile(r"因為|所以|以免|才能|避免|確保")
+"""選項只寫做法,不寫理由。理由只出現在正解時,不看題目也知道選它。"""
+
+
+def writing_errors(field, text):
+    """回傳這段玩家看得到的文字違反了哪些寫法規則。型別不對由 schema 檢查負責。"""
+    if not isinstance(text, str):
+        return []
+    return [
+        f"{field}: {rule}（「{match.group(0)}」）"
+        for rule, pattern in WRITING_RULES
+        if (match := pattern.search(text or ""))
+    ]
+
 
 def load_env(path=None):
     if not path:

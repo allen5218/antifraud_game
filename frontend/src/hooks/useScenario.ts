@@ -1,5 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
-import { ScenarioService } from "@/client"
+import { type ApiError, ScenarioService } from "@/client"
+import { refreshPracticeProfileSoon } from "@/hooks/usePractice"
+import { fraudTypeLabel } from "@/lib/fraudTypes"
 
 // ── 查詢 ──────────────────────────────────────────────────────────────────────
 
@@ -43,6 +45,7 @@ export function useJudge(id: string) {
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["economy"] })
       qc.invalidateQueries({ queryKey: ["scenario"] })
+      refreshPracticeProfileSoon(qc)
     },
   })
 }
@@ -57,4 +60,23 @@ export function useNewScenario() {
       }),
     onSuccess: () => qc.invalidateQueries({ queryKey: ["scenario", "inbox"] }),
   })
+}
+
+/** 開新對話失敗時給玩家看的一句話(後端回 400 {code, limit})。 */
+export function newScenarioError(err: unknown, fraudType: string): string {
+  const body = (err as ApiError | undefined)?.body as
+    | { detail?: { code?: string; limit?: number } }
+    | undefined
+  const code = body?.detail?.code
+  const label = fraudTypeLabel(fraudType)
+  if (code === "daily_limit_reached") {
+    const limit = body?.detail?.limit
+    return limit
+      ? `今天「${label}」已經練了 ${limit} 場，明天再來。`
+      : `今天「${label}」已經練滿了，明天再來。`
+  }
+  if (code === "active_exists") {
+    return `「${label}」還有一場沒聊完，先回聯絡人把它聊完。`
+  }
+  return "開不了新對話，請稍後再試。"
 }

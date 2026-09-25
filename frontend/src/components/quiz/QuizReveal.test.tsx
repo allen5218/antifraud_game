@@ -16,12 +16,12 @@ const result = {
   tag_details: [
     {
       tag: "greed",
-      label: "貪念誘惑",
+      label: "用好處引誘你",
       suggestion: "保證獲利時，先停下來查證風險",
     },
     {
       tag: "time_pressure",
-      label: "時間壓力",
+      label: "催你快點決定",
       suggestion: "遇到限時話術先冷靜",
     },
   ],
@@ -48,7 +48,7 @@ describe("<QuizReveal />", () => {
     )
     expect(screen.getByText(/答對了/)).toBeTruthy()
     expect(screen.getByText(/保證獲利穩賺不賠/)).toBeTruthy()
-    expect(screen.getAllByText("貪念誘惑")).toHaveLength(2)
+    expect(screen.getAllByText("用好處引誘你")).toHaveLength(2)
     expect(screen.getByText(/先停下來查證風險/)).toBeTruthy()
     expect(screen.getByText(/改編自:司法院裁判書詐欺案件/)).toBeTruthy()
     expect(screen.queryByText("greed")).toBeNull()
@@ -79,8 +79,8 @@ describe("<QuizReveal />", () => {
           difficulty: 2,
           question: "用了哪些話術？",
           options: [
-            { tag: "time_pressure", label: "時間壓力" },
-            { tag: "authority", label: "權威服從" },
+            { tag: "time_pressure", label: "催你快點決定" },
+            { tag: "authority", label: "冒充官方或專家" },
           ],
         }}
         result={{
@@ -93,12 +93,12 @@ describe("<QuizReveal />", () => {
           tag_details: [
             {
               tag: "time_pressure",
-              label: "時間壓力",
+              label: "催你快點決定",
               suggestion: "先給自己冷靜期",
             },
             {
               tag: "authority",
-              label: "權威服從",
+              label: "冒充官方或專家",
               suggestion: "主動查證身份",
             },
           ],
@@ -108,8 +108,8 @@ describe("<QuizReveal />", () => {
       />,
     )
 
-    expect(screen.getByText(/漏選/)).toBeTruthy()
-    expect(screen.getByText(/多選/)).toBeTruthy()
+    expect(screen.getByText(/你漏掉/)).toBeTruthy()
+    expect(screen.getByText(/你多選了/)).toBeTruthy()
     expect(screen.getByText(/先給自己冷靜期/)).toBeTruthy()
     expect(screen.getByText(/主動查證身份/)).toBeTruthy()
     expect(screen.getByText(/改編自:Cofacts 原始訊息/)).toBeTruthy()
@@ -127,8 +127,8 @@ describe("<QuizReveal />", () => {
             { pair_id: "pair-2", text: "我是警察" },
           ],
           match_targets: [
-            { tag: "time_pressure", label: "時間壓力" },
-            { tag: "authority", label: "權威服從" },
+            { tag: "time_pressure", label: "催你快點決定" },
+            { tag: "authority", label: "冒充官方或專家" },
           ],
         }}
         result={{
@@ -151,7 +151,7 @@ describe("<QuizReveal />", () => {
           tag_details: [
             {
               tag: "time_pressure",
-              label: "時間壓力",
+              label: "催你快點決定",
               suggestion: "先給自己冷靜期",
             },
           ],
@@ -162,7 +162,7 @@ describe("<QuizReveal />", () => {
     )
 
     expect(screen.getByText(/今晚前匯款/)).toBeTruthy()
-    expect(screen.getByText(/正解：.*時間壓力/)).toBeTruthy()
+    expect(screen.getByText(/正解：.*催你快點決定/)).toBeTruthy()
     expect(screen.getByText(/先給自己冷靜期/)).toBeTruthy()
     expect(screen.getByText(/改編自:金管會新聞稿/)).toBeTruthy()
     expect(screen.getByText(/改編自:司法院判決/)).toBeTruthy()
@@ -196,7 +196,7 @@ const verificationResult = {
   tag_details: [
     {
       tag: "authority",
-      label: "權威服從",
+      label: "冒充官方或專家",
       suggestion: "對方自稱官方時，掛掉電話自己打官方號碼",
     },
   ],
@@ -221,7 +221,7 @@ describe("<QuizReveal /> 查證題", () => {
       ),
     ).toBeDefined()
     // 四種題型的揭曉卡都要標素材來源。
-    expect(screen.getByText("📎 改編自:內政部警政署假客服案例")).toBeDefined()
+    expect(screen.getByText("改編自:內政部警政署假客服案例")).toBeDefined()
   })
 
   it("不把其他選項當成正解顯示", () => {

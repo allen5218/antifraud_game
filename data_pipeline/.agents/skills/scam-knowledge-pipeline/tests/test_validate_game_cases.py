@@ -13,14 +13,14 @@ GOOD_SCAM = {
     "fraud_type": "investment",
     "is_scam": True,
     "title": "群組裡的投資邀請",
-    "narrative": "你在社群看到投資廣告,加入後群組每天貼收益截圖。" * 8,
+    "narrative": "你在社群看到投資廣告，加入後群組每天貼收益截圖。" * 8,
     "red_flags": [
         {"tag": "greed", "text": "聲稱每月收益遠高於定存並要求持續加碼"},
         {"tag": "social_proof", "text": "群組成員輪流貼出入帳截圖並附和老師說法"},
     ],
     "difficulty": 2,
     "source_document_ids": [1],
-    "provenance": "改編自:165 案例",
+    "provenance": "改編自：165 案例",
     "mirror_of_key": None,
 }
 GOOD_LEGIT = dict(
@@ -73,6 +73,31 @@ class GameCaseValidateTests(unittest.TestCase):
     def test_good_pair_passes(self):
         code, out, _ = run_validate([GOOD_SCAM, GOOD_LEGIT])
         self.assertEqual((code, out["valid"], out["rejected"]), (0, 2, 0))
+
+    def test_player_text_writing_rules(self):
+        """玩家看得到的文字:全形標點、不用破折號、不用 AI 腔與公文用語、出處開頭。"""
+        flags = GOOD_SCAM["red_flags"]
+        cases = {
+            "全形標點": dict(GOOD_SCAM, narrative=GOOD_SCAM["narrative"] + "三個月,他常談未來。"),
+            "破折號": dict(GOOD_SCAM, title="群組裡的邀請——穩賺"),
+            "AI 腔": dict(
+                GOOD_SCAM,
+                red_flags=[dict(flags[0], text="關鍵在於每月收益遠高於定存"), flags[1]],
+            ),
+            "公文用語": dict(GOOD_SCAM, narrative=GOOD_SCAM["narrative"] + "請予以配合。"),
+            "改編自：": dict(GOOD_SCAM, provenance="165 反詐騙案例"),
+        }
+        for message, record in cases.items():
+            with self.subTest(message=message):
+                _, out, rejected = run_validate([record])
+                self.assertEqual(out["rejected"], 1)
+                self.assertIn(message, " ".join(rejected[0]["errors"]))
+
+    def test_bad_field_type_rejects_only_that_record(self):
+        """provenance 是數字:那一筆被拒絕,同批其他筆照常通過,不會整批中斷。"""
+        code, out, rejected = run_validate([dict(GOOD_SCAM, provenance=123), GOOD_LEGIT])
+        self.assertEqual((code, out["valid"], out["rejected"]), (1, 1, 1))
+        self.assertIn("provenance", " ".join(rejected[0]["errors"]))
 
     def test_narrative_too_short_rejected(self):
         code, out, _ = run_validate([dict(GOOD_SCAM, narrative="太短")])

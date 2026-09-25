@@ -10,6 +10,7 @@ import {
 } from "recharts"
 
 import { isLoggedIn } from "@/hooks/useAuth"
+import { fraudTypeLabel } from "@/lib/fraudTypes"
 
 export const Route = createFileRoute("/pretest/result")({
   component: PretestResultPage,
@@ -19,17 +20,9 @@ export const Route = createFileRoute("/pretest/result")({
     }
   },
   head: () => ({
-    meta: [{ title: "前測結果 - 反詐騙訓練" }],
+    meta: [{ title: "前測結果 - ScamGym 識詐練習場" }],
   }),
 })
-
-const FRAUD_TYPE_LABELS: Record<string, string> = {
-  investment: "投資詐欺",
-  shopping: "假網路購物",
-  "fake-sale": "偽稱買賣",
-  romance: "假愛情交友",
-  atm: "解除分期付款",
-}
 
 interface FraudTypeResult {
   correct: number
@@ -68,7 +61,7 @@ function PretestResultPage() {
 
   const radarData = Object.entries(result.results_by_type).map(
     ([type, res]) => ({
-      type: FRAUD_TYPE_LABELS[type] ?? "其他類型",
+      type: fraudTypeLabel(type),
       score: res.total > 0 ? Math.round((res.correct / res.total) * 100) : 0,
       fullMark: 100,
     }),
@@ -109,21 +102,21 @@ function PretestResultPage() {
       >
         <ResponsiveContainer width="100%" height={320}>
           <RadarChart data={radarData} cx="50%" cy="50%" outerRadius="75%">
-            <PolarGrid stroke="hsl(var(--border))" />
+            <PolarGrid stroke="var(--border)" />
             <PolarAngleAxis
               dataKey="type"
-              tick={{ fontSize: 12, fill: "hsl(var(--foreground))" }}
+              tick={{ fontSize: 12, fill: "var(--foreground)" }}
             />
             <PolarRadiusAxis
               angle={90}
               domain={[0, 100]}
-              tick={{ fontSize: 10, fill: "hsl(var(--muted-foreground))" }}
+              tick={{ fontSize: 10, fill: "var(--muted-foreground)" }}
             />
             <Radar
               name="正確率"
               dataKey="score"
-              stroke="hsl(var(--primary))"
-              fill="hsl(var(--primary))"
+              stroke="var(--primary)"
+              fill="var(--primary)"
               fillOpacity={0.3}
             />
           </RadarChart>
@@ -134,14 +127,16 @@ function PretestResultPage() {
         initial={{ opacity: 0, y: 10 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.4, delay: 0.4 }}
-        className="mb-8 w-full rounded-xl border border-orange-500/30 bg-orange-500/10 p-5 text-center"
+        className="mb-8 w-full rounded-xl border border-warning/40 bg-warning/15 p-5 text-center"
       >
         <p className="text-sm text-muted-foreground">你最需要加強的類型是</p>
-        <p className="mt-1 text-xl font-bold text-orange-600 dark:text-orange-400">
-          {FRAUD_TYPE_LABELS[result.weakest_type] ?? "其他類型"}
+        <p className="mt-1 text-xl font-bold">
+          {fraudTypeLabel(result.weakest_type)}
         </p>
         <p className="mt-2 text-sm text-muted-foreground">
-          接下來的遊戲將針對這個類型進行強化訓練
+          {
+            "接下來的題組、滑卡和情境對抗都會多練這一類。之後每玩完一輪，系統會依照你的作答重新調整。"
+          }
         </p>
       </motion.div>
 

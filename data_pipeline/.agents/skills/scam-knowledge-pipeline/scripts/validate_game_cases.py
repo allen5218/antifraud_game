@@ -4,7 +4,14 @@
 import argparse
 import json
 import re
-from common import ROOT, WEAKNESS_TAGS, read_jsonl, write_jsonl
+from common import (
+    PROVENANCE_PREFIXES,
+    ROOT,
+    WEAKNESS_TAGS,
+    read_jsonl,
+    write_jsonl,
+    writing_errors,
+)
 from leak_probe import (
     HARD_TAG_TELL_WORDS,
     LEGIT_ENDING_PATTERNS,
@@ -116,6 +123,20 @@ def semantic_errors(rec):
         for name, pattern in PII_PATTERNS:
             if pattern.search(text):
                 errors.append(f"possible {name} in text (去識別化違規)")
+
+    # 玩家看得到的文字(見 references/curation.md「玩家看得到的文字」)
+    provenance = rec.get("provenance") or ""
+    fields = [("title", title), ("narrative", narrative), ("provenance", provenance)]
+    fields.extend(
+        (f"red_flags[{index}].text", flag.get("text") or "")
+        for index, flag in enumerate(flags)
+    )
+    for field, text in fields:
+        errors.extend(writing_errors(field, text))
+    if isinstance(provenance, str) and not provenance.startswith(PROVENANCE_PREFIXES):
+        errors.append(
+            "provenance 要以「改編自：」（真實案例）或「依據：」（官方流程）開頭"
+        )
     return errors
 
 
@@ -146,7 +167,9 @@ def main():
                     errors.append(
                         f"{'.'.join(str(p) for p in e.path) or '<root>'}: {e.message}"
                     )
-            errors.extend(semantic_errors(rec))
+            # 語意檢查假設欄位型別正確;schema 沒過就不跑,免得一筆壞資料讓整批中斷
+            if not errors:
+                errors.extend(semantic_errors(rec))
             mirror_key = rec.get("mirror_of_key")
             mirror = records_by_key.get(mirror_key)
             if (
