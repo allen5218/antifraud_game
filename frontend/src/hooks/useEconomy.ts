@@ -4,7 +4,7 @@ import useCustomToast from "./useCustomToast"
 
 // ── 錯誤處理輔助 ────────────────────────────────────────────────────────────────
 
-function extractErrorCode(err: unknown): string | undefined {
+export function extractErrorCode(err: unknown): string | undefined {
   const body = (err as { body?: unknown })?.body
   const detail = (body as { detail?: unknown })?.detail
   if (detail && typeof detail === "object" && "code" in detail) {

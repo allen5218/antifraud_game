@@ -4,7 +4,7 @@ from datetime import date, datetime, timezone
 from typing import Any
 
 from pydantic import EmailStr
-from sqlalchemy import BigInteger, Column, DateTime
+from sqlalchemy import BigInteger, Column, DateTime, Index, text
 from sqlalchemy.dialects.postgresql import JSONB
 from sqlmodel import Field, Relationship, SQLModel
 
@@ -70,6 +70,8 @@ class User(UserBase, table=True):
     )
     bankruptcy_pending: bool = Field(default=False)
     bankruptcy_count: int = Field(default=0)
+    # 排行榜上顯示的名字；沒設定時顯示由帳號 id 算出的匿名名稱（app/daily/names.py）
+    nickname: str | None = Field(default=None, max_length=12)
 
     properties: list["UserProperty"] = Relationship(
         back_populates="owner", cascade_delete=True
@@ -427,6 +429,16 @@ class QuizSession(SQLModel, table=True):
     """
 
     __tablename__ = "quiz_session"
+    # 每日訓練：同一人同一天只能有一份（一般題組的 daily_date 是 NULL，不受限）
+    __table_args__ = (
+        Index(
+            "uq_quiz_session_user_daily",
+            "user_id",
+            "daily_date",
+            unique=True,
+            postgresql_where=text("daily_date IS NOT NULL"),
+        ),
+    )
 
     id: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True)
     user_id: uuid.UUID = Field(
@@ -445,6 +457,8 @@ class QuizSession(SQLModel, table=True):
         default={}, sa_column=Column(JSONB, nullable=False, server_default="{}")
     )
     completed: bool = Field(default=False)
+    # 每日訓練的牌局才有值（台灣日期）；結算時據此加發完成獎勵並寫 daily_result
+    daily_date: date | None = Field(default=None)
     created_at: datetime | None = Field(
         default_factory=get_datetime_utc,
         sa_type=DateTime(timezone=True),  # type: ignore
@@ -489,5 +503,49 @@ class SwipeSession(SQLModel, table=True):
     )
     completed_at: datetime | None = Field(
         default=None,
+        sa_type=DateTime(timezone=True),  # type: ignore
+    )
+
+
+class DailyChallenge(SQLModel, table=True):
+    """某一天所有人共用的每日訓練題目，當天第一個請求時產生。
+
+    items 是結算用的題目描述（與 QuizSession.items 同格式），public_items 是發給
+    前端的題目（選項順序也固定），所有人看到的完全一樣，排行榜才公平。
+    """
+
+    __tablename__ = "daily_challenge"
+
+    day: date = Field(primary_key=True)
+    case_ids: list[int] = Field(
+        default=[], sa_column=Column(JSONB, nullable=False, server_default="[]")
+    )
+    items: list[dict] = Field(  # type: ignore
+        default=[], sa_column=Column(JSONB, nullable=False, server_default="[]")
+    )
+    public_items: list[dict] = Field(  # type: ignore
+        default=[], sa_column=Column(JSONB, nullable=False, server_default="[]")
+    )
+    created_at: datetime | None = Field(
+        default_factory=get_datetime_utc,
+        sa_type=DateTime(timezone=True),  # type: ignore
+    )
+
+
+class DailyResult(SQLModel, table=True):
+    """每日訓練的成績，一人一天一列；排行榜只讀這張表。"""
+
+    __tablename__ = "daily_result"
+
+    user_id: uuid.UUID = Field(
+        foreign_key="user.id", primary_key=True, ondelete="CASCADE"
+    )
+    day: date = Field(primary_key=True, index=True)
+    correct: int
+    total: int
+    # 從拿到題目到結算的秒數（伺服器計時），同分時用時短的排前面
+    duration_seconds: int
+    completed_at: datetime = Field(
+        default_factory=get_datetime_utc,
         sa_type=DateTime(timezone=True),  # type: ignore
     )

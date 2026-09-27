@@ -1,14 +1,18 @@
 import { Link } from "@tanstack/react-router"
 import { RotateCcw } from "lucide-react"
+import type { ReactNode } from "react"
 import type { QuizCompleteResponse } from "@/client"
 
 interface QuizSummaryProps {
   result: QuizCompleteResponse
-  onRestart: () => void
+  /** 沒給就不顯示「再來一輪」（每日訓練一天只有一次） */
+  onRestart?: () => void
+  /** 放在成績下方的額外內容，例如每日訓練的排名入口 */
+  children?: ReactNode
 }
 
 /** 回合結算：成績、獎勵、這輪漏看的話術 */
-export function QuizSummary({ result, onRestart }: QuizSummaryProps) {
+export function QuizSummary({ result, onRestart, children }: QuizSummaryProps) {
   return (
     <div className="flex h-full flex-col items-center justify-center gap-3 px-6 py-10 text-center">
       <img
@@ -48,14 +52,17 @@ export function QuizSummary({ result, onRestart }: QuizSummaryProps) {
       <p className="text-[11px] text-muted-foreground">
         接下來的題目會依照這輪的結果調整。
       </p>
-      <button
-        type="button"
-        onClick={onRestart}
-        className="mt-1 flex w-full items-center justify-center gap-1.5 rounded-xl bg-primary py-2.5 text-sm font-bold text-primary-foreground"
-      >
-        <RotateCcw aria-hidden className="size-4" />
-        再來一輪
-      </button>
+      {children}
+      {onRestart && (
+        <button
+          type="button"
+          onClick={onRestart}
+          className="mt-1 flex w-full items-center justify-center gap-1.5 rounded-xl bg-primary py-2.5 text-sm font-bold text-primary-foreground"
+        >
+          <RotateCcw aria-hidden className="size-4" />
+          再來一輪
+        </button>
+      )}
       <Link to="/" className="text-xs text-muted-foreground underline">
         回首頁
       </Link>

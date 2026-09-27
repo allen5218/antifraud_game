@@ -33,8 +33,14 @@ from app.core.weakness import (
     WEAKNESS_SUGGESTIONS,
     WEAKNESS_TAGS,
 )
+from app.daily.dates import taipei_today
+from app.daily.results import (
+    DAILY_BONUS_CASH,
+    DAILY_BONUS_XP,
+    record_daily_result,
+)
 from app.economy.levels import level_of
-from app.economy.service import add_xp, adjust_cash, lock_user
+from app.economy.service import add_xp, adjust_cash, lock_user, touch_streak
 from app.models import QuizSession, SwipeCard, SwipeSession
 from app.practice.profile import weighted_order
 from app.practice.service import (
@@ -273,6 +279,7 @@ def swipe_complete(
     current_user = lock_user(session, current_user)
     adjust_cash(current_user, cash, reason="swipe_reward")
     add_xp(current_user, xp, reason="swipe_reward")
+    touch_streak(current_user, taipei_today())
     # 標記已結算與發獎同一個 commit:不會有「已發獎但還能再結算」的中間狀態
     swipe.completed = True
     swipe.completed_at = datetime.now(timezone.utc)
@@ -370,14 +377,26 @@ def _cases_excluding(
     ]
 
 
-@router.get("/quiz/deck", response_model=QuizDeckResponse)
-def quiz_deck(session: SessionDep, current_user: CurrentUser, size: int = 5) -> Any:
-    size = max(1, min(size, 10))
-    max_difficulty = max_difficulty_for_level(level_of(current_user.xp))
+@dataclass
+class BuiltDeck:
+    """一副題組：結算用的 stored_items 與發給前端的 public_items 順序一致。"""
+
+    stored_items: list[dict[str, Any]]
+    public_items: list[QuizDeckItem]
+    case_ids: list[int]
+    mirror_relaxed_count: int
+
+
+def build_quiz_deck(
+    session: Session,
+    *,
+    size: int,
+    max_difficulty: int | None,
+    focus: str | None,
+) -> BuiltDeck:
+    """選材並組出一副題組。題組與每日訓練共用；`focus` 為 None 時不偏重任何類型。"""
     cases = list_published_for_quiz(session)
     shuffle(cases)
-    # 練習重點(或前測的最弱類型)那一類約佔六成;沒有任何紀錄就維持全隨機。
-    focus = practice_focus(session, current_user.id)
 
     # 查證題先選。它與案例題型互相排斥(同一個情境不能在一副牌出現兩次),
     # 如果反過來先選案例題再挑查證題,兩邊的數量會互相牽動而收斂不了,
@@ -549,18 +568,37 @@ def quiz_deck(session: SessionDep, current_user: CurrentUser, size: int = 5) -> 
     shuffle(public_items)
     stored_by_item_id = {str(item["item_id"]): item for item in stored_items}
     stored_items = [stored_by_item_id[item.item_id] for item in public_items]
+    return BuiltDeck(
+        stored_items=stored_items,
+        public_items=public_items,
+        case_ids=case_ids,
+        mirror_relaxed_count=material.mirror_relaxed_count,
+    )
+
+
+@router.get("/quiz/deck", response_model=QuizDeckResponse)
+def quiz_deck(session: SessionDep, current_user: CurrentUser, size: int = 5) -> Any:
+    size = max(1, min(size, 10))
+    max_difficulty = max_difficulty_for_level(level_of(current_user.xp))
+    # 練習重點(或前測的最弱類型)那一類約佔六成;沒有任何紀錄就維持全隨機。
+    focus = practice_focus(session, current_user.id)
+    deck = build_quiz_deck(
+        session, size=size, max_difficulty=max_difficulty, focus=focus
+    )
     # 一次性結算 token 同時鎖定題目索引與全部底層 case id。
-    quiz = QuizSession(user_id=current_user.id, case_ids=case_ids, items=stored_items)
-    if material.mirror_relaxed_count:
+    quiz = QuizSession(
+        user_id=current_user.id, case_ids=deck.case_ids, items=deck.stored_items
+    )
+    if deck.mirror_relaxed_count:
         logger.warning(
             "quiz 牌組 %s 放寬鏡像排除 %d 張",
             quiz.id,
-            material.mirror_relaxed_count,
+            deck.mirror_relaxed_count,
         )
     session.add(quiz)
     session.commit()
     session.refresh(quiz)
-    return QuizDeckResponse(session_id=str(quiz.id), items=public_items)
+    return QuizDeckResponse(session_id=str(quiz.id), items=deck.public_items)
 
 
 def _quiz_session_id(raw_session_id: str) -> uuid.UUID:
@@ -951,9 +989,25 @@ def quiz_complete(
     current_user = lock_user(session, current_user)
     adjust_cash(current_user, cash, reason="quiz_reward")
     add_xp(current_user, xp, reason="quiz_reward")
+    completed_at = datetime.now(timezone.utc)
+    if quiz.daily_date is not None:
+        # 每日訓練：完成獎勵與成績跟一般獎勵同一個 commit；一人一天只有一份牌局，
+        # 這裡又只會走一次（上面已擋重複結算），所以不會重複發。
+        adjust_cash(current_user, DAILY_BONUS_CASH, reason="daily_bonus")
+        add_xp(current_user, DAILY_BONUS_XP, reason="daily_bonus")
+        cash += DAILY_BONUS_CASH
+        xp += DAILY_BONUS_XP
+        record_daily_result(
+            session,
+            quiz,
+            correct=correct_count,
+            total=total,
+            completed_at=completed_at,
+        )
+    touch_streak(current_user, taipei_today())
     # 標記已結算與加獎同一 commit 原子化——不會有「已發獎但可重放」的中間態
     quiz.completed = True
-    quiz.completed_at = datetime.now(timezone.utc)
+    quiz.completed_at = completed_at
     session.add(current_user)
     session.add(quiz)
     user_id = current_user.id

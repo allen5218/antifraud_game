@@ -22,6 +22,25 @@ export type BuyPropertyResponse = {
     new_cash: number;
 };
 
+export type DailyResultPublic = {
+    correct: number;
+    total: number;
+    duration_seconds: number;
+    rank: number;
+    participants: number;
+};
+
+export type DailyTodayResponse = {
+    day: string;
+    status: 'ready' | 'completed';
+    session_id: string;
+    items: Array<(QuizVerdictPublic | QuizTacticsPublic | QuizMatchPublic | QuizVerificationPublic)>;
+    answered_item_ids: Array<(string)>;
+    result?: (DailyResultPublic | null);
+};
+
+export type status = 'ready' | 'completed';
+
 export type EconomyMeResponse = {
     cash: number;
     xp: number;
@@ -69,6 +88,26 @@ export type ItemUpdate = {
     description?: (string | null);
 };
 
+export type LeaderboardEntry = {
+    rank: number;
+    name: string;
+    correct: number;
+    total: number;
+    days: number;
+    duration_seconds: number;
+    is_me: boolean;
+};
+
+export type LeaderboardResponse = {
+    period: 'today' | 'week';
+    entries: Array<LeaderboardEntry>;
+    me: (LeaderboardEntry | null);
+    nickname: (string | null);
+    participants: number;
+};
+
+export type period = 'today' | 'week';
+
 export type LiquidateRequest = {
     property_ids: Array<(string)>;
 };
@@ -86,6 +125,14 @@ export type Message = {
 export type NewPassword = {
     token: string;
     new_password: string;
+};
+
+export type NicknameResponse = {
+    nickname: (string | null);
+};
+
+export type NicknameUpdate = {
+    nickname: string;
 };
 
 export type OwnedPropertyPublic = {
@@ -453,6 +500,8 @@ export type WeaknessSummaryItem = {
     count: number;
 };
 
+export type DailyDailyTodayResponse = (DailyTodayResponse);
+
 export type EconomyReadMeResponse = (EconomyMeResponse);
 
 export type EconomyPostSettleResponse = (EconomyMeResponse);
@@ -506,6 +555,18 @@ export type ItemsDeleteItemData = {
 };
 
 export type ItemsDeleteItemResponse = (Message);
+
+export type LeaderboardReadLeaderboardData = {
+    period?: 'today' | 'week';
+};
+
+export type LeaderboardReadLeaderboardResponse = (LeaderboardResponse);
+
+export type LeaderboardUpdateNicknameData = {
+    requestBody: NicknameUpdate;
+};
+
+export type LeaderboardUpdateNicknameResponse = (NicknameResponse);
 
 export type LoginLoginAccessTokenData = {
     formData: Body_login_login_access_token;

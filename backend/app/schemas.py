@@ -1,3 +1,4 @@
+from datetime import date
 from typing import Annotated, Any, Literal
 
 from pydantic import BaseModel, Field, StringConstraints
@@ -387,3 +388,53 @@ class QuizCompleteResponse(BaseModel):
     cash_earned: int
     xp_earned: int
     weakness_summary: list[WeaknessSummaryItem]
+
+
+# ── 每日訓練與排行榜 ─────────────────────────────────────────
+
+
+class DailyResultPublic(BaseModel):
+    correct: int
+    total: int
+    duration_seconds: int
+    # 今日名次與今天完成的人數
+    rank: int
+    participants: int
+
+
+class DailyTodayResponse(BaseModel):
+    day: date
+    # ready：還沒結算（可能已答了幾題）；completed：今天已完成，只回成績
+    status: Literal["ready", "completed"]
+    session_id: str
+    items: list[QuizDeckItem]
+    # 中途離開再回來時，從第一個還沒作答的題目接著做
+    answered_item_ids: list[str]
+    result: DailyResultPublic | None = None
+
+
+class LeaderboardEntry(BaseModel):
+    rank: int
+    name: str
+    correct: int
+    total: int
+    days: int
+    duration_seconds: int
+    is_me: bool
+
+
+class LeaderboardResponse(BaseModel):
+    period: Literal["today", "week"]
+    entries: list[LeaderboardEntry]
+    # 自己不在榜單前段時另外附上；今天（本週）還沒做過每日訓練就是 None
+    me: LeaderboardEntry | None
+    nickname: str | None
+    participants: int
+
+
+class NicknameUpdate(BaseModel):
+    nickname: str = Field(max_length=64)
+
+
+class NicknameResponse(BaseModel):
+    nickname: str | None

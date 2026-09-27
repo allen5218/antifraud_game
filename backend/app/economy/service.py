@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from datetime import datetime, timedelta, timezone
+from datetime import date, datetime, timedelta, timezone
 from enum import Enum
 
 from sqlmodel import Session
@@ -17,6 +17,20 @@ class EconomyError(str, Enum):
     LEVEL_REQUIRED = "level_required"
     BANKRUPTCY_PENDING = "bankruptcy_pending"
     PROPERTY_NOT_OWNED = "property_not_owned"
+
+
+def touch_streak(user: User, today: date) -> None:
+    """完成一輪練習時更新連續天數：今天已算過不變、昨天有練 +1、中斷就從 1 開始。
+
+    呼叫端要先 lock_user，並在同一個交易裡 commit。
+    """
+    if user.streak_last_day == today:
+        return
+    if user.streak_last_day == today - timedelta(days=1):
+        user.streak_days += 1
+    else:
+        user.streak_days = 1
+    user.streak_last_day = today
 
 
 def lock_user(session: Session, user: User) -> User:

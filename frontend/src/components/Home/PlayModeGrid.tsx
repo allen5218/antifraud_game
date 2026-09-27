@@ -14,7 +14,7 @@ interface Mode {
   label: string
   desc: string
   unlockLevel: number
-  href?: "/quick/quiz" | "/quick/swipe"
+  href: "/quick/quiz" | "/quick/swipe" | "/daily" | "/leaderboard"
 }
 
 const MODES: Mode[] = [
@@ -32,8 +32,20 @@ const MODES: Mode[] = [
     unlockLevel: 1,
     href: "/quick/swipe",
   },
-  { icon: CalendarCheck, label: "每日訓練", desc: "Lv.5 解鎖", unlockLevel: 5 },
-  { icon: Trophy, label: "排行榜", desc: "Lv.5 解鎖", unlockLevel: 5 },
+  {
+    icon: CalendarCheck,
+    label: "每日訓練",
+    desc: "大家同一份 10 題",
+    unlockLevel: 5,
+    href: "/daily",
+  },
+  {
+    icon: Trophy,
+    label: "排行榜",
+    desc: "每日訓練排名",
+    unlockLevel: 5,
+    href: "/leaderboard",
+  },
 ]
 
 export function PlayModeGrid() {
@@ -51,7 +63,9 @@ export function PlayModeGrid() {
               className={`size-5 ${locked ? "text-muted-foreground" : "text-primary"}`}
             />
             <div className="mt-2 text-xs font-bold">{m.label}</div>
-            <div className="text-[10px] text-muted-foreground">{m.desc}</div>
+            <div className="text-[10px] text-muted-foreground">
+              {locked ? `Lv.${m.unlockLevel} 解鎖` : m.desc}
+            </div>
           </>
         )
         return (
@@ -69,7 +83,7 @@ export function PlayModeGrid() {
             }
             data-testid={`mode-${m.label}`}
           >
-            {!locked && m.href ? (
+            {!locked ? (
               <Link to={m.href} className="block">
                 {inner}
               </Link>

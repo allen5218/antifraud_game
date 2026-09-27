@@ -101,6 +101,102 @@ export const BuyPropertyResponseSchema = {
     title: 'BuyPropertyResponse'
 } as const;
 
+export const DailyResultPublicSchema = {
+    properties: {
+        correct: {
+            type: 'integer',
+            title: 'Correct'
+        },
+        total: {
+            type: 'integer',
+            title: 'Total'
+        },
+        duration_seconds: {
+            type: 'integer',
+            title: 'Duration Seconds'
+        },
+        rank: {
+            type: 'integer',
+            title: 'Rank'
+        },
+        participants: {
+            type: 'integer',
+            title: 'Participants'
+        }
+    },
+    type: 'object',
+    required: ['correct', 'total', 'duration_seconds', 'rank', 'participants'],
+    title: 'DailyResultPublic'
+} as const;
+
+export const DailyTodayResponseSchema = {
+    properties: {
+        day: {
+            type: 'string',
+            format: 'date',
+            title: 'Day'
+        },
+        status: {
+            type: 'string',
+            enum: ['ready', 'completed'],
+            title: 'Status'
+        },
+        session_id: {
+            type: 'string',
+            title: 'Session Id'
+        },
+        items: {
+            items: {
+                oneOf: [
+                    {
+                        '$ref': '#/components/schemas/QuizVerdictPublic'
+                    },
+                    {
+                        '$ref': '#/components/schemas/QuizTacticsPublic'
+                    },
+                    {
+                        '$ref': '#/components/schemas/QuizMatchPublic'
+                    },
+                    {
+                        '$ref': '#/components/schemas/QuizVerificationPublic'
+                    }
+                ],
+                discriminator: {
+                    propertyName: 'type',
+                    mapping: {
+                        match: '#/components/schemas/QuizMatchPublic',
+                        tactics: '#/components/schemas/QuizTacticsPublic',
+                        verdict: '#/components/schemas/QuizVerdictPublic',
+                        verification: '#/components/schemas/QuizVerificationPublic'
+                    }
+                }
+            },
+            type: 'array',
+            title: 'Items'
+        },
+        answered_item_ids: {
+            items: {
+                type: 'string'
+            },
+            type: 'array',
+            title: 'Answered Item Ids'
+        },
+        result: {
+            anyOf: [
+                {
+                    '$ref': '#/components/schemas/DailyResultPublic'
+                },
+                {
+                    type: 'null'
+                }
+            ]
+        }
+    },
+    type: 'object',
+    required: ['day', 'status', 'session_id', 'items', 'answered_item_ids'],
+    title: 'DailyTodayResponse'
+} as const;
+
 export const EconomyMeResponseSchema = {
     properties: {
         cash: {
@@ -315,6 +411,87 @@ export const ItemsPublicSchema = {
     title: 'ItemsPublic'
 } as const;
 
+export const LeaderboardEntrySchema = {
+    properties: {
+        rank: {
+            type: 'integer',
+            title: 'Rank'
+        },
+        name: {
+            type: 'string',
+            title: 'Name'
+        },
+        correct: {
+            type: 'integer',
+            title: 'Correct'
+        },
+        total: {
+            type: 'integer',
+            title: 'Total'
+        },
+        days: {
+            type: 'integer',
+            title: 'Days'
+        },
+        duration_seconds: {
+            type: 'integer',
+            title: 'Duration Seconds'
+        },
+        is_me: {
+            type: 'boolean',
+            title: 'Is Me'
+        }
+    },
+    type: 'object',
+    required: ['rank', 'name', 'correct', 'total', 'days', 'duration_seconds', 'is_me'],
+    title: 'LeaderboardEntry'
+} as const;
+
+export const LeaderboardResponseSchema = {
+    properties: {
+        period: {
+            type: 'string',
+            enum: ['today', 'week'],
+            title: 'Period'
+        },
+        entries: {
+            items: {
+                '$ref': '#/components/schemas/LeaderboardEntry'
+            },
+            type: 'array',
+            title: 'Entries'
+        },
+        me: {
+            anyOf: [
+                {
+                    '$ref': '#/components/schemas/LeaderboardEntry'
+                },
+                {
+                    type: 'null'
+                }
+            ]
+        },
+        nickname: {
+            anyOf: [
+                {
+                    type: 'string'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Nickname'
+        },
+        participants: {
+            type: 'integer',
+            title: 'Participants'
+        }
+    },
+    type: 'object',
+    required: ['period', 'entries', 'me', 'nickname', 'participants'],
+    title: 'LeaderboardResponse'
+} as const;
+
 export const LiquidateRequestSchema = {
     properties: {
         property_ids: {
@@ -378,6 +555,38 @@ export const NewPasswordSchema = {
     type: 'object',
     required: ['token', 'new_password'],
     title: 'NewPassword'
+} as const;
+
+export const NicknameResponseSchema = {
+    properties: {
+        nickname: {
+            anyOf: [
+                {
+                    type: 'string'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Nickname'
+        }
+    },
+    type: 'object',
+    required: ['nickname'],
+    title: 'NicknameResponse'
+} as const;
+
+export const NicknameUpdateSchema = {
+    properties: {
+        nickname: {
+            type: 'string',
+            maxLength: 64,
+            title: 'Nickname'
+        }
+    },
+    type: 'object',
+    required: ['nickname'],
+    title: 'NicknameUpdate'
 } as const;
 
 export const OwnedPropertyPublicSchema = {
