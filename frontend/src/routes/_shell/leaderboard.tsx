@@ -40,8 +40,7 @@ function LeaderboardPage() {
       <div>
         <h2 className="text-lg font-bold">排行榜</h2>
         <p className="text-xs text-muted-foreground">
-          比的是每日訓練的成績：今日看當天答對幾題，同分比用時；本週看最近 7
-          天的累計。
+          依每日訓練的成績排名，答對一樣多時比速度。
         </p>
       </div>
 
