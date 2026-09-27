@@ -11,6 +11,8 @@ export function useDailyToday() {
     queryKey: ["daily", "today"],
     queryFn: () => DailyService.dailyToday(),
     staleTime: 0,
+    // 離開頁面就丟掉快取：結算後再進來，不會先閃出結算前的作答畫面
+    gcTime: 0,
     refetchOnWindowFocus: false,
     retry: false,
   })
