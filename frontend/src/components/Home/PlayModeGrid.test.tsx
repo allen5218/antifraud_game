@@ -8,12 +8,14 @@ import {
 } from "@tanstack/react-router"
 import { act, cleanup, render, screen } from "@testing-library/react"
 
+let economyLevel = 3
+
 mock.module("@/hooks/useEconomy", () => ({
   useEconomyMe: () => ({
     data: {
       cash: 12450,
       streak_days: 5,
-      level: 3,
+      level: economyLevel,
       pending_accrual: 840,
       bankruptcy_pending: false,
       xp: 850,
@@ -57,5 +59,24 @@ describe("<PlayModeGrid />", () => {
     expect(unlocked.getAttribute("data-locked")).toBe("false")
     expect(locked.getAttribute("aria-disabled")).toBe("true")
     expect(locked.getAttribute("data-locked")).toBe("true")
+    expect(locked.textContent).toContain("Lv.5 解鎖")
+    expect(locked.querySelector("a")).toBeNull()
+  })
+
+  it("every unlocked card is a real link", async () => {
+    economyLevel = 6
+    await renderWithRouter()
+    for (const [label, href] of [
+      ["題組訓練", "/quick/quiz"],
+      ["滑卡劇情", "/quick/swipe"],
+      ["每日訓練", "/daily"],
+      ["排行榜", "/leaderboard"],
+    ]) {
+      const card = screen.getByTestId(`mode-${label}`)
+      expect(card.getAttribute("data-locked")).toBe("false")
+      expect(card.querySelector("a")?.getAttribute("href")).toBe(href)
+      expect(card.textContent).not.toContain("解鎖")
+    }
+    economyLevel = 3
   })
 })

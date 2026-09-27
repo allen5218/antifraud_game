@@ -118,6 +118,17 @@ pre-commit 有 `generate-frontend-sdk` hook，當 `backend/` 變更時會自動�
 對話歷史存在 `ScenarioSession.conversation_history`（JSON list），`role` 為 `"npc"` / `"player"`。
 設定集中在 `backend/app/scenario/config.py`：`MAX_TURNS=10`、`SCENARIO_DAILY_LIMIT_PER_TYPE=3`（練習重點那一類 `SCENARIO_DAILY_LIMIT_FOCUS=5`）、`SCAM_RATIO=0.5`。
 
+### 每日訓練與排行榜（Lv.5 解鎖）— 題組的變形，一樣無 AI
+
+`backend/app/daily/`。**每日訓練是「所有人同一份題目」的題組**：
+- 台灣日期（固定 UTC+8，`daily/dates.py` 的 `taipei_today()`）當天第一個請求時，用 `quick.build_quiz_deck`（10 題、不限難度、**不套練習重點**）產生題目存進 `daily_challenge`，之後所有人讀同一份。
+- 每人每天一個 `QuizSession(daily_date=今天)`（部分唯一索引擋重複），作答與結算沿用 `/quick/quiz/answer`、`/quick/quiz/complete`；結算時 `daily_date` 有值就加發完成獎勵並寫 `daily_result`（答對、用時）。
+- `GET /daily/today` 第一次呼叫才建立牌局並開始計時，**首頁不要呼叫它**。
+- 排行榜 `GET /leaderboard?period=today|week` 只讀 `daily_result`；名字是 `user.nickname`，沒設定顯示 `玩家 #NNNN`（`daily/names.py`，暱稱擋 email、網址、LINE、連續數字）。
+- 等級不足回 **400** `level_required`，不要用 403：前端 `main.tsx` 收到 401／403 會直接登出。
+
+**連續天數**：題組、滑卡、情境對抗結算時呼叫 `economy.service.touch_streak()`（同日不變、昨天有練 +1、中斷重設 1）。
+
 ### 3. economy — 唯一入口原則
 
 `backend/app/economy/service.py` 的 `adjust_cash()` / `add_xp()` 是變更 `User.cash` / `User.xp` 的**唯一入口**。任何新玩法要發獎勵都必須經過它們，不要直接改欄位。

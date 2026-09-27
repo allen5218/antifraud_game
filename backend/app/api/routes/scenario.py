@@ -8,7 +8,8 @@ from sqlmodel import col, func, select
 
 from app.api.deps import CurrentUser, SessionDep
 from app.core.cases import get_case, pick_case
-from app.economy.service import add_xp, adjust_cash, lock_user
+from app.daily.dates import taipei_today
+from app.economy.service import add_xp, adjust_cash, lock_user, touch_streak
 from app.models import FraudType, ScenarioSession, ScenarioStatus
 from app.practice.service import (
     practice_focus,
@@ -278,6 +279,7 @@ def judge_scenario(
     current_user = lock_user(session, current_user)
     adjust_cash(current_user, cash_delta, reason=outcome)
     add_xp(current_user, xp_delta, reason=outcome)
+    touch_streak(current_user, taipei_today())
 
     sc.status = ScenarioStatus.COMPLETED
     sc.outcome = outcome

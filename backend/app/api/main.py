@@ -1,8 +1,10 @@
 from fastapi import APIRouter
 
 from app.api.routes import (
+    daily,
     economy,
     items,
+    leaderboard,
     login,
     mascot,
     practice,
@@ -28,6 +30,8 @@ api_router.include_router(mascot.router)
 api_router.include_router(economy.router)
 api_router.include_router(quick.router)
 api_router.include_router(scenario.router)
+api_router.include_router(daily.router)
+api_router.include_router(leaderboard.router)
 
 
 if settings.ENVIRONMENT == "local":

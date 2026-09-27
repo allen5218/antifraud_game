@@ -19,6 +19,8 @@ import { Route as LayoutRouteImport } from './routes/_layout'
 import { Route as ShellIndexRouteImport } from './routes/_shell/index'
 import { Route as PretestResultRouteImport } from './routes/pretest.result'
 import { Route as ShellMeRouteImport } from './routes/_shell/me'
+import { Route as ShellLeaderboardRouteImport } from './routes/_shell/leaderboard'
+import { Route as ShellDailyRouteImport } from './routes/_shell/daily'
 import { Route as ShellAssetsRouteImport } from './routes/_shell/assets'
 import { Route as LayoutSettingsRouteImport } from './routes/_layout/settings'
 import { Route as LayoutMascotRouteImport } from './routes/_layout/mascot'
@@ -75,6 +77,16 @@ const PretestResultRoute = PretestResultRouteImport.update({
 const ShellMeRoute = ShellMeRouteImport.update({
   id: '/me',
   path: '/me',
+  getParentRoute: () => ShellRoute,
+} as any)
+const ShellLeaderboardRoute = ShellLeaderboardRouteImport.update({
+  id: '/leaderboard',
+  path: '/leaderboard',
+  getParentRoute: () => ShellRoute,
+} as any)
+const ShellDailyRoute = ShellDailyRouteImport.update({
+  id: '/daily',
+  path: '/daily',
   getParentRoute: () => ShellRoute,
 } as any)
 const ShellAssetsRoute = ShellAssetsRouteImport.update({
@@ -136,6 +148,8 @@ export interface FileRoutesByFullPath {
   '/mascot': typeof LayoutMascotRoute
   '/settings': typeof LayoutSettingsRoute
   '/assets': typeof ShellAssetsRoute
+  '/daily': typeof ShellDailyRoute
+  '/leaderboard': typeof ShellLeaderboardRoute
   '/me': typeof ShellMeRoute
   '/pretest/result': typeof PretestResultRoute
   '/quick/quiz': typeof ShellQuickQuizRoute
@@ -155,6 +169,8 @@ export interface FileRoutesByTo {
   '/mascot': typeof LayoutMascotRoute
   '/settings': typeof LayoutSettingsRoute
   '/assets': typeof ShellAssetsRoute
+  '/daily': typeof ShellDailyRoute
+  '/leaderboard': typeof ShellLeaderboardRoute
   '/me': typeof ShellMeRoute
   '/pretest/result': typeof PretestResultRoute
   '/quick/quiz': typeof ShellQuickQuizRoute
@@ -176,6 +192,8 @@ export interface FileRoutesById {
   '/_layout/mascot': typeof LayoutMascotRoute
   '/_layout/settings': typeof LayoutSettingsRoute
   '/_shell/assets': typeof ShellAssetsRoute
+  '/_shell/daily': typeof ShellDailyRoute
+  '/_shell/leaderboard': typeof ShellLeaderboardRoute
   '/_shell/me': typeof ShellMeRoute
   '/pretest/result': typeof PretestResultRoute
   '/_shell/': typeof ShellIndexRoute
@@ -198,6 +216,8 @@ export interface FileRouteTypes {
     | '/mascot'
     | '/settings'
     | '/assets'
+    | '/daily'
+    | '/leaderboard'
     | '/me'
     | '/pretest/result'
     | '/quick/quiz'
@@ -217,6 +237,8 @@ export interface FileRouteTypes {
     | '/mascot'
     | '/settings'
     | '/assets'
+    | '/daily'
+    | '/leaderboard'
     | '/me'
     | '/pretest/result'
     | '/quick/quiz'
@@ -237,6 +259,8 @@ export interface FileRouteTypes {
     | '/_layout/mascot'
     | '/_layout/settings'
     | '/_shell/assets'
+    | '/_shell/daily'
+    | '/_shell/leaderboard'
     | '/_shell/me'
     | '/pretest/result'
     | '/_shell/'
@@ -328,6 +352,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ShellMeRouteImport
       parentRoute: typeof ShellRoute
     }
+    '/_shell/leaderboard': {
+      id: '/_shell/leaderboard'
+      path: '/leaderboard'
+      fullPath: '/leaderboard'
+      preLoaderRoute: typeof ShellLeaderboardRouteImport
+      parentRoute: typeof ShellRoute
+    }
+    '/_shell/daily': {
+      id: '/_shell/daily'
+      path: '/daily'
+      fullPath: '/daily'
+      preLoaderRoute: typeof ShellDailyRouteImport
+      parentRoute: typeof ShellRoute
+    }
     '/_shell/assets': {
       id: '/_shell/assets'
       path: '/assets'
@@ -413,6 +451,8 @@ const LayoutRouteWithChildren =
 
 interface ShellRouteChildren {
   ShellAssetsRoute: typeof ShellAssetsRoute
+  ShellDailyRoute: typeof ShellDailyRoute
+  ShellLeaderboardRoute: typeof ShellLeaderboardRoute
   ShellMeRoute: typeof ShellMeRoute
   ShellIndexRoute: typeof ShellIndexRoute
   ShellQuickQuizRoute: typeof ShellQuickQuizRoute
@@ -423,6 +463,8 @@ interface ShellRouteChildren {
 
 const ShellRouteChildren: ShellRouteChildren = {
   ShellAssetsRoute: ShellAssetsRoute,
+  ShellDailyRoute: ShellDailyRoute,
+  ShellLeaderboardRoute: ShellLeaderboardRoute,
   ShellMeRoute: ShellMeRoute,
   ShellIndexRoute: ShellIndexRoute,
   ShellQuickQuizRoute: ShellQuickQuizRoute,
