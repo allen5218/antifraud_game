@@ -74,9 +74,7 @@ function DailyDone({ today }: { today: DailyTodayResponse }) {
           已連續練習 {economy.streak_days} 天
         </p>
       )}
-      <p className="text-xs text-muted-foreground">
-        明天會有新的 10 題，大家的題目都一樣。
-      </p>
+      <p className="text-xs text-muted-foreground">明天再來挑戰新的 10 題。</p>
       <Link to="/leaderboard" className={PRIMARY_LINK}>
         <Trophy aria-hidden className="size-4" />
         看排行榜
@@ -114,9 +112,7 @@ function DailyRun({ today }: { today: DailyTodayResponse }) {
   if (summary) {
     return (
       <QuizSummary result={summary}>
-        <p className="text-xs text-muted-foreground">
-          含每日訓練完成獎勵。明天會有新的 10 題。
-        </p>
+        <p className="text-xs text-muted-foreground">已含每日完成獎勵。</p>
         <Link
           to="/leaderboard"
           className={PRIMARY_LINK}
@@ -171,7 +167,7 @@ function DailyRun({ today }: { today: DailyTodayResponse }) {
       {index === 0 && (
         <p className="mx-4 mt-1 inline-flex items-center gap-1 text-[11px] text-muted-foreground">
           <CalendarCheck aria-hidden className="size-3.5 text-primary" />
-          每日訓練：今天大家的題目都一樣，一天一次
+          每日訓練 · 一天一次，成績會上排行榜
         </p>
       )}
       <div className="min-h-0 flex-1">

@@ -35,14 +35,14 @@ const MODES: Mode[] = [
   {
     icon: CalendarCheck,
     label: "每日訓練",
-    desc: "大家同一份 10 題",
+    desc: "每天 10 題",
     unlockLevel: 5,
     href: "/daily",
   },
   {
     icon: Trophy,
     label: "排行榜",
-    desc: "每日訓練排名",
+    desc: "今日與本週排名",
     unlockLevel: 5,
     href: "/leaderboard",
   },
