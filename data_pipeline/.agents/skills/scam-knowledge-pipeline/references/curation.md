@@ -78,6 +78,11 @@ legit 題；不得直接把 `NOT_RUMOR` 當成 legit 標籤。
    公會文件，必須在 `provenance` 寫明可查證的文件名稱與出處，且
    `mirror_of_key` 必填。驗證器維持「`mirror_of_key` 或
    `source_document_ids` 至少一個」的機器規則。
+   引用 `tw_manual_legit_process_docs`（`legit_process_docs.jsonl` 那 5 份）時，
+   出處要寫「團隊整理的正規流程說明「文件名」」：那是團隊依官方規範整理的說明，
+   不是官方發布的文件，不能寫成「官方正規流程文件」（2026-09-27 修過 27 題）。
+   出處寫的機構要和 `source_document_ids` 的來源一致，例如「民眾通報高風險業者」
+   是 165 全民防騙網的文章，不是數位發展部的清單。
 3. `red_flags` 改為「正當訊號」：每筆 `tag` 一律為 `null`（`legit` 案例不
    對應任何弱點誘因），`text` 描述可查證的合法行為（例如「客服僅透過站內
    工單聯繫，並提供可查詢的工單編號」）。`red_flags` 仍需至少 2 筆，維持
