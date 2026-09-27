@@ -360,7 +360,7 @@
     },
     {
       "source_name": "tw_manual_legit_process_docs",
-      "display_name": "官方正規流程文件（手動維護）",
+      "display_name": "團隊整理的正規流程說明（手動維護）",
       "source_type": "manual",
       "base_url": "file://data/manual/legit_process_docs.jsonl",
       "crawl_strategy": "manual_file",
