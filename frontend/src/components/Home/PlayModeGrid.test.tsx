@@ -68,7 +68,7 @@ describe("<PlayModeGrid />", () => {
     await renderWithRouter()
     for (const [label, href] of [
       ["題組訓練", "/quick/quiz"],
-      ["滑卡劇情", "/quick/swipe"],
+      ["滑卡訓練", "/quick/swipe"],
       ["每日訓練", "/daily"],
       ["排行榜", "/leaderboard"],
     ]) {

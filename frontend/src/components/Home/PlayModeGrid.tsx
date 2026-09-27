@@ -27,8 +27,8 @@ const MODES: Mode[] = [
   },
   {
     icon: WalletCards,
-    label: "滑卡劇情",
-    desc: "165 一日工作",
+    label: "滑卡訓練",
+    desc: "一眼判斷真假",
     unlockLevel: 1,
     href: "/quick/swipe",
   },
