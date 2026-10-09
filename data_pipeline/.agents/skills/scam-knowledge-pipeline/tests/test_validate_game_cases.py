@@ -222,3 +222,30 @@ class GameCaseValidateTests(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class ExamPoolTests(unittest.TestCase):
+    def test_all_pools_are_accepted(self):
+        for pool in ("practice", "exam_message", "exam_tactics", "exam_scenario"):
+            code, out, _ = run_validate(
+                [dict(GOOD_SCAM, pool=pool, pattern_key="investment-03")]
+            )
+            self.assertEqual((code, out["valid"]), (0, 1))
+
+    def test_exam_legit_requires_mirror_even_with_source(self):
+        code, out, rejected = run_validate(
+            [
+                dict(
+                    GOOD_LEGIT,
+                    pool="exam_message",
+                    mirror_of_key=None,
+                    source_document_ids=[1],
+                )
+            ]
+        )
+        self.assertEqual(out["rejected"], 1)
+        self.assertIn("mirror_of_key", str(rejected))
+
+    def test_invalid_pool_is_rejected(self):
+        _, out, _ = run_validate([dict(GOOD_SCAM, pool="unknown")])
+        self.assertEqual(out["rejected"], 1)

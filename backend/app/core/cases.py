@@ -15,7 +15,7 @@ from sqlmodel import Session
 
 _COLS = (
     "id, fraud_type, is_scam, title, narrative, red_flags, difficulty, provenance, "
-    "mirror_of"
+    "mirror_of, pool, pattern_key"
 )
 
 
@@ -29,12 +29,25 @@ class GameCaseRow(BaseModel):
     difficulty: int
     provenance: str
     mirror_of: int | None = None
+    pool: str = "practice"
+    pattern_key: str | None = None
+
+
+def get_case_keys(session: Session, case_ids: set[int]) -> dict[int, str]:
+    """匯出歷史檢測的題目代號；已下架的題目也保留識別用途。"""
+    if not case_ids:
+        return {}
+    rows = session.execute(
+        text("SELECT id, case_key FROM game_cases WHERE id = ANY(:ids)"),
+        {"ids": sorted(case_ids)},
+    ).all()
+    return {int(row.id): str(row.case_key) for row in rows}
 
 
 def list_published(
     session: Session, *, fraud_type: str | None = None, limit: int = 10
 ) -> list[GameCaseRow]:
-    sql = f"SELECT {_COLS} FROM game_cases WHERE status = 'published'"
+    sql = f"SELECT {_COLS} FROM game_cases WHERE status = 'published' AND pool = 'practice'"
     params: dict[str, Any] = {"limit": limit}
     if fraud_type:
         sql += " AND fraud_type = :fraud_type"
@@ -48,7 +61,9 @@ def list_published_for_quiz(session: Session) -> list[GameCaseRow]:
     """讀取混合題型候選素材；由路由在記憶體中套用跨題型唯一性規則。"""
     rows = (
         session.execute(
-            text(f"SELECT {_COLS} FROM game_cases WHERE status = 'published' ")
+            text(
+                f"SELECT {_COLS} FROM game_cases WHERE status = 'published' AND pool = 'practice' "
+            )
         )
         .mappings()
         .all()
@@ -119,6 +134,7 @@ FROM game_case_questions q
 JOIN game_cases gc ON gc.id = q.case_id
 WHERE q.status = 'published'
   AND gc.status = 'published'
+  AND gc.pool = 'practice'
   AND q.version = (
       SELECT max(v.version) FROM game_case_questions v
       WHERE v.question_key = q.question_key
@@ -162,7 +178,7 @@ def pick_case(
         session.execute(
             text(
                 f"SELECT {_COLS} FROM game_cases "
-                "WHERE status = 'published' AND fraud_type = :ft AND is_scam = :scam "
+                "WHERE status = 'published' AND pool = 'practice' AND fraud_type = :ft AND is_scam = :scam "
                 "ORDER BY random() LIMIT 1"
             ),
             {"ft": fraud_type, "scam": is_scam},
@@ -171,3 +187,22 @@ def pick_case(
         .first()
     )
     return GameCaseRow(**dict(row)) if row else None
+
+
+def list_published_for_exam(
+    session: Session, *, fraud_type: str, pool: str
+) -> list[GameCaseRow]:
+    """檢測依類型與專用池讀取全部候選；不回退到練習池。"""
+    if pool not in {"exam_message", "exam_tactics", "exam_scenario"}:
+        raise ValueError("不是檢測題庫")
+    rows = (
+        session.execute(
+            text(
+                f"SELECT {_COLS} FROM game_cases WHERE status = 'published' AND fraud_type = :ft AND pool = :pool"
+            ),
+            {"ft": fraud_type, "pool": pool},
+        )
+        .mappings()
+        .all()
+    )
+    return [GameCaseRow(**dict(row)) for row in rows]

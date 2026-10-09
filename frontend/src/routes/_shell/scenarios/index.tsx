@@ -1,4 +1,6 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router"
+import { ExamInProgress } from "@/components/exam/ExamInProgress"
+import { errorCode } from "@/components/exam/exam"
 import { PracticeFocusBadge } from "@/components/practice/PracticeFocus"
 import { InboxList } from "@/components/scenario/InboxList"
 import { useScenarioInbox } from "@/hooks/useScenario"
@@ -9,7 +11,7 @@ export const Route = createFileRoute("/_shell/scenarios/")({
 
 function ScenariosInboxPage() {
   const navigate = useNavigate()
-  const { data, isPending, isError } = useScenarioInbox()
+  const { data, error, isPending, isError } = useScenarioInbox()
 
   if (isPending) {
     return (
@@ -17,6 +19,8 @@ function ScenariosInboxPage() {
     )
   }
   if (isError || !data) {
+    if (errorCode(error) === "exam_in_progress")
+      return <ExamInProgress error={error} />
     return (
       <p className="py-12 text-center text-xs text-muted-foreground">
         載入失敗，請稍後再試

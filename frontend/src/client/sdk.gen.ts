@@ -3,7 +3,180 @@
 import type { CancelablePromise } from './core/CancelablePromise';
 import { OpenAPI } from './core/OpenAPI';
 import { request as __request } from './core/request';
-import type { DailyDailyTodayResponse, EconomyReadMeResponse, EconomyPostSettleResponse, EconomyClaimResponse, EconomyListPropertiesResponse, EconomyBuyPropertyData, EconomyBuyPropertyResponse, EconomyGetAssetsResponse, EconomyPostLiquidateData, EconomyPostLiquidateResponse, ItemsReadItemsData, ItemsReadItemsResponse, ItemsCreateItemData, ItemsCreateItemResponse, ItemsReadItemData, ItemsReadItemResponse, ItemsUpdateItemData, ItemsUpdateItemResponse, ItemsDeleteItemData, ItemsDeleteItemResponse, LeaderboardReadLeaderboardData, LeaderboardReadLeaderboardResponse, LeaderboardUpdateNicknameData, LeaderboardUpdateNicknameResponse, LoginLoginAccessTokenData, LoginLoginAccessTokenResponse, LoginTestTokenResponse, LoginRecoverPasswordData, LoginRecoverPasswordResponse, LoginResetPasswordData, LoginResetPasswordResponse, LoginRecoverPasswordHtmlContentData, LoginRecoverPasswordHtmlContentResponse, MascotListMascotItemsResponse, MascotPurchaseItemData, MascotPurchaseItemResponse, MascotToggleEquipData, MascotToggleEquipResponse, MascotGetMyMascotResponse, PracticeReadProfileResponse, PretestGetPretestQuestionsResponse, PretestSubmitPretestData, PretestSubmitPretestResponse, PrivateCreateUserData, PrivateCreateUserResponse, QuickSwipeDeckData, QuickSwipeDeckResponse, QuickSwipeAnswerData, QuickSwipeAnswerResponse, QuickSwipeCompleteData, QuickSwipeCompleteResponse, QuickQuizDeckData, QuickQuizDeckResponse, QuickQuizAnswerData, QuickQuizAnswerResponse, QuickQuizCompleteData, QuickQuizCompleteResponse, ScenarioInboxResponse, ScenarioCreateScenarioData, ScenarioCreateScenarioResponse, ScenarioReadScenarioData, ScenarioReadScenarioResponse, ScenarioSendMessageData, ScenarioSendMessageResponse, ScenarioJudgeScenarioData, ScenarioJudgeScenarioResponse, ScoreGetMyScoreResponse, UsersReadUsersData, UsersReadUsersResponse, UsersCreateUserData, UsersCreateUserResponse, UsersReadUserMeResponse, UsersDeleteUserMeResponse, UsersUpdateUserMeData, UsersUpdateUserMeResponse, UsersUpdatePasswordMeData, UsersUpdatePasswordMeResponse, UsersRegisterUserData, UsersRegisterUserResponse, UsersReadUserByIdData, UsersReadUserByIdResponse, UsersUpdateUserData, UsersUpdateUserResponse, UsersDeleteUserData, UsersDeleteUserResponse, UtilsTestEmailData, UtilsTestEmailResponse, UtilsHealthCheckResponse } from './types.gen';
+import type { AdminCohortsListCohortsResponse, AdminCohortsCreateCohortData, AdminCohortsCreateCohortResponse, AdminCohortsUpdateCohortData, AdminCohortsUpdateCohortResponse, AdminCohortsListMembersData, AdminCohortsListMembersResponse, AdminCohortsExportCohortData, AdminCohortsExportCohortResponse, AdminCohortsExportCohortExamData, AdminCohortsExportCohortExamResponse, BadgesOwnBadgesResponse, BadgesUpdateBadgeData, BadgesUpdateBadgeResponse, BadgesPublicBadgeData, BadgesPublicBadgeResponse, DailyDailyTodayResponse, EconomyReadMeResponse, EconomyPostSettleResponse, EconomyClaimResponse, EconomyListPropertiesResponse, EconomyBuyPropertyData, EconomyBuyPropertyResponse, EconomyGetAssetsResponse, EconomyPostLiquidateData, EconomyPostLiquidateResponse, ExamReadStatusResponse, ExamStartData, ExamStartResponse, ExamActiveResponse, ExamHistoryResponse, ExamReadData, ExamReadResponse, ExamPretestData, ExamPretestResponse, ExamSwipeData, ExamSwipeResponse, ExamMessageData, ExamMessageResponse, ExamScenarioStartData, ExamScenarioStartResponse, ExamScenarioJudgeData, ExamScenarioJudgeResponse, ExamAbandonData, ExamAbandonResponse, InviteRedeemInviteData, InviteRedeemInviteResponse, ItemsReadItemsData, ItemsReadItemsResponse, ItemsCreateItemData, ItemsCreateItemResponse, ItemsReadItemData, ItemsReadItemResponse, ItemsUpdateItemData, ItemsUpdateItemResponse, ItemsDeleteItemData, ItemsDeleteItemResponse, LeaderboardReadLeaderboardData, LeaderboardReadLeaderboardResponse, LeaderboardUpdateNicknameData, LeaderboardUpdateNicknameResponse, LoginLoginAccessTokenData, LoginLoginAccessTokenResponse, LoginTestTokenResponse, LoginRecoverPasswordData, LoginRecoverPasswordResponse, LoginResetPasswordData, LoginResetPasswordResponse, LoginRecoverPasswordHtmlContentData, LoginRecoverPasswordHtmlContentResponse, MascotListMascotItemsResponse, MascotPurchaseItemData, MascotPurchaseItemResponse, MascotToggleEquipData, MascotToggleEquipResponse, MascotGetMyMascotResponse, PracticeReadProfileResponse, PretestGetPretestQuestionsResponse, PretestSubmitPretestData, PretestSubmitPretestResponse, PrivateCreateUserData, PrivateCreateUserResponse, QuickSwipeDeckData, QuickSwipeDeckResponse, QuickSwipeAnswerData, QuickSwipeAnswerResponse, QuickSwipeCompleteData, QuickSwipeCompleteResponse, QuickQuizDeckData, QuickQuizDeckResponse, QuickQuizAnswerData, QuickQuizAnswerResponse, QuickQuizCompleteData, QuickQuizCompleteResponse, ScenarioInboxResponse, ScenarioCreateScenarioData, ScenarioCreateScenarioResponse, ScenarioReadScenarioData, ScenarioReadScenarioResponse, ScenarioSendMessageData, ScenarioSendMessageResponse, ScenarioJudgeScenarioData, ScenarioJudgeScenarioResponse, ScoreGetMyScoreResponse, UsersReadUsersData, UsersReadUsersResponse, UsersCreateUserData, UsersCreateUserResponse, UsersReadUserMeResponse, UsersDeleteUserMeResponse, UsersUpdateUserMeData, UsersUpdateUserMeResponse, UsersUpdatePasswordMeData, UsersUpdatePasswordMeResponse, UsersRegisterUserData, UsersRegisterUserResponse, UsersReadUserByIdData, UsersReadUserByIdResponse, UsersUpdateUserData, UsersUpdateUserResponse, UsersDeleteUserData, UsersDeleteUserResponse, UtilsTestEmailData, UtilsTestEmailResponse, UtilsHealthCheckResponse } from './types.gen';
+
+export class AdminCohortsService {
+    /**
+     * List Cohorts
+     * @returns CohortPublic Successful Response
+     * @throws ApiError
+     */
+    public static listCohorts(): CancelablePromise<AdminCohortsListCohortsResponse> {
+        return __request(OpenAPI, {
+            method: 'GET',
+            url: '/api/v1/admin/cohorts'
+        });
+    }
+    
+    /**
+     * Create Cohort
+     * @param data The data for the request.
+     * @param data.requestBody
+     * @returns CohortPublic Successful Response
+     * @throws ApiError
+     */
+    public static createCohort(data: AdminCohortsCreateCohortData): CancelablePromise<AdminCohortsCreateCohortResponse> {
+        return __request(OpenAPI, {
+            method: 'POST',
+            url: '/api/v1/admin/cohorts',
+            body: data.requestBody,
+            mediaType: 'application/json',
+            errors: {
+                422: 'Validation Error'
+            }
+        });
+    }
+    
+    /**
+     * Update Cohort
+     * @param data The data for the request.
+     * @param data.cohortId
+     * @param data.requestBody
+     * @returns CohortPublic Successful Response
+     * @throws ApiError
+     */
+    public static updateCohort(data: AdminCohortsUpdateCohortData): CancelablePromise<AdminCohortsUpdateCohortResponse> {
+        return __request(OpenAPI, {
+            method: 'PATCH',
+            url: '/api/v1/admin/cohorts/{cohort_id}',
+            path: {
+                cohort_id: data.cohortId
+            },
+            body: data.requestBody,
+            mediaType: 'application/json',
+            errors: {
+                422: 'Validation Error'
+            }
+        });
+    }
+    
+    /**
+     * List Members
+     * @param data The data for the request.
+     * @param data.cohortId
+     * @returns CohortMemberPublic Successful Response
+     * @throws ApiError
+     */
+    public static listMembers(data: AdminCohortsListMembersData): CancelablePromise<AdminCohortsListMembersResponse> {
+        return __request(OpenAPI, {
+            method: 'GET',
+            url: '/api/v1/admin/cohorts/{cohort_id}/members',
+            path: {
+                cohort_id: data.cohortId
+            },
+            errors: {
+                422: 'Validation Error'
+            }
+        });
+    }
+    
+    /**
+     * Export Cohort
+     * @param data The data for the request.
+     * @param data.cohortId
+     * @returns string Successful Response
+     * @throws ApiError
+     */
+    public static exportCohort(data: AdminCohortsExportCohortData): CancelablePromise<AdminCohortsExportCohortResponse> {
+        return __request(OpenAPI, {
+            method: 'GET',
+            url: '/api/v1/admin/cohorts/{cohort_id}/export.csv',
+            path: {
+                cohort_id: data.cohortId
+            },
+            errors: {
+                422: 'Validation Error'
+            }
+        });
+    }
+    
+    /**
+     * Export Cohort Exam
+     * @param data The data for the request.
+     * @param data.cohortId
+     * @returns string Successful Response
+     * @throws ApiError
+     */
+    public static exportCohortExam(data: AdminCohortsExportCohortExamData): CancelablePromise<AdminCohortsExportCohortExamResponse> {
+        return __request(OpenAPI, {
+            method: 'GET',
+            url: '/api/v1/admin/cohorts/{cohort_id}/exam.csv',
+            path: {
+                cohort_id: data.cohortId
+            },
+            errors: {
+                422: 'Validation Error'
+            }
+        });
+    }
+}
+
+export class BadgesService {
+    /**
+     * Own Badges
+     * @returns ExamBadgePublic Successful Response
+     * @throws ApiError
+     */
+    public static ownBadges(): CancelablePromise<BadgesOwnBadgesResponse> {
+        return __request(OpenAPI, {
+            method: 'GET',
+            url: '/api/v1/badges'
+        });
+    }
+    
+    /**
+     * Update Badge
+     * @param data The data for the request.
+     * @param data.badgeId
+     * @param data.requestBody
+     * @returns ExamBadgePublic Successful Response
+     * @throws ApiError
+     */
+    public static updateBadge(data: BadgesUpdateBadgeData): CancelablePromise<BadgesUpdateBadgeResponse> {
+        return __request(OpenAPI, {
+            method: 'PATCH',
+            url: '/api/v1/badges/{badge_id}',
+            path: {
+                badge_id: data.badgeId
+            },
+            body: data.requestBody,
+            mediaType: 'application/json',
+            errors: {
+                422: 'Validation Error'
+            }
+        });
+    }
+    
+    /**
+     * Public Badge
+     * @param data The data for the request.
+     * @param data.slug
+     * @returns ExamBadgeVerification Successful Response
+     * @throws ApiError
+     */
+    public static publicBadge(data: BadgesPublicBadgeData): CancelablePromise<BadgesPublicBadgeResponse> {
+        return __request(OpenAPI, {
+            method: 'GET',
+            url: '/api/v1/badges/public/{slug}',
+            path: {
+                slug: data.slug
+            },
+            errors: {
+                422: 'Validation Error'
+            }
+        });
+    }
+}
 
 export class DailyService {
     /**
@@ -121,6 +294,237 @@ export class EconomyService {
             url: '/api/v1/economy/liquidate',
             body: data.requestBody,
             mediaType: 'application/json',
+            errors: {
+                422: 'Validation Error'
+            }
+        });
+    }
+}
+
+export class ExamService {
+    /**
+     * Read Status
+     * @returns ExamStatus Successful Response
+     * @throws ApiError
+     */
+    public static readStatus(): CancelablePromise<ExamReadStatusResponse> {
+        return __request(OpenAPI, {
+            method: 'GET',
+            url: '/api/v1/exam/status'
+        });
+    }
+    
+    /**
+     * Start
+     * @param data The data for the request.
+     * @param data.requestBody
+     * @returns ExamState Successful Response
+     * @throws ApiError
+     */
+    public static start(data: ExamStartData): CancelablePromise<ExamStartResponse> {
+        return __request(OpenAPI, {
+            method: 'POST',
+            url: '/api/v1/exam/start',
+            body: data.requestBody,
+            mediaType: 'application/json',
+            errors: {
+                422: 'Validation Error'
+            }
+        });
+    }
+    
+    /**
+     * Active
+     * @returns unknown Successful Response
+     * @throws ApiError
+     */
+    public static active(): CancelablePromise<ExamActiveResponse> {
+        return __request(OpenAPI, {
+            method: 'GET',
+            url: '/api/v1/exam/active'
+        });
+    }
+    
+    /**
+     * History
+     * @returns ExamHistoryItem Successful Response
+     * @throws ApiError
+     */
+    public static history(): CancelablePromise<ExamHistoryResponse> {
+        return __request(OpenAPI, {
+            method: 'GET',
+            url: '/api/v1/exam/history'
+        });
+    }
+    
+    /**
+     * Read
+     * @param data The data for the request.
+     * @param data.attemptId
+     * @returns ExamState Successful Response
+     * @throws ApiError
+     */
+    public static read(data: ExamReadData): CancelablePromise<ExamReadResponse> {
+        return __request(OpenAPI, {
+            method: 'GET',
+            url: '/api/v1/exam/{attempt_id}',
+            path: {
+                attempt_id: data.attemptId
+            },
+            errors: {
+                422: 'Validation Error'
+            }
+        });
+    }
+    
+    /**
+     * Pretest
+     * @param data The data for the request.
+     * @param data.attemptId
+     * @param data.requestBody
+     * @returns ExamState Successful Response
+     * @throws ApiError
+     */
+    public static pretest(data: ExamPretestData): CancelablePromise<ExamPretestResponse> {
+        return __request(OpenAPI, {
+            method: 'POST',
+            url: '/api/v1/exam/{attempt_id}/pretest',
+            path: {
+                attempt_id: data.attemptId
+            },
+            body: data.requestBody,
+            mediaType: 'application/json',
+            errors: {
+                422: 'Validation Error'
+            }
+        });
+    }
+    
+    /**
+     * Swipe
+     * @param data The data for the request.
+     * @param data.attemptId
+     * @param data.requestBody
+     * @returns ExamState Successful Response
+     * @throws ApiError
+     */
+    public static swipe(data: ExamSwipeData): CancelablePromise<ExamSwipeResponse> {
+        return __request(OpenAPI, {
+            method: 'POST',
+            url: '/api/v1/exam/{attempt_id}/swipe',
+            path: {
+                attempt_id: data.attemptId
+            },
+            body: data.requestBody,
+            mediaType: 'application/json',
+            errors: {
+                422: 'Validation Error'
+            }
+        });
+    }
+    
+    /**
+     * Message
+     * @param data The data for the request.
+     * @param data.attemptId
+     * @param data.requestBody
+     * @returns ExamState Successful Response
+     * @throws ApiError
+     */
+    public static message(data: ExamMessageData): CancelablePromise<ExamMessageResponse> {
+        return __request(OpenAPI, {
+            method: 'POST',
+            url: '/api/v1/exam/{attempt_id}/message',
+            path: {
+                attempt_id: data.attemptId
+            },
+            body: data.requestBody,
+            mediaType: 'application/json',
+            errors: {
+                422: 'Validation Error'
+            }
+        });
+    }
+    
+    /**
+     * Scenario Start
+     * @param data The data for the request.
+     * @param data.attemptId
+     * @returns ExamState Successful Response
+     * @throws ApiError
+     */
+    public static scenarioStart(data: ExamScenarioStartData): CancelablePromise<ExamScenarioStartResponse> {
+        return __request(OpenAPI, {
+            method: 'POST',
+            url: '/api/v1/exam/{attempt_id}/scenario/start',
+            path: {
+                attempt_id: data.attemptId
+            },
+            errors: {
+                422: 'Validation Error'
+            }
+        });
+    }
+    
+    /**
+     * Scenario Judge
+     * @param data The data for the request.
+     * @param data.attemptId
+     * @param data.requestBody
+     * @returns ExamState Successful Response
+     * @throws ApiError
+     */
+    public static scenarioJudge(data: ExamScenarioJudgeData): CancelablePromise<ExamScenarioJudgeResponse> {
+        return __request(OpenAPI, {
+            method: 'POST',
+            url: '/api/v1/exam/{attempt_id}/scenario/judge',
+            path: {
+                attempt_id: data.attemptId
+            },
+            body: data.requestBody,
+            mediaType: 'application/json',
+            errors: {
+                422: 'Validation Error'
+            }
+        });
+    }
+    
+    /**
+     * Abandon
+     * @param data The data for the request.
+     * @param data.attemptId
+     * @returns ExamState Successful Response
+     * @throws ApiError
+     */
+    public static abandon(data: ExamAbandonData): CancelablePromise<ExamAbandonResponse> {
+        return __request(OpenAPI, {
+            method: 'POST',
+            url: '/api/v1/exam/{attempt_id}/abandon',
+            path: {
+                attempt_id: data.attemptId
+            },
+            errors: {
+                422: 'Validation Error'
+            }
+        });
+    }
+}
+
+export class InviteService {
+    /**
+     * Redeem Invite
+     * @param data The data for the request.
+     * @param data.token
+     * @returns Token Successful Response
+     * @throws ApiError
+     */
+    public static redeemInvite(data: InviteRedeemInviteData): CancelablePromise<InviteRedeemInviteResponse> {
+        return __request(OpenAPI, {
+            method: 'POST',
+            url: '/api/v1/invite/{token}/redeem',
+            path: {
+                token: data.token
+            },
             errors: {
                 422: 'Validation Error'
             }
@@ -646,6 +1050,7 @@ export class ScenarioService {
      * 每 fraud_type 回傳最新一場;完全沒有時 bootstrap 一場。
      *
      * 有練習重點的玩家,依各類比例由高到低排(最弱的在第一列,app/practice/)。
+     * 檢測中暫停訓練,收件匣也回 exam_in_progress,前端顯示「繼續檢測」。
      * @returns ScenarioInboxItem Successful Response
      * @throws ApiError
      */

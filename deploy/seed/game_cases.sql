@@ -86,7 +86,9 @@ CREATE TABLE public.game_cases (
     status text DEFAULT 'draft'::text NOT NULL,
     review_notes text,
     created_at timestamp with time zone DEFAULT now() NOT NULL,
-    published_at timestamp with time zone
+    published_at timestamp with time zone,
+    pool text DEFAULT 'practice'::text NOT NULL,
+    pattern_key text
 );
 
 

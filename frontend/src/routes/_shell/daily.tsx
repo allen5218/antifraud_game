@@ -7,6 +7,8 @@ import type {
   QuickQuizAnswerResponse,
   QuizCompleteResponse,
 } from "@/client"
+import { ExamInProgress } from "@/components/exam/ExamInProgress"
+import { errorCode } from "@/components/exam/exam"
 import { QuizCard, type QuizDraftAnswer } from "@/components/quiz/QuizCard"
 import { QuizReveal } from "@/components/quiz/QuizReveal"
 import { QuizSummary } from "@/components/quiz/QuizSummary"
@@ -22,15 +24,16 @@ export const Route = createFileRoute("/_shell/daily")({
 const PRIMARY_LINK =
   "flex w-full items-center justify-center gap-1.5 rounded-xl bg-primary py-2.5 text-sm font-bold text-primary-foreground"
 
-function DailyPage() {
+export function DailyPage() {
   const { data, error, isPending } = useDailyToday()
 
   if (error) {
     const code = extractErrorCode(error)
+    if (code === "exam_in_progress") return <ExamInProgress error={error} />
     return (
       <p className="py-12 text-center text-xs text-muted-foreground">
         {code === "level_required"
-          ? "每日訓練在 Lv.5 解鎖，先到題組或滑卡多練幾輪。"
+          ? "每日訓練在 Lv.5 解鎖，先到訊息判讀或滑卡多練幾輪。"
           : code === "daily_unavailable"
             ? "今天的題目還沒準備好，請稍後再試"
             : "題目載入失敗，請稍後再試"}
@@ -98,6 +101,9 @@ function DailyRun({ today }: { today: DailyTodayResponse }) {
   )
   const [reveal, setReveal] = useState<QuickQuizAnswerResponse | null>(null)
   const [summary, setSummary] = useState<QuizCompleteResponse | null>(null)
+
+  if (errorCode(answerM.error) === "exam_in_progress")
+    return <ExamInProgress error={answerM.error} />
 
   const complete = () => {
     if (completeM.isPending) return

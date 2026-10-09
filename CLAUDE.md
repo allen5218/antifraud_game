@@ -195,6 +195,19 @@ description: 一句話描述  # 必填，≤1024 字
 
 測試注意：`tests/conftest.py` 以 autouse fixture 關閉分析器（`.env` 有金鑰時，否則每次交卷都會真的呼叫 Gemini）；`tests/api/conftest.py` 每個測試後清空作答紀錄與練習重點（superuser 是共用帳號，不清會讓後面的發牌測試被偏重）。
 
+## 檢測（exam）— 一樣由規則判分，AI 只演情境角色
+
+`backend/app/exam/`（路由 `api/routes/exam.py`，前端 `components/exam/`、`/exam`、`/exam/$attemptId`、公開查驗頁 `/badge/$slug`）。
+
+- **兩種模式**：綜合 `comprehensive`（前測 20 題 → 最弱一類的滑卡 2+2、訊息判讀 2+2＋話術複選 1、情境 1 場最多 5 回合）；專項 `specialized`（自選一類：滑卡 3+3、訊息判讀 4+4＋話術 1、情境 2 場一真一假各最多 8 回合）。配分在 `scoring.py`，**用四捨五入後的整數判定 70 分過關**（和結果頁一致）。
+- **檢測專用題庫**：`game_cases.pool`（`practice`／`exam_message`／`exam_tactics`／`exam_scenario`）與 `pattern_key`；`swipe_card.pool`（`practice`／`exam`）；人格 `personas/exam-{scammer,legit}.soul.md`。**所有練習讀取都只讀 `pool='practice'`**。抽題 `picking.py`：一份卷內不出現鏡像對、同一關 `pattern_key` 不重複、優先沒看過的。
+- **開考鎖定**：`ExamAttempt.items` 存題目快照，正解只在快照裡、交卷前不送前端；結果頁不分關、不揭曉（只給總分、是否通過、弱項合計、漏掉的話術）。1 小時期限（`config.py`），到期懶惰結算；情境關 AI 出錯且到期就作廢 `voided`、不算次數。每日 ①② 合計 3 次（台灣日期）。
+- **檢測中暫停三種訓練**：`lifecycle.require_no_active_exam()` 擋所有練習的發牌、**作答**、收件匣、開新情境、練習情境的送訊息與判斷、入門前測與每日訓練，回 400 `exam_in_progress`（前端換成 `ExamInProgress`）。要先取這把檢測鎖、再鎖牌局，不要反過來。
+- **補考期**：沒過（含放棄、到期）就進該類補考期，兩種檢測都鎖住；練夠 `gate.py`（該類滑卡 6、訊息判讀 5、情境 1 場，且滑卡＋訊息判讀最近 10 題對 7）才能再考。補考期間練習重點強制換成那一類（比例拉到上限）。**檢測作答不寫 `practice_answer`**。
+- **徽章**：第一次通過給獎勵（走 `economy.service`）；預設不公開，公開頁只有暱稱、徽章名、通過條件、日期（`badges.py`；noindex 設在 `routes/badge.$slug.tsx`）。
+
+**試測梯次與訪客**：`api/routes/invite.py`（掃 QR code 兌換成訪客帳號，`User.is_guest`、`cohort_id`、受試編號 `participant_code` T-NNNN）、`api/routes/admin_cohorts.py`（superuser：建梯次、名額與到期、成員、`export.csv` 一人一列、`exam.csv` 檢測一題一列，`exam/export.py`）。訪客不能重設密碼；登出要清 `lib/inviteSession.ts` 的暫存憑證。
+
 ## 五種詐騙類型
 
 `FraudType`（`backend/app/models.py`）：

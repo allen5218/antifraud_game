@@ -18,7 +18,6 @@ from pydantic_ai.models.google import GoogleModelSettings
 
 from app.core.cases import GameCaseRow
 from app.models import ScenarioSession
-from app.scenario.config import MAX_TURNS
 from app.schemas import ScenarioReply
 
 SKILLS_DIR = os.path.join(os.path.dirname(__file__), "../../skills")
@@ -34,9 +33,13 @@ class PersonaMeta:
     primary_tactics: list[str]
 
 
-def _persona_path(fraud_type: str, role: str) -> str:
+def _persona_path(fraud_type: str, role: str, pool: str = "practice") -> str:
+    prefix = "exam-" if pool == "exam" else ""
     return os.path.join(
-        SKILLS_DIR, f"fraud-{fraud_type}", "personas", f"{ROLE_FILENAME[role]}.soul.md"
+        SKILLS_DIR,
+        f"fraud-{fraud_type}",
+        "personas",
+        f"{prefix}{ROLE_FILENAME[role]}.soul.md",
     )
 
 
@@ -45,9 +48,11 @@ def _frontmatter(text: str) -> str:
     return match.group(1) if match else ""
 
 
-def read_persona_meta(fraud_type: str, role: str) -> PersonaMeta:
+def read_persona_meta(
+    fraud_type: str, role: str, pool: str = "practice"
+) -> PersonaMeta:
     """讀人格 frontmatter 的 name/teaser/primary_tactics(不進 LLM)。"""
-    with open(_persona_path(fraud_type, role), encoding="utf-8") as f:
+    with open(_persona_path(fraud_type, role, pool), encoding="utf-8") as f:
         block = _frontmatter(f.read())
 
     def field(key: str) -> str:
@@ -67,12 +72,14 @@ def read_persona_meta(fraud_type: str, role: str) -> PersonaMeta:
     )
 
 
-def load_persona_bundle(fraud_type: str, role: str) -> tuple[str, str]:
+def load_persona_bundle(
+    fraud_type: str, role: str, pool: str = "practice"
+) -> tuple[str, str]:
     """回傳 (SKILL.md 全文, persona soul.md 全文)。"""
     skill_path = os.path.join(SKILLS_DIR, f"fraud-{fraud_type}", "SKILL.md")
     with open(skill_path, encoding="utf-8") as f:
         skill_text = f.read()
-    with open(_persona_path(fraud_type, role), encoding="utf-8") as f:
+    with open(_persona_path(fraud_type, role, pool), encoding="utf-8") as f:
         persona_text = f.read()
     return skill_text, persona_text
 
@@ -142,7 +149,7 @@ def create_scenario_agent() -> Agent[ScenarioDeps, ScenarioReply]:
 
 # 對話狀態
 - 你在這場對話中的顯示名稱:{s.display_name}(自稱時用這個名字,不要用人格設定裡的其他名字)
-- 玩家剩餘可回覆次數:{MAX_TURNS - s.player_turns}
+- 玩家剩餘可回覆次數:{s.max_turns - s.player_turns}
 
 # 對話紀錄
 {build_transcript(s.conversation_history)}
@@ -162,7 +169,7 @@ async def generate_reply(
 ) -> ScenarioReply:
     """載入人格 → 跑 agent → 回傳結構化回覆(routes 的唯一入口;整合測試 monkeypatch 此函式)。"""
     skill_text, persona_text = load_persona_bundle(
-        session.fraud_type, session.persona_role
+        session.fraud_type, session.persona_role, pool=session.pool
     )
     agent = create_scenario_agent()
     deps = ScenarioDeps(

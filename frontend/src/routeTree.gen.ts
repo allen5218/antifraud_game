@@ -18,8 +18,11 @@ import { Route as ShellRouteImport } from './routes/_shell'
 import { Route as LayoutRouteImport } from './routes/_layout'
 import { Route as ShellIndexRouteImport } from './routes/_shell/index'
 import { Route as PretestResultRouteImport } from './routes/pretest.result'
+import { Route as InviteTokenRouteImport } from './routes/invite.$token'
+import { Route as BadgeSlugRouteImport } from './routes/badge.$slug'
 import { Route as ShellMeRouteImport } from './routes/_shell/me'
 import { Route as ShellLeaderboardRouteImport } from './routes/_shell/leaderboard'
+import { Route as ShellExamRouteImport } from './routes/_shell/exam'
 import { Route as ShellDailyRouteImport } from './routes/_shell/daily'
 import { Route as ShellAssetsRouteImport } from './routes/_shell/assets'
 import { Route as LayoutSettingsRouteImport } from './routes/_layout/settings'
@@ -30,6 +33,8 @@ import { Route as ShellScenariosIndexRouteImport } from './routes/_shell/scenari
 import { Route as ShellScenariosScenarioIdRouteImport } from './routes/_shell/scenarios/$scenarioId'
 import { Route as ShellQuickSwipeRouteImport } from './routes/_shell/quick/swipe'
 import { Route as ShellQuickQuizRouteImport } from './routes/_shell/quick/quiz'
+import { Route as ShellExamAttemptIdRouteImport } from './routes/_shell/exam_.$attemptId'
+import { Route as LayoutAdminCohortsRouteImport } from './routes/_layout/admin_.cohorts'
 
 const SignupRoute = SignupRouteImport.update({
   id: '/signup',
@@ -74,6 +79,16 @@ const PretestResultRoute = PretestResultRouteImport.update({
   path: '/result',
   getParentRoute: () => PretestRoute,
 } as any)
+const InviteTokenRoute = InviteTokenRouteImport.update({
+  id: '/invite/$token',
+  path: '/invite/$token',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const BadgeSlugRoute = BadgeSlugRouteImport.update({
+  id: '/badge/$slug',
+  path: '/badge/$slug',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ShellMeRoute = ShellMeRouteImport.update({
   id: '/me',
   path: '/me',
@@ -82,6 +97,11 @@ const ShellMeRoute = ShellMeRouteImport.update({
 const ShellLeaderboardRoute = ShellLeaderboardRouteImport.update({
   id: '/leaderboard',
   path: '/leaderboard',
+  getParentRoute: () => ShellRoute,
+} as any)
+const ShellExamRoute = ShellExamRouteImport.update({
+  id: '/exam',
+  path: '/exam',
   getParentRoute: () => ShellRoute,
 } as any)
 const ShellDailyRoute = ShellDailyRouteImport.update({
@@ -135,6 +155,16 @@ const ShellQuickQuizRoute = ShellQuickQuizRouteImport.update({
   path: '/quick/quiz',
   getParentRoute: () => ShellRoute,
 } as any)
+const ShellExamAttemptIdRoute = ShellExamAttemptIdRouteImport.update({
+  id: '/exam_/$attemptId',
+  path: '/exam/$attemptId',
+  getParentRoute: () => ShellRoute,
+} as any)
+const LayoutAdminCohortsRoute = LayoutAdminCohortsRouteImport.update({
+  id: '/admin_/cohorts',
+  path: '/admin/cohorts',
+  getParentRoute: () => LayoutRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof ShellIndexRoute
@@ -149,9 +179,14 @@ export interface FileRoutesByFullPath {
   '/settings': typeof LayoutSettingsRoute
   '/assets': typeof ShellAssetsRoute
   '/daily': typeof ShellDailyRoute
+  '/exam': typeof ShellExamRoute
   '/leaderboard': typeof ShellLeaderboardRoute
   '/me': typeof ShellMeRoute
+  '/badge/$slug': typeof BadgeSlugRoute
+  '/invite/$token': typeof InviteTokenRoute
   '/pretest/result': typeof PretestResultRoute
+  '/admin/cohorts': typeof LayoutAdminCohortsRoute
+  '/exam/$attemptId': typeof ShellExamAttemptIdRoute
   '/quick/quiz': typeof ShellQuickQuizRoute
   '/quick/swipe': typeof ShellQuickSwipeRoute
   '/scenarios/$scenarioId': typeof ShellScenariosScenarioIdRoute
@@ -170,9 +205,14 @@ export interface FileRoutesByTo {
   '/settings': typeof LayoutSettingsRoute
   '/assets': typeof ShellAssetsRoute
   '/daily': typeof ShellDailyRoute
+  '/exam': typeof ShellExamRoute
   '/leaderboard': typeof ShellLeaderboardRoute
   '/me': typeof ShellMeRoute
+  '/badge/$slug': typeof BadgeSlugRoute
+  '/invite/$token': typeof InviteTokenRoute
   '/pretest/result': typeof PretestResultRoute
+  '/admin/cohorts': typeof LayoutAdminCohortsRoute
+  '/exam/$attemptId': typeof ShellExamAttemptIdRoute
   '/quick/quiz': typeof ShellQuickQuizRoute
   '/quick/swipe': typeof ShellQuickSwipeRoute
   '/scenarios/$scenarioId': typeof ShellScenariosScenarioIdRoute
@@ -193,10 +233,15 @@ export interface FileRoutesById {
   '/_layout/settings': typeof LayoutSettingsRoute
   '/_shell/assets': typeof ShellAssetsRoute
   '/_shell/daily': typeof ShellDailyRoute
+  '/_shell/exam': typeof ShellExamRoute
   '/_shell/leaderboard': typeof ShellLeaderboardRoute
   '/_shell/me': typeof ShellMeRoute
+  '/badge/$slug': typeof BadgeSlugRoute
+  '/invite/$token': typeof InviteTokenRoute
   '/pretest/result': typeof PretestResultRoute
   '/_shell/': typeof ShellIndexRoute
+  '/_layout/admin_/cohorts': typeof LayoutAdminCohortsRoute
+  '/_shell/exam_/$attemptId': typeof ShellExamAttemptIdRoute
   '/_shell/quick/quiz': typeof ShellQuickQuizRoute
   '/_shell/quick/swipe': typeof ShellQuickSwipeRoute
   '/_shell/scenarios/$scenarioId': typeof ShellScenariosScenarioIdRoute
@@ -217,9 +262,14 @@ export interface FileRouteTypes {
     | '/settings'
     | '/assets'
     | '/daily'
+    | '/exam'
     | '/leaderboard'
     | '/me'
+    | '/badge/$slug'
+    | '/invite/$token'
     | '/pretest/result'
+    | '/admin/cohorts'
+    | '/exam/$attemptId'
     | '/quick/quiz'
     | '/quick/swipe'
     | '/scenarios/$scenarioId'
@@ -238,9 +288,14 @@ export interface FileRouteTypes {
     | '/settings'
     | '/assets'
     | '/daily'
+    | '/exam'
     | '/leaderboard'
     | '/me'
+    | '/badge/$slug'
+    | '/invite/$token'
     | '/pretest/result'
+    | '/admin/cohorts'
+    | '/exam/$attemptId'
     | '/quick/quiz'
     | '/quick/swipe'
     | '/scenarios/$scenarioId'
@@ -260,10 +315,15 @@ export interface FileRouteTypes {
     | '/_layout/settings'
     | '/_shell/assets'
     | '/_shell/daily'
+    | '/_shell/exam'
     | '/_shell/leaderboard'
     | '/_shell/me'
+    | '/badge/$slug'
+    | '/invite/$token'
     | '/pretest/result'
     | '/_shell/'
+    | '/_layout/admin_/cohorts'
+    | '/_shell/exam_/$attemptId'
     | '/_shell/quick/quiz'
     | '/_shell/quick/swipe'
     | '/_shell/scenarios/$scenarioId'
@@ -278,6 +338,8 @@ export interface RootRouteChildren {
   RecoverPasswordRoute: typeof RecoverPasswordRoute
   ResetPasswordRoute: typeof ResetPasswordRoute
   SignupRoute: typeof SignupRoute
+  BadgeSlugRoute: typeof BadgeSlugRoute
+  InviteTokenRoute: typeof InviteTokenRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -345,6 +407,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof PretestResultRouteImport
       parentRoute: typeof PretestRoute
     }
+    '/invite/$token': {
+      id: '/invite/$token'
+      path: '/invite/$token'
+      fullPath: '/invite/$token'
+      preLoaderRoute: typeof InviteTokenRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/badge/$slug': {
+      id: '/badge/$slug'
+      path: '/badge/$slug'
+      fullPath: '/badge/$slug'
+      preLoaderRoute: typeof BadgeSlugRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/_shell/me': {
       id: '/_shell/me'
       path: '/me'
@@ -357,6 +433,13 @@ declare module '@tanstack/react-router' {
       path: '/leaderboard'
       fullPath: '/leaderboard'
       preLoaderRoute: typeof ShellLeaderboardRouteImport
+      parentRoute: typeof ShellRoute
+    }
+    '/_shell/exam': {
+      id: '/_shell/exam'
+      path: '/exam'
+      fullPath: '/exam'
+      preLoaderRoute: typeof ShellExamRouteImport
       parentRoute: typeof ShellRoute
     }
     '/_shell/daily': {
@@ -429,6 +512,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ShellQuickQuizRouteImport
       parentRoute: typeof ShellRoute
     }
+    '/_shell/exam_/$attemptId': {
+      id: '/_shell/exam_/$attemptId'
+      path: '/exam/$attemptId'
+      fullPath: '/exam/$attemptId'
+      preLoaderRoute: typeof ShellExamAttemptIdRouteImport
+      parentRoute: typeof ShellRoute
+    }
+    '/_layout/admin_/cohorts': {
+      id: '/_layout/admin_/cohorts'
+      path: '/admin/cohorts'
+      fullPath: '/admin/cohorts'
+      preLoaderRoute: typeof LayoutAdminCohortsRouteImport
+      parentRoute: typeof LayoutRoute
+    }
   }
 }
 
@@ -437,6 +534,7 @@ interface LayoutRouteChildren {
   LayoutItemsRoute: typeof LayoutItemsRoute
   LayoutMascotRoute: typeof LayoutMascotRoute
   LayoutSettingsRoute: typeof LayoutSettingsRoute
+  LayoutAdminCohortsRoute: typeof LayoutAdminCohortsRoute
 }
 
 const LayoutRouteChildren: LayoutRouteChildren = {
@@ -444,6 +542,7 @@ const LayoutRouteChildren: LayoutRouteChildren = {
   LayoutItemsRoute: LayoutItemsRoute,
   LayoutMascotRoute: LayoutMascotRoute,
   LayoutSettingsRoute: LayoutSettingsRoute,
+  LayoutAdminCohortsRoute: LayoutAdminCohortsRoute,
 }
 
 const LayoutRouteWithChildren =
@@ -452,9 +551,11 @@ const LayoutRouteWithChildren =
 interface ShellRouteChildren {
   ShellAssetsRoute: typeof ShellAssetsRoute
   ShellDailyRoute: typeof ShellDailyRoute
+  ShellExamRoute: typeof ShellExamRoute
   ShellLeaderboardRoute: typeof ShellLeaderboardRoute
   ShellMeRoute: typeof ShellMeRoute
   ShellIndexRoute: typeof ShellIndexRoute
+  ShellExamAttemptIdRoute: typeof ShellExamAttemptIdRoute
   ShellQuickQuizRoute: typeof ShellQuickQuizRoute
   ShellQuickSwipeRoute: typeof ShellQuickSwipeRoute
   ShellScenariosScenarioIdRoute: typeof ShellScenariosScenarioIdRoute
@@ -464,9 +565,11 @@ interface ShellRouteChildren {
 const ShellRouteChildren: ShellRouteChildren = {
   ShellAssetsRoute: ShellAssetsRoute,
   ShellDailyRoute: ShellDailyRoute,
+  ShellExamRoute: ShellExamRoute,
   ShellLeaderboardRoute: ShellLeaderboardRoute,
   ShellMeRoute: ShellMeRoute,
   ShellIndexRoute: ShellIndexRoute,
+  ShellExamAttemptIdRoute: ShellExamAttemptIdRoute,
   ShellQuickQuizRoute: ShellQuickQuizRoute,
   ShellQuickSwipeRoute: ShellQuickSwipeRoute,
   ShellScenariosScenarioIdRoute: ShellScenariosScenarioIdRoute,
@@ -494,6 +597,8 @@ const rootRouteChildren: RootRouteChildren = {
   RecoverPasswordRoute: RecoverPasswordRoute,
   ResetPasswordRoute: ResetPasswordRoute,
   SignupRoute: SignupRoute,
+  BadgeSlugRoute: BadgeSlugRoute,
+  InviteTokenRoute: InviteTokenRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

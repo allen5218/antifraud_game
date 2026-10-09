@@ -101,6 +101,170 @@ export const BuyPropertyResponseSchema = {
     title: 'BuyPropertyResponse'
 } as const;
 
+export const CohortCreateSchema = {
+    properties: {
+        name: {
+            type: 'string',
+            maxLength: 100,
+            minLength: 1,
+            title: 'Name'
+        },
+        max_members: {
+            type: 'integer',
+            maximum: 5000,
+            minimum: 1,
+            title: 'Max Members',
+            default: 150
+        },
+        expires_at: {
+            anyOf: [
+                {
+                    type: 'string',
+                    format: 'date-time'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Expires At'
+        }
+    },
+    type: 'object',
+    required: ['name'],
+    title: 'CohortCreate'
+} as const;
+
+export const CohortMemberPublicSchema = {
+    properties: {
+        id: {
+            type: 'string',
+            format: 'uuid',
+            title: 'Id'
+        },
+        participant_code: {
+            anyOf: [
+                {
+                    type: 'string'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Participant Code'
+        },
+        nickname: {
+            anyOf: [
+                {
+                    type: 'string'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Nickname'
+        },
+        created_at: {
+            anyOf: [
+                {
+                    type: 'string',
+                    format: 'date-time'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Created At'
+        },
+        is_active: {
+            type: 'boolean',
+            title: 'Is Active'
+        },
+        answer_count: {
+            type: 'integer',
+            title: 'Answer Count',
+            default: 0
+        },
+        correct_count: {
+            type: 'integer',
+            title: 'Correct Count',
+            default: 0
+        }
+    },
+    type: 'object',
+    required: ['id', 'participant_code', 'nickname', 'created_at', 'is_active'],
+    title: 'CohortMemberPublic'
+} as const;
+
+export const CohortPublicSchema = {
+    properties: {
+        id: {
+            type: 'string',
+            format: 'uuid',
+            title: 'Id'
+        },
+        name: {
+            type: 'string',
+            title: 'Name'
+        },
+        token: {
+            type: 'string',
+            title: 'Token'
+        },
+        is_active: {
+            type: 'boolean',
+            title: 'Is Active'
+        },
+        max_members: {
+            type: 'integer',
+            title: 'Max Members'
+        },
+        expires_at: {
+            anyOf: [
+                {
+                    type: 'string',
+                    format: 'date-time'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Expires At'
+        },
+        created_at: {
+            type: 'string',
+            format: 'date-time',
+            title: 'Created At'
+        },
+        created_by: {
+            anyOf: [
+                {
+                    type: 'string',
+                    format: 'uuid'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Created By'
+        }
+    },
+    type: 'object',
+    required: ['id', 'name', 'token', 'is_active', 'max_members', 'expires_at', 'created_at', 'created_by'],
+    title: 'CohortPublic'
+} as const;
+
+export const CohortUpdateSchema = {
+    properties: {
+        is_active: {
+            type: 'boolean',
+            title: 'Is Active'
+        }
+    },
+    type: 'object',
+    required: ['is_active'],
+    title: 'CohortUpdate'
+} as const;
+
 export const DailyResultPublicSchema = {
     properties: {
         correct: {
@@ -227,6 +391,813 @@ export const EconomyMeResponseSchema = {
     type: 'object',
     required: ['cash', 'xp', 'level', 'streak_days', 'pending_accrual', 'bankruptcy_pending'],
     title: 'EconomyMeResponse'
+} as const;
+
+export const ExamBadgePublicSchema = {
+    properties: {
+        id: {
+            type: 'string',
+            title: 'Id'
+        },
+        kind: {
+            type: 'string',
+            enum: ['comprehensive', 'type'],
+            title: 'Kind'
+        },
+        fraud_type: {
+            anyOf: [
+                {
+                    type: 'string'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Fraud Type'
+        },
+        tested_type: {
+            anyOf: [
+                {
+                    type: 'string'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Tested Type'
+        },
+        name: {
+            type: 'string',
+            title: 'Name'
+        },
+        first_passed_at: {
+            type: 'string',
+            format: 'date-time',
+            title: 'First Passed At'
+        },
+        last_passed_at: {
+            type: 'string',
+            format: 'date-time',
+            title: 'Last Passed At'
+        },
+        last_score: {
+            type: 'integer',
+            title: 'Last Score'
+        },
+        suggested_retest_at: {
+            type: 'string',
+            format: 'date',
+            title: 'Suggested Retest At'
+        },
+        is_public: {
+            type: 'boolean',
+            title: 'Is Public'
+        },
+        public_slug: {
+            anyOf: [
+                {
+                    type: 'string'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Public Slug'
+        }
+    },
+    type: 'object',
+    required: ['id', 'kind', 'fraud_type', 'tested_type', 'name', 'first_passed_at', 'last_passed_at', 'last_score', 'suggested_retest_at', 'is_public', 'public_slug'],
+    title: 'ExamBadgePublic'
+} as const;
+
+export const ExamBadgeUpdateSchema = {
+    properties: {
+        is_public: {
+            type: 'boolean',
+            title: 'Is Public'
+        }
+    },
+    type: 'object',
+    required: ['is_public'],
+    title: 'ExamBadgeUpdate'
+} as const;
+
+export const ExamBadgeVerificationSchema = {
+    properties: {
+        nickname: {
+            type: 'string',
+            title: 'Nickname'
+        },
+        badge_name: {
+            type: 'string',
+            title: 'Badge Name'
+        },
+        criteria: {
+            type: 'string',
+            title: 'Criteria'
+        },
+        last_passed_day: {
+            type: 'string',
+            format: 'date',
+            title: 'Last Passed Day'
+        },
+        suggested_retest_day: {
+            type: 'string',
+            format: 'date',
+            title: 'Suggested Retest Day'
+        },
+        status: {
+            type: 'string',
+            enum: ['current', 'retest_recommended'],
+            title: 'Status'
+        }
+    },
+    type: 'object',
+    required: ['nickname', 'badge_name', 'criteria', 'last_passed_day', 'suggested_retest_day', 'status'],
+    title: 'ExamBadgeVerification'
+} as const;
+
+export const ExamGateSchema = {
+    properties: {
+        fraud_type: {
+            type: 'string',
+            title: 'Fraud Type'
+        },
+        swipe: {
+            '$ref': '#/components/schemas/ExamGateCount'
+        },
+        quiz: {
+            '$ref': '#/components/schemas/ExamGateCount'
+        },
+        scenario: {
+            '$ref': '#/components/schemas/ExamGateCount'
+        },
+        recent: {
+            '$ref': '#/components/schemas/ExamGateRecent'
+        },
+        met: {
+            type: 'boolean',
+            title: 'Met'
+        }
+    },
+    type: 'object',
+    required: ['fraud_type', 'swipe', 'quiz', 'scenario', 'recent', 'met'],
+    title: 'ExamGate'
+} as const;
+
+export const ExamGateCountSchema = {
+    properties: {
+        done: {
+            type: 'integer',
+            title: 'Done'
+        },
+        need: {
+            type: 'integer',
+            title: 'Need'
+        }
+    },
+    type: 'object',
+    required: ['done', 'need'],
+    title: 'ExamGateCount'
+} as const;
+
+export const ExamGateRecentSchema = {
+    properties: {
+        correct: {
+            type: 'integer',
+            title: 'Correct'
+        },
+        total: {
+            type: 'integer',
+            title: 'Total'
+        },
+        need: {
+            type: 'integer',
+            title: 'Need'
+        }
+    },
+    type: 'object',
+    required: ['correct', 'total', 'need'],
+    title: 'ExamGateRecent'
+} as const;
+
+export const ExamHistoryItemSchema = {
+    properties: {
+        id: {
+            type: 'string',
+            title: 'Id'
+        },
+        mode: {
+            type: 'string',
+            enum: ['comprehensive', 'specialized'],
+            title: 'Mode'
+        },
+        fraud_type: {
+            anyOf: [
+                {
+                    type: 'string'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Fraud Type'
+        },
+        created_at: {
+            type: 'string',
+            format: 'date-time',
+            title: 'Created At'
+        },
+        completed_at: {
+            anyOf: [
+                {
+                    type: 'string',
+                    format: 'date-time'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Completed At'
+        },
+        total_score: {
+            anyOf: [
+                {
+                    type: 'integer'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Total Score'
+        },
+        passed: {
+            type: 'boolean',
+            title: 'Passed'
+        },
+        status: {
+            type: 'string',
+            enum: ['active', 'completed', 'expired', 'abandoned', 'voided'],
+            title: 'Status'
+        }
+    },
+    type: 'object',
+    required: ['id', 'mode', 'fraud_type', 'created_at', 'completed_at', 'total_score', 'passed', 'status'],
+    title: 'ExamHistoryItem'
+} as const;
+
+export const ExamMessageAnswerSchema = {
+    properties: {
+        item_id: {
+            type: 'string',
+            maxLength: 64,
+            title: 'Item Id'
+        },
+        guess_is_scam: {
+            anyOf: [
+                {
+                    type: 'boolean'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Guess Is Scam'
+        },
+        tags: {
+            anyOf: [
+                {
+                    items: {
+                        type: 'string',
+                        enum: ['time_pressure', 'authority', 'greed', 'social_proof', 'trust_building']
+                    },
+                    type: 'array',
+                    maxItems: 5
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Tags'
+        }
+    },
+    additionalProperties: false,
+    type: 'object',
+    required: ['item_id'],
+    title: 'ExamMessageAnswer'
+} as const;
+
+export const ExamMessageItemSchema = {
+    properties: {
+        item_id: {
+            type: 'string',
+            title: 'Item Id'
+        },
+        kind: {
+            type: 'string',
+            enum: ['verdict', 'tactics'],
+            title: 'Kind'
+        },
+        title: {
+            type: 'string',
+            title: 'Title'
+        },
+        narrative: {
+            type: 'string',
+            title: 'Narrative'
+        },
+        question: {
+            anyOf: [
+                {
+                    type: 'string'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Question'
+        },
+        options: {
+            anyOf: [
+                {
+                    items: {
+                        '$ref': '#/components/schemas/QuizTacticsOption'
+                    },
+                    type: 'array'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Options'
+        }
+    },
+    type: 'object',
+    required: ['item_id', 'kind', 'title', 'narrative'],
+    title: 'ExamMessageItem'
+} as const;
+
+export const ExamMessageRequestSchema = {
+    properties: {
+        answers: {
+            items: {
+                '$ref': '#/components/schemas/ExamMessageAnswer'
+            },
+            type: 'array',
+            maxItems: 9,
+            title: 'Answers'
+        }
+    },
+    type: 'object',
+    required: ['answers'],
+    title: 'ExamMessageRequest'
+} as const;
+
+export const ExamPretestAnswerSchema = {
+    properties: {
+        question_id: {
+            type: 'string',
+            format: 'uuid',
+            title: 'Question Id'
+        },
+        selected_option: {
+            type: 'string',
+            maxLength: 4,
+            minLength: 1,
+            title: 'Selected Option'
+        }
+    },
+    additionalProperties: false,
+    type: 'object',
+    required: ['question_id', 'selected_option'],
+    title: 'ExamPretestAnswer'
+} as const;
+
+export const ExamPretestItemSchema = {
+    properties: {
+        id: {
+            type: 'string',
+            title: 'Id'
+        },
+        question_text: {
+            type: 'string',
+            title: 'Question Text'
+        },
+        options: {
+            items: {
+                '$ref': '#/components/schemas/QuizVerificationOption'
+            },
+            type: 'array',
+            title: 'Options'
+        }
+    },
+    type: 'object',
+    required: ['id', 'question_text', 'options'],
+    title: 'ExamPretestItem'
+} as const;
+
+export const ExamPretestRequestSchema = {
+    properties: {
+        answers: {
+            items: {
+                '$ref': '#/components/schemas/ExamPretestAnswer'
+            },
+            type: 'array',
+            maxItems: 20,
+            title: 'Answers'
+        }
+    },
+    type: 'object',
+    required: ['answers'],
+    title: 'ExamPretestRequest'
+} as const;
+
+export const ExamProgressSchema = {
+    properties: {
+        stage_index: {
+            type: 'integer',
+            title: 'Stage Index'
+        },
+        stage_count: {
+            type: 'integer',
+            title: 'Stage Count'
+        }
+    },
+    type: 'object',
+    required: ['stage_index', 'stage_count'],
+    title: 'ExamProgress'
+} as const;
+
+export const ExamResultSchema = {
+    properties: {
+        total_score: {
+            type: 'integer',
+            title: 'Total Score'
+        },
+        passed: {
+            type: 'boolean',
+            title: 'Passed'
+        },
+        mode: {
+            type: 'string',
+            enum: ['comprehensive', 'specialized'],
+            title: 'Mode'
+        },
+        fraud_type: {
+            type: 'string',
+            title: 'Fraud Type'
+        },
+        pretest_by_type: {
+            anyOf: [
+                {
+                    additionalProperties: {
+                        type: 'integer'
+                    },
+                    type: 'object'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Pretest By Type'
+        },
+        weakness_score: {
+            type: 'integer',
+            title: 'Weakness Score'
+        },
+        weakness_max: {
+            type: 'integer',
+            title: 'Weakness Max'
+        },
+        missed_tactics: {
+            items: {
+                type: 'string'
+            },
+            type: 'array',
+            title: 'Missed Tactics'
+        },
+        badges: {
+            items: {
+                '$ref': '#/components/schemas/ExamBadgePublic'
+            },
+            type: 'array',
+            title: 'Badges'
+        },
+        reward: {
+            '$ref': '#/components/schemas/ExamReward'
+        }
+    },
+    type: 'object',
+    required: ['total_score', 'passed', 'mode', 'fraud_type', 'pretest_by_type', 'weakness_score', 'weakness_max', 'missed_tactics', 'badges', 'reward'],
+    title: 'ExamResult'
+} as const;
+
+export const ExamRetakeSchema = {
+    properties: {
+        fraud_type: {
+            type: 'string',
+            title: 'Fraud Type'
+        },
+        gate: {
+            '$ref': '#/components/schemas/ExamGate'
+        }
+    },
+    type: 'object',
+    required: ['fraud_type', 'gate'],
+    title: 'ExamRetake'
+} as const;
+
+export const ExamRewardSchema = {
+    properties: {
+        cash: {
+            type: 'integer',
+            title: 'Cash',
+            default: 0
+        },
+        xp: {
+            type: 'integer',
+            title: 'Xp',
+            default: 0
+        }
+    },
+    type: 'object',
+    title: 'ExamReward'
+} as const;
+
+export const ExamScenarioSchema = {
+    properties: {
+        session_id: {
+            anyOf: [
+                {
+                    type: 'string'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Session Id'
+        },
+        index: {
+            type: 'integer',
+            title: 'Index'
+        },
+        count: {
+            type: 'integer',
+            title: 'Count'
+        },
+        max_turns: {
+            type: 'integer',
+            title: 'Max Turns'
+        },
+        player_turns: {
+            type: 'integer',
+            title: 'Player Turns'
+        }
+    },
+    type: 'object',
+    required: ['session_id', 'index', 'count', 'max_turns', 'player_turns'],
+    title: 'ExamScenario'
+} as const;
+
+export const ExamScenarioJudgeRequestSchema = {
+    properties: {
+        action: {
+            type: 'string',
+            enum: ['report', 'comply'],
+            title: 'Action'
+        },
+        session_id: {
+            type: 'string',
+            format: 'uuid',
+            title: 'Session Id'
+        }
+    },
+    additionalProperties: false,
+    type: 'object',
+    required: ['action', 'session_id'],
+    title: 'ExamScenarioJudgeRequest'
+} as const;
+
+export const ExamStartRequestSchema = {
+    properties: {
+        mode: {
+            type: 'string',
+            enum: ['comprehensive', 'specialized'],
+            title: 'Mode'
+        },
+        fraud_type: {
+            anyOf: [
+                {
+                    type: 'string'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Fraud Type'
+        }
+    },
+    additionalProperties: false,
+    type: 'object',
+    required: ['mode'],
+    title: 'ExamStartRequest'
+} as const;
+
+export const ExamStateSchema = {
+    properties: {
+        id: {
+            type: 'string',
+            title: 'Id'
+        },
+        mode: {
+            type: 'string',
+            enum: ['comprehensive', 'specialized'],
+            title: 'Mode'
+        },
+        status: {
+            type: 'string',
+            enum: ['active', 'completed', 'expired', 'abandoned', 'voided'],
+            title: 'Status'
+        },
+        stage: {
+            type: 'string',
+            enum: ['pretest', 'swipe', 'message', 'scenario', 'done'],
+            title: 'Stage'
+        },
+        fraud_type: {
+            anyOf: [
+                {
+                    type: 'string'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Fraud Type'
+        },
+        expires_at: {
+            type: 'string',
+            format: 'date-time',
+            title: 'Expires At'
+        },
+        stage_items: {
+            items: {
+                anyOf: [
+                    {
+                        '$ref': '#/components/schemas/ExamPretestItem'
+                    },
+                    {
+                        '$ref': '#/components/schemas/ExamSwipeItem'
+                    },
+                    {
+                        '$ref': '#/components/schemas/ExamMessageItem'
+                    }
+                ]
+            },
+            type: 'array',
+            title: 'Stage Items'
+        },
+        progress: {
+            '$ref': '#/components/schemas/ExamProgress'
+        },
+        scenario: {
+            anyOf: [
+                {
+                    '$ref': '#/components/schemas/ExamScenario'
+                },
+                {
+                    type: 'null'
+                }
+            ]
+        },
+        result: {
+            anyOf: [
+                {
+                    '$ref': '#/components/schemas/ExamResult'
+                },
+                {
+                    type: 'null'
+                }
+            ]
+        }
+    },
+    type: 'object',
+    required: ['id', 'mode', 'status', 'stage', 'fraud_type', 'expires_at', 'stage_items', 'progress', 'scenario', 'result'],
+    title: 'ExamState'
+} as const;
+
+export const ExamStatusSchema = {
+    properties: {
+        active_attempt_id: {
+            anyOf: [
+                {
+                    type: 'string'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Active Attempt Id'
+        },
+        can_start: {
+            type: 'boolean',
+            title: 'Can Start'
+        },
+        block_reason: {
+            anyOf: [
+                {
+                    type: 'string',
+                    enum: ['exam_in_progress', 'retake_gate', 'exam_daily_limit']
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Block Reason'
+        },
+        gate: {
+            anyOf: [
+                {
+                    '$ref': '#/components/schemas/ExamGate'
+                },
+                {
+                    type: 'null'
+                }
+            ]
+        },
+        daily_used: {
+            type: 'integer',
+            title: 'Daily Used'
+        },
+        daily_limit: {
+            type: 'integer',
+            title: 'Daily Limit'
+        },
+        badges: {
+            items: {
+                '$ref': '#/components/schemas/ExamBadgePublic'
+            },
+            type: 'array',
+            title: 'Badges'
+        }
+    },
+    type: 'object',
+    required: ['active_attempt_id', 'can_start', 'block_reason', 'gate', 'daily_used', 'daily_limit', 'badges'],
+    title: 'ExamStatus'
+} as const;
+
+export const ExamSwipeAnswerSchema = {
+    properties: {
+        card_id: {
+            type: 'string',
+            format: 'uuid',
+            title: 'Card Id'
+        },
+        guess_is_scam: {
+            type: 'boolean',
+            title: 'Guess Is Scam'
+        }
+    },
+    additionalProperties: false,
+    type: 'object',
+    required: ['card_id', 'guess_is_scam'],
+    title: 'ExamSwipeAnswer'
+} as const;
+
+export const ExamSwipeItemSchema = {
+    properties: {
+        id: {
+            type: 'string',
+            title: 'Id'
+        },
+        source_label: {
+            type: 'string',
+            title: 'Source Label'
+        },
+        scenario: {
+            type: 'string',
+            title: 'Scenario'
+        }
+    },
+    type: 'object',
+    required: ['id', 'source_label', 'scenario'],
+    title: 'ExamSwipeItem'
+} as const;
+
+export const ExamSwipeRequestSchema = {
+    properties: {
+        answers: {
+            items: {
+                '$ref': '#/components/schemas/ExamSwipeAnswer'
+            },
+            type: 'array',
+            maxItems: 6,
+            title: 'Answers'
+        }
+    },
+    type: 'object',
+    required: ['answers'],
+    title: 'ExamSwipeRequest'
 } as const;
 
 export const FlagItemSchema = {
@@ -651,12 +1622,22 @@ export const PracticeProfilePublicSchema = {
         answers_seen: {
             type: 'integer',
             title: 'Answers Seen'
+        },
+        retake: {
+            anyOf: [
+                {
+                    '$ref': '#/components/schemas/ExamRetake'
+                },
+                {
+                    type: 'null'
+                }
+            ]
         }
     },
     type: 'object',
     required: ['focus_type', 'focus_label', 'note', 'weights', 'source', 'answers_seen'],
     title: 'PracticeProfilePublic',
-    description: '玩家目前的練習重點。題組、滑卡、情境收件匣都照這個比例出題。'
+    description: '玩家目前的練習重點。訊息判讀、滑卡、情境收件匣都照這個比例出題。'
 } as const;
 
 export const PretestAnswerSchema = {
@@ -1859,9 +2840,16 @@ export const UserCreateSchema = {
 export const UserPublicSchema = {
     properties: {
         email: {
-            type: 'string',
-            maxLength: 255,
-            format: 'email',
+            anyOf: [
+                {
+                    type: 'string',
+                    format: 'email'
+                },
+                {
+                    type: 'string',
+                    pattern: '^guest-[0-9a-f]{32}@participants\\.invalid$'
+                }
+            ],
             title: 'Email'
         },
         is_active: {
@@ -1902,6 +2890,34 @@ export const UserPublicSchema = {
                 }
             ],
             title: 'Created At'
+        },
+        is_guest: {
+            type: 'boolean',
+            title: 'Is Guest',
+            default: false
+        },
+        participant_code: {
+            anyOf: [
+                {
+                    type: 'string'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Participant Code'
+        },
+        cohort_id: {
+            anyOf: [
+                {
+                    type: 'string',
+                    format: 'uuid'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Cohort Id'
         }
     },
     type: 'object',

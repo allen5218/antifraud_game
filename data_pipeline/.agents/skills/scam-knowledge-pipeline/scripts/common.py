@@ -709,6 +709,8 @@ CREATE TABLE IF NOT EXISTS game_cases (
     source_document_ids bigint[] NOT NULL DEFAULT '{}',
     provenance text NOT NULL,
     mirror_of bigint REFERENCES game_cases(id),
+    pool text NOT NULL DEFAULT 'practice',
+    pattern_key text,
     status text NOT NULL DEFAULT 'draft',
     review_notes text,
     created_at timestamptz NOT NULL DEFAULT now(),
@@ -720,6 +722,8 @@ CREATE INDEX IF NOT EXISTS game_cases_published_idx
 
 -- 查證題子表：一個母案例可掛多題（問「下一步查什麼」與「證據代表什麼」）。
 -- 子題有自己的 status，母案例 published 不代表子題已審核。
+ALTER TABLE game_cases ADD COLUMN IF NOT EXISTS pool text NOT NULL DEFAULT 'practice';
+ALTER TABLE game_cases ADD COLUMN IF NOT EXISTS pattern_key text;
 CREATE TABLE IF NOT EXISTS game_case_questions (
     id bigserial PRIMARY KEY,
     question_key text NOT NULL,

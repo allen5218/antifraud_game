@@ -88,6 +88,14 @@ def semantic_errors(rec):
             f"surface_tag must be one of the 5 weakness_tags or null: {surface_tag}"
         )
 
+    pool = rec.get("pool", "practice")
+    if pool not in {"practice", "exam_message", "exam_tactics", "exam_scenario"}:
+        errors.append(
+            "pool must be practice, exam_message, exam_tactics or exam_scenario"
+        )
+    if pool != "practice" and not rec.get("is_scam") and not rec.get("mirror_of_key"):
+        errors.append("exam legit case requires mirror_of_key")
+
     flags = [f for f in rec.get("red_flags", []) if isinstance(f, dict)]
     tags = [f.get("tag") for f in flags]
     if rec.get("is_scam"):

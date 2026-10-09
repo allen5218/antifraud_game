@@ -40,8 +40,8 @@ def outcome_deltas(outcome: str, econ: ScenarioEconomyConfig) -> tuple[int, int]
     return cash, XP_BY_OUTCOME[outcome]
 
 
-def can_send_message(player_turns: int) -> bool:
-    return player_turns < MAX_TURNS
+def can_send_message(player_turns: int, max_turns: int = MAX_TURNS) -> bool:
+    return player_turns < max_turns
 
 
 def accumulate_tactics(seen: list[str], new: list[str]) -> list[str]:

@@ -22,6 +22,37 @@ export type BuyPropertyResponse = {
     new_cash: number;
 };
 
+export type CohortCreate = {
+    name: string;
+    max_members?: number;
+    expires_at?: (string | null);
+};
+
+export type CohortMemberPublic = {
+    id: string;
+    participant_code: (string | null);
+    nickname: (string | null);
+    created_at: (string | null);
+    is_active: boolean;
+    answer_count?: number;
+    correct_count?: number;
+};
+
+export type CohortPublic = {
+    id: string;
+    name: string;
+    token: string;
+    is_active: boolean;
+    max_members: number;
+    expires_at: (string | null);
+    created_at: string;
+    created_by: (string | null);
+};
+
+export type CohortUpdate = {
+    is_active: boolean;
+};
+
 export type DailyResultPublic = {
     correct: number;
     total: number;
@@ -48,6 +79,198 @@ export type EconomyMeResponse = {
     streak_days: number;
     pending_accrual: number;
     bankruptcy_pending: boolean;
+};
+
+export type ExamBadgePublic = {
+    id: string;
+    kind: 'comprehensive' | 'type';
+    fraud_type: (string | null);
+    tested_type: (string | null);
+    name: string;
+    first_passed_at: string;
+    last_passed_at: string;
+    last_score: number;
+    suggested_retest_at: string;
+    is_public: boolean;
+    public_slug: (string | null);
+};
+
+export type kind = 'comprehensive' | 'type';
+
+export type ExamBadgeUpdate = {
+    is_public: boolean;
+};
+
+export type ExamBadgeVerification = {
+    nickname: string;
+    badge_name: string;
+    criteria: string;
+    last_passed_day: string;
+    suggested_retest_day: string;
+    status: 'current' | 'retest_recommended';
+};
+
+export type status2 = 'current' | 'retest_recommended';
+
+export type ExamGate = {
+    fraud_type: string;
+    swipe: ExamGateCount;
+    quiz: ExamGateCount;
+    scenario: ExamGateCount;
+    recent: ExamGateRecent;
+    met: boolean;
+};
+
+export type ExamGateCount = {
+    done: number;
+    need: number;
+};
+
+export type ExamGateRecent = {
+    correct: number;
+    total: number;
+    need: number;
+};
+
+export type ExamHistoryItem = {
+    id: string;
+    mode: 'comprehensive' | 'specialized';
+    fraud_type: (string | null);
+    created_at: string;
+    completed_at: (string | null);
+    total_score: (number | null);
+    passed: boolean;
+    status: 'active' | 'completed' | 'expired' | 'abandoned' | 'voided';
+};
+
+export type mode = 'comprehensive' | 'specialized';
+
+export type status3 = 'active' | 'completed' | 'expired' | 'abandoned' | 'voided';
+
+export type ExamMessageAnswer = {
+    item_id: string;
+    guess_is_scam?: (boolean | null);
+    tags?: (Array<('time_pressure' | 'authority' | 'greed' | 'social_proof' | 'trust_building')> | null);
+};
+
+export type ExamMessageItem = {
+    item_id: string;
+    kind: 'verdict' | 'tactics';
+    title: string;
+    narrative: string;
+    question?: (string | null);
+    options?: (Array<QuizTacticsOption> | null);
+};
+
+export type kind2 = 'verdict' | 'tactics';
+
+export type ExamMessageRequest = {
+    answers: Array<ExamMessageAnswer>;
+};
+
+export type ExamPretestAnswer = {
+    question_id: string;
+    selected_option: string;
+};
+
+export type ExamPretestItem = {
+    id: string;
+    question_text: string;
+    options: Array<QuizVerificationOption>;
+};
+
+export type ExamPretestRequest = {
+    answers: Array<ExamPretestAnswer>;
+};
+
+export type ExamProgress = {
+    stage_index: number;
+    stage_count: number;
+};
+
+export type ExamResult = {
+    total_score: number;
+    passed: boolean;
+    mode: 'comprehensive' | 'specialized';
+    fraud_type: string;
+    pretest_by_type: ({
+    [key: string]: (number);
+} | null);
+    weakness_score: number;
+    weakness_max: number;
+    missed_tactics: Array<(string)>;
+    badges: Array<ExamBadgePublic>;
+    reward: ExamReward;
+};
+
+export type ExamRetake = {
+    fraud_type: string;
+    gate: ExamGate;
+};
+
+export type ExamReward = {
+    cash?: number;
+    xp?: number;
+};
+
+export type ExamScenario = {
+    session_id: (string | null);
+    index: number;
+    count: number;
+    max_turns: number;
+    player_turns: number;
+};
+
+export type ExamScenarioJudgeRequest = {
+    action: 'report' | 'comply';
+    session_id: string;
+};
+
+export type action = 'report' | 'comply';
+
+export type ExamStartRequest = {
+    mode: 'comprehensive' | 'specialized';
+    fraud_type?: (string | null);
+};
+
+export type ExamState = {
+    id: string;
+    mode: 'comprehensive' | 'specialized';
+    status: 'active' | 'completed' | 'expired' | 'abandoned' | 'voided';
+    stage: 'pretest' | 'swipe' | 'message' | 'scenario' | 'done';
+    fraud_type: (string | null);
+    expires_at: string;
+    stage_items: Array<(ExamPretestItem | ExamSwipeItem | ExamMessageItem)>;
+    progress: ExamProgress;
+    scenario: (ExamScenario | null);
+    result: (ExamResult | null);
+};
+
+export type stage = 'pretest' | 'swipe' | 'message' | 'scenario' | 'done';
+
+export type ExamStatus = {
+    active_attempt_id: (string | null);
+    can_start: boolean;
+    block_reason: ('exam_in_progress' | 'retake_gate' | 'exam_daily_limit' | null);
+    gate: (ExamGate | null);
+    daily_used: number;
+    daily_limit: number;
+    badges: Array<ExamBadgePublic>;
+};
+
+export type ExamSwipeAnswer = {
+    card_id: string;
+    guess_is_scam: boolean;
+};
+
+export type ExamSwipeItem = {
+    id: string;
+    source_label: string;
+    scenario: string;
+};
+
+export type ExamSwipeRequest = {
+    answers: Array<ExamSwipeAnswer>;
 };
 
 export type FlagItem = {
@@ -142,7 +365,7 @@ export type OwnedPropertyPublic = {
 };
 
 /**
- * 玩家目前的練習重點。題組、滑卡、情境收件匣都照這個比例出題。
+ * 玩家目前的練習重點。訊息判讀、滑卡、情境收件匣都照這個比例出題。
  */
 export type PracticeProfilePublic = {
     focus_type: (string | null);
@@ -153,6 +376,7 @@ export type PracticeProfilePublic = {
     };
     source: 'gemini' | 'rule' | 'pretest' | 'none';
     answers_seen: number;
+    retake?: (ExamRetake | null);
 };
 
 export type source = 'gemini' | 'rule' | 'pretest' | 'none';
@@ -365,8 +589,6 @@ export type ScenarioJudgeRequest = {
     action: 'report' | 'comply';
 };
 
-export type action = 'report' | 'comply';
-
 export type ScenarioJudgeResponse = {
     outcome: string;
     true_role: string;
@@ -452,12 +674,15 @@ export type UserCreate = {
 };
 
 export type UserPublic = {
-    email: string;
+    email: (string);
     is_active?: boolean;
     is_superuser?: boolean;
     full_name?: (string | null);
     id: string;
     created_at?: (string | null);
+    is_guest?: boolean;
+    participant_code?: (string | null);
+    cohort_id?: (string | null);
 };
 
 export type UserRegister = {
@@ -500,6 +725,54 @@ export type WeaknessSummaryItem = {
     count: number;
 };
 
+export type AdminCohortsListCohortsResponse = (Array<CohortPublic>);
+
+export type AdminCohortsCreateCohortData = {
+    requestBody: CohortCreate;
+};
+
+export type AdminCohortsCreateCohortResponse = (CohortPublic);
+
+export type AdminCohortsUpdateCohortData = {
+    cohortId: string;
+    requestBody: CohortUpdate;
+};
+
+export type AdminCohortsUpdateCohortResponse = (CohortPublic);
+
+export type AdminCohortsListMembersData = {
+    cohortId: string;
+};
+
+export type AdminCohortsListMembersResponse = (Array<CohortMemberPublic>);
+
+export type AdminCohortsExportCohortData = {
+    cohortId: string;
+};
+
+export type AdminCohortsExportCohortResponse = (string);
+
+export type AdminCohortsExportCohortExamData = {
+    cohortId: string;
+};
+
+export type AdminCohortsExportCohortExamResponse = (string);
+
+export type BadgesOwnBadgesResponse = (Array<ExamBadgePublic>);
+
+export type BadgesUpdateBadgeData = {
+    badgeId: string;
+    requestBody: ExamBadgeUpdate;
+};
+
+export type BadgesUpdateBadgeResponse = (ExamBadgePublic);
+
+export type BadgesPublicBadgeData = {
+    slug: string;
+};
+
+export type BadgesPublicBadgeResponse = (ExamBadgeVerification);
+
 export type DailyDailyTodayResponse = (DailyTodayResponse);
 
 export type EconomyReadMeResponse = (EconomyMeResponse);
@@ -523,6 +796,70 @@ export type EconomyPostLiquidateData = {
 };
 
 export type EconomyPostLiquidateResponse = (LiquidateResponse);
+
+export type ExamReadStatusResponse = (ExamStatus);
+
+export type ExamStartData = {
+    requestBody: ExamStartRequest;
+};
+
+export type ExamStartResponse = (ExamState);
+
+export type ExamActiveResponse = ((ExamState | null));
+
+export type ExamHistoryResponse = (Array<ExamHistoryItem>);
+
+export type ExamReadData = {
+    attemptId: string;
+};
+
+export type ExamReadResponse = (ExamState);
+
+export type ExamPretestData = {
+    attemptId: string;
+    requestBody: ExamPretestRequest;
+};
+
+export type ExamPretestResponse = (ExamState);
+
+export type ExamSwipeData = {
+    attemptId: string;
+    requestBody: ExamSwipeRequest;
+};
+
+export type ExamSwipeResponse = (ExamState);
+
+export type ExamMessageData = {
+    attemptId: string;
+    requestBody: ExamMessageRequest;
+};
+
+export type ExamMessageResponse = (ExamState);
+
+export type ExamScenarioStartData = {
+    attemptId: string;
+};
+
+export type ExamScenarioStartResponse = (ExamState);
+
+export type ExamScenarioJudgeData = {
+    attemptId: string;
+    requestBody: ExamScenarioJudgeRequest;
+};
+
+export type ExamScenarioJudgeResponse = (ExamState);
+
+export type ExamAbandonData = {
+    attemptId: string;
+};
+
+export type ExamAbandonResponse = (ExamState);
+
+export type InviteRedeemInviteData = {
+    token: string;
+};
+
+export type InviteRedeemInviteResponse = (Token);
 
 export type ItemsReadItemsData = {
     limit?: number;

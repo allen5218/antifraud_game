@@ -1,5 +1,7 @@
 import { useEffect, useRef, useState } from "react"
 import type { ApiError, QuizWeaknessDetail } from "@/client"
+import { ExamInProgress } from "@/components/exam/ExamInProgress"
+import { errorCode } from "@/components/exam/exam"
 import { PracticeFocusBadge } from "@/components/practice/PracticeFocus"
 import {
   useSwipeAnswer,
@@ -25,6 +27,7 @@ export function SwipeDeck() {
   // 這張卡送出失敗時選的答案(畫面顯示「再送一次」用)
   const [failedGuess, setFailedGuess] = useState<boolean | null>(null)
   const [expired, setExpired] = useState(false)
+  const [examLock, setExamLock] = useState<unknown>(null)
   // 這張卡第一次選的答案,送出後就鎖定:連點、失敗重送都只能送這個
   // (伺服器只記第一次,換答案會被拒絕)。用 ref 同步上鎖,因為 isPending 要等下一次
   // render 才更新,連點兩下會在那之前送出兩個不同的答案。
@@ -59,6 +62,24 @@ export function SwipeDeck() {
     )
   }
 
+  if (examLock) return <ExamInProgress error={examLock} />
+  if (errorCode(deck.error) === "exam_in_progress")
+    return <ExamInProgress error={deck.error} />
+  if (errorCode(answerM.error) === "exam_in_progress")
+    return <ExamInProgress error={answerM.error} />
+  if (deck.isError)
+    return (
+      <div className="space-y-3 py-6">
+        <p role="alert">題目載入失敗，請稍後再試。</p>
+        <button
+          type="button"
+          onClick={() => deck.refetch()}
+          className="rounded-xl bg-primary px-4 py-2 text-primary-foreground"
+        >
+          重新讀取
+        </button>
+      </div>
+    )
   if (cards.length === 0) {
     return <div className="py-12 text-center text-sm">目前沒有題目</div>
   }
@@ -125,6 +146,10 @@ export function SwipeDeck() {
           inFlight.current = false
         },
         onError: (err) => {
+          if (errorCode(err) === "exam_in_progress") {
+            setExamLock(err)
+            return
+          }
           // 400/404:這一局已經不能再作答(別的分頁結算了、卡片被移除),重送也沒用
           const status = (err as ApiError | undefined)?.status
           if (status === 400 || status === 404) setExpired(true)

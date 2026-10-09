@@ -38,11 +38,15 @@ CREATE TABLE IF NOT EXISTS game_cases (
     source_document_ids bigint[] NOT NULL DEFAULT '{}',
     provenance text NOT NULL,
     mirror_of bigint REFERENCES game_cases(id),
+    pool text NOT NULL DEFAULT 'practice',
+    pattern_key text,
     status text NOT NULL DEFAULT 'draft',
     review_notes text,
     created_at timestamptz NOT NULL DEFAULT now(),
     published_at timestamptz
 );
+ALTER TABLE game_cases ADD COLUMN IF NOT EXISTS pool text NOT NULL DEFAULT 'practice';
+ALTER TABLE game_cases ADD COLUMN IF NOT EXISTS pattern_key text;
 CREATE TABLE IF NOT EXISTS game_case_questions (
     id bigserial PRIMARY KEY,
     question_key text NOT NULL,
