@@ -59,7 +59,8 @@ def recover_password(email: str, session: SessionDep) -> Message:
 
     # Always return the same response to prevent email enumeration attacks
     # Only send email if user actually exists
-    if user:
+    # 訪客帳號沒有可收信的位址，跳過寄信，但回應要和不存在的帳號一樣，避免被拿來查帳號是否存在
+    if user and not user.is_guest:
         password_reset_token = generate_password_reset_token(email=email)
         email_data = generate_reset_password_email(
             email_to=user.email, email=email, token=password_reset_token
@@ -86,6 +87,8 @@ def reset_password(session: SessionDep, body: NewPassword) -> Message:
     if not user:
         # Don't reveal that the user doesn't exist - use same error as invalid token
         raise HTTPException(status_code=400, detail="Invalid token")
+    if user.is_guest:
+        raise HTTPException(status_code=400, detail={"code": "guest_account"})
     elif not user.is_active:
         raise HTTPException(status_code=400, detail="Inactive user")
     user_in_update = UserUpdate(password=body.new_password)
@@ -113,6 +116,8 @@ def recover_password_html_content(email: str, session: SessionDep) -> Any:
             status_code=404,
             detail="The user with this username does not exist in the system.",
         )
+    if user.is_guest:
+        raise HTTPException(status_code=400, detail={"code": "guest_account"})
     password_reset_token = generate_password_reset_token(email=email)
     email_data = generate_reset_password_email(
         email_to=user.email, email=email, token=password_reset_token

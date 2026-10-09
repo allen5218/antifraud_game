@@ -1,6 +1,8 @@
 import { createFileRoute } from "@tanstack/react-router"
 import { useState } from "react"
 import type { QuickQuizAnswerResponse, QuizCompleteResponse } from "@/client"
+import { ExamInProgress } from "@/components/exam/ExamInProgress"
+import { errorCode } from "@/components/exam/exam"
 import { PracticeFocusBadge } from "@/components/practice/PracticeFocus"
 import { QuizCard, type QuizDraftAnswer } from "@/components/quiz/QuizCard"
 import { QuizReveal } from "@/components/quiz/QuizReveal"
@@ -11,16 +13,25 @@ export const Route = createFileRoute("/_shell/quick/quiz")({
   component: QuizPage,
 })
 
-function QuizPage() {
+export function QuizPage() {
   const [round, setRound] = useState(0)
-  const { data: deck, isError: isDeckError, isPending } = useQuizDeck(round)
+  const {
+    data: deck,
+    error,
+    isError: isDeckError,
+    isPending,
+  } = useQuizDeck(round)
   const answerM = useQuizAnswer()
   const completeM = useQuizComplete()
   const [index, setIndex] = useState(0)
   const [reveal, setReveal] = useState<QuickQuizAnswerResponse | null>(null)
   const [summary, setSummary] = useState<QuizCompleteResponse | null>(null)
 
+  if (errorCode(answerM.error) === "exam_in_progress")
+    return <ExamInProgress error={answerM.error} />
   if (isDeckError) {
+    if (errorCode(error) === "exam_in_progress")
+      return <ExamInProgress error={error} />
     return (
       <p className="py-12 text-center text-xs text-destructive">
         題目載入失敗，請稍後再試

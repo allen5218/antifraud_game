@@ -1,7 +1,34 @@
-from datetime import date
+import uuid
+from datetime import date, datetime
 from typing import Annotated, Any, Literal
 
-from pydantic import BaseModel, Field, StringConstraints
+from pydantic import BaseModel, ConfigDict, Field, StrictBool, StringConstraints
+
+
+class ExamGateCount(BaseModel):
+    done: int
+    need: int
+
+
+class ExamGateRecent(BaseModel):
+    correct: int
+    total: int
+    need: int
+
+
+class ExamGate(BaseModel):
+    fraud_type: str
+    swipe: ExamGateCount
+    quiz: ExamGateCount
+    scenario: ExamGateCount
+    recent: ExamGateRecent
+    met: bool
+
+
+class ExamRetake(BaseModel):
+    fraud_type: str
+    gate: ExamGate
+
 
 # ── 前測 ─────────────────────────────────────────────────────
 
@@ -30,7 +57,7 @@ class PretestSubmitResponse(BaseModel):
 
 
 class PracticeProfilePublic(BaseModel):
-    """玩家目前的練習重點。題組、滑卡、情境收件匣都照這個比例出題。"""
+    """玩家目前的練習重點。訊息判讀、滑卡、情境收件匣都照這個比例出題。"""
 
     focus_type: str | None
     focus_label: str | None
@@ -39,6 +66,7 @@ class PracticeProfilePublic(BaseModel):
     # gemini:分析器決定 / rule:規則計算 / pretest:只有前測結果 / none:還沒有紀錄
     source: Literal["gemini", "rule", "pretest", "none"]
     answers_seen: int
+    retake: ExamRetake | None = None
 
 
 # ── Economy ───────────────────────────────────────────────
@@ -438,3 +466,170 @@ class NicknameUpdate(BaseModel):
 
 class NicknameResponse(BaseModel):
     nickname: str | None
+
+
+# ── 檢測：公開結構只列安全欄位，與伺服器快照分開 ─────────────
+
+ExamMode = Literal["comprehensive", "specialized"]
+ExamStage = Literal["pretest", "swipe", "message", "scenario", "done"]
+ExamStatusValue = Literal["active", "completed", "expired", "abandoned", "voided"]
+ExamTag = Literal[
+    "time_pressure", "authority", "greed", "social_proof", "trust_building"
+]
+
+
+class ExamStartRequest(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+    mode: ExamMode
+    fraud_type: str | None = None
+
+
+class ExamPretestItem(BaseModel):
+    id: str
+    question_text: str
+    options: list[QuizVerificationOption]
+
+
+class ExamSwipeItem(BaseModel):
+    id: str
+    source_label: str
+    scenario: str
+
+
+class ExamMessageItem(BaseModel):
+    item_id: str
+    kind: Literal["verdict", "tactics"]
+    title: str
+    narrative: str
+    question: str | None = None
+    options: list[QuizTacticsOption] | None = None
+
+
+class ExamProgress(BaseModel):
+    stage_index: int
+    stage_count: int
+
+
+class ExamScenario(BaseModel):
+    session_id: str | None
+    index: int
+    count: int
+    max_turns: int
+    player_turns: int
+
+
+class ExamBadgePublic(BaseModel):
+    id: str
+    kind: Literal["comprehensive", "type"]
+    fraud_type: str | None
+    tested_type: str | None
+    name: str
+    first_passed_at: datetime
+    last_passed_at: datetime
+    last_score: int
+    suggested_retest_at: date
+    is_public: bool
+    public_slug: str | None
+
+
+class ExamReward(BaseModel):
+    cash: int = 0
+    xp: int = 0
+
+
+class ExamResult(BaseModel):
+    total_score: int
+    passed: bool
+    mode: ExamMode
+    fraud_type: str
+    pretest_by_type: dict[str, int] | None
+    weakness_score: int
+    weakness_max: int
+    missed_tactics: list[str]
+    badges: list[ExamBadgePublic]
+    reward: ExamReward
+
+
+class ExamState(BaseModel):
+    id: str
+    mode: ExamMode
+    status: ExamStatusValue
+    stage: ExamStage
+    fraud_type: str | None
+    expires_at: datetime
+    stage_items: list[ExamPretestItem | ExamSwipeItem | ExamMessageItem]
+    progress: ExamProgress
+    scenario: ExamScenario | None
+    result: ExamResult | None
+
+
+class ExamStatus(BaseModel):
+    active_attempt_id: str | None
+    can_start: bool
+    block_reason: Literal["exam_in_progress", "retake_gate", "exam_daily_limit"] | None
+    gate: ExamGate | None
+    daily_used: int
+    daily_limit: int
+    badges: list[ExamBadgePublic]
+
+
+class ExamPretestAnswer(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+    question_id: uuid.UUID
+    selected_option: str = Field(min_length=1, max_length=4)
+
+
+class ExamPretestRequest(BaseModel):
+    answers: list[ExamPretestAnswer] = Field(max_length=20)
+
+
+class ExamSwipeAnswer(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+    card_id: uuid.UUID
+    guess_is_scam: StrictBool
+
+
+class ExamSwipeRequest(BaseModel):
+    answers: list[ExamSwipeAnswer] = Field(max_length=6)
+
+
+class ExamMessageAnswer(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+    item_id: str = Field(max_length=64)
+    guess_is_scam: StrictBool | None = None
+    tags: list[ExamTag] | None = Field(default=None, max_length=5)
+
+
+class ExamMessageRequest(BaseModel):
+    answers: list[ExamMessageAnswer] = Field(max_length=9)
+
+
+class ExamHistoryItem(BaseModel):
+    id: str
+    mode: ExamMode
+    fraud_type: str | None
+    created_at: datetime
+    completed_at: datetime | None
+    total_score: int | None
+    passed: bool
+    status: ExamStatusValue
+
+
+class ExamBadgeUpdate(BaseModel):
+    is_public: StrictBool
+
+
+class ExamBadgeVerification(BaseModel):
+    nickname: str
+    badge_name: str
+    criteria: str
+    last_passed_day: date
+    suggested_retest_day: date
+    status: Literal["current", "retest_recommended"]
+
+
+class ExamScenarioJudgeRequest(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+    action: Literal["report", "comply"]
+    # 必須指定本場，避免第一場的延遲請求誤判第二場。
+    session_id: uuid.UUID

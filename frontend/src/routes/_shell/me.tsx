@@ -47,6 +47,11 @@ function Me() {
           <h2 className="truncate text-lg font-bold">
             {user?.full_name || user?.email || "載入中…"}
           </h2>
+          {user?.is_guest && user.participant_code && (
+            <p className="text-sm text-muted-foreground">
+              受試編號：{user.participant_code}
+            </p>
+          )}
           {economy && (
             <p className="text-xs text-muted-foreground">
               Lv.{Math.min(economy.level, 10)} · 連續 {economy.streak_days} 天

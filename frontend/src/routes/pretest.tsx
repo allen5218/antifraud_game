@@ -8,6 +8,8 @@ import {
 } from "@tanstack/react-router"
 import { useState } from "react"
 import { PretestService } from "@/client"
+import { ExamInProgress } from "@/components/exam/ExamInProgress"
+import { errorCode } from "@/components/exam/exam"
 import { PretestProgress } from "@/components/Pretest/PretestProgress"
 import { PretestQuestion } from "@/components/Pretest/PretestQuestion"
 import { isLoggedIn } from "@/hooks/useAuth"
@@ -45,6 +47,7 @@ function PretestPage() {
   const [answers, setAnswers] = useState<Answer[]>([])
   const [submitting, setSubmitting] = useState(false)
   const [submitError, setSubmitError] = useState<string | null>(null)
+  const [blockedError, setBlockedError] = useState<unknown>(null)
 
   // 題目每次都重新抽、順序也打亂。原本在 useState 的初始化函式裡直接呼叫 API:
   // 開發模式的 StrictMode 會跑兩次初始化,發出兩個請求、拿到兩種題序,
@@ -96,7 +99,8 @@ function PretestPage() {
       setSubmitting(false)
       navigate({ to: "/pretest/result", replace: true })
       queryClient.resetQueries({ queryKey: ["pretest", "questions"] })
-    } catch {
+    } catch (cause) {
+      if (errorCode(cause) === "exam_in_progress") setBlockedError(cause)
       // 答案留著,讓玩家直接重送,不必把 20 題重做一次
       setSubmitError("送出失敗，請再送一次。")
       setSubmitting(false)
@@ -107,6 +111,14 @@ function PretestPage() {
   if (childMatch) {
     return <Outlet />
   }
+
+  const examLock = blockedError ?? questionsQuery.error
+  if (errorCode(examLock) === "exam_in_progress")
+    return (
+      <div className="mx-auto max-w-md p-4">
+        <ExamInProgress error={examLock} />
+      </div>
+    )
 
   if (loading) {
     return (

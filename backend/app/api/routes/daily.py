@@ -11,6 +11,7 @@ from app.daily.service import (
     get_or_create_daily_session,
     require_daily_level,
 )
+from app.exam.lifecycle import require_no_active_exam
 from app.schemas import DailyResultPublic, DailyTodayResponse, QuizDeckItem
 
 router = APIRouter(prefix="/daily", tags=["daily"])
@@ -21,11 +22,14 @@ _deck_items = TypeAdapter(list[QuizDeckItem])
 @router.get("/today", response_model=DailyTodayResponse)
 def daily_today(session: SessionDep, current_user: CurrentUser) -> Any:
     """今天的每日訓練。作答與結算沿用 /quick/quiz/answer 與 /quick/quiz/complete。"""
+    require_no_active_exam(session, current_user.id)
     require_daily_level(current_user)
     day = taipei_today()
     challenge = get_or_create_challenge(session, day)
     if challenge is None:
         raise HTTPException(503, {"code": "daily_unavailable"})
+    # 首次建立共用題庫會 commit，必須重新取鎖檢查，持有到玩家牌局建立完成。
+    require_no_active_exam(session, current_user.id)
     quiz = get_or_create_daily_session(session, current_user.id, challenge)
 
     if quiz.completed:

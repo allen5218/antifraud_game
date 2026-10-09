@@ -356,3 +356,17 @@ uv run python "$SK/leak_probe.py" --from-dump /path/to/seed.sql --probe verify
 不是統計顯著性檢定。呼叫失敗／無效選項會排除計分並以 exit 1 回報量測錯誤。
 `--probe all` 包含 verify；查證題 JSONL 需單獨跑 verify，混合探針請讀雙表
 種子檔或資料庫。單元測試用注入模型回應驗證，不呼叫真實 LLM。
+
+
+## 練習題與檢測題分池
+
+草稿可帶 `pool`（省略為 `practice`）與 `pattern_key`（省略或 null 表示尚未標記模式）。
+`pool` 只接受 `practice`、`exam_message`、`exam_tactics`、`exam_scenario`。
+同一真實案件模式的練習與檢測改編可共用 `pattern_key`，例如 `investment-03`。
+檢測正常題即使有來源文件也必須填 `mirror_of_key`，供整份卷排除鏡像對。
+檢測話術題只從詐騙案例出題；五種話術全選必為零分，正解不宜涵蓋全部五種。
+
+`ensure_game_cases_schema()` 會為既有管線表補上兩欄；正式環境可先跑
+`deploy/sql/2026-10-09-game-cases-pool.sql`，此 SQL 可重複執行。
+舊題預設留在練習池。published 種子匯出保留兩個新欄位與各池素材，
+遊戲的練習讀取則只接受 `practice`。檢測題仍沿用草稿驗證、洩題探針與人工發布流程。

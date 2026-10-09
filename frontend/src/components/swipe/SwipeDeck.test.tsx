@@ -1,11 +1,23 @@
-import { afterEach, describe, expect, it, mock } from "bun:test"
+import { afterEach, describe, expect, it, mock, spyOn } from "bun:test"
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query"
-import { act, cleanup, fireEvent, render, screen } from "@testing-library/react"
+import {
+  act,
+  cleanup,
+  fireEvent,
+  render,
+  screen,
+  waitFor,
+} from "@testing-library/react"
+import type { ExamStatus } from "@/client"
+import { CancelablePromise } from "@/client/core/CancelablePromise"
+import { ExamService } from "@/client/sdk.gen"
+import { renderWithRouter } from "@/test/renderWithRouter"
 
 // 第一次送出答案時模擬「回應遺失」,之後成功。hold 時先不回應,模擬還在送出中。
 const sent: boolean[] = []
 let failNext = true
 let hold = false
+let examLock = false
 type Callbacks = {
   onError: (e: Error) => void
   onSuccess: (r: unknown) => void
@@ -45,6 +57,15 @@ mock.module("@/hooks/useSwipe", () => ({
         pending = opts
         return
       }
+      if (examLock) {
+        examLock = false
+        opts.onError({
+          status: 400,
+          body: { detail: { code: "exam_in_progress" } },
+        } as Error)
+        opts.onSettled()
+        return
+      }
       if (failNext) {
         failNext = false
         opts.onError(new Error("network"))
@@ -70,6 +91,7 @@ afterEach(() => {
   sent.length = 0
   failNext = true
   hold = false
+  examLock = false
   pending = null
 })
 
@@ -108,6 +130,42 @@ describe("<SwipeDeck />", () => {
       pending?.onSuccess(ok)
       pending?.onSettled()
     })
+  })
+
+  it("作答被檢測鎖擋下時整頁換成繼續檢測，不當成這一局失效", async () => {
+    examLock = true
+    const status: ExamStatus = {
+      active_attempt_id: "attempt-1",
+      can_start: false,
+      block_reason: "exam_in_progress",
+      gate: null,
+      daily_used: 0,
+      daily_limit: 3,
+      badges: [],
+    }
+    spyOn(ExamService, "readStatus").mockImplementation(
+      () => new CancelablePromise((resolve) => resolve(status)),
+    )
+    await renderWithRouter(
+      <QueryClientProvider
+        client={
+          new QueryClient({ defaultOptions: { queries: { retry: false } } })
+        }
+      >
+        <SwipeDeck />
+      </QueryClientProvider>,
+    )
+    fireEvent.click(screen.getByRole("button", { name: /詐騙/ }))
+    expect((await screen.findByRole("alert")).textContent).toContain(
+      "先完成檢測再回來練習",
+    )
+    expect(screen.queryByText("這一局已經失效了。")).toBeNull()
+    expect(screen.queryByText("剛才的答案沒有送出成功。")).toBeNull()
+    await waitFor(() =>
+      expect(
+        screen.getByRole("link", { name: "繼續檢測" }).getAttribute("href"),
+      ).toBe("/exam/attempt-1"),
+    )
   })
 
   it("offers a new deal when the round can no longer be answered", () => {

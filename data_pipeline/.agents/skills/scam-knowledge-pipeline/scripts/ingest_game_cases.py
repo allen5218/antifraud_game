@@ -175,14 +175,15 @@ def main():
         written = psql_scalar(f"""
     WITH upserted AS (
     INSERT INTO game_cases (case_key, fraud_type, is_scam, title, narrative, red_flags,
-                            difficulty, source_document_ids, provenance, status)
+                            difficulty, source_document_ids, provenance, pool, pattern_key, status)
     VALUES ({lit(rec["case_key"])}, {lit(rec["fraud_type"])}, {str(bool(rec["is_scam"])).lower()},
             {lit(rec["title"])}, {lit(rec["narrative"])}, {lit(json.dumps(rec["red_flags"], ensure_ascii=False))}::jsonb,
-            {int(rec["difficulty"])}, ARRAY[{ids}]::bigint[], {lit(rec["provenance"])}, 'draft')
+            {int(rec["difficulty"])}, ARRAY[{ids}]::bigint[], {lit(rec["provenance"])}, {lit(rec.get("pool", "practice"))}, {lit(rec["pattern_key"]) if rec.get("pattern_key") is not None else "NULL"}, 'draft')
     ON CONFLICT (case_key) DO UPDATE SET
       fraud_type = EXCLUDED.fraud_type, is_scam = EXCLUDED.is_scam, title = EXCLUDED.title,
       narrative = EXCLUDED.narrative, red_flags = EXCLUDED.red_flags, difficulty = EXCLUDED.difficulty,
-      source_document_ids = EXCLUDED.source_document_ids, provenance = EXCLUDED.provenance
+      source_document_ids = EXCLUDED.source_document_ids, provenance = EXCLUDED.provenance,
+      pool = EXCLUDED.pool, pattern_key = EXCLUDED.pattern_key
     WHERE game_cases.status = 'draft'
     RETURNING 1
     )

@@ -24,6 +24,8 @@ COLUMNS = [
     "review_notes",
     "created_at",
     "published_at",
+    "pool",
+    "pattern_key",
 ]
 
 QUESTION_COLUMNS = [

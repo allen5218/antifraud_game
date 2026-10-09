@@ -5,12 +5,15 @@ from typing import Any
 
 from fastapi import APIRouter, BackgroundTasks, HTTPException
 from sqlmodel import col, func, select
+from starlette.concurrency import run_in_threadpool
 
 from app.api.deps import CurrentUser, SessionDep
-from app.core.cases import get_case, pick_case
+from app.core.cases import GameCaseRow, get_case, pick_case
 from app.daily.dates import taipei_today
 from app.economy.service import add_xp, adjust_cash, lock_user, touch_streak
-from app.models import FraudType, ScenarioSession, ScenarioStatus
+from app.exam.lifecycle import active_attempt, finalize, require_no_active_exam
+from app.exam.scoring import terminal_status
+from app.models import ExamAttempt, FraudType, ScenarioSession, ScenarioStatus
 from app.practice.service import (
     practice_focus,
     practice_weights,
@@ -22,7 +25,6 @@ from app.scenario import manager
 from app.scenario.config import (
     AVATAR_POOL,
     DISPLAY_NAME_POOL,
-    MAX_TURNS,
     SCAM_RATIO,
     SCENARIO_DAILY_LIMIT_FOCUS,
     SCENARIO_DAILY_LIMIT_PER_TYPE,
@@ -46,6 +48,7 @@ def _create_session(
     session: SessionDep, user_id: uuid.UUID, fraud_type: str
 ) -> ScenarioSession:
     """建新情境:隨機派 scam/legit 人格、抽顯示名、teaser 進 history、複製經濟數值。"""
+    require_no_active_exam(session, user_id)
     role = "scam" if random.random() < SCAM_RATIO else "legit"
     meta = scenario_agent.read_persona_meta(fraud_type, role)
     econ = SCENARIO_ECONOMY[fraud_type]
@@ -116,7 +119,9 @@ def inbox(session: SessionDep, current_user: CurrentUser) -> Any:
     """每 fraud_type 回傳最新一場;完全沒有時 bootstrap 一場。
 
     有練習重點的玩家,依各類比例由高到低排(最弱的在第一列,app/practice/)。
+    檢測中暫停訓練,收件匣也回 exam_in_progress,前端顯示「繼續檢測」。
     """
+    require_no_active_exam(session, current_user.id)
     weights = practice_weights(session, current_user.id) or {}
     items: list[ScenarioInboxItem] = []
     # sorted 是穩定排序:比例相同(或沒有紀錄)時維持 FraudType 的宣告順序
@@ -125,12 +130,16 @@ def inbox(session: SessionDep, current_user: CurrentUser) -> Any:
             select(ScenarioSession)
             .where(
                 ScenarioSession.user_id == current_user.id,
+                ScenarioSession.pool == "practice",
                 ScenarioSession.fraud_type == ft.value,
             )
             .order_by(col(ScenarioSession.created_at).desc())
             .limit(1)
         ).first()
         if sc is None:
+            # 每次 bootstrap 都可能 commit；重新取鎖後只略過新局，收件匣仍可讀。
+            if active_attempt(session, current_user.id) is not None:
+                continue
             sc = _create_session(session, current_user.id, ft.value)
         items.append(_to_inbox_item(sc))
     return items
@@ -141,11 +150,13 @@ def create_scenario(
     payload: ScenarioNewRequest, session: SessionDep, current_user: CurrentUser
 ) -> Any:
     """對 completed 的類型開新一場;受每日上限(練習重點那一類上限較高)。"""
+    require_no_active_exam(session, current_user.id)
     if payload.fraud_type not in {ft.value for ft in FraudType}:
         raise HTTPException(400, {"code": "invalid_fraud_type"})
     active = session.exec(
         select(ScenarioSession).where(
             ScenarioSession.user_id == current_user.id,
+            ScenarioSession.pool == "practice",
             ScenarioSession.fraud_type == payload.fraud_type,
             ScenarioSession.status == ScenarioStatus.ACTIVE,
         )
@@ -160,6 +171,7 @@ def create_scenario(
         .select_from(ScenarioSession)
         .where(
             ScenarioSession.user_id == current_user.id,
+            ScenarioSession.pool == "practice",
             ScenarioSession.fraud_type == payload.fraud_type,
             col(ScenarioSession.created_at) >= today_start,
         )
@@ -181,6 +193,9 @@ def read_scenario(
 ) -> Any:
     """完整對話(斷線重連)。絕不回傳 persona_role / tactics_used。"""
     sc = _owned_session(session, current_user, scenario_id)
+    if sc.pool == "exam":
+        active_attempt(session, current_user.id)
+        session.refresh(sc)
     public_history = [
         (
             {
@@ -199,9 +214,9 @@ def read_scenario(
         display_name=sc.display_name,
         avatar=sc.avatar,
         status=sc.status,
-        outcome=sc.outcome,
+        outcome=None if sc.pool == "exam" else sc.outcome,
         player_turns=sc.player_turns,
-        max_turns=MAX_TURNS,
+        max_turns=sc.max_turns,
         history=public_history,
     )
 
@@ -216,20 +231,68 @@ async def send_message(
 ) -> Any:
     """玩家自由打字 → agent 以人格回覆。失敗不寫入、不扣回合。"""
     sc = _owned_session(session, current_user, scenario_id)
+    if sc.pool == "exam":
+        await run_in_threadpool(_prepare_exam_message, session, sc)
+    else:
+        # 檢測中暫停訓練:開考前就打開的練習對話也不能接著聊
+        await run_in_threadpool(require_no_active_exam, session, current_user.id)
     if sc.status != ScenarioStatus.ACTIVE:
         raise HTTPException(400, {"code": "not_active"})
-    if not manager.can_send_message(sc.player_turns):
+    if not manager.can_send_message(sc.player_turns, sc.max_turns):
         raise HTTPException(400, {"code": "turn_limit_reached"})
 
-    history = list(sc.conversation_history)
+    original_history = list(sc.conversation_history)
+    history = list(original_history)
     history.append({"role": "player", "text": payload.text})
     sc.conversation_history = history  # 先入稿供 transcript 使用;失敗不 commit
 
     try:
-        case = get_case(session, sc.case_id) if sc.case_id else None
+        case = (
+            _exam_case(session, sc)
+            if sc.pool == "exam"
+            else get_case(session, sc.case_id)
+            if sc.case_id
+            else None
+        )
         reply = await scenario_agent.generate_reply(sc, payload.text, case=case)
     except Exception as exc:
+        sc.conversation_history = original_history
+        if sc.pool == "exam" and sc.exam_attempt_id is not None:
+            attempt = session.get(ExamAttempt, sc.exam_attempt_id)
+            if attempt is not None and attempt.status == "active":
+                attempt.ai_error_at = datetime.now(timezone.utc)
+                session.add(attempt)
+                session.commit()
         raise HTTPException(502, {"code": "agent_failed"}) from exc
+
+    if sc.pool == "exam" and sc.exam_attempt_id is not None:
+        attempt = session.get(ExamAttempt, sc.exam_attempt_id)
+        now = datetime.now(timezone.utc)
+        if attempt is None or attempt.status != "active" or now >= attempt.expires_at:
+            sc.conversation_history = original_history
+            if attempt is not None and attempt.status == "active":
+                dates = [
+                    s.last_agent_ok_at
+                    for s in session.exec(
+                        select(ScenarioSession).where(
+                            ScenarioSession.exam_attempt_id == attempt.id
+                        )
+                    ).all()
+                    if s.last_agent_ok_at is not None
+                ]
+                finalize(
+                    session,
+                    attempt,
+                    terminal_status(
+                        attempt.stage,
+                        now,
+                        attempt.ai_error_at,
+                        max(dates) if dates else None,
+                    ),
+                    now,
+                )
+                session.commit()
+            raise HTTPException(400, {"code": "exam_ended"})
 
     history = list(sc.conversation_history)
     history.append(
@@ -242,6 +305,7 @@ async def send_message(
     )
     sc.conversation_history = history
     sc.player_turns += 1
+    sc.last_agent_ok_at = datetime.now(timezone.utc)
     sc.tactics_seen = manager.accumulate_tactics(sc.tactics_seen, reply.tactics_used)
     session.add(sc)
     session.commit()
@@ -249,7 +313,7 @@ async def send_message(
     return ScenarioMessageResponse(
         messages=reply.messages,
         decision_point=reply.decision_point,
-        turns_left=MAX_TURNS - sc.player_turns,
+        turns_left=sc.max_turns - sc.player_turns,
     )
 
 
@@ -264,6 +328,10 @@ def judge_scenario(
 ) -> Any:
     """確定性裁決 → 經濟入口 → 揭曉。"""
     sc = _owned_session(session, current_user, scenario_id)
+    if sc.pool == "exam":
+        raise HTTPException(400, {"code": "exam_session"})
+    # 檢測中暫停訓練:練習對話的判斷會揭曉對方身分
+    require_no_active_exam(session, current_user.id)
     if sc.status != ScenarioStatus.ACTIVE:
         raise HTTPException(400, {"code": "not_active"})
 
@@ -315,3 +383,24 @@ def judge_scenario(
     session.commit()
     queue_refresh(background_tasks, session, user_id)
     return response
+
+
+def _prepare_exam_message(session: SessionDep, sc: ScenarioSession) -> None:
+    """等待交易鎖交給執行緒池，避免 async 路由阻塞其他 AI 回覆的事件迴圈。"""
+    attempt = active_attempt(session, sc.user_id)
+    session.refresh(sc, with_for_update=True)
+    if (
+        attempt is None
+        or attempt.id != sc.exam_attempt_id
+        or attempt.stage != "scenario"
+        or str(sc.id) not in attempt.scenario_ids
+    ):
+        raise HTTPException(400, {"code": "exam_ended"})
+
+
+def _exam_case(session: SessionDep, sc: ScenarioSession) -> GameCaseRow:
+    attempt = session.get(ExamAttempt, sc.exam_attempt_id)
+    if attempt is None:
+        raise HTTPException(400, {"code": "exam_ended"})
+    index = attempt.scenario_ids.index(str(sc.id))
+    return GameCaseRow.model_validate(attempt.items["scenario"][index]["case"])

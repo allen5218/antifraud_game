@@ -41,6 +41,7 @@ from app.daily.results import (
 )
 from app.economy.levels import level_of
 from app.economy.service import add_xp, adjust_cash, lock_user, touch_streak
+from app.exam.lifecycle import require_no_active_exam
 from app.models import QuizSession, SwipeCard, SwipeSession
 from app.practice.profile import weighted_order
 from app.practice.service import (
@@ -119,15 +120,21 @@ def _weakness_summary(weakness: dict[str, int]) -> list[WeaknessSummaryItem]:
 
 @router.get("/swipe/deck", response_model=SwipeDeckResponse)
 def swipe_deck(session: SessionDep, current_user: CurrentUser, size: int = 12) -> Any:
+    require_no_active_exam(session, current_user.id)
     size = max(1, min(size, 30))
     # 依練習重點的比例抽卡:最弱的類型抽得比較多。沒有紀錄的玩家就全隨機。
     weights = practice_weights(session, current_user.id)
     if weights:
-        pool = session.exec(select(SwipeCard)).all()
+        pool = session.exec(select(SwipeCard).where(SwipeCard.pool == "practice")).all()
         cards = weighted_order(pool, lambda c: c.fraud_type, weights)[:size]
     else:
         cards = list(
-            session.exec(select(SwipeCard).order_by(func.random()).limit(size)).all()
+            session.exec(
+                select(SwipeCard)
+                .where(SwipeCard.pool == "practice")
+                .order_by(func.random())
+                .limit(size)
+            ).all()
         )
     # 一次性牌局:結算只認這裡發出去的卡(見 SwipeSession)
     swipe = SwipeSession(user_id=current_user.id, card_ids=[str(c.id) for c in cards])
@@ -170,6 +177,8 @@ def _get_swipe_session(
 def swipe_answer(
     payload: SwipeAnswerRequest, session: SessionDep, current_user: CurrentUser
 ) -> Any:
+    # 檢測中暫停訓練：開考前就發的牌也不能作答（先取檢測鎖，再鎖牌局）
+    require_no_active_exam(session, current_user.id)
     swipe = _get_swipe_session(
         session, raw_session_id=payload.session_id, user_id=current_user.id
     )
@@ -578,6 +587,7 @@ def build_quiz_deck(
 
 @router.get("/quiz/deck", response_model=QuizDeckResponse)
 def quiz_deck(session: SessionDep, current_user: CurrentUser, size: int = 5) -> Any:
+    require_no_active_exam(session, current_user.id)
     size = max(1, min(size, 10))
     max_difficulty = max_difficulty_for_level(level_of(current_user.xp))
     # 練習重點(或前測的最弱類型)那一類約佔六成;沒有任何紀錄就維持全隨機。
@@ -728,6 +738,8 @@ def _correct_match_pairs(
 def quiz_answer(
     payload: QuizAnswerRequest, session: SessionDep, current_user: CurrentUser
 ) -> Any:
+    # 檢測中暫停訓練（每日訓練也走這裡）：先取檢測鎖，再鎖牌局
+    require_no_active_exam(session, current_user.id)
     quiz = _get_quiz_session(
         session,
         raw_session_id=payload.session_id,

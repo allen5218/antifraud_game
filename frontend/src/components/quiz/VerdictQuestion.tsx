@@ -8,6 +8,7 @@ interface VerdictQuestionProps {
   total: number
   disabled: boolean
   onSubmit: (guessIsScam: boolean) => void
+  hideMeta?: boolean
 }
 
 /** 是非判斷題：閱讀完整敘事後判斷是否為詐騙。 */
@@ -17,15 +18,18 @@ export function VerdictQuestion({
   total,
   disabled,
   onSubmit,
+  hideMeta = false,
 }: VerdictQuestionProps) {
   return (
     <div className="flex h-full flex-col">
-      <QuestionMeta
-        fraudType={item.fraud_type}
-        difficulty={item.difficulty}
-        index={index}
-        total={total}
-      />
+      {!hideMeta && (
+        <QuestionMeta
+          fraudType={item.fraud_type}
+          difficulty={item.difficulty}
+          index={index}
+          total={total}
+        />
+      )}
       <h2 className="px-4 pt-2 text-base font-bold">{item.title}</h2>
       <div className="mt-2 flex-1 overflow-y-auto px-4 pb-4">
         <p className="whitespace-pre-wrap text-sm leading-relaxed">

@@ -135,7 +135,7 @@ function PretestResultPage() {
         </p>
         <p className="mt-2 text-sm text-muted-foreground">
           {
-            "接下來的題組、滑卡和情境對抗都會多練這一類。之後每玩完一輪，系統會依照你的作答重新調整。"
+            "接下來的訊息判讀、滑卡和情境對抗都會多練這一類。之後每玩完一輪，系統會依照你的作答重新調整。"
           }
         </p>
       </motion.div>
@@ -145,7 +145,7 @@ function PretestResultPage() {
         onClick={handleStartGame}
         className="w-full max-w-xs rounded-xl bg-primary px-8 py-4 text-lg font-bold text-primary-foreground transition-transform hover:scale-[1.02] active:scale-[0.98] disabled:opacity-60"
       >
-        開始題組訓練
+        開始訊息判讀訓練
       </button>
     </div>
   )

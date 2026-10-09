@@ -85,6 +85,8 @@ def update_user_me(
     Update own user.
     """
 
+    if current_user.is_guest and "email" in user_in.model_fields_set:
+        raise HTTPException(status_code=400, detail={"code": "guest_account"})
     if user_in.email:
         existing_user = crud.get_user_by_email(session=session, email=user_in.email)
         if existing_user and existing_user.id != current_user.id:
@@ -106,6 +108,8 @@ def update_password_me(
     """
     Update own password.
     """
+    if current_user.is_guest:
+        raise HTTPException(status_code=400, detail={"code": "guest_account"})
     verified, _ = verify_password(body.current_password, current_user.hashed_password)
     if not verified:
         raise HTTPException(status_code=400, detail="Incorrect password")
@@ -199,6 +203,8 @@ def update_user(
             status_code=404,
             detail="The user with this id does not exist in the system",
         )
+    if db_user.is_guest and {"email", "password"} & user_in.model_fields_set:
+        raise HTTPException(status_code=400, detail={"code": "guest_account"})
     if user_in.email:
         existing_user = crud.get_user_by_email(session=session, email=user_in.email)
         if existing_user and existing_user.id != user_id:

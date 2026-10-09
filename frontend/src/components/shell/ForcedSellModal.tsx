@@ -88,7 +88,7 @@ export function ForcedSellModal() {
             className="mb-2 rounded-lg border border-border bg-muted px-2 py-2 text-[11px] text-muted-foreground"
           >
             {
-              "你現在沒有房產可以賣。玩題組和滑卡拿到的獎金會先拿去還欠款，還清就恢復正常。"
+              "你現在沒有房產可以賣。玩訊息判讀和滑卡拿到的獎金會先拿去還欠款，還清就恢復正常。"
             }
           </div>
         ) : (
