@@ -107,7 +107,8 @@ test("Redirects to /login when token is wrong", async ({ page }) => {
   await page.evaluate(() => {
     localStorage.setItem("access_token", "invalid_token")
   })
-  await page.goto("/settings")
+  // 前端拿到 401 會立刻導回登入頁，可能早於頁面 load；等到 load 會被當成導航中斷
+  await page.goto("/settings", { waitUntil: "commit" })
   await page.waitForURL("/login")
   await expect(page).toHaveURL("/login")
 })
