@@ -99,3 +99,32 @@ describe("<PracticeFocusBadge />", () => {
     )
   })
 })
+
+it("補考進度優先於一般練習重點與比例", async () => {
+  profile = {
+    focus_type: "romance",
+    focus_label: "假交友",
+    note: "多練習",
+    weights: EVEN,
+    source: "none",
+    answers_seen: 0,
+    retake: {
+      fraud_type: "romance",
+      gate: {
+        fraud_type: "romance",
+        swipe: { done: 4, need: 6 },
+        quiz: { done: 2, need: 5 },
+        scenario: { done: 0, need: 1 },
+        recent: { correct: 7, total: 10, need: 7 },
+        met: false,
+      },
+    },
+  }
+  await renderWithRouter(<PracticeFocusCard />)
+  expect(screen.getByText("檢測沒過：先加強假交友")).toBeTruthy()
+  expect(
+    screen.getByText("還差滑卡 2 張、訊息判讀 3 題、情境對抗 1 場。"),
+  ).toBeTruthy()
+  expect(screen.queryByLabelText("各類出題比例")).toBeNull()
+  expect(screen.queryByText("做前測")).toBeNull()
+})

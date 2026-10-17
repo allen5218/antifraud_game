@@ -1,6 +1,7 @@
 import { Link } from "@tanstack/react-router"
 import { ClipboardList, Target } from "lucide-react"
 import type { PracticeProfilePublic } from "@/client"
+import { ExamGate } from "@/components/exam/ExamGate"
 import { usePracticeProfile } from "@/hooks/usePractice"
 import { FRAUD_TYPES, fraudTypeLabel } from "@/lib/fraudTypes"
 
@@ -35,6 +36,20 @@ export function PracticeFocusCard({ className = "" }: { className?: string }) {
   }
   if (!data) return null
 
+  if (data.retake) {
+    return (
+      <div data-testid="practice-focus-card" className={className}>
+        <ExamGate gate={data.retake.gate} />
+        <Link
+          to="/exam"
+          className="mt-3 inline-block text-sm font-bold text-primary"
+        >
+          查看重考資格
+        </Link>
+      </div>
+    )
+  }
+
   if (data.source === "none") {
     return (
       <section
@@ -68,7 +83,7 @@ export function PracticeFocusCard({ className = "" }: { className?: string }) {
       </p>
       <WeightBars profile={data} />
       <p className="mt-3 text-[10px] text-muted-foreground">
-        題組、滑卡、情境對抗都照這個比例出題，每玩完一輪會重新分析。
+        訊息判讀、滑卡、情境對抗都照這個比例出題，每玩完一輪會重新分析。
       </p>
     </section>
   )
@@ -123,7 +138,7 @@ function WeightBars({ profile }: { profile: PracticeProfilePublic }) {
   )
 }
 
-/** 題組、滑卡、收件匣頂端的小標:這一輪偏重哪一類。沒有重點時不顯示。 */
+/** 訊息判讀、滑卡、收件匣頂端的小標:這一輪偏重哪一類。沒有重點時不顯示。 */
 export function PracticeFocusBadge({ className = "" }: { className?: string }) {
   const { data } = usePracticeProfile()
   if (!data?.focus_label) return null

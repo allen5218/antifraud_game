@@ -8,6 +8,7 @@ import {
   type UserRegister,
   UsersService,
 } from "@/client"
+import { clearInviteSessions } from "@/lib/inviteSession"
 import { handleError } from "@/utils"
 import useCustomToast from "./useCustomToast"
 
@@ -55,6 +56,8 @@ const useAuth = () => {
 
   const logout = () => {
     localStorage.removeItem("access_token")
+    // 不清掉的話，共用裝置上的下一個人掃同一個 QR code，會直接進到上一位的帳號
+    clearInviteSessions()
     // 查詢的 key 不含使用者,不清掉的話下一個登入的帳號會先看到上一位的資料
     queryClient.clear()
     navigate({ to: "/login" })

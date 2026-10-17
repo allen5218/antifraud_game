@@ -1,12 +1,22 @@
 import enum
 import uuid
 from datetime import date, datetime, timezone
-from typing import Any
+from typing import Annotated, Any
 
-from pydantic import EmailStr
-from sqlalchemy import BigInteger, Column, DateTime, Index, text
+from pydantic import EmailStr, StringConstraints, field_validator
+from sqlalchemy import (
+    BigInteger,
+    CheckConstraint,
+    Column,
+    DateTime,
+    ForeignKeyConstraint,
+    Index,
+    text,
+)
 from sqlalchemy.dialects.postgresql import JSONB
 from sqlmodel import Field, Relationship, SQLModel
+
+from app.scenario.config import MAX_TURNS
 
 
 def get_datetime_utc() -> datetime:
@@ -72,6 +82,12 @@ class User(UserBase, table=True):
     bankruptcy_count: int = Field(default=0)
     # 排行榜上顯示的名字；沒設定時顯示由帳號 id 算出的匿名名稱（app/daily/names.py）
     nickname: str | None = Field(default=None, max_length=12)
+    # 試測訪客不收聯絡資料；受試編號跨梯次唯一，與排行榜暱稱分開。
+    cohort_id: uuid.UUID | None = Field(
+        default=None, foreign_key="cohort.id", ondelete="SET NULL", index=True
+    )
+    participant_code: str | None = Field(default=None, max_length=32, unique=True)
+    is_guest: bool = Field(default=False, sa_column_kwargs={"server_default": "false"})
 
     properties: list["UserProperty"] = Relationship(
         back_populates="owner", cascade_delete=True
@@ -80,13 +96,96 @@ class User(UserBase, table=True):
 
 # Properties to return via API, id is always required
 class UserPublic(UserBase):
+    # EmailStr 拒絕保留網域；只有訪客的固定內部格式可作為回應。
+    # 註冊與更新的輸入 schema 仍維持 EmailStr。
+    email: (
+        EmailStr
+        | Annotated[
+            str,
+            StringConstraints(pattern=r"^guest-[0-9a-f]{32}@participants\.invalid$"),
+        ]
+    )
     id: uuid.UUID
     created_at: datetime | None = None
+    is_guest: bool = False
+    participant_code: str | None = None
+    cohort_id: uuid.UUID | None = None
 
 
 class UsersPublic(SQLModel):
     data: list[UserPublic]
     count: int
+
+
+class Cohort(SQLModel, table=True):
+    """試測梯次。停用只停止建立訪客，不影響既有玩家繼續練習。"""
+
+    # 延後建立這條外鍵，解除 cohort 與 user 互相參照的建表循環。
+    __table_args__ = (
+        ForeignKeyConstraint(
+            ["created_by"],
+            ["user.id"],
+            name="fk_cohort_created_by_user",
+            ondelete="SET NULL",
+            use_alter=True,
+        ),
+    )
+
+    id: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True)
+    name: str = Field(max_length=100)
+    token: str = Field(max_length=64, unique=True, index=True)
+    is_active: bool = True
+    # 名額與到期時間擋住 QR code 外流後被拿去大量建帳號
+    max_members: int = Field(default=150, ge=1)
+    expires_at: datetime | None = Field(
+        default=None,
+        sa_type=DateTime(timezone=True),  # type: ignore
+    )
+    created_at: datetime = Field(
+        default_factory=get_datetime_utc,
+        sa_type=DateTime(timezone=True),  # type: ignore
+    )
+    created_by: uuid.UUID | None = Field(default=None)
+
+
+class CohortCreate(SQLModel):
+    name: str = Field(min_length=1, max_length=100)
+    max_members: int = Field(default=150, ge=1, le=5000)
+    # 沒填就是建立後 30 天
+    expires_at: datetime | None = None
+
+    @field_validator("name")
+    @classmethod
+    def clean_name(cls, value: str) -> str:
+        value = value.strip()
+        if not value:
+            raise ValueError("梯次名稱不能是空白")
+        return value
+
+
+class CohortUpdate(SQLModel):
+    is_active: bool
+
+
+class CohortPublic(SQLModel):
+    id: uuid.UUID
+    name: str
+    token: str
+    is_active: bool
+    max_members: int
+    expires_at: datetime | None
+    created_at: datetime
+    created_by: uuid.UUID | None
+
+
+class CohortMemberPublic(SQLModel):
+    id: uuid.UUID
+    participant_code: str | None
+    nickname: str | None
+    created_at: datetime | None
+    is_active: bool
+    answer_count: int = 0
+    correct_count: int = 0
 
 
 # Shared properties
@@ -360,6 +459,11 @@ class SwipeCard(SQLModel, table=True):
     id: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True)
     # 種子資料的穩定代號,理由同 PretestQuestion.seed_key
     seed_key: str | None = Field(default=None, max_length=64, unique=True)
+    pool: str = Field(
+        default="practice",
+        max_length=16,
+        sa_column_kwargs={"server_default": "practice"},
+    )
     scenario: str
     source_label: str = Field(max_length=64)
     is_scam: bool
@@ -390,6 +494,20 @@ class ScenarioSession(SQLModel, table=True):
     user_id: uuid.UUID = Field(
         foreign_key="user.id", nullable=False, ondelete="CASCADE", index=True
     )
+    pool: str = Field(
+        default="practice",
+        max_length=16,
+        sa_column_kwargs={"server_default": "practice"},
+    )
+    max_turns: int = Field(
+        default=MAX_TURNS, sa_column_kwargs={"server_default": str(MAX_TURNS)}
+    )
+    exam_attempt_id: uuid.UUID | None = Field(
+        default=None, foreign_key="exam_attempt.id", ondelete="CASCADE", index=True
+    )
+    last_agent_ok_at: datetime | None = Field(
+        default=None, sa_type=DateTime(timezone=True)
+    )  # type: ignore
     fraud_type: str = Field(max_length=32, index=True)
     # ground truth（scam|legit）；judge 之前絕不出現在任何 API response
     persona_role: str = Field(max_length=8)
@@ -549,3 +667,97 @@ class DailyResult(SQLModel, table=True):
         default_factory=get_datetime_utc,
         sa_type=DateTime(timezone=True),  # type: ignore
     )
+
+
+# ── 檢測 ──────────────────────────────────────────────────
+
+
+class ExamAttempt(SQLModel, table=True):
+    """一次檢測的伺服器快照；題目正解與各關分數不直接序列化給玩家。"""
+
+    __tablename__ = "exam_attempt"
+    __table_args__ = (
+        Index(
+            "uq_exam_attempt_active_user",
+            "user_id",
+            unique=True,
+            postgresql_where=text("status = 'active'"),
+        ),
+        CheckConstraint(
+            "mode IN ('comprehensive', 'specialized')", name="ck_exam_attempt_mode"
+        ),
+        CheckConstraint(
+            "status IN ('active', 'completed', 'expired', 'abandoned', 'voided')",
+            name="ck_exam_attempt_status",
+        ),
+    )
+    id: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True)
+    user_id: uuid.UUID = Field(foreign_key="user.id", ondelete="CASCADE", index=True)
+    mode: str = Field(max_length=16)
+    fraud_type: str | None = Field(default=None, max_length=32)
+    status: str = Field(default="active", max_length=16)
+    stage: str = Field(default="pretest", max_length=16)
+    items: dict[str, list[dict[str, Any]]] = Field(
+        default_factory=dict, sa_column=Column(JSONB, nullable=False)
+    )
+    answers: dict[str, Any] = Field(
+        default_factory=dict, sa_column=Column(JSONB, nullable=False)
+    )
+    scenario_ids: list[str] = Field(
+        default_factory=list, sa_column=Column(JSONB, nullable=False)
+    )
+    stage_scores: dict[str, float] = Field(
+        default_factory=dict, sa_column=Column(JSONB, nullable=False)
+    )
+    total_score: float = 0.0
+    passed: bool = False
+    pretest_by_type: dict[str, int] = Field(
+        default_factory=dict, sa_column=Column(JSONB, nullable=False)
+    )
+    missed_tactics: list[str] = Field(
+        default_factory=list, sa_column=Column(JSONB, nullable=False)
+    )
+    created_at: datetime = Field(
+        default_factory=get_datetime_utc, sa_type=DateTime(timezone=True)
+    )  # type: ignore
+    expires_at: datetime = Field(sa_type=DateTime(timezone=True))  # type: ignore
+    completed_at: datetime | None = Field(default=None, sa_type=DateTime(timezone=True))  # type: ignore
+    ai_error_at: datetime | None = Field(default=None, sa_type=DateTime(timezone=True))  # type: ignore
+    counted: bool = True
+
+
+class ExamBadge(SQLModel, table=True):
+    __tablename__ = "exam_badge"
+    __table_args__ = (
+        Index(
+            "uq_exam_badge_type",
+            "user_id",
+            "kind",
+            "fraud_type",
+            unique=True,
+            postgresql_where=text("kind = 'type'"),
+        ),
+        Index(
+            "uq_exam_badge_comprehensive",
+            "user_id",
+            unique=True,
+            postgresql_where=text("kind = 'comprehensive'"),
+        ),
+        CheckConstraint(
+            "(kind = 'type' AND fraud_type IS NOT NULL) OR (kind = 'comprehensive' AND fraud_type IS NULL)",
+            name="ck_exam_badge_kind",
+        ),
+    )
+    id: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True)
+    user_id: uuid.UUID = Field(foreign_key="user.id", ondelete="CASCADE", index=True)
+    kind: str = Field(max_length=16)
+    fraud_type: str | None = Field(default=None, max_length=32)
+    tested_type: str | None = Field(default=None, max_length=32)
+    first_passed_at: datetime = Field(sa_type=DateTime(timezone=True))  # type: ignore
+    last_passed_at: datetime = Field(sa_type=DateTime(timezone=True))  # type: ignore
+    last_score: float
+    last_attempt_id: uuid.UUID = Field(
+        foreign_key="exam_attempt.id", ondelete="CASCADE"
+    )
+    is_public: bool = Field(default=False, sa_column_kwargs={"server_default": "false"})
+    public_slug: str | None = Field(default=None, max_length=64, unique=True)

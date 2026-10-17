@@ -2,7 +2,7 @@ import { BookOpen, CircleCheck, Flag } from "lucide-react"
 
 /**
  * 揭曉時的一條線索:可疑的地方(旗子)或正常的跡象(打勾)。
- * 題組揭曉與情境結局卡共用,兩邊長得一樣玩家才會把它們當成同一種東西。
+ * 訊息判讀揭曉與情境結局卡共用,兩邊長得一樣玩家才會把它們當成同一種東西。
  */
 export function SignalItem({
   suspicious,

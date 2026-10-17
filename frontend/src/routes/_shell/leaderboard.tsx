@@ -27,7 +27,7 @@ function LeaderboardPage() {
     return (
       <p className="py-12 text-center text-xs text-muted-foreground">
         {extractErrorCode(error) === "level_required"
-          ? "排行榜在 Lv.5 解鎖，先到題組或滑卡多練幾輪。"
+          ? "排行榜在 Lv.5 解鎖，先到訊息判讀或滑卡多練幾輪。"
           : "排行榜載入失敗，請稍後再試"}
       </p>
     )

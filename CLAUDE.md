@@ -82,11 +82,12 @@ pre-commit 有 `generate-frontend-sdk` hook，當 `backend/` 變更時會自動�
 - `backend/` — FastAPI · Python ≥3.10（實跑 3.13）· SQLModel · Alembic（uv workspace 成員）
 - `frontend/` — React 19 · TypeScript · TanStack Router/Query · Tailwind v4 · shadcn/ui（bun workspace）
 
-前端有**兩套殼並存**：`_shell.tsx`（手機版 BottomTabs，玩家實際走的流程）與 `_layout.tsx`（template 遺留的 sidebar，掛著 admin / items / settings / mascot）。
+前端有**兩套殼並存**：`_shell.tsx`（玩家實際走的流程：首頁是房間場景 `components/room/`，其他頁用頁首的「回房間」返回；桌機左側另有 NavRail）與 `_layout.tsx`（template 遺留的 sidebar，掛著 admin / items / settings）。
 
 ### 前端慣例
 
-- **介面不用表情符號。** 文字旁的小圖示用 lucide（與頁首的 coin／flame／star 一致）；圖片用 `public/assets/` 的插圖（grok 生成，256px WebP，扁平向量、紫靛色系）：`property/`、`avatar/`（情境頭貼，代號 `<類型>-1..3`）、`outcome/`（情境結局）、`mascot/`、`misc/`。聊天內容裡角色打的表情符號是模擬真實對話，不算。
+- **介面不用表情符號。** 文字旁的小圖示用 lucide（與頁首的 coin／flame／star 一致）；圖片用 `public/assets/` 的插圖（Codex 內建生圖產生，暖色手繪的可愛居家畫風，WebP）：`room/stage-0～6`（941×1672，房間外觀跟著擁有的最高房產，七張家具位置相同，熱區座標在 `components/room/hotspots.ts`）、`mascot/<動物>/{base,point,cheer,think}`（512px，預設柴犬，商店可買其他動物）、`badge/`、`property/`、`avatar/`（情境頭貼，代號 `<類型>-1..3`）、`outcome/`（情境結局）、`misc/`（後五類 256px）。聊天內容裡角色打的表情符號是模擬真實對話，不算。
+- **首頁資料**：`GET /home/summary`（`api/routes/home.py`）唯讀彙整房間要的狀態（房間階段、吉祥物、前測、收件匣、每日訓練、檢測、補考、練習重點、徽章），不建立任何牌局。前端 `useHomeSummary` 每次回到房間都重讀；狀態在房間裡就改變的（放棄檢測、買賣房產）要另外讓 `HOME_SUMMARY_KEY` 重讀。
 - **顏色只用主題 token**（`scam`／`legit`／`warning`／`primary`／`surface-2`／`surface-3`／`muted`…，定義在 `src/index.css`）。不要寫死 `bg-green-50`、`text-red-600`、`bg-white` 這類淺色，深色模式下會變成突兀的亮塊。遮罩層的 `bg-black/50` 例外。
 - **文案用白話中文**，不夾英文、不用破折號與 AI 腔；template 帳號 API 回的英文錯誤訊息在 `src/utils.ts` 的 `BACKEND_MESSAGES` 翻譯。
 - 詐騙類型的中文名只用 `src/lib/fraudTypes.ts`（與後端 `app/core/fraud_types.py` 一致）。
@@ -194,6 +195,19 @@ description: 一句話描述  # 必填，≤1024 字
 5. `GET /practice/profile` 供前端的練習重點卡（首頁、個人頁）與「本輪加強」小標（題組、滑卡、收件匣）。
 
 測試注意：`tests/conftest.py` 以 autouse fixture 關閉分析器（`.env` 有金鑰時，否則每次交卷都會真的呼叫 Gemini）；`tests/api/conftest.py` 每個測試後清空作答紀錄與練習重點（superuser 是共用帳號，不清會讓後面的發牌測試被偏重）。
+
+## 檢測（exam）— 一樣由規則判分，AI 只演情境角色
+
+`backend/app/exam/`（路由 `api/routes/exam.py`，前端 `components/exam/`、`/exam`、`/exam/$attemptId`、公開查驗頁 `/badge/$slug`）。
+
+- **兩種模式**：綜合 `comprehensive`（前測 20 題 → 最弱一類的滑卡 2+2、訊息判讀 2+2＋話術複選 1、情境 1 場最多 5 回合）；專項 `specialized`（自選一類：滑卡 3+3、訊息判讀 4+4＋話術 1、情境 2 場一真一假各最多 8 回合）。配分在 `scoring.py`，**用四捨五入後的整數判定 70 分過關**（和結果頁一致）。
+- **檢測專用題庫**：`game_cases.pool`（`practice`／`exam_message`／`exam_tactics`／`exam_scenario`）與 `pattern_key`；`swipe_card.pool`（`practice`／`exam`）；人格 `personas/exam-{scammer,legit}.soul.md`。**所有練習讀取都只讀 `pool='practice'`**。抽題 `picking.py`：一份卷內不出現鏡像對、同一關 `pattern_key` 不重複、優先沒看過的。檢測案例不在種子裡：先跑 `deploy/sql/2026-10-09-game-cases-pool.sql` 加欄位，再跑 `deploy/sql/2026-10-16-exam-cases.sql`（110 則，依 `case_key` upsert，可重複執行）；檢測滑卡在 `core/db.py`，啟動時同步。
+- **開考鎖定**：`ExamAttempt.items` 存題目快照，正解只在快照裡、交卷前不送前端；結果頁不分關、不揭曉（只給總分、是否通過、弱項合計、漏掉的話術）。1 小時期限（`config.py`），到期懶惰結算；情境關 AI 出錯且到期就作廢 `voided`、不算次數。每日 ①② 合計 3 次（台灣日期）。
+- **檢測中暫停三種訓練**：`lifecycle.require_no_active_exam()` 擋所有練習的發牌、**作答**、收件匣、開新情境、練習情境的送訊息與判斷、入門前測與每日訓練，回 400 `exam_in_progress`（前端換成 `ExamInProgress`）。要先取這把檢測鎖、再鎖牌局，不要反過來。
+- **補考期**：沒過（含放棄、到期）就進該類補考期，兩種檢測都鎖住；練夠 `gate.py`（該類滑卡 6、訊息判讀 5、情境 1 場，且滑卡＋訊息判讀最近 10 題對 7）才能再考。補考期間練習重點強制換成那一類（比例拉到上限）。**檢測作答不寫 `practice_answer`**。
+- **徽章**：第一次通過給獎勵（走 `economy.service`）；預設不公開，公開頁只有暱稱、徽章名、通過條件、日期（`badges.py`；noindex 設在 `routes/badge.$slug.tsx`）。
+
+**試測梯次與訪客**：`api/routes/invite.py`（掃 QR code 兌換成訪客帳號，`User.is_guest`、`cohort_id`、受試編號 `participant_code` T-NNNN）、`api/routes/admin_cohorts.py`（superuser：建梯次、名額與到期、成員、`export.csv` 一人一列、`exam.csv` 檢測一題一列，`exam/export.py`）。訪客不能重設密碼；登出要清 `lib/inviteSession.ts` 的暫存憑證。
 
 ## 五種詐騙類型
 

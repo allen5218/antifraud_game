@@ -6,6 +6,7 @@ from fastapi import APIRouter, BackgroundTasks, HTTPException
 from sqlmodel import func, select
 
 from app.api.deps import CurrentUser, SessionDep
+from app.exam.lifecycle import require_no_active_exam
 from app.models import FraudType, PretestAttempt, PretestQuestion, PretestResult
 from app.practice.service import queue_refresh, record_answers
 from app.schemas import (
@@ -43,6 +44,7 @@ def get_pretest_questions(session: SessionDep, current_user: CurrentUser) -> Any
 
     回傳時不包含 is_correct 與 is_scam。
     """
+    require_no_active_exam(session, current_user.id)
     questions: list[PretestQuestion] = []
     for fraud_type in FraudType:
         rows = session.exec(
@@ -82,6 +84,8 @@ def submit_pretest(
     background_tasks: BackgroundTasks,
 ) -> Any:
     """批次判定前測答案，計算各類正確率，找出最弱類型。"""
+    # 檢測沿用這份題庫，提交端也要鎖住，避免被拿來探查檢測正解。
+    require_no_active_exam(session, current_user.id)
     # 同一題只算第一次作答,題數也不能超過一份前測。答案會寫進練習紀錄,
     # 不擋的話同一題送 80 次就能把某一類灌成練習重點。
     seen: set[str] = set()

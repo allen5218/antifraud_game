@@ -5,10 +5,18 @@ interface JudgeSheetProps {
   open: boolean
   onClose: () => void
   onJudge: (action: "report" | "comply") => void
+  description?: string
+  disabled?: boolean
 }
 
 /** 右上「下判斷」彈出的終局選擇 */
-export function JudgeSheet({ open, onClose, onJudge }: JudgeSheetProps) {
+export function JudgeSheet({
+  open,
+  onClose,
+  onJudge,
+  description = "判斷後這段對話就結束：判斷對了有獎勵，錯了要付出代價",
+  disabled = false,
+}: JudgeSheetProps) {
   const dialogRef = useDialogFocus<HTMLDivElement>(open)
   if (!open) return null
   return (
@@ -28,12 +36,13 @@ export function JudgeSheet({ open, onClose, onJudge }: JudgeSheetProps) {
           你的判斷是？
         </h3>
         <p className="mb-4 text-center text-xs text-muted-foreground">
-          判斷後這段對話就結束：判斷對了有獎勵，錯了要付出代價
+          {description}
         </p>
         <div className="flex flex-col gap-2">
           <button
             type="button"
             onClick={() => onJudge("report")}
+            disabled={disabled}
             className="flex items-center justify-center gap-1.5 rounded-xl border border-scam/50 bg-scam/10 py-3 text-sm font-bold text-scam"
           >
             <Flag aria-hidden className="size-4" />
@@ -42,6 +51,7 @@ export function JudgeSheet({ open, onClose, onJudge }: JudgeSheetProps) {
           <button
             type="button"
             onClick={() => onJudge("comply")}
+            disabled={disabled}
             className="flex items-center justify-center gap-1.5 rounded-xl border border-legit/50 bg-legit/10 py-3 text-sm font-bold text-legit"
           >
             <Handshake aria-hidden className="size-4" />
@@ -50,6 +60,7 @@ export function JudgeSheet({ open, onClose, onJudge }: JudgeSheetProps) {
           <button
             type="button"
             onClick={onClose}
+            disabled={disabled}
             className="rounded-xl py-2 text-xs text-muted-foreground"
           >
             再想想

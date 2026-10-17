@@ -7,15 +7,31 @@ from fastapi import APIRouter
 from app.api.deps import CurrentUser, SessionDep
 from app.core.fraud_types import FRAUD_TYPE_LABELS
 from app.core.pretest import latest_weakest_type
+from app.exam.gate import retake_status
 from app.practice.profile import clamp_weights
 from app.practice.service import get_profile, practice_weights
-from app.schemas import PracticeProfilePublic
+from app.schemas import ExamRetake, PracticeProfilePublic
 
 router = APIRouter(prefix="/practice", tags=["practice"])
 
 
 @router.get("/profile", response_model=PracticeProfilePublic)
 def read_profile(session: SessionDep, current_user: CurrentUser) -> Any:
+    gate = retake_status(session, current_user.id)
+    if gate is not None:
+        return PracticeProfilePublic(
+            focus_type=gate.fraud_type,
+            focus_label=FRAUD_TYPE_LABELS[gate.fraud_type],
+            note=(
+                f"「{FRAUD_TYPE_LABELS[gate.fraud_type]}」已經練夠了，可以再檢測一次。"
+                if gate.met
+                else f"先練習「{FRAUD_TYPE_LABELS[gate.fraud_type]}」，完成後就能再檢測。"
+            ),
+            weights=practice_weights(session, current_user.id) or {},
+            source="rule",
+            answers_seen=0,
+            retake=ExamRetake(fraud_type=gate.fraud_type, gate=gate),
+        )
     profile = get_profile(session, current_user.id)
     if profile is not None:
         focus = profile.focus_type or None

@@ -5,8 +5,6 @@ interface Card {
   id: string
   scenario: string
   source_label: string
-  fraud_type: string
-  difficulty: number
 }
 
 const THRESHOLD = 100

@@ -165,10 +165,13 @@ def test_deck_never_reuses_case_and_tactics_are_scam(
     )
     assert mirror.mirror_of == mirror_source.id
 
-    session_id, _ = _deal(client, normal_user_token_headers, size=10)
+    # 用 7 題不用 10 題：測試題庫只有 15 則、兩組鏡像對，10 題要用掉 14 則，
+    # 約 4% 湊不滿而照設計放寬鏡像規則，這個測試就會偶發失敗（真實題庫 120 則
+    # 實測 3,600 副都沒放寬過）。7 題一定湊得滿，配對題也比 10 題常出現。
+    session_id, _ = _deal(client, normal_user_token_headers, size=7)
     quiz = _quiz(db, session_id)
 
-    assert len(quiz.items) == 10
+    assert len(quiz.items) == 7
     assert len(quiz.case_ids) == len(set(quiz.case_ids))
     selected_cases = [get_case(db, case_id) for case_id in quiz.case_ids]
     assert all(case is not None for case in selected_cases)

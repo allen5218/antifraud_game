@@ -16,7 +16,7 @@ import { User } from "./User"
 const baseItems: Item[] = [
   { icon: House, title: "回到遊戲", path: "/" },
   { icon: ClipboardList, title: "前測", path: "/pretest" },
-  { icon: ShoppingBag, title: "吉祥物商店", path: "/mascot" },
+  { icon: ShoppingBag, title: "商店", path: "/shop" },
 ]
 
 export function AppSidebar() {

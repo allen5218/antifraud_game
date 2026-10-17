@@ -23,6 +23,7 @@ from starlette.concurrency import run_in_threadpool
 from app.core.db import engine
 from app.core.fraud_types import FRAUD_TYPE_LABELS, FRAUD_TYPES
 from app.core.pretest import latest_weakest_type
+from app.exam.gate import retake_status
 from app.models import PracticeAnswer, PracticeProfile, get_datetime_utc
 from app.practice import analyzer
 from app.practice.profile import (
@@ -269,6 +270,9 @@ def get_profile(session: Session, user_id: uuid.UUID) -> PracticeProfile | None:
 
 def practice_focus(session: Session, user_id: uuid.UUID) -> str | None:
     """題組要偏重哪一類。練習重點優先;還沒有的話退回最近一次前測的最弱類型。"""
+    gate = retake_status(session, user_id)
+    if gate is not None:
+        return gate.fraud_type
     profile = get_profile(session, user_id)
     if profile is not None:
         return profile.focus_type or None
@@ -277,6 +281,25 @@ def practice_focus(session: Session, user_id: uuid.UUID) -> str | None:
 
 def practice_weights(session: Session, user_id: uuid.UUID) -> dict[str, float] | None:
     """滑卡與收件匣用的比例。沒有練習重點時,前測的最弱類型給最高比例。"""
+    gate = retake_status(session, user_id)
+    base = _base_practice_weights(session, user_id)
+    if gate is None:
+        return base
+    weights = base or clamp_weights({})
+    # 讓重考類型在 clamp 時固定觸頂 0.5；其他四類仍按原比例分剩下的一半，
+    # 同時保留 8% 下限。若先縮放再 clamp，下限補齊會把重考類型擠到 0.5 以下。
+    peak = max(weights.values())
+    return clamp_weights(
+        {
+            ft: peak * 100 if ft == gate.fraud_type else value
+            for ft, value in weights.items()
+        }
+    )
+
+
+def _base_practice_weights(
+    session: Session, user_id: uuid.UUID
+) -> dict[str, float] | None:
     profile = get_profile(session, user_id)
     if profile is not None and profile.weights:
         return clamp_weights(profile.weights)

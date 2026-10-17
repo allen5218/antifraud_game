@@ -10,6 +10,7 @@ interface TacticsQuestionProps {
   total: number
   disabled: boolean
   onSubmit: (selectedTags: string[]) => void
+  hideMeta?: boolean
 }
 
 /** 話術辨識題：送出前可自由增減複選答案。 */
@@ -19,6 +20,7 @@ export function TacticsQuestion({
   total,
   disabled,
   onSubmit,
+  hideMeta = false,
 }: TacticsQuestionProps) {
   const [selectedTags, setSelectedTags] = useState<string[]>([])
 
@@ -33,12 +35,14 @@ export function TacticsQuestion({
 
   return (
     <div className="flex h-full flex-col">
-      <QuestionMeta
-        fraudType={item.fraud_type}
-        difficulty={item.difficulty}
-        index={index}
-        total={total}
-      />
+      {!hideMeta && (
+        <QuestionMeta
+          fraudType={item.fraud_type}
+          difficulty={item.difficulty}
+          index={index}
+          total={total}
+        />
+      )}
       <div className="flex-1 overflow-y-auto px-4 pb-4">
         <h2 className="pt-2 text-base font-bold">{item.title}</h2>
         <p className="mt-2 whitespace-pre-wrap text-sm leading-relaxed">

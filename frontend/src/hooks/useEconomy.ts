@@ -1,6 +1,12 @@
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
+import {
+  type QueryClient,
+  useMutation,
+  useQuery,
+  useQueryClient,
+} from "@tanstack/react-query"
 import { EconomyService } from "@/client"
 import useCustomToast from "./useCustomToast"
+import { HOME_SUMMARY_KEY } from "./useHomeSummary"
 
 // ── 錯誤處理輔助 ────────────────────────────────────────────────────────────────
 
@@ -12,6 +18,12 @@ export function extractErrorCode(err: unknown): string | undefined {
   }
   if (typeof detail === "string") return detail
   return undefined
+}
+
+/** 房產買賣後要重讀的資料：經濟數字，以及跟著最高房產換圖的房間首頁。 */
+export function refreshAfterPropertyChange(queryClient: QueryClient) {
+  queryClient.invalidateQueries({ queryKey: ["economy"] })
+  queryClient.invalidateQueries({ queryKey: HOME_SUMMARY_KEY })
 }
 
 // ── 查詢 ──────────────────────────────────────────────────────────────────────
@@ -65,9 +77,7 @@ export function useBuyProperty() {
   const { showErrorToast } = useCustomToast()
   return useMutation({
     mutationFn: (tierId: number) => EconomyService.buyProperty({ tierId }),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["economy"] })
-    },
+    onSuccess: () => refreshAfterPropertyChange(queryClient),
     onError: (err: unknown) => {
       const code = extractErrorCode(err)
       const messages: Record<string, string> = {
@@ -91,9 +101,7 @@ export function useLiquidate() {
       EconomyService.postLiquidate({
         requestBody: { property_ids: propertyIds },
       }),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["economy"] })
-    },
+    onSuccess: () => refreshAfterPropertyChange(queryClient),
     onError: (err: unknown) => {
       const code = extractErrorCode(err)
       const messages: Record<string, string> = {

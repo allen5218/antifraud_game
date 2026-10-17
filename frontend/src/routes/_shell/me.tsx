@@ -7,6 +7,7 @@ import {
   Settings,
   ShoppingBag,
 } from "lucide-react"
+import { useState } from "react"
 import { PracticeFocusCard } from "@/components/practice/PracticeFocus"
 import useAuth from "@/hooks/useAuth"
 import { useEconomyMe } from "@/hooks/useEconomy"
@@ -16,12 +17,12 @@ export const Route = createFileRoute("/_shell/me")({
 })
 
 const LINKS: {
-  to: "/pretest" | "/mascot" | "/settings"
+  to: "/pretest" | "/shop" | "/settings"
   icon: LucideIcon
   label: string
 }[] = [
   { to: "/pretest", icon: ClipboardList, label: "重新做前測" },
-  { to: "/mascot", icon: ShoppingBag, label: "吉祥物商店" },
+  { to: "/shop", icon: ShoppingBag, label: "商店" },
   { to: "/settings", icon: Settings, label: "帳號設定" },
 ]
 
@@ -31,22 +32,36 @@ const ROW =
 function Me() {
   const { user, logout } = useAuth()
   const { data: economy } = useEconomyMe()
+  const [mascotBroken, setMascotBroken] = useState(false)
 
   return (
     <div className="flex flex-col gap-3">
       <section className="flex items-center gap-3 rounded-2xl border border-border bg-surface-3 p-4">
-        <img
-          src="/assets/mascot/base.webp"
-          alt=""
-          aria-hidden="true"
-          width={64}
-          height={64}
-          className="size-16 shrink-0 rounded-2xl object-cover"
-        />
+        {mascotBroken ? (
+          <div
+            aria-hidden="true"
+            className="size-16 shrink-0 rounded-2xl bg-surface-2"
+          />
+        ) : (
+          <img
+            src="/assets/mascot/shiba/base.webp"
+            alt=""
+            aria-hidden="true"
+            width={64}
+            height={64}
+            onError={() => setMascotBroken(true)}
+            className="size-16 shrink-0 rounded-2xl bg-surface-2 object-cover"
+          />
+        )}
         <div className="min-w-0">
           <h2 className="truncate text-lg font-bold">
             {user?.full_name || user?.email || "載入中…"}
           </h2>
+          {user?.is_guest && user.participant_code && (
+            <p className="text-sm text-muted-foreground">
+              受試編號：{user.participant_code}
+            </p>
+          )}
           {economy && (
             <p className="text-xs text-muted-foreground">
               Lv.{Math.min(economy.level, 10)} · 連續 {economy.streak_days} 天

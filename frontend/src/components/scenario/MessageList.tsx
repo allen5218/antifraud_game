@@ -37,7 +37,7 @@ export function MessageList({ entries, typing, trailing }: MessageListProps) {
               key={`${i}-${j}`}
               initial={{ opacity: 0, y: 8 }}
               animate={{ opacity: 1, y: 0 }}
-              className="max-w-[78%] self-start rounded-2xl rounded-tl-sm border border-border bg-card px-3 py-2 text-sm shadow-sm"
+              className="max-w-[78%] self-start rounded-2xl rounded-tl-sm border border-border bg-card px-3 py-2 text-sm text-card-foreground shadow-sm"
             >
               {m}
             </motion.div>

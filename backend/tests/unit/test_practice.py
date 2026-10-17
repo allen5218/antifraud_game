@@ -208,7 +208,7 @@ def test_recent_mistakes_count_more_than_old_ones() -> None:
 def test_stats_for_prompt_uses_chinese_names() -> None:
     """玩法與話術給中文名,分析器才不會把英文代號抄進給玩家看的說明。"""
     text = stats_for_prompt(compute_stats(_answers("romance", 6)))
-    assert "題組" in text and "滑卡" in text
+    assert "訊息判讀" in text and "滑卡" in text
     assert "quiz" not in text and "swipe" not in text
     assert "用好處引誘你" in text and "greed" not in text
 

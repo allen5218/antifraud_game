@@ -1,4 +1,5 @@
 import { Lock } from "lucide-react"
+import { useState } from "react"
 import type { PropertyTierPublic } from "@/client"
 
 interface Props {
@@ -20,6 +21,34 @@ function artSrc(svgKey: string): string {
   return `/assets/property/${svgKey}.webp`
 }
 
+function PropertyArt({ svgKey, locked }: { svgKey: string; locked?: boolean }) {
+  const [broken, setBroken] = useState(false)
+  if (broken) {
+    return (
+      <div
+        aria-hidden="true"
+        className={`size-14 shrink-0 rounded-lg bg-surface-2 ${
+          locked ? "opacity-60" : ""
+        }`}
+      />
+    )
+  }
+  return (
+    <img
+      src={artSrc(svgKey)}
+      alt=""
+      aria-hidden="true"
+      width={56}
+      height={56}
+      loading="lazy"
+      onError={() => setBroken(true)}
+      className={`size-14 shrink-0 rounded-lg bg-surface-2 object-cover ${
+        locked ? "grayscale opacity-60" : ""
+      }`}
+    />
+  )
+}
+
 export function PropertyCard({
   tier,
   count,
@@ -30,17 +59,7 @@ export function PropertyCard({
   const owned = count !== undefined
   return (
     <div className="flex items-center gap-3 rounded-xl border bg-card p-2 text-xs">
-      <img
-        src={artSrc(tier.svg_key)}
-        alt=""
-        aria-hidden="true"
-        width={56}
-        height={56}
-        loading="lazy"
-        className={`size-14 shrink-0 rounded-lg object-cover ${
-          locked ? "grayscale opacity-60" : ""
-        }`}
-      />
+      <PropertyArt svgKey={tier.svg_key} locked={locked} />
       <div className="flex-1">
         <h5 className="text-xs font-bold">
           {tier.name}

@@ -22,7 +22,7 @@ from app.core.weakness import WEAKNESS_LABELS
 MODE_LABELS: dict[str, str] = {
     "pretest": "前測",
     "swipe": "滑卡",
-    "quiz": "題組",
+    "quiz": "訊息判讀",
     "scenario": "情境對抗",
 }
 

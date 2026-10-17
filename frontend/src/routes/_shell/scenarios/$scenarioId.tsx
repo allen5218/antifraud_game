@@ -2,6 +2,8 @@ import { createFileRoute, useNavigate } from "@tanstack/react-router"
 import { ChevronLeft, Scale, SendHorizontal } from "lucide-react"
 import { useState } from "react"
 import type { ScenarioJudgeResponse } from "@/client"
+import { ExamInProgress } from "@/components/exam/ExamInProgress"
+import { errorCode } from "@/components/exam/exam"
 import { ActionCard } from "@/components/scenario/ActionCard"
 import { JudgeSheet } from "@/components/scenario/JudgeSheet"
 import { MessageList, toChatEntries } from "@/components/scenario/MessageList"
@@ -32,7 +34,7 @@ function ScenarioChatRoute() {
 /** 拒絕行動卡時代替玩家送出的婉拒訊息(拒絕=不終局、繼續聊) */
 const REFUSE_TEXT = "先不用了，我再想想。"
 
-function ScenarioChatPage({ scenarioId }: { scenarioId: string }) {
+export function ScenarioChatPage({ scenarioId }: { scenarioId: string }) {
   const navigate = useNavigate()
   const { data: detail, isPending } = useScenario(scenarioId)
   const sendM = useSendMessage(scenarioId)
@@ -93,6 +95,11 @@ function ScenarioChatPage({ scenarioId }: { scenarioId: string }) {
     })
   }
   const focusType = profile?.focus_type ?? null
+
+  const lockedError = [newM.error, sendM.error, judgeM.error].find(
+    (error) => errorCode(error) === "exam_in_progress",
+  )
+  if (lockedError) return <ExamInProgress error={lockedError} />
 
   const judge = (action: "report" | "comply") => {
     if (judgeM.isPending) return

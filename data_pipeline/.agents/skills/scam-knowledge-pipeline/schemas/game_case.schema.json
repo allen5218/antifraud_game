@@ -6,6 +6,8 @@
   "required": ["case_key", "fraud_type", "is_scam", "title", "narrative", "red_flags",
                "difficulty", "source_document_ids", "provenance", "mirror_of_key"],
   "properties": {
+    "pool": {"type": "string", "enum": ["practice", "exam_message", "exam_tactics", "exam_scenario"], "default": "practice"},
+    "pattern_key": {"type": ["string", "null"], "minLength": 1, "maxLength": 64},
     "case_key": {"type": "string", "pattern": "^[a-z0-9-]{3,64}$"},
     "fraud_type": {"type": "string", "enum": ["investment", "shopping", "fake-sale", "romance", "atm"]},
     "is_scam": {"type": "boolean"},
