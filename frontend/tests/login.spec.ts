@@ -103,11 +103,13 @@ test("Logged-out user cannot access protected routes", async ({ page }) => {
 })
 
 test("Redirects to /login when token is wrong", async ({ page }) => {
-  await page.goto("/settings")
+  // 在同網域的靜態檔換 token：如果在遊戲頁換，頁面上還沒送出的請求會帶著錯的 token
+  // 拿到 401、自己導向登入頁，和下一個 goto 搶導航（net::ERR_ABORTED）。
+  await page.goto("/assets/images/favicon.png")
   await page.evaluate(() => {
     localStorage.setItem("access_token", "invalid_token")
   })
-  // 前端拿到 401 會立刻導回登入頁，可能早於頁面 load；等到 load 會被當成導航中斷
+  // 拿到 401 會立刻導回登入頁，可能早於 load，所以只等到網址切換
   await page.goto("/settings", { waitUntil: "commit" })
   await page.waitForURL("/login")
   await expect(page).toHaveURL("/login")
