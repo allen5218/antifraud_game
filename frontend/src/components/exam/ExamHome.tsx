@@ -69,7 +69,7 @@ export function ExamHome() {
       <header>
         <h1 className="text-2xl font-bold">檢測</h1>
         <p className="mt-2 text-sm text-muted-foreground">
-          七十分過關。開始後一小時內完成，可離開再回來繼續。
+          七十分過關。開始後一小時內完成，可離開再回來繼續。時間到還沒作答的題目算零分，這次也算一次。
         </p>
         <p className="mt-2 text-sm">
           今天還能檢測 {Math.max(0, data.daily_limit - data.daily_used)} 次，共{" "}

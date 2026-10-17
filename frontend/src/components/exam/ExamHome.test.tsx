@@ -43,6 +43,10 @@ test("每日剩餘次數與空徽章狀態，專項傳玩家選的類型", async
   )
   await mount()
   expect(screen.getByText(/今天還能檢測 2 次/)).toBeTruthy()
+  // 規格決策 4：逾時也算一次，開考前就要講清楚
+  expect(
+    screen.getByText(/時間到還沒作答的題目算零分，這次也算一次/),
+  ).toBeTruthy()
   expect(screen.getByText("還沒有徽章，檢測達七十分就能獲得。")).toBeTruthy()
   fireEvent.change(screen.getByRole("combobox", { name: "檢測類型" }), {
     target: { value: "romance" },

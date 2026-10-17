@@ -3,6 +3,7 @@ import { Link } from "@tanstack/react-router"
 import { useState } from "react"
 import { ExamService } from "@/client/sdk.gen"
 import { Button } from "@/components/ui/button"
+import { HOME_SUMMARY_KEY } from "@/hooks/useHomeSummary"
 import { ExamAbandonDialog } from "./ExamAbandonDialog"
 import { examError, examKindLabel } from "./exam"
 
@@ -33,6 +34,8 @@ export function ExamActiveNotice() {
       setOpen(false)
       void qc.invalidateQueries({ queryKey: ["exam"] })
       void qc.invalidateQueries({ queryKey: ["practice"] })
+      // 這張卡也放在房間的吉祥物對話框裡，放棄後台詞與泡泡要跟著換
+      void qc.invalidateQueries({ queryKey: HOME_SUMMARY_KEY })
     },
   })
   if (!attemptId) return null

@@ -1257,6 +1257,92 @@ export const HTTPValidationErrorSchema = {
     title: 'HTTPValidationError'
 } as const;
 
+export const HomeSummarySchema = {
+    properties: {
+        room_stage: {
+            type: 'integer',
+            title: 'Room Stage'
+        },
+        mascot_image_url: {
+            type: 'string',
+            title: 'Mascot Image Url'
+        },
+        pretest_done: {
+            type: 'boolean',
+            title: 'Pretest Done'
+        },
+        inbox_pending: {
+            type: 'integer',
+            title: 'Inbox Pending'
+        },
+        daily_unlocked: {
+            type: 'boolean',
+            title: 'Daily Unlocked'
+        },
+        daily_done: {
+            type: 'boolean',
+            title: 'Daily Done'
+        },
+        exam_active_attempt_id: {
+            anyOf: [
+                {
+                    type: 'string'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Exam Active Attempt Id'
+        },
+        exam_can_start: {
+            type: 'boolean',
+            title: 'Exam Can Start'
+        },
+        retake: {
+            anyOf: [
+                {
+                    '$ref': '#/components/schemas/ExamRetake'
+                },
+                {
+                    type: 'null'
+                }
+            ]
+        },
+        focus_type: {
+            anyOf: [
+                {
+                    type: 'string'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Focus Type'
+        },
+        focus_label: {
+            anyOf: [
+                {
+                    type: 'string'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Focus Label'
+        },
+        badges: {
+            items: {
+                type: 'string'
+            },
+            type: 'array',
+            title: 'Badges'
+        }
+    },
+    type: 'object',
+    required: ['room_stage', 'mascot_image_url', 'pretest_done', 'inbox_pending', 'daily_unlocked', 'daily_done', 'exam_active_attempt_id', 'exam_can_start', 'retake', 'focus_type', 'focus_label', 'badges'],
+    title: 'HomeSummary'
+} as const;
+
 export const ItemCreateSchema = {
     properties: {
         title: {
@@ -1496,6 +1582,97 @@ export const LiquidateResponseSchema = {
     type: 'object',
     required: ['recovered', 'new_cash', 'bankruptcy_pending'],
     title: 'LiquidateResponse'
+} as const;
+
+export const MascotDisplayPublicSchema = {
+    properties: {
+        displayed: {
+            type: 'boolean',
+            title: 'Displayed'
+        }
+    },
+    type: 'object',
+    required: ['displayed'],
+    title: 'MascotDisplayPublic'
+} as const;
+
+export const MascotItemsPublicSchema = {
+    properties: {
+        items: {
+            items: {
+                '$ref': '#/components/schemas/MascotShopItem'
+            },
+            type: 'array',
+            title: 'Items'
+        }
+    },
+    type: 'object',
+    required: ['items'],
+    title: 'MascotItemsPublic'
+} as const;
+
+export const MascotPublicSchema = {
+    properties: {
+        name: {
+            type: 'string',
+            title: 'Name'
+        },
+        image_url: {
+            type: 'string',
+            title: 'Image Url'
+        }
+    },
+    type: 'object',
+    required: ['name', 'image_url'],
+    title: 'MascotPublic'
+} as const;
+
+export const MascotPurchasePublicSchema = {
+    properties: {
+        new_cash: {
+            type: 'integer',
+            title: 'New Cash'
+        }
+    },
+    type: 'object',
+    required: ['new_cash'],
+    title: 'MascotPurchasePublic'
+} as const;
+
+export const MascotShopItemSchema = {
+    properties: {
+        name: {
+            type: 'string',
+            title: 'Name'
+        },
+        image_url: {
+            type: 'string',
+            title: 'Image Url'
+        },
+        id: {
+            type: 'string',
+            title: 'Id'
+        },
+        category: {
+            type: 'string',
+            title: 'Category'
+        },
+        cost: {
+            type: 'integer',
+            title: 'Cost'
+        },
+        owned: {
+            type: 'boolean',
+            title: 'Owned'
+        },
+        displayed: {
+            type: 'boolean',
+            title: 'Displayed'
+        }
+    },
+    type: 'object',
+    required: ['name', 'image_url', 'id', 'category', 'cost', 'owned', 'displayed'],
+    title: 'MascotShopItem'
 } as const;
 
 export const MessageSchema = {

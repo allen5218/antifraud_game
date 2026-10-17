@@ -20,13 +20,13 @@ import { Route as ShellIndexRouteImport } from './routes/_shell/index'
 import { Route as PretestResultRouteImport } from './routes/pretest.result'
 import { Route as InviteTokenRouteImport } from './routes/invite.$token'
 import { Route as BadgeSlugRouteImport } from './routes/badge.$slug'
+import { Route as ShellShopRouteImport } from './routes/_shell/shop'
 import { Route as ShellMeRouteImport } from './routes/_shell/me'
 import { Route as ShellLeaderboardRouteImport } from './routes/_shell/leaderboard'
 import { Route as ShellExamRouteImport } from './routes/_shell/exam'
 import { Route as ShellDailyRouteImport } from './routes/_shell/daily'
 import { Route as ShellAssetsRouteImport } from './routes/_shell/assets'
 import { Route as LayoutSettingsRouteImport } from './routes/_layout/settings'
-import { Route as LayoutMascotRouteImport } from './routes/_layout/mascot'
 import { Route as LayoutItemsRouteImport } from './routes/_layout/items'
 import { Route as LayoutAdminRouteImport } from './routes/_layout/admin'
 import { Route as ShellScenariosIndexRouteImport } from './routes/_shell/scenarios/index'
@@ -89,6 +89,11 @@ const BadgeSlugRoute = BadgeSlugRouteImport.update({
   path: '/badge/$slug',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ShellShopRoute = ShellShopRouteImport.update({
+  id: '/shop',
+  path: '/shop',
+  getParentRoute: () => ShellRoute,
+} as any)
 const ShellMeRoute = ShellMeRouteImport.update({
   id: '/me',
   path: '/me',
@@ -117,11 +122,6 @@ const ShellAssetsRoute = ShellAssetsRouteImport.update({
 const LayoutSettingsRoute = LayoutSettingsRouteImport.update({
   id: '/settings',
   path: '/settings',
-  getParentRoute: () => LayoutRoute,
-} as any)
-const LayoutMascotRoute = LayoutMascotRouteImport.update({
-  id: '/mascot',
-  path: '/mascot',
   getParentRoute: () => LayoutRoute,
 } as any)
 const LayoutItemsRoute = LayoutItemsRouteImport.update({
@@ -175,13 +175,13 @@ export interface FileRoutesByFullPath {
   '/signup': typeof SignupRoute
   '/admin': typeof LayoutAdminRoute
   '/items': typeof LayoutItemsRoute
-  '/mascot': typeof LayoutMascotRoute
   '/settings': typeof LayoutSettingsRoute
   '/assets': typeof ShellAssetsRoute
   '/daily': typeof ShellDailyRoute
   '/exam': typeof ShellExamRoute
   '/leaderboard': typeof ShellLeaderboardRoute
   '/me': typeof ShellMeRoute
+  '/shop': typeof ShellShopRoute
   '/badge/$slug': typeof BadgeSlugRoute
   '/invite/$token': typeof InviteTokenRoute
   '/pretest/result': typeof PretestResultRoute
@@ -201,13 +201,13 @@ export interface FileRoutesByTo {
   '/signup': typeof SignupRoute
   '/admin': typeof LayoutAdminRoute
   '/items': typeof LayoutItemsRoute
-  '/mascot': typeof LayoutMascotRoute
   '/settings': typeof LayoutSettingsRoute
   '/assets': typeof ShellAssetsRoute
   '/daily': typeof ShellDailyRoute
   '/exam': typeof ShellExamRoute
   '/leaderboard': typeof ShellLeaderboardRoute
   '/me': typeof ShellMeRoute
+  '/shop': typeof ShellShopRoute
   '/badge/$slug': typeof BadgeSlugRoute
   '/invite/$token': typeof InviteTokenRoute
   '/pretest/result': typeof PretestResultRoute
@@ -229,13 +229,13 @@ export interface FileRoutesById {
   '/signup': typeof SignupRoute
   '/_layout/admin': typeof LayoutAdminRoute
   '/_layout/items': typeof LayoutItemsRoute
-  '/_layout/mascot': typeof LayoutMascotRoute
   '/_layout/settings': typeof LayoutSettingsRoute
   '/_shell/assets': typeof ShellAssetsRoute
   '/_shell/daily': typeof ShellDailyRoute
   '/_shell/exam': typeof ShellExamRoute
   '/_shell/leaderboard': typeof ShellLeaderboardRoute
   '/_shell/me': typeof ShellMeRoute
+  '/_shell/shop': typeof ShellShopRoute
   '/badge/$slug': typeof BadgeSlugRoute
   '/invite/$token': typeof InviteTokenRoute
   '/pretest/result': typeof PretestResultRoute
@@ -258,13 +258,13 @@ export interface FileRouteTypes {
     | '/signup'
     | '/admin'
     | '/items'
-    | '/mascot'
     | '/settings'
     | '/assets'
     | '/daily'
     | '/exam'
     | '/leaderboard'
     | '/me'
+    | '/shop'
     | '/badge/$slug'
     | '/invite/$token'
     | '/pretest/result'
@@ -284,13 +284,13 @@ export interface FileRouteTypes {
     | '/signup'
     | '/admin'
     | '/items'
-    | '/mascot'
     | '/settings'
     | '/assets'
     | '/daily'
     | '/exam'
     | '/leaderboard'
     | '/me'
+    | '/shop'
     | '/badge/$slug'
     | '/invite/$token'
     | '/pretest/result'
@@ -311,13 +311,13 @@ export interface FileRouteTypes {
     | '/signup'
     | '/_layout/admin'
     | '/_layout/items'
-    | '/_layout/mascot'
     | '/_layout/settings'
     | '/_shell/assets'
     | '/_shell/daily'
     | '/_shell/exam'
     | '/_shell/leaderboard'
     | '/_shell/me'
+    | '/_shell/shop'
     | '/badge/$slug'
     | '/invite/$token'
     | '/pretest/result'
@@ -421,6 +421,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof BadgeSlugRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/_shell/shop': {
+      id: '/_shell/shop'
+      path: '/shop'
+      fullPath: '/shop'
+      preLoaderRoute: typeof ShellShopRouteImport
+      parentRoute: typeof ShellRoute
+    }
     '/_shell/me': {
       id: '/_shell/me'
       path: '/me'
@@ -461,13 +468,6 @@ declare module '@tanstack/react-router' {
       path: '/settings'
       fullPath: '/settings'
       preLoaderRoute: typeof LayoutSettingsRouteImport
-      parentRoute: typeof LayoutRoute
-    }
-    '/_layout/mascot': {
-      id: '/_layout/mascot'
-      path: '/mascot'
-      fullPath: '/mascot'
-      preLoaderRoute: typeof LayoutMascotRouteImport
       parentRoute: typeof LayoutRoute
     }
     '/_layout/items': {
@@ -532,7 +532,6 @@ declare module '@tanstack/react-router' {
 interface LayoutRouteChildren {
   LayoutAdminRoute: typeof LayoutAdminRoute
   LayoutItemsRoute: typeof LayoutItemsRoute
-  LayoutMascotRoute: typeof LayoutMascotRoute
   LayoutSettingsRoute: typeof LayoutSettingsRoute
   LayoutAdminCohortsRoute: typeof LayoutAdminCohortsRoute
 }
@@ -540,7 +539,6 @@ interface LayoutRouteChildren {
 const LayoutRouteChildren: LayoutRouteChildren = {
   LayoutAdminRoute: LayoutAdminRoute,
   LayoutItemsRoute: LayoutItemsRoute,
-  LayoutMascotRoute: LayoutMascotRoute,
   LayoutSettingsRoute: LayoutSettingsRoute,
   LayoutAdminCohortsRoute: LayoutAdminCohortsRoute,
 }
@@ -554,6 +552,7 @@ interface ShellRouteChildren {
   ShellExamRoute: typeof ShellExamRoute
   ShellLeaderboardRoute: typeof ShellLeaderboardRoute
   ShellMeRoute: typeof ShellMeRoute
+  ShellShopRoute: typeof ShellShopRoute
   ShellIndexRoute: typeof ShellIndexRoute
   ShellExamAttemptIdRoute: typeof ShellExamAttemptIdRoute
   ShellQuickQuizRoute: typeof ShellQuickQuizRoute
@@ -568,6 +567,7 @@ const ShellRouteChildren: ShellRouteChildren = {
   ShellExamRoute: ShellExamRoute,
   ShellLeaderboardRoute: ShellLeaderboardRoute,
   ShellMeRoute: ShellMeRoute,
+  ShellShopRoute: ShellShopRoute,
   ShellIndexRoute: ShellIndexRoute,
   ShellExamAttemptIdRoute: ShellExamAttemptIdRoute,
   ShellQuickQuizRoute: ShellQuickQuizRoute,

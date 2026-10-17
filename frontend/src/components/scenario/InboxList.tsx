@@ -18,7 +18,7 @@ export function InboxList({ items, onOpen }: InboxListProps) {
             type="button"
             onClick={() => onOpen(item)}
             data-testid={`inbox-row-${item.id}`}
-            className="flex w-full items-start gap-3 px-4 py-3 text-left hover:bg-muted/50"
+            className="flex w-full items-start gap-3 bg-card px-4 py-3 text-left hover:bg-muted/50"
           >
             <ScenarioAvatar avatar={item.avatar} />
             <span className="min-w-0 flex-1">

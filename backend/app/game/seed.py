@@ -1,8 +1,9 @@
 from typing import Any
 
-from sqlmodel import Session, select
+from sqlmodel import Session, col, select
 
-from app.models import FraudType, MascotItem, PretestQuestion
+from app.economy.service import adjust_cash, lock_user
+from app.models import FraudType, MascotItem, PretestQuestion, User, UserMascotItem
 
 # 前測題庫。每類 6 題:詐騙情境 3 題、正常情境 3 題,每次每類各抽 2 題(routes/pretest.py)。
 #
@@ -88,9 +89,13 @@ PRETEST_QUESTIONS = [
         _INV,
         True,
         "你在 YouTube 看到財經名人代言的投資廣告，點進去後有位「助理」加你 LINE，說要教你用一個 App 搶股票。你會怎麼做？",
-        ["照助理說的下載 App", "先聽他推薦哪一檔", "到名人官方粉專查證"],
+        [
+            "先下載 App 看介面正不正規",
+            "到名人的官方粉專看有沒有這則廣告",
+            "查這家業者在不在金管會名單上",
+        ],
         "C",
-        "冒用名人照片的投資廣告很多。名人不會透過助理加你 LINE 報明牌，要你裝來路不明的 App 更是詐騙。",
+        "冒用名人照片的投資廣告很多。就算粉專真的有這則廣告，也不代表那個 App 能投資；要你下載 App 投資，先查業者有沒有在金管會登記。",
     ),
     _q(
         "pre-inv-05",
@@ -105,10 +110,14 @@ PRETEST_QUESTIONS = [
         "pre-inv-06",
         _INV,
         False,
-        "你在投信官網看到一檔基金，照網站上的流程從自己的銀行帳戶扣款申購，扣款前頁面列出手續費和風險。你會怎麼做？",
-        ["照官網流程完成申購", "改匯到客服給的帳戶", "認定是詐騙並報警"],
+        "你在投信官網看上一檔基金，頁面寫著募集只到這週五，扣款前列出手續費，也寫了過去績效不代表未來。你會怎麼做？",
+        [
+            "看完說明，照官網流程申購",
+            "改匯到客服視窗給的帳戶",
+            "覺得截止日在催你，當作詐騙",
+        ],
         "A",
-        "在官網、用自己的帳戶扣款、先列出費用和風險，是正常的申購流程。要你匯到個人帳戶的才有問題。",
+        "基金本來就有募集期限，官網寫明截止日、先列出費用和風險、從自己的帳戶扣款，是正常的申購流程。要你改匯到別的帳戶才有問題。",
         difficulty=2,
     ),
     # ── 假網拍 ──
@@ -137,9 +146,9 @@ PRETEST_QUESTIONS = [
         _SALE,
         True,
         "你在二手平台賣東西，買家說他付款了，傳來一個「收款確認」連結，要你點進去填銀行帳號。你會怎麼做？",
-        ["點連結填帳號收款", "回平台 App 看訂單", "直接把帳號傳給他"],
+        ["先看連結網址像不像平台", "回平台 App 看這筆訂單", "請買家改傳轉帳截圖"],
         "B",
-        "買家付的錢會出現在平台的訂單裡，不需要你點外部連結填資料。這種連結是在騙你的帳號或要你先付錢。",
+        "買家付的錢會出現在平台的訂單裡，不需要你點外部連結填資料。網址可以做得很像，截圖也能假造，回自己的 App 看訂單才準。",
         difficulty=2,
         legacy_text="你賣東西時，買家傳了一個連結說是「付款確認頁面」，要你點進去填寫銀行帳號以接收款項。你會？",
     ),
@@ -148,9 +157,13 @@ PRETEST_QUESTIONS = [
         _SALE,
         True,
         "你在平台賣東西，有人自稱「平台客服」，說你的帳號還沒完成認證，錢卡在系統裡，要你加 LINE 處理。你會怎麼做？",
-        ["加 LINE 讓客服處理", "照客服說的去 ATM 認證", "從 App 的客服中心詢問"],
+        [
+            "加 LINE，請他報訂單編號核對",
+            "請他把認證步驟寄到你的信箱",
+            "從 App 的客服中心詢問",
+        ],
         "C",
-        "平台客服只會在 App 裡聯絡你，不會要你加 LINE，也沒有要到 ATM 做的「認證」。",
+        "平台客服只會在 App 裡聯絡你，不會要你加 LINE。對方報得出訂單編號、寄來的信看起來很正式，都不代表他是客服。",
         difficulty=2,
     ),
     _q(
@@ -177,9 +190,9 @@ PRETEST_QUESTIONS = [
         _SHOP,
         True,
         "你在臉書看到一頁式廣告，名牌包只要原價一折，只接受貨到付款。你會怎麼做？",
-        ["先搜尋這家店的評價", "下單，反正貨到付款", "多買幾個湊免運"],
+        ["先搜尋這家店的資料和評價", "下單，反正貨到付款", "先私訊客服問是不是正品"],
         "A",
-        "一頁式廣告、價格低得離譜、只收貨到付款，收到的常常是假貨或空盒，付了錢很難追回。",
+        "一頁式廣告、價格低得離譜，貨到付款也擋不住空盒和假貨。先搜這家店的資料和評價，好評也可能是假的，查不到公司和退貨方式就不要買。",
         legacy_text="你在 Facebook 看到一頁式廣告，名牌包只要原價一折，僅接受貨到付款。你會？",
     ),
     _q(
@@ -197,16 +210,16 @@ PRETEST_QUESTIONS = [
         _SHOP,
         True,
         "你在 IG 看到代購帳號說明天飛日本，可以幫你帶限量球鞋，要先匯全額，今晚截止。你會怎麼做？",
-        ["先匯款搶名額", "改在有保障的平台買", "請他先寄照片再匯"],
+        ["看他追蹤人數夠多再匯", "改在有保障的平台買", "請他傳機票照片再匯"],
         "B",
-        "個人代購先收全額、又限時截止，錢匯出去沒有任何保障。這類帳號收完錢就消失的很多。",
+        "個人代購先收全額、又限時截止，錢匯出去沒有任何保障。追蹤人數可以買，機票照片也能假造，這類帳號收完錢就消失的很多。",
     ),
     _q(
         "pre-shop-04",
         _SHOP,
         True,
         "你收到簡訊：「您的包裹地址不完整，請點連結補繳 25 元運費。」你會怎麼做？",
-        ["點連結補繳運費", "回簡訊補上地址", "到物流官方 App 查"],
+        ["點連結看是哪家物流", "回簡訊補上地址", "到物流官方 App 查"],
         "C",
         "補繳運費的簡訊連結會騙你輸入信用卡資料。包裹有問題就到物流或購物網站的官方 App 查。",
         difficulty=2,
@@ -235,9 +248,13 @@ PRETEST_QUESTIONS = [
         _ROM,
         True,
         "你在交友 App 認識一位自稱在國外當軍醫的人，聊了兩個月，他說要 5 萬元手續費才能回台灣見你。你會怎麼做？",
-        ["拒絕匯任何錢", "先匯一半表示誠意", "請朋友幫忙湊錢"],
-        "A",
-        "沒見過面、人在國外、需要錢才能回來見你，是假交友最常見的說法。真的軍人回國不用女朋友付錢。",
+        [
+            "先匯一半，說好視訊再匯剩下的",
+            "請他先視訊，錢一毛都不匯",
+            "請他傳部隊的證件照片",
+        ],
+        "B",
+        "沒見過面、人在國外、需要錢才能回來見你，是假交友最常見的說法。不管他給不給視訊、傳什麼證件，錢都不要匯，真的軍人回國不用你付錢。",
         legacy_text="你在交友 App 上認識一位自稱在海外當軍醫的對象，交往兩個月後對方說需要 5 萬元才能回國見你。你會？",
     ),
     _q(
@@ -257,7 +274,7 @@ PRETEST_QUESTIONS = [
         "網路上聊了三個月、從沒見過面的對象說，家人住院急需 10 萬，保證下個月還你。你會怎麼做？",
         ["先借一部分應急", "拒絕，先見面再說", "匯到他給的醫院帳戶"],
         "B",
-        "從沒見過面就開口借大錢，還說得很急，是假交友的做法。醫院不會要你匯款到私人帳戶。",
+        "從沒見過面就開口借大錢，還說得很急，是假交友的做法。他給的帳戶是不是醫院的，你沒辦法確認，不能因為他說是醫院帳戶就匯款。",
         difficulty=2,
         legacy_text="網路上認識三個月的對象突然說家人住院需要醫藥費，希望你借 10 萬元，並保證下個月還。你會？",
     ),
@@ -266,9 +283,13 @@ PRETEST_QUESTIONS = [
         _ROM,
         True,
         "交友 App 認識的對象說他靠一個投資平台賺很多，要教你一起操作，還說賺了可以一起買房。你會怎麼做？",
-        ["照他給的網址註冊", "先投一點試試看", "不碰他介紹的平台"],
+        [
+            "先投一點，領得出來再加碼",
+            "請他截圖給你看他賺的錢",
+            "查這個平台有沒有在金管會登記",
+        ],
         "C",
-        "先談感情、再帶你去投資，是「殺豬盤」的做法。那個平台是假的，錢放進去就領不出來。",
+        "先談感情、再帶你去投資，是「殺豬盤」的做法。先讓你小額領出來、傳賺錢截圖，都是讓你放心加碼的手段；查得到登記之前，一毛錢都不要放進去。",
         difficulty=2,
     ),
     _q(
@@ -294,10 +315,10 @@ PRETEST_QUESTIONS = [
         "pre-atm-01",
         _ATM,
         True,
-        "你接到自稱網購客服的電話，對方說得出你上週買的東西和金額，說系統出錯被設成分期，要幫你取消。你會怎麼做？",
-        ["掛掉，打官方客服查", "照對方說的去 ATM 操作", "把卡號給他取消分期"],
+        "你接到自稱網購客服的電話，對方說得出你上週買的東西和金額，說系統出錯被設成分期，要你現在去 ATM 取消。你會怎麼做？",
+        ["掛掉，自己到購物 App 查訂單", "請他報員工編號再照做", "先去 ATM，到了再決定"],
         "A",
-        "你的訂單資料可能已經外洩，對方說得出來不代表他是真客服。掛掉之後自己打官方客服問。",
+        "你的訂單資料可能已經外洩，對方說得出來不代表他是真客服，員工編號也能隨口編。ATM 沒有取消分期的功能，掛掉後自己到購物 App 查。",
         legacy_text="你接到電話，對方準確說出你上週在網路上買的東西和金額，並說系統出錯要幫你退款。你會？",
     ),
     _q(
@@ -315,9 +336,13 @@ PRETEST_QUESTIONS = [
         _ATM,
         True,
         "有人打來自稱「165 反詐騙專線」，說你的帳戶涉及洗錢，要你把錢轉到安全帳戶。你會怎麼做？",
-        ["照指示轉到安全帳戶", "掛掉，自己撥 165 問", "先轉一部分證明清白"],
+        [
+            "掛掉，打卡片背面的電話問銀行",
+            "掛掉，自己撥 165 問",
+            "打開銀行 App 看帳戶有沒有異常",
+        ],
         "B",
-        "165 不會打電話叫你轉帳，也沒有「安全帳戶」這種東西。掛掉之後自己撥 165 查。",
+        "165 不會打電話叫你轉帳，也沒有「安全帳戶」這種東西。對方冒用的是 165，就掛掉自己撥 165 問最直接；銀行和 App 只看得到你的帳戶，查不了這通電話。",
         legacy_text="有人打電話自稱是「165 反詐騙專線」，說你的帳戶涉及洗錢案件，需要把錢轉到安全帳戶。你會？",
     ),
     _q(
@@ -327,7 +352,7 @@ PRETEST_QUESTIONS = [
         "有人打來自稱銀行人員，說你的帳戶被盜用，要你到 ATM 照指示「設定安全防護」，還說不能掛電話。你會怎麼做？",
         ["照指示到 ATM 操作", "先去 ATM 查餘額再說", "掛掉，打卡片背面的電話"],
         "C",
-        "ATM 沒有「安全防護」或「取消分期」的功能，照做就是把錢轉出去。不讓你掛電話，是怕你去查證。",
+        "ATM 沒有「設定安全防護」這種功能，照做就是把錢轉出去。對方不讓你掛電話，是怕你自己打卡片背面的電話去問。",
         difficulty=2,
         legacy_text="你接到一通電話，對方自稱是購物平台客服，說你的訂單被設為分期付款，需要到 ATM 操作取消。你會？",
     ),
@@ -377,70 +402,58 @@ def seed_pretest_questions(session: Session) -> None:
     session.commit()
 
 
-# 吉祥物配件。圖在 frontend/public/assets/mascot/<代號>.webp。
-# 原本每項寫的是 emoji 與 description,但 MascotItem 根本沒有這兩個欄位——
-# SQLModel 建表模型會默默丟掉多餘的參數,所以商店畫面一直是空白;
-# image_url 才是 API 會回傳的欄位。
+# 舊配件下架時退回原價，購買紀錄與商品在同一筆交易中刪除。
+RETIRED_MASCOT_ITEM_NAMES: list[str] = [
+    "防詐警徽",
+    "金色盾牌",
+    "偵探帽",
+    "紅色披風",
+    "放大鏡",
+    "警報器",
+    "寶石項鍊",
+    "星星眼鏡",
+]
+
 MASCOT_ITEMS: list[dict[str, str | int]] = [
     {
-        "name": "防詐警徽",
-        "category": "徽章",
-        "cost": 50,
-        "image_url": "/assets/mascot/badge.webp",
+        "name": "柴犬",
+        "category": "mascot",
+        "cost": 0,
+        "image_url": "/assets/mascot/shiba/base.webp",
     },
     {
-        "name": "金色盾牌",
-        "category": "徽章",
-        "cost": 150,
-        "image_url": "/assets/mascot/golden-shield.webp",
-    },
-    {
-        "name": "偵探帽",
-        "category": "帽子",
-        "cost": 100,
-        "image_url": "/assets/mascot/detective-hat.webp",
-    },
-    {
-        "name": "紅色披風",
-        "category": "披風",
-        "cost": 200,
-        "image_url": "/assets/mascot/red-cape.webp",
-    },
-    {
-        "name": "放大鏡",
-        "category": "道具",
-        "cost": 75,
-        "image_url": "/assets/mascot/magnifier.webp",
-    },
-    {
-        "name": "警報器",
-        "category": "道具",
-        "cost": 120,
-        "image_url": "/assets/mascot/siren.webp",
-    },
-    {
-        "name": "寶石項鍊",
-        "category": "飾品",
-        "cost": 250,
-        "image_url": "/assets/mascot/gem-necklace.webp",
-    },
-    {
-        "name": "星星眼鏡",
-        "category": "飾品",
-        "cost": 80,
-        "image_url": "/assets/mascot/star-glasses.webp",
+        "name": "貓",
+        "category": "mascot",
+        "cost": 3000,
+        "image_url": "/assets/mascot/cat/base.webp",
     },
 ]
 
 
 def seed_mascot_items(session: Session) -> None:
-    """同步吉祥物配件:依名稱更新既有的一列,沒有才新增。
-
-    舊版只在空表時插入一次,之後改的圖永遠到不了已經有資料的環境。
-    """
-    existing = {item.name: item for item in session.exec(select(MascotItem)).all()}
+    """舊配件退款後同步角色；刪除紀錄讓重啟不會再次退款。"""
+    existing = session.exec(
+        select(MascotItem).order_by(col(MascotItem.id)).with_for_update()
+    ).all()
+    for item in existing:
+        if item.name not in RETIRED_MASCOT_ITEM_NAMES:
+            continue
+        purchases = session.exec(
+            select(UserMascotItem).where(UserMascotItem.item_id == item.id)
+        ).all()
+        for purchase in purchases:
+            user = session.get(User, purchase.user_id)
+            if user is not None:
+                user = lock_user(session, user)
+                adjust_cash(user, item.cost, reason="retired_mascot_refund")
+                session.add(user)
+            session.delete(purchase)
+        # 先刪購買紀錄，避免商品的級聯刪除搶先移除尚未 flush 的列。
+        session.flush()
+        session.delete(item)
+    by_name = {item.name: item for item in existing}
     for data in MASCOT_ITEMS:
-        row = existing.get(str(data["name"]))
+        row = by_name.get(str(data["name"]))
         if row is None:
             session.add(MascotItem(**data))
             continue

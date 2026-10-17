@@ -24,14 +24,14 @@ export function ScenarioAvatar({
         alt=""
         aria-hidden="true"
         loading="lazy"
-        className={`shrink-0 rounded-full object-cover ${className}`}
+        className={`shrink-0 rounded-full bg-surface-2 object-cover ${className}`}
       />
     )
   }
   return (
     <span
       aria-hidden="true"
-      className={`flex shrink-0 items-center justify-center rounded-full bg-muted text-muted-foreground ${className}`}
+      className={`flex shrink-0 items-center justify-center rounded-full bg-surface-2 text-muted-foreground ${className}`}
     >
       <UserRound className="size-1/2" />
     </span>

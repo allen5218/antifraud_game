@@ -69,6 +69,24 @@ class PracticeProfilePublic(BaseModel):
     retake: ExamRetake | None = None
 
 
+# ── 首頁房間 ───────────────────────────────────────────────
+
+
+class HomeSummary(BaseModel):
+    room_stage: int
+    mascot_image_url: str
+    pretest_done: bool
+    inbox_pending: int
+    daily_unlocked: bool
+    daily_done: bool
+    exam_active_attempt_id: str | None
+    exam_can_start: bool
+    retake: ExamRetake | None
+    focus_type: str | None
+    focus_label: str | None
+    badges: list[str]
+
+
 # ── Economy ───────────────────────────────────────────────
 
 

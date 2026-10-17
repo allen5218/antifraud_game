@@ -46,9 +46,11 @@ function attempt(mode: ExamState["mode"], fraudType: string | null): ExamState {
 afterEach(() => {
   cleanup()
   qc.clear()
+  localStorage.clear()
   mock.restore()
 })
 async function renderHome() {
+  localStorage.clear()
   spyOn(EconomyService, "readMe").mockImplementation(() =>
     response({
       cash: 0,
@@ -99,9 +101,7 @@ test("有進行中的專項檢測時，卡在大卡之前，繼續直接進那�
     screen.getByRole("link", { name: "繼續檢測" }).getAttribute("href"),
   ).toBe("/exam/attempt-1")
   const hero = screen.getByTestId("home-hero")
-  expect(
-    heading.compareDocumentPosition(hero) & Node.DOCUMENT_POSITION_FOLLOWING,
-  ).toBeTruthy()
+  expect(hero.contains(heading)).toBe(true)
   expect(daily).not.toHaveBeenCalled()
 })
 test("綜合檢測還在前測時只寫綜合檢測", async () => {

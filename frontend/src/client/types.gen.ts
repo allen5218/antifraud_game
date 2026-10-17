@@ -284,6 +284,21 @@ export type FraudTypeResult = {
     total: number;
 };
 
+export type HomeSummary = {
+    room_stage: number;
+    mascot_image_url: string;
+    pretest_done: boolean;
+    inbox_pending: number;
+    daily_unlocked: boolean;
+    daily_done: boolean;
+    exam_active_attempt_id: (string | null);
+    exam_can_start: boolean;
+    retake: (ExamRetake | null);
+    focus_type: (string | null);
+    focus_label: (string | null);
+    badges: Array<(string)>;
+};
+
 export type HTTPValidationError = {
     detail?: Array<ValidationError>;
 };
@@ -339,6 +354,33 @@ export type LiquidateResponse = {
     recovered: number;
     new_cash: number;
     bankruptcy_pending: boolean;
+};
+
+export type MascotDisplayPublic = {
+    displayed: boolean;
+};
+
+export type MascotItemsPublic = {
+    items: Array<MascotShopItem>;
+};
+
+export type MascotPublic = {
+    name: string;
+    image_url: string;
+};
+
+export type MascotPurchasePublic = {
+    new_cash: number;
+};
+
+export type MascotShopItem = {
+    name: string;
+    image_url: string;
+    id: string;
+    category: string;
+    cost: number;
+    owned: boolean;
+    displayed: boolean;
 };
 
 export type Message = {
@@ -855,6 +897,8 @@ export type ExamAbandonData = {
 
 export type ExamAbandonResponse = (ExamState);
 
+export type HomeHomeSummaryResponse = (HomeSummary);
+
 export type InviteRedeemInviteData = {
     token: string;
 };
@@ -931,21 +975,21 @@ export type LoginRecoverPasswordHtmlContentData = {
 
 export type LoginRecoverPasswordHtmlContentResponse = (string);
 
-export type MascotListMascotItemsResponse = (unknown);
+export type MascotListMascotItemsResponse = (MascotItemsPublic);
 
 export type MascotPurchaseItemData = {
     itemId: string;
 };
 
-export type MascotPurchaseItemResponse = (unknown);
+export type MascotPurchaseItemResponse = (MascotPurchasePublic);
 
 export type MascotToggleEquipData = {
     itemId: string;
 };
 
-export type MascotToggleEquipResponse = (unknown);
+export type MascotToggleEquipResponse = (MascotDisplayPublic);
 
-export type MascotGetMyMascotResponse = (unknown);
+export type MascotGetMyMascotResponse = (MascotPublic);
 
 export type PracticeReadProfileResponse = (PracticeProfilePublic);
 
