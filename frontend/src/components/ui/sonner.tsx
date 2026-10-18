@@ -10,12 +10,17 @@ import {
 import { useTheme } from "next-themes"
 import { Toaster as Sonner, type ToasterProps } from "sonner"
 
+// 手機（寬度 600px 以下）的提示疊在畫面底部：往上留出房間左下「購物」「房子」按鈕
+// （離底 1rem、高約 2rem）與手機底部橫條的高度，不然「有新版本」這種不會自己消失的提示會一直蓋住它們
+const MOBILE_OFFSET = { bottom: "calc(env(safe-area-inset-bottom) + 4.5rem)" }
+
 const Toaster = ({ ...props }: ToasterProps) => {
   const { theme = "system" } = useTheme()
 
   return (
     <Sonner
       theme={theme as ToasterProps["theme"]}
+      mobileOffset={MOBILE_OFFSET}
       className="toaster group"
       icons={{
         success: <CircleCheckIcon className="size-4" />,
