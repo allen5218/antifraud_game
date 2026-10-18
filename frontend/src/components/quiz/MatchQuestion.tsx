@@ -51,7 +51,7 @@ export function MatchQuestion({
 
   return (
     <div className="flex h-full flex-col">
-      <div className="flex items-center gap-3 px-4 pt-3 text-xs text-muted-foreground">
+      <div className="flex items-center gap-3 border-b border-border/60 px-4 pt-3 pb-2 text-xs text-muted-foreground">
         <span className="rounded-md bg-primary/10 px-1.5 py-0.5 font-semibold text-primary">
           配對題
         </span>

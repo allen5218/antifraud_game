@@ -61,7 +61,7 @@ export function ExamResult({ state }: { state: ExamState }) {
                 type: fraudTypeLabel(type),
                 correct: result.pretest_by_type?.[type] ?? 0,
               }))}
-              outerRadius="70%"
+              outerRadius="62%"
             >
               <PolarGrid stroke="var(--border)" />
               <PolarAngleAxis
@@ -69,7 +69,7 @@ export function ExamResult({ state }: { state: ExamState }) {
                 tick={{ fontSize: 12, fill: "var(--foreground)" }}
               />
               <PolarRadiusAxis
-                angle={90}
+                angle={54}
                 domain={[0, 4]}
                 tickCount={5}
                 tick={{ fontSize: 10, fill: "var(--muted-foreground)" }}

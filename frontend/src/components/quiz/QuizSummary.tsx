@@ -64,7 +64,7 @@ export function QuizSummary({ result, onRestart, children }: QuizSummaryProps) {
         </button>
       )}
       <Link to="/" className="text-xs text-muted-foreground underline">
-        回首頁
+        回房間
       </Link>
     </div>
   )

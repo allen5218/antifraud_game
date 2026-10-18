@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it, mock } from "bun:test"
-import { cleanup, screen } from "@testing-library/react"
+import { cleanup, render, screen } from "@testing-library/react"
 import type { PracticeProfilePublic } from "@/client"
 import { renderWithRouter } from "@/test/renderWithRouter"
 
@@ -96,6 +96,32 @@ describe("<PracticeFocusBadge />", () => {
     await renderWithRouter(<PracticeFocusBadge />)
     expect(screen.getByTestId("practice-focus-badge").textContent).toBe(
       "本輪加強：解除分期",
+    )
+  })
+
+  // 2026-10-18 正式環境：做訊息判讀第一題時，背景重算完的重點讀回來，小標消失、整頁往上跳，點到別的選項
+  it("這一輪中途重點重算了，小標仍維持一開始那一類", () => {
+    profile = {
+      focus_type: "shopping",
+      focus_label: "購物詐騙",
+      note: "",
+      weights: EVEN,
+      source: "pretest",
+      answers_seen: 20,
+    }
+    const view = render(<PracticeFocusBadge />)
+    expect(screen.getByTestId("practice-focus-badge").textContent).toBe(
+      "本輪加強：購物詐騙",
+    )
+    profile = { ...profile, focus_type: null, focus_label: null }
+    view.rerender(<PracticeFocusBadge />)
+    expect(screen.getByTestId("practice-focus-badge").textContent).toBe(
+      "本輪加強：購物詐騙",
+    )
+    profile = { ...profile, focus_type: "romance", focus_label: "假交友" }
+    view.rerender(<PracticeFocusBadge />)
+    expect(screen.getByTestId("practice-focus-badge").textContent).toBe(
+      "本輪加強：購物詐騙",
     )
   })
 })

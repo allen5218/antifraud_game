@@ -59,7 +59,7 @@ function VerdictReveal({ result }: { result: QuickQuizAnswerResponse }) {
             key={flag.text}
             suspicious={Boolean(flag.tag)}
             text={flag.text}
-            label={flag.tag ? labelFor(flag.tag) : undefined}
+            label={flag.tag ? (flag.label ?? labelFor(flag.tag)) : undefined}
           />
         ))}
       </ul>

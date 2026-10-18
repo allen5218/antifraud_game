@@ -369,6 +369,8 @@ class QuizAnswerRequest(QuizAnswerItem):
 
 class QuizRedFlag(BaseModel):
     tag: str | None
+    # 話術的中文名；答對答錯都要有（tag_details 只放這次要加強的，答對時是空的）
+    label: str | None = None
     text: str
 
 

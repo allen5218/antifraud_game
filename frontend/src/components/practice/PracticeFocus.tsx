@@ -1,5 +1,6 @@
 import { Link } from "@tanstack/react-router"
 import { ClipboardList, Target } from "lucide-react"
+import { useState } from "react"
 import type { PracticeProfilePublic } from "@/client"
 import { ExamGate } from "@/components/exam/ExamGate"
 import { usePracticeProfile } from "@/hooks/usePractice"
@@ -138,10 +139,18 @@ function WeightBars({ profile }: { profile: PracticeProfilePublic }) {
   )
 }
 
-/** 訊息判讀、滑卡、收件匣頂端的小標:這一輪偏重哪一類。沒有重點時不顯示。 */
+/**
+ * 訊息判讀、滑卡、收件匣頂端的小標:這一輪偏重哪一類。沒有重點時不顯示。
+ * 第一次讀到的重點就固定到這一輪結束:背景重算完讀回來的新結果不會讓小標中途消失或換字,
+ * 不然題目會整個往上跳,玩家點到別的選項。
+ */
 export function PracticeFocusBadge({ className = "" }: { className?: string }) {
   const { data } = usePracticeProfile()
-  if (!data?.focus_label) return null
+  const [roundLabel, setRoundLabel] = useState<string | null>(null)
+  const latest = data?.focus_label ?? null
+  if (roundLabel === null && latest !== null) setRoundLabel(latest)
+  const label = roundLabel ?? latest
+  if (!label) return null
   return (
     <p
       data-testid="practice-focus-badge"
@@ -149,7 +158,7 @@ export function PracticeFocusBadge({ className = "" }: { className?: string }) {
     >
       <Target aria-hidden className="size-3.5 shrink-0 text-warning" />
       <span>
-        本輪加強：<b>{data.focus_label}</b>
+        本輪加強：<b>{label}</b>
       </span>
     </p>
   )

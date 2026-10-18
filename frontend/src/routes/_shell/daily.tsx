@@ -83,7 +83,7 @@ function DailyDone({ today }: { today: DailyTodayResponse }) {
         看排行榜
       </Link>
       <Link to="/" className="text-xs text-muted-foreground underline">
-        回首頁
+        回房間
       </Link>
     </div>
   )
