@@ -1,25 +1,22 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
 import { useState } from "react"
-import { EconomyService } from "@/client/sdk.gen"
 import { PropertyCard } from "@/components/assets/PropertyCard"
+import { Skeleton } from "@/components/ui/skeleton"
 import {
   extractErrorCode,
+  propertiesQuery,
   useBuyProperty,
   useEconomyMe,
 } from "@/hooks/useEconomy"
 import { HOME_SUMMARY_KEY } from "@/hooks/useHomeSummary"
 import { MascotCard } from "./MascotCard"
-import { mascotApi } from "./mascotApi"
+import { mascotApi, mascotItemsQuery } from "./mascotApi"
 
 export function ShopPage() {
   const [tab, setTab] = useState<"mascot" | "property">("mascot")
   const [shortId, setShortId] = useState<string | null>(null)
   const queryClient = useQueryClient()
-  const list = useQuery({
-    queryKey: ["mascot", "items"],
-    queryFn: () => mascotApi.list(),
-    retry: false,
-  })
+  const list = useQuery(mascotItemsQuery)
   const purchase = useMutation({
     mutationFn: (id: string) => mascotApi.purchase(id),
     onSuccess: () => {
@@ -41,11 +38,7 @@ export function ShopPage() {
   })
   const { data: me } = useEconomyMe()
   // 跟 useBuyProperty 同一把 query key，買完會一起刷新。
-  const { data: properties } = useQuery({
-    queryKey: ["economy", "properties"],
-    queryFn: () => EconomyService.listProperties(),
-    staleTime: 30_000,
-  })
+  const { data: properties } = useQuery(propertiesQuery)
   const { mutate: buyProperty } = useBuyProperty()
   const cash = me?.cash ?? 0
   const level = me?.level ?? 1
@@ -91,6 +84,10 @@ export function ShopPage() {
 
       {tab === "mascot" ? (
         <div className="grid grid-cols-2 gap-3">
+          {list.isPending &&
+            [0, 1, 2, 3].map((n) => (
+              <Skeleton key={n} className="aspect-[3/4] w-full rounded-xl" />
+            ))}
           {(list.data?.items ?? []).map((item) => (
             <MascotCard
               key={item.id}
@@ -105,6 +102,10 @@ export function ShopPage() {
       ) : (
         // 房產卡是橫的（圖、價格與日收入、按鈕），兩欄會把價格擠成好幾行，所以一欄
         <div className="grid grid-cols-1 gap-3">
+          {!properties &&
+            [0, 1, 2].map((n) => (
+              <Skeleton key={n} className="h-20 w-full rounded-xl" />
+            ))}
           {(properties?.tiers ?? []).map((tier) => {
             const count = ownedCount.get(tier.id)
             return (

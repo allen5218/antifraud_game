@@ -1,4 +1,5 @@
 import type { PropertyTierPublic } from "@/client"
+import { Skeleton } from "@/components/ui/skeleton"
 import { useBuyProperty, useEconomyMe, useProperties } from "@/hooks/useEconomy"
 import { PropertyCard } from "./PropertyCard"
 
@@ -43,6 +44,10 @@ export function OwnedAndAvailableList() {
         可購買
       </div>
       <div className="flex flex-col gap-2">
+        {!propData &&
+          [0, 1, 2].map((n) => (
+            <Skeleton key={n} className="h-20 w-full rounded-xl" />
+          ))}
         {tiers.map((tier) => (
           <PropertyCard
             key={tier.id}

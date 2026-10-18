@@ -1,6 +1,13 @@
-import { describe, expect, it } from "bun:test"
+import { describe, expect, it, test } from "bun:test"
 import type { HomeSummary } from "@/hooks/useHomeSummary"
-import { mascotLine, menuItems, pickBubbles, roomImage } from "./logic"
+import {
+  mascotLine,
+  mascotPose,
+  menuItems,
+  pickBubbles,
+  poseImage,
+  roomImage,
+} from "./logic"
 
 function summary(overrides: Partial<HomeSummary> = {}): HomeSummary {
   return {
@@ -246,5 +253,48 @@ describe("menuItems 檢測中", () => {
     const exam = items.find((entry) => entry.id === "bookshelf")
     expect(exam?.status).toBe("還沒做完")
     expect(exam?.done).toBe(false)
+  })
+})
+
+describe("mascotPose", () => {
+  test("平常招手，說話時指著", () => {
+    expect(mascotPose(summary(), false)).toBe("base")
+    expect(mascotPose(summary(), true)).toBe("point")
+  })
+
+  test("還沒做前測指著開始", () => {
+    expect(mascotPose(summary({ pretest_done: false }), false)).toBe("point")
+  })
+
+  test("檢測中、補考還沒練夠在想", () => {
+    expect(mascotPose(summary({ exam_active_attempt_id: "a1" }), true)).toBe(
+      "think",
+    )
+    expect(
+      mascotPose(summary({ retake: retake([0, 6], [0, 5], [0, 1]) }), false),
+    ).toBe("think")
+  })
+
+  test("補考練夠、今天的每日訓練做完歡呼", () => {
+    expect(
+      mascotPose(
+        summary({ retake: retake([6, 6], [5, 5], [1, 1], undefined, true) }),
+        false,
+      ),
+    ).toBe("cheer")
+    expect(
+      mascotPose(summary({ daily_unlocked: true, daily_done: true }), false),
+    ).toBe("cheer")
+  })
+})
+
+describe("poseImage", () => {
+  test("把招手圖換成同一隻的其他姿勢", () => {
+    expect(poseImage("/assets/mascot/fox/base.webp", "cheer")).toBe(
+      "/assets/mascot/fox/cheer.webp",
+    )
+    expect(poseImage("/assets/mascot/red_panda/base.webp", "base")).toBe(
+      "/assets/mascot/red_panda/base.webp",
+    )
   })
 })

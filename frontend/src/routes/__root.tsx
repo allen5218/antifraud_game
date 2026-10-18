@@ -1,10 +1,17 @@
+import type { QueryClient } from "@tanstack/react-query"
 import { ReactQueryDevtools } from "@tanstack/react-query-devtools"
-import { createRootRoute, HeadContent, Outlet } from "@tanstack/react-router"
+import {
+  createRootRouteWithContext,
+  HeadContent,
+  Outlet,
+} from "@tanstack/react-router"
 import { TanStackRouterDevtools } from "@tanstack/react-router-devtools"
 import ErrorComponent from "@/components/Common/ErrorComponent"
 import NotFound from "@/components/Common/NotFound"
 
-export const Route = createRootRoute({
+export type RouterContext = { queryClient: QueryClient }
+
+export const Route = createRootRouteWithContext<RouterContext>()({
   component: () => {
     const showDevtools = import.meta.env.DEV && !navigator.webdriver
 

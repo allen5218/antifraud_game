@@ -1,7 +1,23 @@
+import { Skeleton } from "@/components/ui/skeleton"
 import { useAssets } from "@/hooks/useEconomy"
 
 export function AssetSummaryCard() {
   const { data } = useAssets()
+  // 還沒讀到時不要先顯示「$ 0」，看起來像錢不見了
+  if (!data) {
+    return (
+      <div
+        data-testid="asset-summary-loading"
+        className="mb-3 flex flex-col gap-2 rounded-2xl border bg-surface-3 p-3"
+      >
+        <Skeleton className="h-3 w-12" />
+        <Skeleton className="h-7 w-32" />
+        <Skeleton className="h-3 w-full" />
+        <Skeleton className="h-3 w-full" />
+        <Skeleton className="h-3 w-full" />
+      </div>
+    )
+  }
   const cash = data?.cash ?? 0
   const propertyValue = data?.property_value ?? 0
   const dailyIncome = data?.daily_income ?? 0

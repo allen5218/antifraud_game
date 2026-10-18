@@ -1,5 +1,6 @@
 import {
   type QueryClient,
+  queryOptions,
   useMutation,
   useQuery,
   useQueryClient,
@@ -27,35 +28,42 @@ export function refreshAfterPropertyChange(queryClient: QueryClient) {
 }
 
 // ── 查詢 ──────────────────────────────────────────────────────────────────────
+// 查詢設定另外匯出，路由的 loader 預先載入時用同一把 key，進頁面就直接有資料。
 
 /** 當前使用者的經濟狀態（現金、等級、連勝天數、待領收益、破產旗標） */
-export function useEconomyMe() {
-  return useQuery({
-    queryKey: ["economy", "me"],
-    queryFn: EconomyService.readMe,
-    staleTime: 30_000,
-    refetchOnWindowFocus: true,
-  })
-}
+export const economyMeQuery = queryOptions({
+  queryKey: ["economy", "me"],
+  queryFn: () => EconomyService.readMe(),
+  staleTime: 30_000,
+  refetchOnWindowFocus: true,
+})
 
 /** 所有房產等級清單 + 已擁有清單 */
-export function useProperties() {
-  return useQuery({
-    queryKey: ["economy", "properties"],
-    queryFn: EconomyService.listProperties,
-    staleTime: 30_000,
-    refetchOnWindowFocus: true,
-  })
-}
+export const propertiesQuery = queryOptions({
+  queryKey: ["economy", "properties"],
+  queryFn: () => EconomyService.listProperties(),
+  staleTime: 30_000,
+  refetchOnWindowFocus: true,
+})
 
 /** 資產摘要（現金、房產總值、每日收益、總身家、持有數） */
+export const assetsQuery = queryOptions({
+  queryKey: ["economy", "assets"],
+  queryFn: () => EconomyService.getAssets(),
+  staleTime: 30_000,
+  refetchOnWindowFocus: true,
+})
+
+export function useEconomyMe() {
+  return useQuery(economyMeQuery)
+}
+
+export function useProperties() {
+  return useQuery(propertiesQuery)
+}
+
 export function useAssets() {
-  return useQuery({
-    queryKey: ["economy", "assets"],
-    queryFn: EconomyService.getAssets,
-    staleTime: 30_000,
-    refetchOnWindowFocus: true,
-  })
+  return useQuery(assetsQuery)
 }
 
 // ── 變更 ──────────────────────────────────────────────────────────────────────
