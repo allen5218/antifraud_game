@@ -1,55 +1,25 @@
 import { Link, useRouter } from "@tanstack/react-router"
-import {
-  Award,
-  CalendarDays,
-  Coins,
-  House,
-  Mail,
-  Menu,
-  MessageCircle,
-  ShoppingBag,
-  Tv,
-  UserRound,
-} from "lucide-react"
-import { type CSSProperties, useEffect, useState } from "react"
+import { Coins, House, Menu, ShoppingBag, UserRound } from "lucide-react"
+import { useEffect, useState } from "react"
 import { useClaimAccrual, useEconomyMe } from "@/hooks/useEconomy"
 import { useHomeSummary } from "@/hooks/useHomeSummary"
-import { BADGE_SLOTS, HOTSPOTS } from "./hotspots"
 import {
-  type HotspotId,
   mascotLine,
   mascotPose,
   menuItems,
+  pausedHotspots,
   pickBubbles,
   poseImage,
-  roomImage,
+  recommended,
+  roomBadges,
 } from "./logic"
 import { MascotGuide } from "./MascotGuide"
 import { RoomMenu } from "./RoomMenu"
+import { RoomStage } from "./RoomStage"
 
 const GUIDE_SEEN_KEY = "room-guide-seen"
 const LAST_ROOM_KEY = "room-last-look"
 const DEFAULT_MASCOT = "/assets/mascot/shiba/base.webp"
-
-// 房間圖（stage-0～6）的實際像素尺寸；七張一樣大
-const ROOM_WIDTH = 941
-const ROOM_HEIGHT = 1672
-const ROOM_ASPECT = `${ROOM_WIDTH} / ${ROOM_HEIGHT}`
-
-const HOTSPOT_LINKS = {
-  phone: { to: "/scenarios", label: "情境對抗", icon: MessageCircle },
-  tv: { to: "/quick/swipe", label: "滑卡訓練", icon: Tv },
-  letters: { to: "/quick/quiz", label: "訊息判讀", icon: Mail },
-  calendar: { to: "/daily", label: "每日訓練", icon: CalendarDays },
-  bookshelf: { to: "/exam", label: "檢測", icon: Award },
-} as const satisfies Record<
-  HotspotId,
-  {
-    to: "/scenarios" | "/quick/swipe" | "/quick/quiz" | "/daily" | "/exam"
-    label: string
-    icon: typeof Tv
-  }
->
 
 // 房間裡每個入口的頁面：房間資料讀到後先載入它們的程式與資料，點下去就能直接換頁
 const PRELOAD_ROUTES = [
@@ -119,37 +89,6 @@ function rememberLook(look: RoomLook): void {
   }
 }
 
-function SceneImage({
-  src,
-  className,
-  style,
-  onSettled,
-}: {
-  src: string
-  className?: string
-  style?: CSSProperties
-  /** 圖載入完成或失敗時呼叫 */
-  onSettled?: () => void
-}) {
-  const [failed, setFailed] = useState(false)
-  if (failed) {
-    return <div className={`bg-surface-2 ${className ?? ""}`} style={style} />
-  }
-  return (
-    <img
-      src={src}
-      alt=""
-      className={className}
-      style={style}
-      onLoad={onSettled}
-      onError={() => {
-        setFailed(true)
-        onSettled?.()
-      }}
-    />
-  )
-}
-
 export function RoomScene() {
   const router = useRouter()
   const summary = useHomeSummary()
@@ -194,7 +133,6 @@ export function RoomScene() {
   useEffect(() => {
     if (stage != null && mascotSrc) rememberLook({ stage, mascot: mascotSrc })
   }, [stage, mascotSrc])
-  const room = roomImage(stage ?? lastLook?.stage ?? 0)
   const pose = data ? mascotPose(data, guideOpen) : "base"
   const mascotShown = poseImage(
     mascotSrc ?? lastLook?.mascot ?? DEFAULT_MASCOT,
@@ -205,115 +143,45 @@ export function RoomScene() {
     // overflow-clip 而不是 overflow-hidden：hidden 仍可被程式捲動，點吉祥物時焦點會把整個房間捲歪
     <section
       data-testid="home-hero"
-      className="relative mx-auto flex h-full w-full max-w-md items-end justify-center overflow-clip bg-surface-2"
-      style={{ containerType: "size" }}
+      className="relative h-full w-full overflow-clip bg-surface-2"
     >
-      {/* 螢幕比房間圖細長時，上方空出來的地方鋪同一張圖的模糊版，不讓房間被裁切 */}
-      <SceneImage
-        src={room}
-        className="absolute inset-0 size-full scale-110 object-cover blur-md"
+      <RoomStage
+        stage={stage ?? lastLook?.stage ?? 0}
+        mascotSrc={mascotShown}
+        badges={data ? roomBadges(data) : {}}
+        paused={data ? pausedHotspots(data) : []}
+        strong={data ? recommended(data) : null}
+        examBadges={data?.badges ?? []}
+        onMascot={() => setGuideOpen(true)}
+        onRoomShown={() => setRoomShown(true)}
       />
-      {/* 圖框照房間圖的實際比例，熱區的百分比座標才會對準物件 */}
-      <div
-        data-testid="room-frame"
-        className="relative"
-        style={{
-          aspectRatio: ROOM_ASPECT,
-          width: `min(100cqw, calc(100cqh * ${ROOM_WIDTH} / ${ROOM_HEIGHT}))`,
-        }}
-      >
-        <SceneImage
-          src={room}
-          className="absolute inset-0 size-full"
-          onSettled={() => setRoomShown(true)}
-        />
-        {(data?.badges ?? [])
-          .slice(0, BADGE_SLOTS.length)
-          .map((code, index) => {
-            const slot = BADGE_SLOTS[index]
-            if (!slot) return null
-            return (
-              <SceneImage
-                key={code}
-                src={`/assets/badge/${code}.webp`}
-                className="absolute z-10 size-8 -translate-x-1/2 -translate-y-1/2 object-contain"
-                style={{ left: `${slot.x}%`, top: `${slot.y}%` }}
-              />
-            )
-          })}
-        {(Object.keys(HOTSPOT_LINKS) as HotspotId[]).map((id) => {
-          const spec = HOTSPOT_LINKS[id]
-          const spot = HOTSPOTS[id]
-          const bubble = bubbles.find((item) => item.id === id)
-          const Icon = spec.icon
-          return (
-            <Link
-              key={id}
-              to={spec.to}
-              data-testid={`hotspot-${id}`}
-              aria-label={spec.label}
-              style={{ left: `${spot.x}%`, top: `${spot.y}%` }}
-              className="group absolute z-10 flex size-16 -translate-x-1/2 -translate-y-1/2 items-center justify-center"
-            >
-              {bubble && (
-                <span
-                  data-testid={`bubble-${id}`}
-                  className={`pointer-events-none absolute bottom-full mb-1 flex size-10 items-center justify-center rounded-full bg-card text-foreground shadow transition-transform group-active:scale-90 ${
-                    bubble.highlight ? "ring-2 ring-warning" : ""
-                  }`}
-                >
-                  <Icon aria-hidden className="size-5" />
-                  {bubble.count != null && bubble.count > 0 && (
-                    <span className="absolute -top-1 -right-1 flex min-w-4 items-center justify-center rounded-full bg-scam px-1 text-[10px] font-bold text-scam-foreground">
-                      {bubble.count}
-                    </span>
-                  )}
-                </span>
-              )}
-            </Link>
-          )
-        })}
-        <button
-          type="button"
-          data-testid="hotspot-mascot"
-          aria-label="吉祥物"
-          style={{
-            left: `${HOTSPOTS.mascot.x}%`,
-            top: `${HOTSPOTS.mascot.y}%`,
-          }}
-          onClick={() => setGuideOpen(true)}
-          className="absolute z-10 size-20 -translate-x-1/2 -translate-y-1/2"
+      {/* 購物與房子貼著畫面左下，避開手機的 Home 橫條 */}
+      <div className="absolute bottom-[calc(env(safe-area-inset-bottom)+1rem)] left-3 z-20 flex gap-2">
+        <Link
+          to="/shop"
+          data-testid="room-shop"
+          className={`flex items-center gap-1 rounded-xl bg-card px-3 py-2 text-xs font-bold text-card-foreground shadow ${PRESS}`}
         >
-          <SceneImage src={mascotShown} className="size-full object-contain" />
-        </button>
-        {/* 放左下：右下是放手機的小桌，手機泡泡在那裡 */}
-        <div className="absolute bottom-4 left-3 z-20 flex gap-2">
-          <Link
-            to="/shop"
-            data-testid="room-shop"
-            className={`flex items-center gap-1 rounded-xl bg-card px-3 py-2 text-xs font-bold text-card-foreground shadow ${PRESS}`}
-          >
-            <ShoppingBag aria-hidden className="size-3.5" />
-            購物
-          </Link>
-          <Link
-            to="/assets"
-            data-testid="room-house"
-            className={`flex items-center gap-1 rounded-xl bg-card px-3 py-2 text-xs font-bold text-card-foreground shadow ${PRESS}`}
-          >
-            <House aria-hidden className="size-3.5" />
-            房子
-          </Link>
-        </div>
+          <ShoppingBag aria-hidden className="size-3.5" />
+          購物
+        </Link>
+        <Link
+          to="/assets"
+          data-testid="room-house"
+          className={`flex items-center gap-1 rounded-xl bg-card px-3 py-2 text-xs font-bold text-card-foreground shadow ${PRESS}`}
+        >
+          <House aria-hidden className="size-3.5" />
+          房子
+        </Link>
       </div>
       <Link
         to="/me"
         data-testid="room-me"
-        className={`absolute top-3 left-3 z-20 flex items-center gap-1 rounded-full bg-card px-2.5 py-1.5 text-xs font-bold text-card-foreground shadow ${PRESS}`}
+        className={`absolute top-[calc(env(safe-area-inset-top)+0.75rem)] left-3 z-20 flex items-center gap-1 rounded-full bg-card px-2.5 py-1.5 text-xs font-bold text-card-foreground shadow ${PRESS}`}
       >
         <UserRound aria-hidden className="size-3.5" />我
       </Link>
-      <div className="absolute top-3 right-3 z-20 flex items-center gap-1">
+      <div className="absolute top-[calc(env(safe-area-inset-top)+0.75rem)] right-3 z-20 flex items-center gap-1">
         <Link
           to="/assets"
           data-testid="hdr-cash"
@@ -339,7 +207,7 @@ export function RoomScene() {
         type="button"
         data-testid="room-menu"
         onClick={() => setMenuOpen((open) => !open)}
-        className={`absolute top-14 right-3 z-50 flex items-center gap-1 rounded-full bg-card px-2.5 py-1.5 text-xs font-bold text-card-foreground shadow ${PRESS}`}
+        className={`absolute top-[calc(env(safe-area-inset-top)+3.5rem)] right-3 z-50 flex items-center gap-1 rounded-full bg-card px-2.5 py-1.5 text-xs font-bold text-card-foreground shadow ${PRESS}`}
       >
         <Menu aria-hidden className="size-3.5" />
         選單

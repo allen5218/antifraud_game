@@ -51,12 +51,6 @@ export function poseImage(baseUrl: string, pose: MascotPose): string {
   return baseUrl.replace(/\/base\.webp$/, `/${pose}.webp`)
 }
 
-export function roomImage(stage: number): string {
-  const rounded = Number.isFinite(stage) ? Math.trunc(stage) : 0
-  const clamped = Math.min(6, Math.max(0, rounded))
-  return `/assets/room/stage-${clamped}.webp`
-}
-
 function remain(done: number, need: number): number {
   return Math.max(0, need - done)
 }
@@ -75,7 +69,7 @@ function retakeGaps(s: HomeSummary): { id: HotspotId; count: number }[] {
 }
 
 /** 泡泡第一步：吉祥物要玩家先去的物件。沒做前測時對話框不指物件，泡泡仍先亮電視。 */
-function recommended(s: HomeSummary): HotspotId | null {
+export function recommended(s: HomeSummary): HotspotId | null {
   if (s.exam_active_attempt_id) return "bookshelf"
   if (s.retake && !s.retake.gate.met) return retakeGaps(s)[0]?.id ?? null
   if (s.retake?.gate.met) return "bookshelf"
@@ -113,6 +107,31 @@ export function pickBubbles(s: HomeSummary): Bubble[] {
   if (s.daily_unlocked && !s.daily_done) add("calendar", {})
   if (s.exam_can_start) add("bookshelf", {})
   return bubbles
+}
+
+/** 物件上的紅色標記：有確切數量就顯示數字（像手機 App 的未讀數），只是「有新的」就顯示圓點。 */
+export type RoomBadge = { count: number } | { dot: true }
+
+export function roomBadges(
+  s: HomeSummary,
+): Partial<Record<HotspotId, RoomBadge>> {
+  const badges: Partial<Record<HotspotId, RoomBadge>> = {}
+  if (s.exam_active_attempt_id) {
+    badges.bookshelf = { dot: true }
+    return badges
+  }
+  for (const gap of retakeGaps(s)) badges[gap.id] = { count: gap.count }
+  if (s.inbox_pending > 0 && !badges.phone) {
+    badges.phone = { count: s.inbox_pending }
+  }
+  if (s.daily_unlocked && !s.daily_done) badges.calendar = { dot: true }
+  if (s.exam_can_start) badges.bookshelf = { dot: true }
+  return badges
+}
+
+/** 檢測中三種訓練與每日訓練暫停，這些物件不再閃爍招呼玩家 */
+export function pausedHotspots(s: HomeSummary): HotspotId[] {
+  return s.exam_active_attempt_id ? ["phone", "tv", "letters", "calendar"] : []
 }
 
 export function mascotLine(s: HomeSummary): MascotLine {
