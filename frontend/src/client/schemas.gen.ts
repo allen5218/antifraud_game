@@ -2250,6 +2250,17 @@ export const QuizRedFlagSchema = {
             ],
             title: 'Tag'
         },
+        label: {
+            anyOf: [
+                {
+                    type: 'string'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Label'
+        },
         text: {
             type: 'string',
             title: 'Text'

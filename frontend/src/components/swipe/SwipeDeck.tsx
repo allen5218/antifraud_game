@@ -41,7 +41,10 @@ export function SwipeDeck() {
 
   const cards = deck.data?.cards ?? []
   const sessionId = deck.data?.session_id
-  const done = !deck.isLoading && (idx >= cards.length || alertness <= 0)
+  // 警覺值用完時先讓玩家看完最後一張的解說，按「看結算」（feedback 清掉）才結算
+  const done =
+    !deck.isLoading &&
+    (idx >= cards.length || (alertness <= 0 && feedback === null))
 
   // 每一輪只自動結算一次。用 ref 記住已送出的輪次:開發模式的 StrictMode 會把
   // effect 跑兩次,而且結算失敗後 isPending 變回 false,不擋的話會一直重送、重複發獎。
@@ -206,7 +209,7 @@ export function SwipeDeck() {
             onClick={next}
             className="w-full rounded-xl bg-primary py-3 font-bold text-primary-foreground"
           >
-            下一張
+            {alertness <= 0 || idx + 1 >= cards.length ? "看結算" : "下一張"}
           </button>
         </>
       ) : expired ? (

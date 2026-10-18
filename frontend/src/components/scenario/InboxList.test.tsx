@@ -43,6 +43,21 @@ describe("<InboxList />", () => {
     expect(screen.queryByText("🧗")).toBeNull()
   })
 
+  // 2026-10-18 正式環境：螢幕閱讀器只念「按鈕」，聽不出是哪一位聯絡人
+  it("每一列的按鈕念得出聯絡人、類型、狀態與最新訊息", () => {
+    render(<InboxList items={items} onOpen={() => {}} />)
+    expect(
+      screen.getByRole("button", {
+        name: "Kevin，投資詐騙，未讀，先跟兩天看看績效再說!",
+      }),
+    ).toBeTruthy()
+    expect(
+      screen.getByRole("button", {
+        name: "Sunny，假交友，識破成功，你週末有空嗎?",
+      }),
+    ).toBeTruthy()
+  })
+
   it("shows outcome badge for completed scenario", () => {
     render(<InboxList items={items} onOpen={() => {}} />)
     expect(screen.getByText("識破成功")).toBeTruthy()

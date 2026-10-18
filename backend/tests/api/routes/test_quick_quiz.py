@@ -17,6 +17,7 @@ from app.core.cases import (
 )
 from app.core.config import settings
 from app.core.quiz import case_tags
+from app.core.weakness import WEAKNESS_LABELS
 from app.models import PretestAttempt, QuizSession, User
 
 EXPECTED_WEAKNESS_DETAILS = {
@@ -382,6 +383,38 @@ def test_answer_verdict_keeps_existing_reveal(
     assert data["red_flags"]
     assert data["provenance"]
     assert data["tag_details"] == []
+
+
+def test_answer_correct_scam_verdict_labels_every_red_flag(
+    client: TestClient,
+    db: Session,
+    normal_user_token_headers: dict[str, str],
+) -> None:
+    # 答對時 tag_details 是空的（不用加強），可疑之處仍要標出是哪一種話術，
+    # 不然前端每條都只能寫「其他話術」（2026-10-18 正式環境實測發現）
+    session_id, items = _deal(client, normal_user_token_headers, size=10)
+    verdict = next(
+        item
+        for item in items
+        if item["type"] == "verdict"
+        and _stored_item(db, session_id, item["item_id"])["is_scam"]
+    )
+
+    response = _submit_answer(
+        client,
+        normal_user_token_headers,
+        session_id,
+        {"item_id": verdict["item_id"], "guess_is_scam": True},
+    )
+
+    assert response.status_code == 200
+    data = response.json()
+    assert data["correct"] is True
+    assert data["tag_details"] == []
+    tagged = [flag for flag in data["red_flags"] if flag["tag"]]
+    assert tagged
+    for flag in tagged:
+        assert flag["label"] == WEAKNESS_LABELS[flag["tag"]]
 
 
 def test_answer_wrong_scam_verdict_reveals_weakness_suggestions(

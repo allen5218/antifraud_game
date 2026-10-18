@@ -786,7 +786,11 @@ def _quiz_answer_response(
             correct=correct,
             is_scam=case.is_scam,
             red_flags=[
-                QuizRedFlag(tag=flag.get("tag"), text=str(flag.get("text", "")))
+                QuizRedFlag(
+                    tag=flag.get("tag"),
+                    label=WEAKNESS_LABELS.get(flag.get("tag") or ""),
+                    text=str(flag.get("text", "")),
+                )
                 for flag in case.red_flags
             ],
             provenance=case.provenance,

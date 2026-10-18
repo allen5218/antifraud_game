@@ -524,6 +524,7 @@ export type QuizMatchTarget = {
 
 export type QuizRedFlag = {
     tag: (string | null);
+    label?: (string | null);
     text: string;
 };
 

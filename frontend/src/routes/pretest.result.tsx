@@ -101,14 +101,15 @@ function PretestResultPage() {
         className="my-8 w-full rounded-xl border bg-card p-4 shadow-sm"
       >
         <ResponsiveContainer width="100%" height={320}>
-          <RadarChart data={radarData} cx="50%" cy="50%" outerRadius="75%">
+          {/* 手機寬度下左右兩個類型名要放得下：半徑縮小；刻度放在「假網拍」與「購物詐騙」之間，不和最上面的類型名疊在一起 */}
+          <RadarChart data={radarData} cx="50%" cy="50%" outerRadius="62%">
             <PolarGrid stroke="var(--border)" />
             <PolarAngleAxis
               dataKey="type"
               tick={{ fontSize: 12, fill: "var(--foreground)" }}
             />
             <PolarRadiusAxis
-              angle={90}
+              angle={54}
               domain={[0, 100]}
               tick={{ fontSize: 10, fill: "var(--muted-foreground)" }}
             />

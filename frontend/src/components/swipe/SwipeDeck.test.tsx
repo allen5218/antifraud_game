@@ -32,22 +32,23 @@ const ok = {
   tag_details: [],
 }
 
+const card = (id: string, scenario: string) => ({
+  id,
+  scenario,
+  source_label: "簡訊",
+  fraud_type: "shopping",
+  difficulty: 1,
+})
+const ONE_CARD = [card("c1", "有人傳訊息說包裹卡在海關")]
+let deckCards = ONE_CARD
+let answerResult: typeof ok = ok
+let completeCalls = 0
+
 // mock.module 必須在 import 元件之前呼叫
 mock.module("@/hooks/useSwipe", () => ({
   useSwipeDeck: () => ({
     isLoading: false,
-    data: {
-      session_id: "s1",
-      cards: [
-        {
-          id: "c1",
-          scenario: "有人傳訊息說包裹卡在海關",
-          source_label: "簡訊",
-          fraud_type: "shopping",
-          difficulty: 1,
-        },
-      ],
-    },
+    data: { session_id: "s1", cards: deckCards },
   }),
   useSwipeAnswer: () => ({
     isPending: false,
@@ -70,13 +71,15 @@ mock.module("@/hooks/useSwipe", () => ({
         failNext = false
         opts.onError(new Error("network"))
       } else {
-        opts.onSuccess(ok)
+        opts.onSuccess(answerResult)
       }
       opts.onSettled()
     },
   }),
   useSwipeComplete: () => ({
-    mutate: () => {},
+    mutate: () => {
+      completeCalls += 1
+    },
     reset: () => {},
     isPending: false,
     isError: false,
@@ -93,6 +96,9 @@ afterEach(() => {
   hold = false
   examLock = false
   pending = null
+  deckCards = ONE_CARD
+  answerResult = ok
+  completeCalls = 0
 })
 
 const renderDeck = () =>
@@ -107,6 +113,28 @@ const renderDeck = () =>
   )
 
 describe("<SwipeDeck />", () => {
+  // 2026-10-18 正式環境：第三次答錯就直接結算，最後那張的解說沒顯示
+  it("警覺值用完時先給看最後一張的解說，按了才結算", () => {
+    failNext = false
+    deckCards = [
+      card("c1", "第一則"),
+      card("c2", "第二則"),
+      card("c3", "第三則"),
+    ]
+    answerResult = { ...ok, correct: false, explanation: "這張是正常的通知" }
+    renderDeck()
+    for (let i = 0; i < 2; i++) {
+      fireEvent.click(screen.getByRole("button", { name: /詐騙/ }))
+      fireEvent.click(screen.getByRole("button", { name: "下一張" }))
+    }
+    fireEvent.click(screen.getByRole("button", { name: /詐騙/ }))
+
+    expect(screen.getByText("這張是正常的通知")).toBeTruthy()
+    expect(completeCalls).toBe(0)
+    fireEvent.click(screen.getByRole("button", { name: "看結算" }))
+    expect(completeCalls).toBe(1)
+  })
+
   it("resends the original answer after a lost response", () => {
     renderDeck()
     fireEvent.click(screen.getByRole("button", { name: /詐騙/ }))
@@ -116,7 +144,8 @@ describe("<SwipeDeck />", () => {
 
     fireEvent.click(screen.getByRole("button", { name: "再送一次" }))
     expect(sent).toEqual([true, true])
-    expect(screen.getByRole("button", { name: "下一張" })).toBeTruthy()
+    // 只有一張卡，答完就是最後一張
+    expect(screen.getByRole("button", { name: "看結算" })).toBeTruthy()
   })
 
   it("ignores a second, different answer while the first is still sending", () => {

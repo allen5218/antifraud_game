@@ -54,6 +54,32 @@ describe("<QuizReveal />", () => {
     expect(screen.queryByText("greed")).toBeNull()
   })
 
+  // 2026-10-18 正式環境：答對詐騙題時沒有要加強的話術（tag_details 是空的），每條可疑之處都變成「其他話術」
+  it("答對時每條可疑之處仍標出話術名稱", () => {
+    render(
+      <QuizReveal
+        item={verdictItem}
+        result={{
+          ...result,
+          red_flags: [
+            { tag: "greed", label: "用好處引誘你", text: "保證獲利穩賺不賠" },
+            {
+              tag: "time_pressure",
+              label: "催你快點決定",
+              text: "名額只到今晚",
+            },
+          ],
+          tag_details: [],
+        }}
+        onNext={() => {}}
+        isLast={false}
+      />,
+    )
+    expect(screen.getByText("用好處引誘你")).toBeTruthy()
+    expect(screen.getByText("催你快點決定")).toBeTruthy()
+    expect(screen.queryByText("其他話術")).toBeNull()
+  })
+
   it("shows wrong verdict for incorrect", () => {
     render(
       <QuizReveal
