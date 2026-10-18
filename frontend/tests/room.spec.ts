@@ -17,10 +17,9 @@ test.describe("房間首頁", () => {
     await createUser({ email, password })
     await logInUser(page, email, password)
 
-    const frame = page.getByTestId("room-frame")
-    await expect(frame.locator("img").first()).toHaveAttribute(
+    await expect(page.getByTestId("room-bg")).toHaveAttribute(
       "src",
-      /stage-0\.webp$/,
+      "/assets/room/0/bg.webp",
     )
     await expect(page.getByRole("link", { name: "開始" })).toHaveAttribute(
       "href",
@@ -61,9 +60,10 @@ test.describe("房間首頁", () => {
     await expect(room.getByText("已有")).toBeVisible()
 
     await page.getByRole("link", { name: "回房間" }).click()
-    await expect(
-      page.getByTestId("room-frame").locator("img").first(),
-    ).toHaveAttribute("src", /stage-1\.webp$/)
+    await expect(page.getByTestId("room-bg")).toHaveAttribute(
+      "src",
+      "/assets/room/1/bg.webp",
+    )
     await expect(page.getByTestId("hdr-cash")).toHaveText("0")
   })
 })

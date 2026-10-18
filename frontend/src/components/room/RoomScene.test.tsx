@@ -29,7 +29,6 @@ import { CancelablePromise } from "@/client/core/CancelablePromise"
 import { EconomyService, ExamService } from "@/client/sdk.gen"
 import type { HomeSummary } from "@/hooks/useHomeSummary"
 import { homeApi } from "@/hooks/useHomeSummary"
-import { BADGE_SLOTS, HOTSPOTS } from "./hotspots"
 import { RoomScene } from "./RoomScene"
 
 const response = <T,>(value: T) =>
@@ -128,23 +127,16 @@ async function renderScene() {
   })
 }
 
-test("hotspots stay inside the image box", () => {
-  for (const spot of [...Object.values(HOTSPOTS), ...BADGE_SLOTS]) {
-    expect(spot.x).toBeGreaterThanOrEqual(0)
-    expect(spot.x).toBeLessThanOrEqual(100)
-    expect(spot.y).toBeGreaterThanOrEqual(0)
-    expect(spot.y).toBeLessThanOrEqual(100)
-  }
-})
-
-test("home-hero 存在，圖框照房間圖的實際比例", async () => {
+test("房間鋪滿整個區塊，入口都在舞台上", async () => {
   await renderScene()
   const hero = await screen.findByTestId("home-hero")
-  expect(hero.className).toContain("max-w-md")
-  // 圖框比例要和 stage-0～6 的實際像素（941×1672）一樣，熱區百分比才會對準物件
-  const frame = screen.getByTestId("room-frame")
-  expect(frame.style.aspectRatio.replace(/ /g, "")).toBe("941/1672")
-  expect(frame.contains(screen.getByTestId("hotspot-phone"))).toBe(true)
+  // 不再限制成手機寬度：平板也鋪滿，比例由舞台處理
+  expect(hero.className).not.toContain("max-w-md")
+  const stage = screen.getByTestId("room-stage")
+  for (const id of ["phone", "tv", "letters", "calendar", "bookshelf"]) {
+    expect(stage.contains(screen.getByTestId(`hotspot-${id}`))).toBe(true)
+  }
+  expect(stage.contains(screen.getByTestId("hotspot-mascot"))).toBe(true)
 })
 
 test("點手機導到情境對抗", async () => {
@@ -181,7 +173,11 @@ test("新玩家看到開始按鈕", async () => {
   const start = await screen.findByRole("link", { name: "開始" })
   expect(start.getAttribute("href")).toBe("/pretest")
   expect(screen.getByTestId("room-menu").textContent).toContain("5")
-  expect(screen.getByTestId("bubble-tv").className).toContain("ring-warning")
+  // 物件上不放圖示泡泡（使用者 10-18：「泡泡都拿掉」），推薦去的物件呼吸光比較快
+  for (const id of ["tv", "phone", "letters", "calendar", "bookshelf"]) {
+    expect(screen.queryByTestId(`bubble-${id}`)).toBeNull()
+  }
+  expect(screen.getByTestId("glow-tv").getAttribute("data-strong")).toBe("true")
   fireEvent.click(start)
   expect(await screen.findByText("進了前測")).toBeTruthy()
 })
@@ -229,16 +225,12 @@ test("資料還沒回來時先用上次的房間與吉祥物，不閃破舊房�
     () => new CancelablePromise<HomeSummary>(() => {}),
   )
   await renderScene()
-  const frame = screen.getByTestId("room-frame")
-  expect(frame.querySelector("img")?.getAttribute("src")).toBe(
-    "/assets/room/stage-3.webp",
+  expect(screen.getByTestId("room-bg").getAttribute("src")).toBe(
+    "/assets/room/3/bg.webp",
   )
-  expect(
-    screen
-      .getByTestId("hotspot-mascot")
-      .querySelector("img")
-      ?.getAttribute("src"),
-  ).toBe("/assets/mascot/fox/base.webp")
+  expect(screen.getByTestId("layer-mascot").getAttribute("src")).toBe(
+    "/assets/mascot/fox/base.webp",
+  )
 })
 
 test("資料回來後記住這次的房間與吉祥物", async () => {

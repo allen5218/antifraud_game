@@ -4,9 +4,10 @@ import {
   mascotLine,
   mascotPose,
   menuItems,
+  pausedHotspots,
   pickBubbles,
   poseImage,
-  roomImage,
+  roomBadges,
 } from "./logic"
 
 function summary(overrides: Partial<HomeSummary> = {}): HomeSummary {
@@ -46,15 +47,6 @@ function retake(
     },
   }
 }
-
-describe("roomImage", () => {
-  it("夾在 0 到 6", () => {
-    expect(roomImage(-1)).toBe("/assets/room/stage-0.webp")
-    expect(roomImage(0)).toBe("/assets/room/stage-0.webp")
-    expect(roomImage(3)).toBe("/assets/room/stage-3.webp")
-    expect(roomImage(9)).toBe("/assets/room/stage-6.webp")
-  })
-})
 
 describe("pickBubbles", () => {
   it("新玩家先亮電視，再顯示沒收完的手機", () => {
@@ -296,5 +288,27 @@ describe("poseImage", () => {
     expect(poseImage("/assets/mascot/red_panda/base.webp", "base")).toBe(
       "/assets/mascot/red_panda/base.webp",
     )
+  })
+})
+
+describe("roomBadges", () => {
+  test("情境收件匣顯示未讀數，每日訓練沒做顯示圓點", () => {
+    expect(
+      roomBadges(
+        summary({ inbox_pending: 3, daily_unlocked: true, daily_done: false }),
+      ),
+    ).toEqual({ phone: { count: 3 }, calendar: { dot: true } })
+  })
+
+  test("補考期顯示各項還差多少", () => {
+    expect(
+      roomBadges(summary({ retake: retake([1, 6], [5, 5], [0, 1]) })),
+    ).toEqual({ tv: { count: 5 }, phone: { count: 1 } })
+  })
+
+  test("檢測中只標書櫃，訓練物件暫停", () => {
+    const s = summary({ exam_active_attempt_id: "a1", inbox_pending: 2 })
+    expect(roomBadges(s)).toEqual({ bookshelf: { dot: true } })
+    expect(pausedHotspots(s)).toEqual(["phone", "tv", "letters", "calendar"])
   })
 })

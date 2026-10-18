@@ -26,11 +26,15 @@ function Shell() {
     // 桌機左側 NavRail 保留。首頁是房間，不加頂欄與內距；其他頁用「回房間」。
     <div
       className="mx-auto flex h-dvh w-full max-w-md bg-background md:max-w-6xl"
-      // 加到主畫面後內容會畫到瀏海與底部橫條底下，留出安全區
-      style={{
-        paddingTop: "env(safe-area-inset-top)",
-        paddingBottom: "env(safe-area-inset-bottom)",
-      }}
+      // 加到主畫面後內容會畫到瀏海與底部橫條底下；房間自己處理（牆畫到邊、按鈕避開），其他頁留內距
+      style={
+        isHome
+          ? undefined
+          : {
+              paddingTop: "env(safe-area-inset-top)",
+              paddingBottom: "env(safe-area-inset-bottom)",
+            }
+      }
     >
       <NavRail />
       <div className="flex min-w-0 flex-1 flex-col">

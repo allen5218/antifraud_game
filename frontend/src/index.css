@@ -67,6 +67,9 @@
   --legit-foreground: oklch(0.985 0.01 150);
   --warning: oklch(0.48 0.12 72);
   --warning-foreground: oklch(0.985 0.01 90);
+  /* 房間裡可以點的物件外圈的呼吸光：亮黃細線在米色牆與木地板上都看得到，外圈琥珀色柔光 */
+  --room-glow-line: oklch(0.9 0.17 95);
+  --room-glow: oklch(0.72 0.18 60);
   --primary: oklch(0.48 0.12 48);
   --primary-foreground: oklch(0.985 0.008 90);
   --secondary: oklch(0.93 0.02 80);
@@ -122,6 +125,9 @@
   --legit-foreground: oklch(0.2 0.03 155);
   --warning: oklch(0.82 0.12 85);
   --warning-foreground: oklch(0.25 0.04 70);
+  /* 房間插圖在深色主題也是亮的，呼吸光維持同一組顏色 */
+  --room-glow-line: oklch(0.9 0.17 95);
+  --room-glow: oklch(0.72 0.18 60);
   --chart-1: oklch(0.75 0.12 70);
   --chart-2: oklch(0.72 0.11 155);
   --chart-3: oklch(0.7 0.08 50);
@@ -147,5 +153,42 @@
   button,
   [role="button"] {
     cursor: pointer;
+  }
+}
+
+/*
+ * 房間物件的呼吸光：同一張去背圖墊在物件底下、加外光，只讓透明度一亮一暗（瀏覽器可以不重畫就做動畫）。
+ * 舞台整個縮放過，--room-px 是畫面上 1px 在舞台裡的長度，光暈粗細才不會跟著房間縮小。
+ */
+.room-glow {
+  --o: calc(var(--room-px, 1px) * 1.5);
+  /* 貼著物件墨線描一圈亮黃細線，外面再一圈琥珀色柔光；不加白邊，免得像貼紙 */
+  filter: drop-shadow(var(--o) 0 0 var(--room-glow-line))
+    drop-shadow(calc(var(--o) * -1) 0 0 var(--room-glow-line))
+    drop-shadow(0 var(--o) 0 var(--room-glow-line))
+    drop-shadow(0 calc(var(--o) * -1) 0 var(--room-glow-line))
+    drop-shadow(0 0 calc(var(--room-px, 1px) * 7) var(--room-glow));
+  animation: room-breathe 2.4s ease-in-out infinite;
+  will-change: opacity;
+}
+
+.room-glow[data-strong="true"] {
+  animation-duration: 1.6s;
+}
+
+@keyframes room-breathe {
+  0%,
+  100% {
+    opacity: 0.3;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .room-glow {
+    animation: none;
+    opacity: 0.75;
   }
 }
