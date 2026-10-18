@@ -2,7 +2,7 @@ import uuid
 
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
-from sqlmodel import select
+from sqlmodel import col, select
 
 from app.api.deps import CurrentUser, SessionDep
 from app.economy.service import adjust_cash, lock_user
@@ -43,7 +43,9 @@ def list_mascot_items(
 ) -> MascotItemsPublic:
     """列出角色，柴犬預設擁有，展示狀態和首頁共用同一個查詢。"""
     items = session.exec(
-        select(MascotItem).where(MascotItem.category == "mascot")
+        select(MascotItem)
+        .where(MascotItem.category == "mascot")
+        .order_by(col(MascotItem.cost), col(MascotItem.name))
     ).all()
     owned = session.exec(
         select(UserMascotItem).where(UserMascotItem.user_id == current_user.id)

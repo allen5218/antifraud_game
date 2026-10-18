@@ -7,12 +7,23 @@ import {
   Settings,
   ShoppingBag,
 } from "lucide-react"
-import { useState } from "react"
 import { PracticeFocusCard } from "@/components/practice/PracticeFocus"
-import useAuth from "@/hooks/useAuth"
-import { useEconomyMe } from "@/hooks/useEconomy"
+import { MascotAvatar } from "@/components/room/MascotAvatar"
+import useAuth, { currentUserQuery } from "@/hooks/useAuth"
+import { economyMeQuery, useEconomyMe } from "@/hooks/useEconomy"
+import { homeSummaryQuery } from "@/hooks/useHomeSummary"
+import { practiceProfileQuery } from "@/hooks/usePractice"
+import { warmQueries } from "@/lib/prefetch"
 
 export const Route = createFileRoute("/_shell/me")({
+  loader: ({ context: { queryClient } }) => {
+    warmQueries(queryClient, [
+      currentUserQuery,
+      economyMeQuery,
+      practiceProfileQuery,
+      homeSummaryQuery,
+    ])
+  },
   component: Me,
 })
 
@@ -32,27 +43,11 @@ const ROW =
 function Me() {
   const { user, logout } = useAuth()
   const { data: economy } = useEconomyMe()
-  const [mascotBroken, setMascotBroken] = useState(false)
 
   return (
     <div className="flex flex-col gap-3">
       <section className="flex items-center gap-3 rounded-2xl border border-border bg-surface-3 p-4">
-        {mascotBroken ? (
-          <div
-            aria-hidden="true"
-            className="size-16 shrink-0 rounded-2xl bg-surface-2"
-          />
-        ) : (
-          <img
-            src="/assets/mascot/shiba/base.webp"
-            alt=""
-            aria-hidden="true"
-            width={64}
-            height={64}
-            onError={() => setMascotBroken(true)}
-            className="size-16 shrink-0 rounded-2xl bg-surface-2 object-cover"
-          />
-        )}
+        <MascotAvatar className="size-16 shrink-0 rounded-2xl" />
         <div className="min-w-0">
           <h2 className="truncate text-lg font-bold">
             {user?.full_name || user?.email || "載入中…"}

@@ -1,4 +1,9 @@
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
+import {
+  queryOptions,
+  useMutation,
+  useQuery,
+  useQueryClient,
+} from "@tanstack/react-query"
 import { useNavigate } from "@tanstack/react-router"
 
 import {
@@ -16,14 +21,18 @@ const isLoggedIn = () => {
   return localStorage.getItem("access_token") !== null
 }
 
+export const currentUserQuery = queryOptions<UserPublic | null, Error>({
+  queryKey: ["currentUser"],
+  queryFn: () => UsersService.readUserMe(),
+})
+
 const useAuth = () => {
   const navigate = useNavigate()
   const queryClient = useQueryClient()
   const { showErrorToast } = useCustomToast()
 
-  const { data: user } = useQuery<UserPublic | null, Error>({
-    queryKey: ["currentUser"],
-    queryFn: UsersService.readUserMe,
+  const { data: user } = useQuery({
+    ...currentUserQuery,
     enabled: isLoggedIn(),
   })
 

@@ -31,6 +31,26 @@ export type MenuItem = {
   to: MenuTo
 }
 
+export type MascotPose = "base" | "point" | "cheer" | "think"
+
+/**
+ * 吉祥物的姿勢跟著玩家的狀態：卡在檢測或補考時在想、練夠或今天做完時歡呼、
+ * 要帶玩家去做事（沒做前測、正在說話）時指著，其他時候招手。
+ */
+export function mascotPose(s: HomeSummary, talking: boolean): MascotPose {
+  if (s.exam_active_attempt_id) return "think"
+  if (s.retake && !s.retake.gate.met) return "think"
+  if (s.retake?.gate.met) return "cheer"
+  if (!s.pretest_done || talking) return "point"
+  if (s.daily_unlocked && s.daily_done) return "cheer"
+  return "base"
+}
+
+/** 後端只回招手那張（.../base.webp），其他姿勢在同一個資料夾。 */
+export function poseImage(baseUrl: string, pose: MascotPose): string {
+  return baseUrl.replace(/\/base\.webp$/, `/${pose}.webp`)
+}
+
 export function roomImage(stage: number): string {
   const rounded = Number.isFinite(stage) ? Math.trunc(stage) : 0
   const clamped = Math.min(6, Math.max(0, rounded))

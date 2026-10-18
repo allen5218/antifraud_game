@@ -414,6 +414,8 @@ RETIRED_MASCOT_ITEM_NAMES: list[str] = [
     "星星眼鏡",
 ]
 
+# 只是外觀、不帶收入，價格排在房產之下：每個階段都有可以存錢的目標，又不和買房搶錢。
+# 每隻都要有 base／point／cheer／think 四張圖（tests/unit/test_mascot_assets.py 會檢查）。
 MASCOT_ITEMS: list[dict[str, str | int]] = [
     {
         "name": "柴犬",
@@ -422,10 +424,58 @@ MASCOT_ITEMS: list[dict[str, str | int]] = [
         "image_url": "/assets/mascot/shiba/base.webp",
     },
     {
+        "name": "倉鼠",
+        "category": "mascot",
+        "cost": 1500,
+        "image_url": "/assets/mascot/hamster/base.webp",
+    },
+    {
+        "name": "兔子",
+        "category": "mascot",
+        "cost": 2000,
+        "image_url": "/assets/mascot/rabbit/base.webp",
+    },
+    {
         "name": "貓",
         "category": "mascot",
         "cost": 3000,
         "image_url": "/assets/mascot/cat/base.webp",
+    },
+    {
+        "name": "柯基",
+        "category": "mascot",
+        "cost": 4000,
+        "image_url": "/assets/mascot/corgi/base.webp",
+    },
+    {
+        "name": "企鵝",
+        "category": "mascot",
+        "cost": 6000,
+        "image_url": "/assets/mascot/penguin/base.webp",
+    },
+    {
+        "name": "水獺",
+        "category": "mascot",
+        "cost": 8000,
+        "image_url": "/assets/mascot/otter/base.webp",
+    },
+    {
+        "name": "狐狸",
+        "category": "mascot",
+        "cost": 10000,
+        "image_url": "/assets/mascot/fox/base.webp",
+    },
+    {
+        "name": "小熊貓",
+        "category": "mascot",
+        "cost": 15000,
+        "image_url": "/assets/mascot/red_panda/base.webp",
+    },
+    {
+        "name": "無尾熊",
+        "category": "mascot",
+        "cost": 20000,
+        "image_url": "/assets/mascot/koala/base.webp",
     },
 ]
 

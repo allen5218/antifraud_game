@@ -42,11 +42,16 @@ test.describe("房間首頁", () => {
     await page.getByTestId("room-shop").click()
     await expect(page).toHaveURL(/\/shop/)
 
-    const shiba = page.locator("article", { hasText: "柴犬" })
+    // 用標題完全相符找卡片：「貓」會同時對到「小熊貓」
+    const card = (name: string) =>
+      page.locator("article").filter({
+        has: page.getByRole("heading", { name, exact: true }),
+      })
+    const shiba = card("柴犬")
     await expect(shiba.getByText("免費")).toBeVisible()
     await expect(shiba.getByRole("button", { name: "展示中" })).toBeDisabled()
 
-    const cat = page.locator("article", { hasText: "貓" })
+    const cat = card("貓")
     await cat.getByRole("button", { name: "購買" }).click()
     await expect(cat.getByText("錢不夠")).toBeVisible()
 

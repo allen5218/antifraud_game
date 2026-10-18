@@ -1,7 +1,11 @@
 import { afterEach, describe, expect, it, mock } from "bun:test"
 import { cleanup, render, screen } from "@testing-library/react"
 
+// bun 的 mock.module 會留給之後的測試檔，只覆寫要用的 hook，其他保留真的（查詢設定等）
+const actualEconomy = { ...(await import("@/hooks/useEconomy")) }
+
 mock.module("@/hooks/useEconomy", () => ({
+  ...actualEconomy,
   useEconomyMe: () => ({
     data: {
       cash: 12450,

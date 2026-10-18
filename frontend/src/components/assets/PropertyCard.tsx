@@ -1,6 +1,7 @@
 import { Lock } from "lucide-react"
 import { useState } from "react"
 import type { PropertyTierPublic } from "@/client"
+import { propertyArtSrc } from "@/lib/prefetch"
 
 interface Props {
   tier: PropertyTierPublic
@@ -17,9 +18,6 @@ interface Props {
  * emoji 只是佔位）。emoji 在不同平台長相不同，六個等級也看不出「越換越好」的遞進。
  * 圖檔都壓成 256px WebP，整組約 40KB。
  */
-function artSrc(svgKey: string): string {
-  return `/assets/property/${svgKey}.webp`
-}
 
 function PropertyArt({ svgKey, locked }: { svgKey: string; locked?: boolean }) {
   const [broken, setBroken] = useState(false)
@@ -35,7 +33,7 @@ function PropertyArt({ svgKey, locked }: { svgKey: string; locked?: boolean }) {
   }
   return (
     <img
-      src={artSrc(svgKey)}
+      src={propertyArtSrc(svgKey)}
       alt=""
       aria-hidden="true"
       width={56}

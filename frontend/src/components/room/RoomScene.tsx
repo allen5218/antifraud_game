@@ -1,4 +1,4 @@
-import { Link } from "@tanstack/react-router"
+import { Link, useRouter } from "@tanstack/react-router"
 import {
   Award,
   CalendarDays,
@@ -18,14 +18,18 @@ import { BADGE_SLOTS, HOTSPOTS } from "./hotspots"
 import {
   type HotspotId,
   mascotLine,
+  mascotPose,
   menuItems,
   pickBubbles,
+  poseImage,
   roomImage,
 } from "./logic"
 import { MascotGuide } from "./MascotGuide"
 import { RoomMenu } from "./RoomMenu"
 
 const GUIDE_SEEN_KEY = "room-guide-seen"
+const LAST_ROOM_KEY = "room-last-look"
+const DEFAULT_MASCOT = "/assets/mascot/shiba/base.webp"
 
 // 房間圖（stage-0～6）的實際像素尺寸；七張一樣大
 const ROOM_WIDTH = 941
@@ -46,6 +50,21 @@ const HOTSPOT_LINKS = {
     icon: typeof Tv
   }
 >
+
+// 房間裡每個入口的頁面：房間資料讀到後先載入它們的程式與資料，點下去就能直接換頁
+const PRELOAD_ROUTES = [
+  "/me",
+  "/shop",
+  "/assets",
+  "/scenarios",
+  "/quick/swipe",
+  "/quick/quiz",
+  "/daily",
+  "/exam",
+] as const
+
+// 手指按下時縮一下，網路慢的時候也看得出有按到
+const PRESS = "transition-transform active:scale-95"
 
 function taipeiToday(): string {
   return new Intl.DateTimeFormat("en-CA", {
@@ -72,14 +91,45 @@ function rememberGuide(): void {
   }
 }
 
+type RoomLook = { stage: number; mascot: string }
+
+/**
+ * 上次看到的房間階段與吉祥物。打開網站時圖片可能已在快取、資料還在路上，
+ * 先用上次的樣子，免得有房子、換過吉祥物的玩家先閃一下破舊房間和柴犬。
+ */
+function readLastLook(): RoomLook | null {
+  try {
+    const raw = localStorage.getItem(LAST_ROOM_KEY)
+    if (!raw) return null
+    const look = JSON.parse(raw) as Partial<RoomLook>
+    if (typeof look.stage !== "number" || typeof look.mascot !== "string") {
+      return null
+    }
+    return { stage: look.stage, mascot: look.mascot }
+  } catch {
+    return null
+  }
+}
+
+function rememberLook(look: RoomLook): void {
+  try {
+    localStorage.setItem(LAST_ROOM_KEY, JSON.stringify(look))
+  } catch {
+    /* 寫不進去就下次照預設顯示 */
+  }
+}
+
 function SceneImage({
   src,
   className,
   style,
+  onSettled,
 }: {
   src: string
   className?: string
   style?: CSSProperties
+  /** 圖載入完成或失敗時呼叫 */
+  onSettled?: () => void
 }) {
   const [failed, setFailed] = useState(false)
   if (failed) {
@@ -91,12 +141,17 @@ function SceneImage({
       alt=""
       className={className}
       style={style}
-      onError={() => setFailed(true)}
+      onLoad={onSettled}
+      onError={() => {
+        setFailed(true)
+        onSettled?.()
+      }}
     />
   )
 }
 
 export function RoomScene() {
+  const router = useRouter()
   const summary = useHomeSummary()
   const economy = useEconomyMe()
   const { mutate: claim, isPending } = useClaimAccrual()
@@ -122,7 +177,30 @@ export function RoomScene() {
     if (guideOpen) rememberGuide()
   }, [guideOpen])
 
-  const room = roomImage(data?.room_stage ?? 0)
+  // 房間圖出現之後才預先載入各入口，免得跟房間圖搶網路
+  const [roomShown, setRoomShown] = useState(false)
+  useEffect(() => {
+    if (!roomShown) return
+    const timer = setTimeout(() => {
+      for (const to of PRELOAD_ROUTES)
+        router.preloadRoute({ to }).catch(() => {})
+    }, 300)
+    return () => clearTimeout(timer)
+  }, [roomShown, router])
+
+  const [lastLook] = useState(readLastLook)
+  const stage = data?.room_stage
+  const mascotSrc = data?.mascot_image_url
+  useEffect(() => {
+    if (stage != null && mascotSrc) rememberLook({ stage, mascot: mascotSrc })
+  }, [stage, mascotSrc])
+  const room = roomImage(stage ?? lastLook?.stage ?? 0)
+  const pose = data ? mascotPose(data, guideOpen) : "base"
+  const mascotShown = poseImage(
+    mascotSrc ?? lastLook?.mascot ?? DEFAULT_MASCOT,
+    pose,
+  )
+
   return (
     // overflow-clip 而不是 overflow-hidden：hidden 仍可被程式捲動，點吉祥物時焦點會把整個房間捲歪
     <section
@@ -144,7 +222,11 @@ export function RoomScene() {
           width: `min(100cqw, calc(100cqh * ${ROOM_WIDTH} / ${ROOM_HEIGHT}))`,
         }}
       >
-        <SceneImage src={room} className="absolute inset-0 size-full" />
+        <SceneImage
+          src={room}
+          className="absolute inset-0 size-full"
+          onSettled={() => setRoomShown(true)}
+        />
         {(data?.badges ?? [])
           .slice(0, BADGE_SLOTS.length)
           .map((code, index) => {
@@ -171,12 +253,12 @@ export function RoomScene() {
               data-testid={`hotspot-${id}`}
               aria-label={spec.label}
               style={{ left: `${spot.x}%`, top: `${spot.y}%` }}
-              className="absolute z-10 flex size-16 -translate-x-1/2 -translate-y-1/2 items-center justify-center"
+              className="group absolute z-10 flex size-16 -translate-x-1/2 -translate-y-1/2 items-center justify-center"
             >
               {bubble && (
                 <span
                   data-testid={`bubble-${id}`}
-                  className={`pointer-events-none absolute bottom-full mb-1 flex size-10 items-center justify-center rounded-full bg-card text-foreground shadow ${
+                  className={`pointer-events-none absolute bottom-full mb-1 flex size-10 items-center justify-center rounded-full bg-card text-foreground shadow transition-transform group-active:scale-90 ${
                     bubble.highlight ? "ring-2 ring-warning" : ""
                   }`}
                 >
@@ -202,17 +284,14 @@ export function RoomScene() {
           onClick={() => setGuideOpen(true)}
           className="absolute z-10 size-20 -translate-x-1/2 -translate-y-1/2"
         >
-          <SceneImage
-            src={data?.mascot_image_url ?? "/assets/mascot/shiba/base.webp"}
-            className="size-full object-contain"
-          />
+          <SceneImage src={mascotShown} className="size-full object-contain" />
         </button>
         {/* 放左下：右下是放手機的小桌，手機泡泡在那裡 */}
         <div className="absolute bottom-4 left-3 z-20 flex gap-2">
           <Link
             to="/shop"
             data-testid="room-shop"
-            className="flex items-center gap-1 rounded-xl bg-card px-3 py-2 text-xs font-bold text-card-foreground shadow"
+            className={`flex items-center gap-1 rounded-xl bg-card px-3 py-2 text-xs font-bold text-card-foreground shadow ${PRESS}`}
           >
             <ShoppingBag aria-hidden className="size-3.5" />
             購物
@@ -220,7 +299,7 @@ export function RoomScene() {
           <Link
             to="/assets"
             data-testid="room-house"
-            className="flex items-center gap-1 rounded-xl bg-card px-3 py-2 text-xs font-bold text-card-foreground shadow"
+            className={`flex items-center gap-1 rounded-xl bg-card px-3 py-2 text-xs font-bold text-card-foreground shadow ${PRESS}`}
           >
             <House aria-hidden className="size-3.5" />
             房子
@@ -230,7 +309,7 @@ export function RoomScene() {
       <Link
         to="/me"
         data-testid="room-me"
-        className="absolute top-3 left-3 z-20 flex items-center gap-1 rounded-full bg-card px-2.5 py-1.5 text-xs font-bold text-card-foreground shadow"
+        className={`absolute top-3 left-3 z-20 flex items-center gap-1 rounded-full bg-card px-2.5 py-1.5 text-xs font-bold text-card-foreground shadow ${PRESS}`}
       >
         <UserRound aria-hidden className="size-3.5" />我
       </Link>
@@ -238,7 +317,7 @@ export function RoomScene() {
         <Link
           to="/assets"
           data-testid="hdr-cash"
-          className={`flex items-center gap-1 rounded-full bg-card px-2.5 py-1.5 text-xs font-bold shadow ${
+          className={`flex items-center gap-1 rounded-full bg-card px-2.5 py-1.5 text-xs font-bold shadow ${PRESS} ${
             cash < 0 ? "text-destructive" : "text-card-foreground"
           }`}
         >
@@ -260,7 +339,7 @@ export function RoomScene() {
         type="button"
         data-testid="room-menu"
         onClick={() => setMenuOpen((open) => !open)}
-        className="absolute top-14 right-3 z-50 flex items-center gap-1 rounded-full bg-card px-2.5 py-1.5 text-xs font-bold text-card-foreground shadow"
+        className={`absolute top-14 right-3 z-50 flex items-center gap-1 rounded-full bg-card px-2.5 py-1.5 text-xs font-bold text-card-foreground shadow ${PRESS}`}
       >
         <Menu aria-hidden className="size-3.5" />
         選單

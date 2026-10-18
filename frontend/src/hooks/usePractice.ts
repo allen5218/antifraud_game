@@ -1,4 +1,4 @@
-import { type QueryClient, useQuery } from "@tanstack/react-query"
+import { type QueryClient, queryOptions, useQuery } from "@tanstack/react-query"
 import { PracticeService } from "@/client"
 
 const PRACTICE_PROFILE_KEY = ["practice", "profile"]
@@ -10,13 +10,15 @@ const PRACTICE_PROFILE_KEY = ["practice", "profile"]
  * 所以結算當下拿到的常常是舊的。每次進頁面都重抓(staleTime 0),
  * 結算後再由 refreshPracticeProfileSoon 分幾次重抓。
  */
+export const practiceProfileQuery = queryOptions({
+  queryKey: PRACTICE_PROFILE_KEY,
+  queryFn: () => PracticeService.readProfile(),
+  staleTime: 0,
+  refetchOnWindowFocus: false,
+})
+
 export function usePracticeProfile() {
-  return useQuery({
-    queryKey: PRACTICE_PROFILE_KEY,
-    queryFn: () => PracticeService.readProfile(),
-    staleTime: 0,
-    refetchOnWindowFocus: false,
-  })
+  return useQuery(practiceProfileQuery)
 }
 
 /** 分析通常 3–5 秒,最慢到逾時約 20 秒;之後就不再重抓。 */

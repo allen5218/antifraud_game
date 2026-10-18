@@ -51,7 +51,11 @@ const mockOwned = [
 
 const mockLiquidate = mock((_ids: string[]) => {})
 
+// bun 的 mock.module 會留給之後的測試檔，只覆寫要用的 hook，其他保留真的（查詢設定等）
+const actualEconomy = { ...(await import("@/hooks/useEconomy")) }
+
 mock.module("@/hooks/useEconomy", () => ({
+  ...actualEconomy,
   useEconomyMe: () => ({ data: defaultMeData }),
   useProperties: () => ({ data: { tiers: [], owned: mockOwned } }),
   useLiquidate: () => ({ mutate: mockLiquidate }),
@@ -75,6 +79,7 @@ describe("<ForcedSellModal />", () => {
 
   it("renders modal with deficit when bankruptcy_pending is true", () => {
     mock.module("@/hooks/useEconomy", () => ({
+      ...actualEconomy,
       useEconomyMe: () => ({ data: bankruptMeData }),
       useProperties: () => ({ data: { tiers: [], owned: mockOwned } }),
       useLiquidate: () => ({ mutate: mockLiquidate }),
@@ -90,6 +95,7 @@ describe("<ForcedSellModal />", () => {
   it("confirm disabled with no selection, enabled after enough selected", () => {
     // cash -1550 → deficit 1550; 套房(mock-2) recovers floor(5000*0.6)=3000 >= 1550
     mock.module("@/hooks/useEconomy", () => ({
+      ...actualEconomy,
       useEconomyMe: () => ({
         data: {
           cash: -1550,
@@ -116,6 +122,7 @@ describe("<ForcedSellModal />", () => {
   it("renders null when bankruptcy_pending is true but cash >= 0 (stale flag)", () => {
     // 模擬管理員手動補現金卻沒清 flag：不該出現 $0 缺口的空視窗
     mock.module("@/hooks/useEconomy", () => ({
+      ...actualEconomy,
       useEconomyMe: () => ({
         data: { ...bankruptMeData, cash: 500 },
       }),
@@ -131,6 +138,7 @@ describe("<ForcedSellModal />", () => {
 
   it("no assets: shows recovery notice and dismiss button, never a confirm button", () => {
     mock.module("@/hooks/useEconomy", () => ({
+      ...actualEconomy,
       useEconomyMe: () => ({ data: bankruptMeData }),
       useProperties: () => ({ data: { tiers: [], owned: [] } }),
       useLiquidate: () => ({ mutate: mockLiquidate }),
@@ -151,6 +159,7 @@ describe("<ForcedSellModal />", () => {
   it("insufficient assets: allows partial liquidation but not empty submit", () => {
     // deficit 22550 > 全部回收 600+3000=3600 → insufficientAssets
     mock.module("@/hooks/useEconomy", () => ({
+      ...actualEconomy,
       useEconomyMe: () => ({ data: bankruptMeData }),
       useProperties: () => ({ data: { tiers: [], owned: mockOwned } }),
       useLiquidate: () => ({ mutate: mockLiquidate }),
@@ -175,6 +184,7 @@ describe("<ForcedSellModal />", () => {
       calls.push(ids)
     }
     mock.module("@/hooks/useEconomy", () => ({
+      ...actualEconomy,
       useEconomyMe: () => ({
         data: {
           cash: -1550,

@@ -1,4 +1,12 @@
-import { afterEach, beforeEach, expect, mock, spyOn, test } from "bun:test"
+import {
+  afterEach,
+  beforeEach,
+  expect,
+  mock,
+  setSystemTime,
+  spyOn,
+  test,
+} from "bun:test"
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query"
 import {
   createMemoryHistory,
@@ -80,6 +88,7 @@ beforeEach(() => {
 })
 
 afterEach(() => {
+  setSystemTime()
   cleanup()
   qc.clear()
   localStorage.clear()
@@ -204,8 +213,44 @@ test("離開房間再回來會重讀首頁資料，不沿用舊的台詞", async
   cleanup()
   localStorage.clear() // 對話框一天只自動開一次，清掉才看得到台詞
   current = summary({ focus_label: "假交友" })
+  setSystemTime(new Date(Date.now() + 5_000)) // 練一輪一定超過首頁資料的兩秒新鮮期
   await renderScene()
   expect(
     await screen.findByText("本輪加強：假交友。先去練練看，做完就有錢。"),
   ).toBeTruthy()
+})
+
+test("資料還沒回來時先用上次的房間與吉祥物，不閃破舊房間和柴犬", async () => {
+  localStorage.setItem(
+    "room-last-look",
+    JSON.stringify({ stage: 3, mascot: "/assets/mascot/fox/base.webp" }),
+  )
+  spyOn(homeApi, "summary").mockImplementation(
+    () => new CancelablePromise<HomeSummary>(() => {}),
+  )
+  await renderScene()
+  const frame = screen.getByTestId("room-frame")
+  expect(frame.querySelector("img")?.getAttribute("src")).toBe(
+    "/assets/room/stage-3.webp",
+  )
+  expect(
+    screen
+      .getByTestId("hotspot-mascot")
+      .querySelector("img")
+      ?.getAttribute("src"),
+  ).toBe("/assets/mascot/fox/base.webp")
+})
+
+test("資料回來後記住這次的房間與吉祥物", async () => {
+  current = summary({
+    room_stage: 2,
+    mascot_image_url: "/assets/mascot/cat/base.webp",
+  })
+  await renderScene()
+  await waitFor(() =>
+    expect(JSON.parse(localStorage.getItem("room-last-look") ?? "{}")).toEqual({
+      stage: 2,
+      mascot: "/assets/mascot/cat/base.webp",
+    }),
+  )
 })

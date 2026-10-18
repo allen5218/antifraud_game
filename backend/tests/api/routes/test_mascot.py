@@ -61,7 +61,24 @@ def test_retire_accessories_refunds_once(db, player):
 def test_default_displayed_is_shiba(client, player, db):
     user, headers = player
     catalog = items(client, headers)
-    assert set(catalog) == {"柴犬", "貓"}
+    # 商店依價格由低到高排，柴犬免費排第一
+    assert list(catalog) == [
+        "柴犬",
+        "倉鼠",
+        "兔子",
+        "貓",
+        "柯基",
+        "企鵝",
+        "水獺",
+        "狐狸",
+        "小熊貓",
+        "無尾熊",
+    ]
+    assert all(
+        not item["owned"] and not item["displayed"]
+        for name, item in catalog.items()
+        if name != "柴犬"
+    )
     assert catalog["柴犬"]["owned"] is True
     assert catalog["柴犬"]["displayed"] is True
     assert catalog["貓"]["owned"] is False

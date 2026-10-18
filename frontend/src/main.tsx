@@ -8,6 +8,7 @@ import { createRouter, RouterProvider } from "@tanstack/react-router"
 import { StrictMode } from "react"
 import ReactDOM from "react-dom/client"
 import { ApiError, OpenAPI } from "./client"
+import { UpdatePrompt } from "./components/Common/UpdatePrompt"
 import { ThemeProvider } from "./components/theme-provider"
 import { Toaster } from "./components/ui/sonner"
 import "./index.css"
@@ -35,7 +36,13 @@ const queryClient = new QueryClient({
   }),
 })
 
-const router = createRouter({ routeTree })
+const router = createRouter({
+  routeTree,
+  context: { queryClient },
+  // 手指按下（或滑鼠移上去）就先載入下一頁的程式與資料；資料新鮮度交給 React Query 判斷
+  defaultPreload: "intent",
+  defaultPreloadStaleTime: 0,
+})
 declare module "@tanstack/react-router" {
   interface Register {
     router: typeof router
@@ -48,6 +55,7 @@ ReactDOM.createRoot(document.getElementById("root")!).render(
       <QueryClientProvider client={queryClient}>
         <RouterProvider router={router} />
         <Toaster richColors closeButton />
+        <UpdatePrompt />
       </QueryClientProvider>
     </ThemeProvider>
   </StrictMode>,

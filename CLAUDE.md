@@ -86,8 +86,10 @@ pre-commit 有 `generate-frontend-sdk` hook，當 `backend/` 變更時會自動�
 
 ### 前端慣例
 
-- **介面不用表情符號。** 文字旁的小圖示用 lucide（與頁首的 coin／flame／star 一致）；圖片用 `public/assets/` 的插圖（Codex 內建生圖產生，暖色手繪的可愛居家畫風，WebP）：`room/stage-0～6`（941×1672，房間外觀跟著擁有的最高房產，七張家具位置相同，熱區座標在 `components/room/hotspots.ts`）、`mascot/<動物>/{base,point,cheer,think}`（512px，預設柴犬，商店可買其他動物）、`badge/`、`property/`、`avatar/`（情境頭貼，代號 `<類型>-1..3`）、`outcome/`（情境結局）、`misc/`（後五類 256px）。聊天內容裡角色打的表情符號是模擬真實對話，不算。
+- **介面不用表情符號。** 文字旁的小圖示用 lucide（與頁首的 coin／flame／star 一致）；圖片用 `public/assets/` 的插圖（Codex 內建生圖產生，暖色手繪的可愛居家畫風，WebP）：`room/stage-0～6`（941×1672，房間外觀跟著擁有的最高房產，七張家具位置相同，熱區座標在 `components/room/hotspots.ts`）、`mascot/<動物>/{base,point,cheer,think}`（512px，預設柴犬，商店可買其他動物；房間裡的姿勢由 `room/logic.ts` 的 `mascotPose` 依狀態決定）、`badge/`、`property/`、`avatar/`（情境頭貼，代號 `<類型>-1..3`）、`outcome/`（情境結局）、`misc/`（後五類 256px）。聊天內容裡角色打的表情符號是模擬真實對話，不算。
 - **首頁資料**：`GET /home/summary`（`api/routes/home.py`）唯讀彙整房間要的狀態（房間階段、吉祥物、前測、收件匣、每日訓練、檢測、補考、練習重點、徽章），不建立任何牌局。前端 `useHomeSummary` 每次回到房間都重讀；狀態在房間裡就改變的（放棄檢測、買賣房產）要另外讓 `HOME_SUMMARY_KEY` 重讀。
+- **換頁要先載入**：正式環境從台灣連線每個請求往返要零點幾秒到一秒，點下去才抓資料會很遲鈍。查詢設定用 `queryOptions` 匯出（例：`economyMeQuery`），頁面路由的 `loader` 用 `lib/prefetch.ts` 的 `warmQueries` 先抓（不等結果）；路由 context 帶 `queryClient`、`defaultPreload: "intent"`，房間圖出現後會先載入各入口頁。**loader 只能做唯讀查詢**，會建立牌局或開始計時的 API（例：`/daily/today`）不要放進 loader。
+- **PWA**（`vite-plugin-pwa`，`vite.config.ts`）：App 殼預快取、`/assets/` 圖片先用快取再背景更新、API 不經過 service worker。新版本由玩家按「重新整理」套用（`components/Common/UpdatePrompt.tsx`），不自動重載。Playwright 設定封鎖 service worker。
 - **顏色只用主題 token**（`scam`／`legit`／`warning`／`primary`／`surface-2`／`surface-3`／`muted`…，定義在 `src/index.css`）。不要寫死 `bg-green-50`、`text-red-600`、`bg-white` 這類淺色，深色模式下會變成突兀的亮塊。遮罩層的 `bg-black/50` 例外。
 - **文案用白話中文**，不夾英文、不用破折號與 AI 腔；template 帳號 API 回的英文錯誤訊息在 `src/utils.ts` 的 `BACKEND_MESSAGES` 翻譯。
 - 詐騙類型的中文名只用 `src/lib/fraudTypes.ts`（與後端 `app/core/fraud_types.py` 一致）。

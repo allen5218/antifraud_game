@@ -28,6 +28,9 @@ export default defineConfig({
 
     /* Collect trace when retrying the failed test. See https://playwright.dev/docs/trace-viewer */
     trace: 'on-first-retry',
+
+    /* PWA 的 service worker 會接手請求，測試裡的網路攔截與時間順序都會變；測試一律不裝 */
+    serviceWorkers: 'block',
   },
 
   /* Configure projects for major browsers */
