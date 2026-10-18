@@ -1,4 +1,5 @@
 import uuid
+from datetime import timedelta
 from unittest.mock import patch
 
 from fastapi.testclient import TestClient
@@ -6,7 +7,7 @@ from sqlmodel import Session, select
 
 from app import crud
 from app.core.config import settings
-from app.core.security import verify_password
+from app.core.security import create_access_token, verify_password
 from app.models import User, UserCreate
 from tests.utils.user import create_random_user
 from tests.utils.utils import random_email, random_lower_string
@@ -84,6 +85,18 @@ def test_get_non_existing_user_as_superuser(
         headers=superuser_token_headers,
     )
     assert r.status_code == 404
+    assert r.json() == {"detail": "User not found"}
+
+
+def test_token_of_missing_user_is_unauthorized(client: TestClient) -> None:
+    # 帳號被刪掉（或資料庫重設）後，舊的登入憑證要回 401，前端才會登出回登入頁，
+    # 回 404 會讓玩家卡在讀不到資料的畫面（2026-10-17 在預覽環境遇到）
+    token = create_access_token(uuid.uuid4(), timedelta(minutes=5))
+    r = client.get(
+        f"{settings.API_V1_STR}/users/me",
+        headers={"Authorization": f"Bearer {token}"},
+    )
+    assert r.status_code == 401
     assert r.json() == {"detail": "User not found"}
 
 

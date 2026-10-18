@@ -40,7 +40,11 @@ def get_current_user(session: SessionDep, token: TokenDep) -> User:
         )
     user = session.get(User, token_data.sub)
     if not user:
-        raise HTTPException(status_code=404, detail="User not found")
+        # 憑證的帳號已不存在（帳號刪除、資料庫重設）＝登入失效：回 401 讓前端登出回登入頁，
+        # 回 404 前端不會登出，玩家會卡在讀不到資料的畫面
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED, detail="User not found"
+        )
     if not user.is_active:
         raise HTTPException(status_code=400, detail="Inactive user")
     return user
