@@ -23,7 +23,9 @@ from app.models import (
     ExamAttempt,
     ExamBadge,
     PracticeAnswer,
+    PretestAttempt,
     PretestQuestion,
+    PretestResult,
     SwipeCard,
     User,
     UserPublic,
@@ -387,6 +389,19 @@ def test_members_and_csv_are_scoped_and_include_statistics(
             "exam_pass_count",
             "last_exam_at",
             "badges",
+            "pretest_done",
+            "pretest_correct",
+            "pretest_total",
+            "pretest_at",
+            "first_exam_at",
+            "first_exam_mode",
+            "first_exam_fraud_type",
+            "first_exam_status",
+            "first_exam_score",
+            "first_exam_pretest_correct",
+            "best_exam_score",
+            "exam_completed",
+            "payout_eligible",
         ]
         rows = {row["user_id"]: row for row in reader}
         assert len(rows) == 2
@@ -765,3 +780,109 @@ def test_exam_summary_counted_passes_badges_scoping_and_formula_cells(
     finally:
         db.delete(outsider)
         db.commit()
+
+
+def test_csv_has_pretest_and_exam_scores_for_payout(
+    client: TestClient,
+    cohort: dict,
+    db: Session,
+    superuser_token_headers: dict[str, str],
+) -> None:
+    """試測發錢看「前測做過、檢測交卷」；前後測比較用入門前測與綜合檢測的前測關。"""
+    _, done = redeem(client, cohort["token"])
+    _, pretest_only = redeem(client, cohort["token"])
+    _, nothing = redeem(client, cohort["token"])
+    questions = db.exec(select(PretestQuestion).limit(4)).all()
+    assert len(questions) == 4
+    start = get_datetime_utc() - timedelta(days=1)
+
+    def pretest(user_id: uuid.UUID, at: datetime, correct: list[bool]) -> None:
+        for question, ok in zip(questions, correct, strict=False):
+            db.add(
+                PretestResult(
+                    user_id=user_id,
+                    fraud_type=question.fraud_type,
+                    question_id=question.id,
+                    selected_option="A",
+                    is_correct=ok,
+                    created_at=at,
+                )
+            )
+        db.add(
+            PretestAttempt(
+                user_id=user_id,
+                weakest_type="investment",
+                created_at=at + timedelta(seconds=1),
+            )
+        )
+
+    done_id, pretest_id = uuid.UUID(done["id"]), uuid.UUID(pretest_only["id"])
+    # 第一次 4 題對 3，之後重做一次 4 題全對：只算第一次
+    pretest(done_id, start, [True, True, True, False])
+    pretest(done_id, start + timedelta(hours=2), [True, True, True, True])
+    pretest(pretest_id, start, [False, True])
+
+    def exam(user_id, minutes, **kw):
+        values = {
+            "mode": "comprehensive",
+            "fraud_type": "romance",
+            "status": "completed",
+            "expires_at": start + timedelta(days=1),
+            "created_at": start + timedelta(hours=3, minutes=minutes),
+            **kw,
+        }
+        db.add(ExamAttempt(user_id=user_id, **values))
+
+    # 作廢的不算第一次；第一次是綜合檢測 64.5 分（顯示 65）、前測關 15 題對
+    exam(done_id, 0, status="voided", counted=False, total_score=99)
+    exam(
+        done_id,
+        5,
+        total_score=64.5,
+        pretest_by_type={
+            "investment": 3,
+            "shopping": 4,
+            "romance": 2,
+            "atm": 3,
+            "fake-sale": 3,
+        },
+    )
+    exam(done_id, 90, mode="specialized", total_score=82.2, passed=True)
+    exam(done_id, 200, mode="specialized", status="abandoned", total_score=0)
+    # 只放棄過檢測的不算交卷
+    exam(pretest_id, 10, mode="specialized", status="abandoned", total_score=10)
+    db.commit()
+
+    rows = {
+        row["user_id"]: row
+        for row in read_csv(client, cohort, superuser_token_headers, "export.csv")
+    }
+    row = rows[done["id"]]
+    assert row["pretest_done"] == "true"
+    assert (row["pretest_correct"], row["pretest_total"]) == ("3", "4")
+    assert row["pretest_at"] == (start + timedelta(seconds=1)).isoformat()
+    assert row["first_exam_at"] == (start + timedelta(hours=3, minutes=5)).isoformat()
+    assert (row["first_exam_mode"], row["first_exam_fraud_type"]) == (
+        "comprehensive",
+        "romance",
+    )
+    assert row["first_exam_status"] == "completed"
+    assert row["first_exam_score"] == "65"
+    assert row["first_exam_pretest_correct"] == "15"
+    assert row["best_exam_score"] == "82"
+    assert row["exam_completed"] == row["payout_eligible"] == "true"
+
+    row = rows[pretest_only["id"]]
+    assert row["pretest_done"] == "true"
+    assert (row["pretest_correct"], row["pretest_total"]) == ("1", "2")
+    assert row["first_exam_mode"] == "specialized"
+    assert row["first_exam_status"] == "abandoned"
+    assert row["first_exam_pretest_correct"] == ""
+    assert row["best_exam_score"] == ""
+    assert row["exam_completed"] == row["payout_eligible"] == "false"
+
+    row = rows[nothing["id"]]
+    assert row["pretest_done"] == "false"
+    assert row["pretest_correct"] == row["pretest_total"] == row["pretest_at"] == ""
+    assert row["first_exam_at"] == row["first_exam_score"] == ""
+    assert row["exam_completed"] == row["payout_eligible"] == "false"
