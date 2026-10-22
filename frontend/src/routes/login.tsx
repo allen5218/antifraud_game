@@ -9,6 +9,7 @@ import { z } from "zod"
 
 import type { Body_login_login_access_token as AccessToken } from "@/client"
 import { AuthLayout } from "@/components/Common/AuthLayout"
+import { OAuthButtons } from "@/components/Common/OAuthButtons"
 import {
   Form,
   FormControl,
@@ -129,12 +130,21 @@ function Login() {
             </LoadingButton>
           </div>
 
+          <OAuthButtons />
+
           <div className="text-center text-sm">
             還沒有帳號？{" "}
             <RouterLink to="/signup" className="underline underline-offset-4">
               註冊
             </RouterLink>
           </div>
+
+          <RouterLink
+            to="/privacy"
+            className="text-center text-xs text-muted-foreground underline-offset-4 hover:underline"
+          >
+            隱私權政策
+          </RouterLink>
         </form>
       </Form>
     </AuthLayout>

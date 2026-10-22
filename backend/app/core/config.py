@@ -96,6 +96,13 @@ class Settings(BaseSettings):
 
     GOOGLE_API_KEY: str = ""
 
+    # 第三方登入；沒填就不開放那一家(登入頁也不顯示按鈕)。
+    # 回呼網址是 {FRONTEND_HOST}/oauth/<google|line>/callback,要在兩家的後台登記。
+    GOOGLE_OAUTH_CLIENT_ID: str = ""
+    GOOGLE_OAUTH_CLIENT_SECRET: str = ""
+    LINE_LOGIN_CHANNEL_ID: str = ""
+    LINE_LOGIN_CHANNEL_SECRET: str = ""
+
     def _check_default_secret(self, var_name: str, value: str | None) -> None:
         if value == "changethis":
             message = (

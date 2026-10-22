@@ -7,6 +7,7 @@ import {
 import { useForm } from "react-hook-form"
 import { z } from "zod"
 import { AuthLayout } from "@/components/Common/AuthLayout"
+import { OAuthButtons } from "@/components/Common/OAuthButtons"
 import {
   Form,
   FormControl,
@@ -171,6 +172,8 @@ function SignUp() {
               註冊
             </LoadingButton>
           </div>
+
+          <OAuthButtons />
 
           <div className="text-center text-sm">
             已經有帳號了？{" "}
