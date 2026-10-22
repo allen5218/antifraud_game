@@ -1,6 +1,7 @@
 import { Link } from "@tanstack/react-router"
 import {
   Award,
+  BookOpen,
   CalendarDays,
   Mail,
   MessageCircle,
@@ -17,6 +18,7 @@ const ICONS = {
   bookshelf: Award,
   leaderboard: Trophy,
   badges: Award,
+  team: BookOpen,
 } as const
 
 export function RoomMenu({

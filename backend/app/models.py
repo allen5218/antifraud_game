@@ -28,6 +28,8 @@ class UserBase(SQLModel):
     email: EmailStr = Field(unique=True, index=True, max_length=255)
     is_active: bool = True
     is_superuser: bool = False
+    # 團隊成員可以看團隊題庫(全部題目與答案)並留言討論；由管理員設定
+    is_team: bool = Field(default=False, sa_column_kwargs={"server_default": "false"})
     full_name: str | None = Field(default=None, max_length=255)
 
 
@@ -761,3 +763,19 @@ class ExamBadge(SQLModel, table=True):
     )
     is_public: bool = Field(default=False, sa_column_kwargs={"server_default": "false"})
     public_slug: str | None = Field(default=None, max_length=64, unique=True)
+
+
+class TeamComment(SQLModel, table=True):
+    """團隊題庫每一題底下的討論。題目用 (類別, 代號) 指認，不綁題庫的流水號。"""
+
+    __tablename__ = "team_comment"
+    __table_args__ = (Index("ix_team_comment_item", "item_kind", "item_key"),)
+
+    id: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True)
+    user_id: uuid.UUID = Field(foreign_key="user.id", ondelete="CASCADE", index=True)
+    item_kind: str = Field(max_length=16)
+    item_key: str = Field(max_length=128)
+    body: str = Field(max_length=1000)
+    created_at: datetime = Field(
+        default_factory=get_datetime_utc, sa_type=DateTime(timezone=True)
+    )  # type: ignore

@@ -10,6 +10,7 @@ const TITLES: { prefix: string; title: string }[] = [
   { prefix: "/assets", title: "我的資產" },
   { prefix: "/shop", title: "商店" },
   { prefix: "/me", title: "我的" },
+  { prefix: "/team", title: "團隊題庫" },
 ]
 
 export function pageTitle(pathname: string): string {

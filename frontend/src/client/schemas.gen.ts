@@ -1336,6 +1336,11 @@ export const HomeSummarySchema = {
             },
             type: 'array',
             title: 'Badges'
+        },
+        team_access: {
+            type: 'boolean',
+            title: 'Team Access',
+            default: false
         }
     },
     type: 'object',
@@ -2946,6 +2951,450 @@ export const SwipeDeckResponseSchema = {
     title: 'SwipeDeckResponse'
 } as const;
 
+export const TeamBankSchema = {
+    properties: {
+        pretest: {
+            items: {
+                '$ref': '#/components/schemas/TeamPretest'
+            },
+            type: 'array',
+            title: 'Pretest'
+        },
+        swipe: {
+            items: {
+                '$ref': '#/components/schemas/TeamSwipe'
+            },
+            type: 'array',
+            title: 'Swipe'
+        },
+        cases: {
+            items: {
+                '$ref': '#/components/schemas/TeamCase'
+            },
+            type: 'array',
+            title: 'Cases'
+        },
+        questions: {
+            items: {
+                '$ref': '#/components/schemas/TeamQuestion'
+            },
+            type: 'array',
+            title: 'Questions'
+        },
+        personas: {
+            items: {
+                '$ref': '#/components/schemas/TeamPersona'
+            },
+            type: 'array',
+            title: 'Personas'
+        },
+        skills: {
+            items: {
+                '$ref': '#/components/schemas/TeamSkill'
+            },
+            type: 'array',
+            title: 'Skills'
+        },
+        tactic_labels: {
+            additionalProperties: {
+                type: 'string'
+            },
+            type: 'object',
+            title: 'Tactic Labels'
+        },
+        comment_counts: {
+            additionalProperties: {
+                type: 'integer'
+            },
+            type: 'object',
+            title: 'Comment Counts'
+        }
+    },
+    type: 'object',
+    required: ['pretest', 'swipe', 'cases', 'questions', 'personas', 'skills', 'tactic_labels', 'comment_counts'],
+    title: 'TeamBank'
+} as const;
+
+export const TeamCaseSchema = {
+    properties: {
+        key: {
+            type: 'string',
+            title: 'Key'
+        },
+        pool: {
+            type: 'string',
+            title: 'Pool'
+        },
+        fraud_type: {
+            type: 'string',
+            title: 'Fraud Type'
+        },
+        is_scam: {
+            type: 'boolean',
+            title: 'Is Scam'
+        },
+        difficulty: {
+            type: 'integer',
+            title: 'Difficulty'
+        },
+        title: {
+            type: 'string',
+            title: 'Title'
+        },
+        narrative: {
+            type: 'string',
+            title: 'Narrative'
+        },
+        red_flags: {
+            items: {
+                '$ref': '#/components/schemas/TeamFlag'
+            },
+            type: 'array',
+            title: 'Red Flags'
+        },
+        provenance: {
+            type: 'string',
+            title: 'Provenance'
+        },
+        mirror_key: {
+            anyOf: [
+                {
+                    type: 'string'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Mirror Key'
+        },
+        pattern_key: {
+            anyOf: [
+                {
+                    type: 'string'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Pattern Key'
+        }
+    },
+    type: 'object',
+    required: ['key', 'pool', 'fraud_type', 'is_scam', 'difficulty', 'title', 'narrative', 'red_flags', 'provenance', 'mirror_key', 'pattern_key'],
+    title: 'TeamCase'
+} as const;
+
+export const TeamCommentCreateSchema = {
+    properties: {
+        item_kind: {
+            type: 'string',
+            enum: ['pretest', 'swipe', 'case', 'question', 'persona'],
+            title: 'Item Kind'
+        },
+        item_key: {
+            type: 'string',
+            maxLength: 128,
+            minLength: 1,
+            title: 'Item Key'
+        },
+        body: {
+            type: 'string',
+            maxLength: 1000,
+            minLength: 1,
+            title: 'Body'
+        }
+    },
+    type: 'object',
+    required: ['item_kind', 'item_key', 'body'],
+    title: 'TeamCommentCreate'
+} as const;
+
+export const TeamCommentPublicSchema = {
+    properties: {
+        id: {
+            type: 'string',
+            title: 'Id'
+        },
+        item_kind: {
+            type: 'string',
+            title: 'Item Kind'
+        },
+        item_key: {
+            type: 'string',
+            title: 'Item Key'
+        },
+        body: {
+            type: 'string',
+            title: 'Body'
+        },
+        author: {
+            type: 'string',
+            title: 'Author'
+        },
+        mine: {
+            type: 'boolean',
+            title: 'Mine'
+        },
+        created_at: {
+            type: 'string',
+            title: 'Created At'
+        }
+    },
+    type: 'object',
+    required: ['id', 'item_kind', 'item_key', 'body', 'author', 'mine', 'created_at'],
+    title: 'TeamCommentPublic'
+} as const;
+
+export const TeamFlagSchema = {
+    properties: {
+        tag: {
+            anyOf: [
+                {
+                    type: 'string'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Tag'
+        },
+        text: {
+            type: 'string',
+            title: 'Text'
+        }
+    },
+    type: 'object',
+    required: ['text'],
+    title: 'TeamFlag'
+} as const;
+
+export const TeamOptionSchema = {
+    properties: {
+        key: {
+            type: 'string',
+            title: 'Key'
+        },
+        text: {
+            type: 'string',
+            title: 'Text'
+        },
+        is_correct: {
+            type: 'boolean',
+            title: 'Is Correct',
+            default: false
+        }
+    },
+    type: 'object',
+    required: ['key', 'text'],
+    title: 'TeamOption'
+} as const;
+
+export const TeamPersonaSchema = {
+    properties: {
+        key: {
+            type: 'string',
+            title: 'Key'
+        },
+        pool: {
+            type: 'string',
+            title: 'Pool'
+        },
+        fraud_type: {
+            type: 'string',
+            title: 'Fraud Type'
+        },
+        role: {
+            type: 'string',
+            title: 'Role'
+        },
+        name: {
+            type: 'string',
+            title: 'Name'
+        },
+        teaser: {
+            type: 'string',
+            title: 'Teaser'
+        },
+        primary_tactics: {
+            items: {
+                type: 'string'
+            },
+            type: 'array',
+            title: 'Primary Tactics'
+        },
+        body: {
+            type: 'string',
+            title: 'Body'
+        }
+    },
+    type: 'object',
+    required: ['key', 'pool', 'fraud_type', 'role', 'name', 'teaser', 'primary_tactics', 'body'],
+    title: 'TeamPersona'
+} as const;
+
+export const TeamPretestSchema = {
+    properties: {
+        key: {
+            type: 'string',
+            title: 'Key'
+        },
+        fraud_type: {
+            type: 'string',
+            title: 'Fraud Type'
+        },
+        is_scam: {
+            anyOf: [
+                {
+                    type: 'boolean'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Is Scam'
+        },
+        difficulty: {
+            type: 'integer',
+            title: 'Difficulty'
+        },
+        question: {
+            type: 'string',
+            title: 'Question'
+        },
+        options: {
+            items: {
+                '$ref': '#/components/schemas/TeamOption'
+            },
+            type: 'array',
+            title: 'Options'
+        },
+        explanation: {
+            type: 'string',
+            title: 'Explanation'
+        }
+    },
+    type: 'object',
+    required: ['key', 'fraud_type', 'is_scam', 'difficulty', 'question', 'options', 'explanation'],
+    title: 'TeamPretest'
+} as const;
+
+export const TeamQuestionSchema = {
+    properties: {
+        key: {
+            type: 'string',
+            title: 'Key'
+        },
+        case_key: {
+            type: 'string',
+            title: 'Case Key'
+        },
+        question_kind: {
+            type: 'string',
+            title: 'Question Kind'
+        },
+        difficulty: {
+            type: 'integer',
+            title: 'Difficulty'
+        },
+        question: {
+            type: 'string',
+            title: 'Question'
+        },
+        options: {
+            items: {
+                '$ref': '#/components/schemas/TeamOption'
+            },
+            type: 'array',
+            title: 'Options'
+        },
+        explanation: {
+            type: 'string',
+            title: 'Explanation'
+        },
+        weakness_tag: {
+            anyOf: [
+                {
+                    type: 'string'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Weakness Tag'
+        },
+        provenance: {
+            type: 'string',
+            title: 'Provenance'
+        }
+    },
+    type: 'object',
+    required: ['key', 'case_key', 'question_kind', 'difficulty', 'question', 'options', 'explanation', 'weakness_tag', 'provenance'],
+    title: 'TeamQuestion'
+} as const;
+
+export const TeamSkillSchema = {
+    properties: {
+        fraud_type: {
+            type: 'string',
+            title: 'Fraud Type'
+        },
+        body: {
+            type: 'string',
+            title: 'Body'
+        }
+    },
+    type: 'object',
+    required: ['fraud_type', 'body'],
+    title: 'TeamSkill'
+} as const;
+
+export const TeamSwipeSchema = {
+    properties: {
+        key: {
+            type: 'string',
+            title: 'Key'
+        },
+        pool: {
+            type: 'string',
+            title: 'Pool'
+        },
+        fraud_type: {
+            type: 'string',
+            title: 'Fraud Type'
+        },
+        is_scam: {
+            type: 'boolean',
+            title: 'Is Scam'
+        },
+        difficulty: {
+            type: 'integer',
+            title: 'Difficulty'
+        },
+        source_label: {
+            type: 'string',
+            title: 'Source Label'
+        },
+        scenario: {
+            type: 'string',
+            title: 'Scenario'
+        },
+        weakness_tags: {
+            items: {
+                type: 'string'
+            },
+            type: 'array',
+            title: 'Weakness Tags'
+        },
+        explanation: {
+            type: 'string',
+            title: 'Explanation'
+        }
+    },
+    type: 'object',
+    required: ['key', 'pool', 'fraud_type', 'is_scam', 'difficulty', 'source_label', 'scenario', 'weakness_tags', 'explanation'],
+    title: 'TeamSwipe'
+} as const;
+
 export const TokenSchema = {
     properties: {
         access_token: {
@@ -3001,6 +3450,11 @@ export const UserCreateSchema = {
             title: 'Is Superuser',
             default: false
         },
+        is_team: {
+            type: 'boolean',
+            title: 'Is Team',
+            default: false
+        },
         full_name: {
             anyOf: [
                 {
@@ -3048,6 +3502,11 @@ export const UserPublicSchema = {
         is_superuser: {
             type: 'boolean',
             title: 'Is Superuser',
+            default: false
+        },
+        is_team: {
+            type: 'boolean',
+            title: 'Is Team',
             default: false
         },
         full_name: {
@@ -3168,6 +3627,11 @@ export const UserUpdateSchema = {
         is_superuser: {
             type: 'boolean',
             title: 'Is Superuser',
+            default: false
+        },
+        is_team: {
+            type: 'boolean',
+            title: 'Is Team',
             default: false
         },
         full_name: {

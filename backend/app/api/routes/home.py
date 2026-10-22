@@ -6,6 +6,7 @@ from sqlmodel import col, select
 
 from app.api.deps import CurrentUser, SessionDep
 from app.api.routes.practice import read_profile
+from app.api.routes.team import has_team_access
 from app.core.pretest import latest_weakest_type
 from app.daily.dates import taipei_today
 from app.daily.results import DAILY_UNLOCK_LEVEL
@@ -78,6 +79,7 @@ def home_summary(session: SessionDep, current_user: CurrentUser) -> HomeSummary:
         retake=profile.retake,
         focus_type=profile.focus_type,
         focus_label=profile.focus_label,
+        team_access=has_team_access(current_user),
         badges=[
             b.fraud_type if b.kind == "type" and b.fraud_type else b.kind
             for b in list_badges(session, current_user.id)

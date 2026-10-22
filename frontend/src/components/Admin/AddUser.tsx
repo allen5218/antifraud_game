@@ -41,6 +41,7 @@ const formSchema = z
       .min(8, { message: "密碼至少要 8 個字元" }),
     confirm_password: z.string().min(1, { message: "請再輸入一次密碼" }),
     is_superuser: z.boolean(),
+    is_team: z.boolean(),
     is_active: z.boolean(),
   })
   .refine((data) => data.password === data.confirm_password, {
@@ -65,6 +66,7 @@ const AddUser = () => {
       password: "",
       confirm_password: "",
       is_superuser: false,
+      is_team: false,
       is_active: false,
     },
   })
@@ -194,6 +196,24 @@ const AddUser = () => {
                       />
                     </FormControl>
                     <FormLabel className="font-normal">管理員</FormLabel>
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="is_team"
+                render={({ field }) => (
+                  <FormItem className="flex items-center gap-3 space-y-0">
+                    <FormControl>
+                      <Checkbox
+                        checked={field.value}
+                        onCheckedChange={field.onChange}
+                      />
+                    </FormControl>
+                    <FormLabel className="font-normal">
+                      團隊成員（可以看團隊題庫）
+                    </FormLabel>
                   </FormItem>
                 )}
               />
