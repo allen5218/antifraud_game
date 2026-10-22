@@ -297,6 +297,7 @@ export type HomeSummary = {
     focus_type: (string | null);
     focus_label: (string | null);
     badges: Array<(string)>;
+    team_access?: boolean;
 };
 
 export type HTTPValidationError = {
@@ -698,6 +699,114 @@ export type SwipeDeckResponse = {
     cards: Array<SwipeCardPublic>;
 };
 
+export type TeamBank = {
+    pretest: Array<TeamPretest>;
+    swipe: Array<TeamSwipe>;
+    cases: Array<TeamCase>;
+    questions: Array<TeamQuestion>;
+    personas: Array<TeamPersona>;
+    skills: Array<TeamSkill>;
+    tactic_labels: {
+        [key: string]: (string);
+    };
+    comment_counts: {
+        [key: string]: (number);
+    };
+};
+
+export type TeamCase = {
+    key: string;
+    pool: string;
+    fraud_type: string;
+    is_scam: boolean;
+    difficulty: number;
+    title: string;
+    narrative: string;
+    red_flags: Array<TeamFlag>;
+    provenance: string;
+    mirror_key: (string | null);
+    pattern_key: (string | null);
+};
+
+export type TeamCommentCreate = {
+    item_kind: 'pretest' | 'swipe' | 'case' | 'question' | 'persona';
+    item_key: string;
+    body: string;
+};
+
+export type item_kind = 'pretest' | 'swipe' | 'case' | 'question' | 'persona';
+
+export type TeamCommentPublic = {
+    id: string;
+    item_kind: string;
+    item_key: string;
+    body: string;
+    author: string;
+    mine: boolean;
+    created_at: string;
+};
+
+export type TeamFlag = {
+    tag?: (string | null);
+    text: string;
+};
+
+export type TeamOption = {
+    key: string;
+    text: string;
+    is_correct?: boolean;
+};
+
+export type TeamPersona = {
+    key: string;
+    pool: string;
+    fraud_type: string;
+    role: string;
+    name: string;
+    teaser: string;
+    primary_tactics: Array<(string)>;
+    body: string;
+};
+
+export type TeamPretest = {
+    key: string;
+    fraud_type: string;
+    is_scam: (boolean | null);
+    difficulty: number;
+    question: string;
+    options: Array<TeamOption>;
+    explanation: string;
+};
+
+export type TeamQuestion = {
+    key: string;
+    case_key: string;
+    question_kind: string;
+    difficulty: number;
+    question: string;
+    options: Array<TeamOption>;
+    explanation: string;
+    weakness_tag: (string | null);
+    provenance: string;
+};
+
+export type TeamSkill = {
+    fraud_type: string;
+    body: string;
+};
+
+export type TeamSwipe = {
+    key: string;
+    pool: string;
+    fraud_type: string;
+    is_scam: boolean;
+    difficulty: number;
+    source_label: string;
+    scenario: string;
+    weakness_tags: Array<(string)>;
+    explanation: string;
+};
+
 export type Token = {
     access_token: string;
     token_type?: string;
@@ -712,6 +821,7 @@ export type UserCreate = {
     email: string;
     is_active?: boolean;
     is_superuser?: boolean;
+    is_team?: boolean;
     full_name?: (string | null);
     password: string;
 };
@@ -720,6 +830,7 @@ export type UserPublic = {
     email: (string);
     is_active?: boolean;
     is_superuser?: boolean;
+    is_team?: boolean;
     full_name?: (string | null);
     id: string;
     created_at?: (string | null);
@@ -743,6 +854,7 @@ export type UserUpdate = {
     email?: (string | null);
     is_active?: boolean;
     is_superuser?: boolean;
+    is_team?: boolean;
     full_name?: (string | null);
     password?: (string | null);
 };
@@ -1073,6 +1185,27 @@ export type ScenarioJudgeScenarioData = {
 export type ScenarioJudgeScenarioResponse = (ScenarioJudgeResponse);
 
 export type ScoreGetMyScoreResponse = (unknown);
+
+export type TeamReadBankResponse = (TeamBank);
+
+export type TeamListCommentsData = {
+    itemKey: string;
+    itemKind: 'pretest' | 'swipe' | 'case' | 'question' | 'persona';
+};
+
+export type TeamListCommentsResponse = (Array<TeamCommentPublic>);
+
+export type TeamCreateCommentData = {
+    requestBody: TeamCommentCreate;
+};
+
+export type TeamCreateCommentResponse = (TeamCommentPublic);
+
+export type TeamDeleteCommentData = {
+    commentId: string;
+};
+
+export type TeamDeleteCommentResponse = (void);
 
 export type UsersReadUsersData = {
     limit?: number;

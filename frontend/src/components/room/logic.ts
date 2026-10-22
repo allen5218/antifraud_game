@@ -22,9 +22,10 @@ export type MenuTo =
   | "/daily"
   | "/leaderboard"
   | "/exam"
+  | "/team"
 
 export type MenuItem = {
-  id: HotspotId | "leaderboard" | "badges"
+  id: HotspotId | "leaderboard" | "badges" | "team"
   label: string
   status: string
   done: boolean
@@ -247,6 +248,15 @@ export function menuItems(s: HomeSummary): MenuItem[] {
       to: "/exam",
     },
   ]
+  if (s.team_access) {
+    items.push({
+      id: "team",
+      label: "團隊題庫",
+      status: "全部題目與答案",
+      done: false,
+      to: "/team",
+    })
+  }
   if (!s.exam_active_attempt_id) return items
   const training = new Set<MenuItem["id"]>([
     "phone",

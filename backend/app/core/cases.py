@@ -206,3 +206,54 @@ def list_published_for_exam(
         .all()
     )
     return [GameCaseRow(**dict(row)) for row in rows]
+
+
+class TeamCaseRow(GameCaseRow):
+    case_key: str
+    mirror_key: str | None = None
+
+
+def list_published_for_team(session: Session) -> list[TeamCaseRow]:
+    """團隊題庫：練習與檢測的全部已發布案例，附代號與對照題代號(含答案,只給團隊)。"""
+    rows = (
+        session.execute(
+            text(
+                f"SELECT {', '.join('gc.' + c.strip() for c in _COLS.split(','))}, "
+                "gc.case_key, m.case_key AS mirror_key "
+                "FROM game_cases gc LEFT JOIN game_cases m ON m.id = gc.mirror_of "
+                "WHERE gc.status = 'published' ORDER BY gc.pool, gc.fraud_type, gc.case_key"
+            )
+        )
+        .mappings()
+        .all()
+    )
+    return [TeamCaseRow(**dict(row)) for row in rows]
+
+
+def list_verification_questions_for_team(
+    session: Session,
+) -> list[VerificationQuestionRow]:
+    """團隊題庫：每個 question_key 的最新已發布版本(母案例也要已發布)。"""
+    rows = (
+        session.execute(
+            text(
+                """
+SELECT q.id, q.question_key, q.case_id, q.question_kind, q.question, q.options,
+       q.correct_key, q.explanation, q.weakness_tag, q.difficulty,
+       COALESCE(q.provenance, gc.provenance) AS provenance
+FROM game_case_questions q
+JOIN game_cases gc ON gc.id = q.case_id
+WHERE q.status = 'published'
+  AND gc.status = 'published'
+  AND q.version = (
+      SELECT max(v.version) FROM game_case_questions v
+      WHERE v.question_key = q.question_key
+  )
+ORDER BY q.question_key
+"""
+            )
+        )
+        .mappings()
+        .all()
+    )
+    return [VerificationQuestionRow(**dict(row)) for row in rows]

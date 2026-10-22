@@ -312,3 +312,21 @@ describe("roomBadges", () => {
     expect(pausedHotspots(s)).toEqual(["phone", "tv", "letters", "calendar"])
   })
 })
+
+describe("團隊題庫入口", () => {
+  it("只有團隊成員或管理員的選單才有", () => {
+    expect(menuItems(summary()).some((i) => i.id === "team")).toBe(false)
+    const team = menuItems(summary({ team_access: true })).find(
+      (i) => i.id === "team",
+    )
+    expect(team?.to).toBe("/team")
+  })
+
+  it("檢測中也不會變成暫停", () => {
+    const team = menuItems(
+      summary({ team_access: true, exam_active_attempt_id: "a" }),
+    ).find((i) => i.id === "team")
+    expect(team?.done).toBe(false)
+    expect(team?.status).toBe("全部題目與答案")
+  })
+})

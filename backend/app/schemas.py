@@ -85,6 +85,8 @@ class HomeSummary(BaseModel):
     focus_type: str | None
     focus_label: str | None
     badges: list[str]
+    # 團隊成員或管理員：房間選單多一個「團隊題庫」
+    team_access: bool = False
 
 
 # ── Economy ───────────────────────────────────────────────
@@ -653,3 +655,115 @@ class ExamScenarioJudgeRequest(BaseModel):
     action: Literal["report", "comply"]
     # 必須指定本場，避免第一場的延遲請求誤判第二場。
     session_id: uuid.UUID
+
+
+# ── 團隊題庫(含答案,只給團隊成員與管理員) ─────────────────
+
+
+class TeamOption(BaseModel):
+    key: str
+    text: str
+    is_correct: bool = False
+
+
+class TeamPretest(BaseModel):
+    key: str
+    fraud_type: str
+    is_scam: bool | None
+    difficulty: int
+    question: str
+    options: list[TeamOption]
+    explanation: str
+
+
+class TeamSwipe(BaseModel):
+    key: str
+    pool: str
+    fraud_type: str
+    is_scam: bool
+    difficulty: int
+    source_label: str
+    scenario: str
+    weakness_tags: list[str]
+    explanation: str
+
+
+class TeamFlag(BaseModel):
+    tag: str | None = None
+    text: str
+
+
+class TeamCase(BaseModel):
+    key: str
+    pool: str
+    fraud_type: str
+    is_scam: bool
+    difficulty: int
+    title: str
+    narrative: str
+    red_flags: list[TeamFlag]
+    provenance: str
+    mirror_key: str | None
+    pattern_key: str | None
+
+
+class TeamQuestion(BaseModel):
+    key: str
+    case_key: str
+    question_kind: str
+    difficulty: int
+    question: str
+    options: list[TeamOption]
+    explanation: str
+    weakness_tag: str | None
+    provenance: str
+
+
+class TeamPersona(BaseModel):
+    key: str
+    pool: str
+    fraud_type: str
+    role: str
+    name: str
+    teaser: str
+    primary_tactics: list[str]
+    body: str
+
+
+class TeamSkill(BaseModel):
+    fraud_type: str
+    body: str
+
+
+class TeamBank(BaseModel):
+    pretest: list[TeamPretest]
+    swipe: list[TeamSwipe]
+    cases: list[TeamCase]
+    questions: list[TeamQuestion]
+    personas: list[TeamPersona]
+    skills: list[TeamSkill]
+    # 話術代號 → 中文名(app/core/weakness.py 是唯一來源)
+    tactic_labels: dict[str, str]
+    # 「類別:代號」→ 留言數
+    comment_counts: dict[str, int]
+
+
+TeamItemKind = Literal["pretest", "swipe", "case", "question", "persona"]
+
+
+class TeamCommentCreate(BaseModel):
+    item_kind: TeamItemKind
+    item_key: Annotated[str, StringConstraints(min_length=1, max_length=128)]
+    body: Annotated[
+        str, StringConstraints(strip_whitespace=True, min_length=1, max_length=1000)
+    ]
+
+
+class TeamCommentPublic(BaseModel):
+    id: str
+    item_kind: str
+    item_key: str
+    body: str
+    author: str
+    mine: bool
+    created_at: str

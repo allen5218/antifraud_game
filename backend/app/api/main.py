@@ -17,6 +17,7 @@ from app.api.routes import (
     quick,
     scenario,
     score,
+    team,
     users,
     utils,
 )
@@ -38,6 +39,7 @@ api_router.include_router(scenario.router)
 api_router.include_router(daily.router)
 api_router.include_router(exam.router)
 api_router.include_router(exam.badge_router)
+api_router.include_router(team.router)
 api_router.include_router(leaderboard.router)
 api_router.include_router(invite.router)
 api_router.include_router(admin_cohorts.router)
