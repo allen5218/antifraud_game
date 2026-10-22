@@ -4,11 +4,11 @@ import csv
 import io
 import secrets
 import uuid
-from datetime import timedelta
+from datetime import datetime, timedelta
 from typing import Annotated
 
 from fastapi import APIRouter, Depends, HTTPException, Response
-from sqlmodel import col, func, select
+from sqlmodel import Session, col, func, select
 
 from app.api.deps import CurrentUser, SessionDep
 from app.exam.export import (
@@ -25,6 +25,8 @@ from app.models import (
     CohortPublic,
     CohortUpdate,
     PracticeAnswer,
+    PretestAttempt,
+    PretestResult,
     User,
     get_datetime_utc,
 )
@@ -139,27 +141,106 @@ EXPORT_FIELDS = (
     "exam_pass_count",
     "last_exam_at",
     "badges",
+    "pretest_done",
+    "pretest_correct",
+    "pretest_total",
+    "pretest_at",
+    "first_exam_at",
+    "first_exam_mode",
+    "first_exam_fraud_type",
+    "first_exam_status",
+    "first_exam_score",
+    "first_exam_pretest_correct",
+    "best_exam_score",
+    "exam_completed",
+    "payout_eligible",
 )
 
 
-def build_export_rows(
-    members: list[CohortMemberPublic], summaries: dict[uuid.UUID, CsvRow]
-) -> list[CsvRow]:
-    """帳號基本資料、練習統計與檢測摘要；未作答者也有一列。"""
-    return [
-        {
-            "user_id": str(member.id),
-            "participant_code": member.participant_code or "",
-            "nickname": member.nickname or "",
-            "created_at": member.created_at.isoformat() if member.created_at else "",
-            "is_active": str(member.is_active).lower(),
-            "answer_count": member.answer_count,
-            "correct_count": member.correct_count,
-            "incorrect_count": member.answer_count - member.correct_count,
-            **summaries.get(member.id, empty_exam_summary()),
+def cohort_pretest_summaries(
+    session: Session, cohort_id: uuid.UUID
+) -> dict[uuid.UUID, CsvRow]:
+    """每人第一次入門前測的答對題數(試測的前測成績)。
+
+    `pretest_result` 一題一列、沒有第幾次的欄位;交卷時同一個交易先寫逐題結果、
+    最後才寫 `pretest_attempt`,所以第一筆 attempt 之前(含)的逐題結果就是第一次。
+    """
+    firsts: dict[uuid.UUID, datetime] = {}
+    for user_id, created_at in session.exec(
+        select(PretestAttempt.user_id, func.min(PretestAttempt.created_at))
+        .join(User, col(User.id) == col(PretestAttempt.user_id))
+        .where(User.cohort_id == cohort_id)
+        .group_by(col(PretestAttempt.user_id))
+    ).all():
+        if created_at is not None:
+            firsts[user_id] = created_at
+    summaries: dict[uuid.UUID, CsvRow] = {
+        user_id: {
+            "pretest_done": "true",
+            "pretest_correct": 0,
+            "pretest_total": 0,
+            "pretest_at": at.isoformat(),
         }
-        for member in members
-    ]
+        for user_id, at in firsts.items()
+    }
+    results = session.exec(
+        select(
+            PretestResult.user_id, PretestResult.created_at, PretestResult.is_correct
+        )
+        .join(User, col(User.id) == col(PretestResult.user_id))
+        .where(User.cohort_id == cohort_id)
+    ).all()
+    for user_id, created_at, is_correct in results:
+        first = firsts.get(user_id)
+        if first is None or created_at is None or created_at > first:
+            continue
+        row = summaries[user_id]
+        row["pretest_total"] = int(row["pretest_total"]) + 1
+        row["pretest_correct"] = int(row["pretest_correct"]) + int(is_correct)
+    return summaries
+
+
+def empty_pretest_summary() -> CsvRow:
+    return {
+        "pretest_done": "false",
+        "pretest_correct": "",
+        "pretest_total": "",
+        "pretest_at": "",
+    }
+
+
+def build_export_rows(
+    members: list[CohortMemberPublic],
+    summaries: dict[uuid.UUID, CsvRow],
+    pretests: dict[uuid.UUID, CsvRow],
+) -> list[CsvRow]:
+    """帳號基本資料、練習統計、前測與檢測摘要；未作答者也有一列。"""
+    rows: list[CsvRow] = []
+    for member in members:
+        exam = summaries.get(member.id, empty_exam_summary())
+        pretest = pretests.get(member.id, empty_pretest_summary())
+        rows.append(
+            {
+                "user_id": str(member.id),
+                "participant_code": member.participant_code or "",
+                "nickname": member.nickname or "",
+                "created_at": member.created_at.isoformat()
+                if member.created_at
+                else "",
+                "is_active": str(member.is_active).lower(),
+                "answer_count": member.answer_count,
+                "correct_count": member.correct_count,
+                "incorrect_count": member.answer_count - member.correct_count,
+                **exam,
+                **pretest,
+                # 試測發錢的條件：做完入門前測，且至少一次檢測正常交卷
+                "payout_eligible": str(
+                    pretest["pretest_done"] == "true"
+                    and exam["exam_completed"] == "true"
+                ).lower(),
+            }
+        )
+    return rows
 
 
 def csv_cell(value: str | int) -> str | int:
@@ -178,7 +259,11 @@ def export_cohort(cohort_id: uuid.UUID, session: SessionDep) -> Response:
     members = list_members(cohort_id, session)
     return csv_response(
         EXPORT_FIELDS,
-        build_export_rows(members, cohort_exam_summaries(session, cohort_id)),
+        build_export_rows(
+            members,
+            cohort_exam_summaries(session, cohort_id),
+            cohort_pretest_summaries(session, cohort_id),
+        ),
         f"cohort-{cohort_id}.csv",
     )
 

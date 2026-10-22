@@ -38,21 +38,37 @@ def cohort_exam_summaries(
 ) -> dict[uuid.UUID, CsvRow]:
     summaries: dict[uuid.UUID, CsvRow] = {}
     attempts = session.exec(
-        select(
-            ExamAttempt.user_id,
-            ExamAttempt.created_at,
-            ExamAttempt.counted,
-            ExamAttempt.passed,
-        )
+        select(ExamAttempt)
         .join(User, col(User.id) == col(ExamAttempt.user_id))
         .where(User.cohort_id == cohort_id)
         .order_by(col(ExamAttempt.created_at), col(ExamAttempt.id))
     ).all()
-    for user_id, created_at, counted, passed in attempts:
+    for attempt in attempts:
+        user_id, created_at = attempt.user_id, attempt.created_at
+        counted, passed, status = attempt.counted, attempt.passed, attempt.status
+        mode, total_score = attempt.mode, attempt.total_score
         row = summaries.setdefault(user_id, empty_exam_summary())
         row["exam_attempt_count"] = int(row["exam_attempt_count"]) + int(counted)
         row["exam_pass_count"] = int(row["exam_pass_count"]) + int(counted and passed)
         row["last_exam_at"] = created_at.isoformat()
+        # 試測的後測看第一次考完的那份：作廢的不算，還在考的還沒有分數
+        if not row["first_exam_at"] and counted and status != "active":
+            row.update(
+                first_exam_at=created_at.isoformat(),
+                first_exam_mode=mode,
+                first_exam_fraud_type=attempt.fraud_type or "",
+                first_exam_status=status,
+                first_exam_score=round_score(total_score),
+                # 綜合檢測的前測關和入門前測同題庫、同抽法，可以直接比較
+                first_exam_pretest_correct=sum(attempt.pretest_by_type.values())
+                if mode == "comprehensive"
+                else "",
+            )
+        if counted and status == "completed":
+            row["exam_completed"] = "true"
+            best = row["best_exam_score"]
+            score = round_score(total_score)
+            row["best_exam_score"] = score if best == "" else max(int(best), score)
     badges = session.exec(
         select(ExamBadge)
         .join(User, col(User.id) == col(ExamBadge.user_id))
@@ -71,6 +87,14 @@ def empty_exam_summary() -> CsvRow:
         "exam_pass_count": 0,
         "last_exam_at": "",
         "badges": "",
+        "first_exam_at": "",
+        "first_exam_mode": "",
+        "first_exam_fraud_type": "",
+        "first_exam_status": "",
+        "first_exam_score": "",
+        "first_exam_pretest_correct": "",
+        "best_exam_score": "",
+        "exam_completed": "false",
     }
 
 
