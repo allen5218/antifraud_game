@@ -11,6 +11,7 @@ from sqlalchemy import (
     DateTime,
     ForeignKeyConstraint,
     Index,
+    UniqueConstraint,
     text,
 )
 from sqlalchemy.dialects.postgresql import JSONB
@@ -104,7 +105,9 @@ class UserPublic(UserBase):
         EmailStr
         | Annotated[
             str,
-            StringConstraints(pattern=r"^guest-[0-9a-f]{32}@participants\.invalid$"),
+            StringConstraints(
+                pattern=r"^(guest-[0-9a-f]{32}@participants|(line|google)-[0-9a-f]{32}@oauth)\.invalid$"
+            ),
         ]
     )
     id: uuid.UUID
@@ -776,6 +779,25 @@ class TeamComment(SQLModel, table=True):
     item_kind: str = Field(max_length=16)
     item_key: str = Field(max_length=128)
     body: str = Field(max_length=1000)
+    created_at: datetime = Field(
+        default_factory=get_datetime_utc, sa_type=DateTime(timezone=True)
+    )  # type: ignore
+
+
+class UserIdentity(SQLModel, table=True):
+    """第三方登入(Google、LINE)的帳號對應。用供應商給的使用者代號對,不用 email。"""
+
+    __tablename__ = "user_identity"
+    __table_args__ = (
+        UniqueConstraint(
+            "provider", "subject", name="uq_user_identity_provider_subject"
+        ),
+    )
+
+    id: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True)
+    user_id: uuid.UUID = Field(foreign_key="user.id", ondelete="CASCADE", index=True)
+    provider: str = Field(max_length=16)
+    subject: str = Field(max_length=255)
     created_at: datetime = Field(
         default_factory=get_datetime_utc, sa_type=DateTime(timezone=True)
     )  # type: ignore

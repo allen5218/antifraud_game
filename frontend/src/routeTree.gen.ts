@@ -12,6 +12,7 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as SignupRouteImport } from './routes/signup'
 import { Route as ResetPasswordRouteImport } from './routes/reset-password'
 import { Route as RecoverPasswordRouteImport } from './routes/recover-password'
+import { Route as PrivacyRouteImport } from './routes/privacy'
 import { Route as PretestRouteImport } from './routes/pretest'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as ShellRouteImport } from './routes/_shell'
@@ -31,6 +32,7 @@ import { Route as LayoutSettingsRouteImport } from './routes/_layout/settings'
 import { Route as LayoutItemsRouteImport } from './routes/_layout/items'
 import { Route as LayoutAdminRouteImport } from './routes/_layout/admin'
 import { Route as ShellScenariosIndexRouteImport } from './routes/_shell/scenarios/index'
+import { Route as OauthProviderCallbackRouteImport } from './routes/oauth.$provider.callback'
 import { Route as ShellScenariosScenarioIdRouteImport } from './routes/_shell/scenarios/$scenarioId'
 import { Route as ShellQuickSwipeRouteImport } from './routes/_shell/quick/swipe'
 import { Route as ShellQuickQuizRouteImport } from './routes/_shell/quick/quiz'
@@ -50,6 +52,11 @@ const ResetPasswordRoute = ResetPasswordRouteImport.update({
 const RecoverPasswordRoute = RecoverPasswordRouteImport.update({
   id: '/recover-password',
   path: '/recover-password',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PrivacyRoute = PrivacyRouteImport.update({
+  id: '/privacy',
+  path: '/privacy',
   getParentRoute: () => rootRouteImport,
 } as any)
 const PretestRoute = PretestRouteImport.update({
@@ -145,6 +152,11 @@ const ShellScenariosIndexRoute = ShellScenariosIndexRouteImport.update({
   path: '/scenarios/',
   getParentRoute: () => ShellRoute,
 } as any)
+const OauthProviderCallbackRoute = OauthProviderCallbackRouteImport.update({
+  id: '/oauth/$provider/callback',
+  path: '/oauth/$provider/callback',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ShellScenariosScenarioIdRoute =
   ShellScenariosScenarioIdRouteImport.update({
     id: '/scenarios/$scenarioId',
@@ -176,6 +188,7 @@ export interface FileRoutesByFullPath {
   '/': typeof ShellIndexRoute
   '/login': typeof LoginRoute
   '/pretest': typeof PretestRouteWithChildren
+  '/privacy': typeof PrivacyRoute
   '/recover-password': typeof RecoverPasswordRoute
   '/reset-password': typeof ResetPasswordRoute
   '/signup': typeof SignupRoute
@@ -197,12 +210,14 @@ export interface FileRoutesByFullPath {
   '/quick/quiz': typeof ShellQuickQuizRoute
   '/quick/swipe': typeof ShellQuickSwipeRoute
   '/scenarios/$scenarioId': typeof ShellScenariosScenarioIdRoute
+  '/oauth/$provider/callback': typeof OauthProviderCallbackRoute
   '/scenarios/': typeof ShellScenariosIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof ShellIndexRoute
   '/login': typeof LoginRoute
   '/pretest': typeof PretestRouteWithChildren
+  '/privacy': typeof PrivacyRoute
   '/recover-password': typeof RecoverPasswordRoute
   '/reset-password': typeof ResetPasswordRoute
   '/signup': typeof SignupRoute
@@ -224,6 +239,7 @@ export interface FileRoutesByTo {
   '/quick/quiz': typeof ShellQuickQuizRoute
   '/quick/swipe': typeof ShellQuickSwipeRoute
   '/scenarios/$scenarioId': typeof ShellScenariosScenarioIdRoute
+  '/oauth/$provider/callback': typeof OauthProviderCallbackRoute
   '/scenarios': typeof ShellScenariosIndexRoute
 }
 export interface FileRoutesById {
@@ -232,6 +248,7 @@ export interface FileRoutesById {
   '/_shell': typeof ShellRouteWithChildren
   '/login': typeof LoginRoute
   '/pretest': typeof PretestRouteWithChildren
+  '/privacy': typeof PrivacyRoute
   '/recover-password': typeof RecoverPasswordRoute
   '/reset-password': typeof ResetPasswordRoute
   '/signup': typeof SignupRoute
@@ -254,6 +271,7 @@ export interface FileRoutesById {
   '/_shell/quick/quiz': typeof ShellQuickQuizRoute
   '/_shell/quick/swipe': typeof ShellQuickSwipeRoute
   '/_shell/scenarios/$scenarioId': typeof ShellScenariosScenarioIdRoute
+  '/oauth/$provider/callback': typeof OauthProviderCallbackRoute
   '/_shell/scenarios/': typeof ShellScenariosIndexRoute
 }
 export interface FileRouteTypes {
@@ -262,6 +280,7 @@ export interface FileRouteTypes {
     | '/'
     | '/login'
     | '/pretest'
+    | '/privacy'
     | '/recover-password'
     | '/reset-password'
     | '/signup'
@@ -283,12 +302,14 @@ export interface FileRouteTypes {
     | '/quick/quiz'
     | '/quick/swipe'
     | '/scenarios/$scenarioId'
+    | '/oauth/$provider/callback'
     | '/scenarios/'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
     | '/login'
     | '/pretest'
+    | '/privacy'
     | '/recover-password'
     | '/reset-password'
     | '/signup'
@@ -310,6 +331,7 @@ export interface FileRouteTypes {
     | '/quick/quiz'
     | '/quick/swipe'
     | '/scenarios/$scenarioId'
+    | '/oauth/$provider/callback'
     | '/scenarios'
   id:
     | '__root__'
@@ -317,6 +339,7 @@ export interface FileRouteTypes {
     | '/_shell'
     | '/login'
     | '/pretest'
+    | '/privacy'
     | '/recover-password'
     | '/reset-password'
     | '/signup'
@@ -339,6 +362,7 @@ export interface FileRouteTypes {
     | '/_shell/quick/quiz'
     | '/_shell/quick/swipe'
     | '/_shell/scenarios/$scenarioId'
+    | '/oauth/$provider/callback'
     | '/_shell/scenarios/'
   fileRoutesById: FileRoutesById
 }
@@ -347,11 +371,13 @@ export interface RootRouteChildren {
   ShellRoute: typeof ShellRouteWithChildren
   LoginRoute: typeof LoginRoute
   PretestRoute: typeof PretestRouteWithChildren
+  PrivacyRoute: typeof PrivacyRoute
   RecoverPasswordRoute: typeof RecoverPasswordRoute
   ResetPasswordRoute: typeof ResetPasswordRoute
   SignupRoute: typeof SignupRoute
   BadgeSlugRoute: typeof BadgeSlugRoute
   InviteTokenRoute: typeof InviteTokenRoute
+  OauthProviderCallbackRoute: typeof OauthProviderCallbackRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -375,6 +401,13 @@ declare module '@tanstack/react-router' {
       path: '/recover-password'
       fullPath: '/recover-password'
       preLoaderRoute: typeof RecoverPasswordRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/privacy': {
+      id: '/privacy'
+      path: '/privacy'
+      fullPath: '/privacy'
+      preLoaderRoute: typeof PrivacyRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/pretest': {
@@ -510,6 +543,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ShellScenariosIndexRouteImport
       parentRoute: typeof ShellRoute
     }
+    '/oauth/$provider/callback': {
+      id: '/oauth/$provider/callback'
+      path: '/oauth/$provider/callback'
+      fullPath: '/oauth/$provider/callback'
+      preLoaderRoute: typeof OauthProviderCallbackRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/_shell/scenarios/$scenarioId': {
       id: '/_shell/scenarios/$scenarioId'
       path: '/scenarios/$scenarioId'
@@ -615,11 +655,13 @@ const rootRouteChildren: RootRouteChildren = {
   ShellRoute: ShellRouteWithChildren,
   LoginRoute: LoginRoute,
   PretestRoute: PretestRouteWithChildren,
+  PrivacyRoute: PrivacyRoute,
   RecoverPasswordRoute: RecoverPasswordRoute,
   ResetPasswordRoute: ResetPasswordRoute,
   SignupRoute: SignupRoute,
   BadgeSlugRoute: BadgeSlugRoute,
   InviteTokenRoute: InviteTokenRoute,
+  OauthProviderCallbackRoute: OauthProviderCallbackRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

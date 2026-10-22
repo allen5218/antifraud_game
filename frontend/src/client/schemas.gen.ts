@@ -1742,6 +1742,75 @@ export const NicknameUpdateSchema = {
     title: 'NicknameUpdate'
 } as const;
 
+export const OAuthCallbackSchema = {
+    properties: {
+        code: {
+            type: 'string',
+            maxLength: 2048,
+            minLength: 1,
+            title: 'Code'
+        },
+        state: {
+            type: 'string',
+            maxLength: 2048,
+            minLength: 1,
+            title: 'State'
+        },
+        code_verifier: {
+            type: 'string',
+            pattern: '^[A-Za-z0-9._~-]{43,128}$',
+            title: 'Code Verifier'
+        }
+    },
+    type: 'object',
+    required: ['code', 'state', 'code_verifier'],
+    title: 'OAuthCallback'
+} as const;
+
+export const OAuthProvidersSchema = {
+    properties: {
+        providers: {
+            items: {
+                type: 'string'
+            },
+            type: 'array',
+            title: 'Providers'
+        }
+    },
+    type: 'object',
+    required: ['providers'],
+    title: 'OAuthProviders'
+} as const;
+
+export const OAuthStartSchema = {
+    properties: {
+        code_challenge: {
+            type: 'string',
+            pattern: '^[A-Za-z0-9_-]{43}$',
+            title: 'Code Challenge'
+        }
+    },
+    type: 'object',
+    required: ['code_challenge'],
+    title: 'OAuthStart'
+} as const;
+
+export const OAuthStartResponseSchema = {
+    properties: {
+        authorize_url: {
+            type: 'string',
+            title: 'Authorize Url'
+        },
+        state: {
+            type: 'string',
+            title: 'State'
+        }
+    },
+    type: 'object',
+    required: ['authorize_url', 'state'],
+    title: 'OAuthStartResponse'
+} as const;
+
 export const OwnedPropertyPublicSchema = {
     properties: {
         id: {
@@ -3489,7 +3558,7 @@ export const UserPublicSchema = {
                 },
                 {
                     type: 'string',
-                    pattern: '^guest-[0-9a-f]{32}@participants\\.invalid$'
+                    pattern: '^(guest-[0-9a-f]{32}@participants|(line|google)-[0-9a-f]{32}@oauth)\\.invalid$'
                 }
             ],
             title: 'Email'

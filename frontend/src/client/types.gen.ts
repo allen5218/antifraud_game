@@ -401,6 +401,25 @@ export type NicknameUpdate = {
     nickname: string;
 };
 
+export type OAuthCallback = {
+    code: string;
+    state: string;
+    code_verifier: string;
+};
+
+export type OAuthProviders = {
+    providers: Array<(string)>;
+};
+
+export type OAuthStart = {
+    code_challenge: string;
+};
+
+export type OAuthStartResponse = {
+    authorize_url: string;
+    state: string;
+};
+
 export type OwnedPropertyPublic = {
     id: string;
     tier: PropertyTierPublic;
@@ -1087,6 +1106,22 @@ export type LoginRecoverPasswordHtmlContentData = {
 };
 
 export type LoginRecoverPasswordHtmlContentResponse = (string);
+
+export type LoginListProvidersResponse = (OAuthProviders);
+
+export type LoginStartData = {
+    provider: string;
+    requestBody: OAuthStart;
+};
+
+export type LoginStartResponse = (OAuthStartResponse);
+
+export type LoginCallbackData = {
+    provider: string;
+    requestBody: OAuthCallback;
+};
+
+export type LoginCallbackResponse = (Token);
 
 export type MascotListMascotItemsResponse = (MascotItemsPublic);
 
