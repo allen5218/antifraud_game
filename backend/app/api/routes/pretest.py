@@ -163,7 +163,15 @@ def submit_pretest(
 
     # 記下結論。題組發牌與情境收件匣會讀最近一次(app/core/pretest.py)。
     user_id = current_user.id
-    session.add(PretestAttempt(user_id=user_id, weakest_type=weakest_type))
+    session.add(
+        PretestAttempt(
+            user_id=user_id,
+            weakest_type=weakest_type,
+            duration_seconds=body.elapsed_ms / 1000
+            if body.elapsed_ms is not None
+            else None,
+        )
+    )
     # 同時寫進所有玩法共用的作答紀錄,交卷後在背景重新分析練習重點
     record_answers(session, user_id, "pretest", practice)
     session.commit()

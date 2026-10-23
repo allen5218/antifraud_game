@@ -7,6 +7,7 @@ from sqlmodel import col, select
 from app.api.deps import CurrentUser, SessionDep
 from app.api.routes.practice import read_profile
 from app.api.routes.team import has_team_access
+from app.api.routes.trial import exam_done
 from app.core.pretest import latest_weakest_type
 from app.daily.dates import taipei_today
 from app.daily.results import DAILY_UNLOCK_LEVEL
@@ -20,6 +21,7 @@ from app.models import (
     ExamAttempt,
     FraudType,
     ScenarioSession,
+    TrialSurvey,
     UserProperty,
 )
 from app.schemas import HomeSummary, PracticeProfilePublic
@@ -62,6 +64,12 @@ def home_summary(session: SessionDep, current_user: CurrentUser) -> HomeSummary:
         ).first()
         if latest is None or latest.status == "active":
             pending += 1
+    survey = (
+        session.get(TrialSurvey, current_user.id) if current_user.cohort_id else None
+    )
+    survey_pending = current_user.cohort_id is not None and (
+        survey is None or survey.submitted_at is None
+    )
     return HomeSummary(
         room_stage=room_stage,
         mascot_image_url=displayed_mascot(session, current_user.id).image_url,
@@ -80,6 +88,8 @@ def home_summary(session: SessionDep, current_user: CurrentUser) -> HomeSummary:
         focus_type=profile.focus_type,
         focus_label=profile.focus_label,
         team_access=has_team_access(current_user),
+        survey_pending=survey_pending,
+        survey_ready=survey_pending and exam_done(session, current_user.id),
         badges=[
             b.fraud_type if b.kind == "type" and b.fraud_type else b.kind
             for b in list_badges(session, current_user.id)

@@ -27,9 +27,12 @@ from app.models import (
     PracticeAnswer,
     PretestAttempt,
     PretestResult,
+    TrialSurvey,
     User,
     get_datetime_utc,
 )
+from app.trial.payout import payout_reasons
+from app.trial.survey import export_columns, export_value
 
 
 def require_cohort_admin(current_user: CurrentUser) -> User:
@@ -153,7 +156,13 @@ EXPORT_FIELDS = (
     "first_exam_pretest_correct",
     "best_exam_score",
     "exam_completed",
+    "pretest_seconds",
+    "exam_seconds",
+    "survey_done",
+    "survey_seconds",
+    "survey_attention_ok",
     "payout_eligible",
+    "payout_reasons",
 )
 
 
@@ -166,23 +175,26 @@ def cohort_pretest_summaries(
     最後才寫 `pretest_attempt`,所以第一筆 attempt 之前(含)的逐題結果就是第一次。
     """
     firsts: dict[uuid.UUID, datetime] = {}
-    for user_id, created_at in session.exec(
-        select(PretestAttempt.user_id, func.min(PretestAttempt.created_at))
+    summaries: dict[uuid.UUID, CsvRow] = {}
+    for attempt in session.exec(
+        select(PretestAttempt)
         .join(User, col(User.id) == col(PretestAttempt.user_id))
         .where(User.cohort_id == cohort_id)
-        .group_by(col(PretestAttempt.user_id))
+        .order_by(col(PretestAttempt.created_at), col(PretestAttempt.id))
     ).all():
-        if created_at is not None:
-            firsts[user_id] = created_at
-    summaries: dict[uuid.UUID, CsvRow] = {
-        user_id: {
+        if attempt.created_at is None or attempt.user_id in firsts:
+            continue
+        firsts[attempt.user_id] = attempt.created_at
+        summaries[attempt.user_id] = {
             "pretest_done": "true",
             "pretest_correct": 0,
             "pretest_total": 0,
-            "pretest_at": at.isoformat(),
+            "pretest_at": attempt.created_at.isoformat(),
+            # 舊紀錄（前端還沒計時的版本）沒有秒數
+            "pretest_seconds": ""
+            if attempt.duration_seconds is None
+            else round(attempt.duration_seconds),
         }
-        for user_id, at in firsts.items()
-    }
     results = session.exec(
         select(
             PretestResult.user_id, PretestResult.created_at, PretestResult.is_correct
@@ -206,6 +218,36 @@ def empty_pretest_summary() -> CsvRow:
         "pretest_correct": "",
         "pretest_total": "",
         "pretest_at": "",
+        "pretest_seconds": "",
+    }
+
+
+def cohort_survey_summaries(
+    session: Session, cohort_id: uuid.UUID
+) -> dict[uuid.UUID, TrialSurvey]:
+    """交過的問卷；只開了問卷頁、還沒交的不算。"""
+    return {
+        survey.user_id: survey
+        for survey in session.exec(
+            select(TrialSurvey)
+            .join(User, col(User.id) == col(TrialSurvey.user_id))
+            .where(
+                User.cohort_id == cohort_id,
+                col(TrialSurvey.submitted_at).is_not(None),
+            )
+        ).all()
+    }
+
+
+def survey_summary(survey: TrialSurvey | None) -> CsvRow:
+    if survey is None:
+        return {"survey_done": "false", "survey_seconds": "", "survey_attention_ok": ""}
+    return {
+        "survey_done": "true",
+        "survey_seconds": ""
+        if survey.duration_seconds is None
+        else round(survey.duration_seconds),
+        "survey_attention_ok": str(bool(survey.attention_ok)).lower(),
     }
 
 
@@ -213,33 +255,31 @@ def build_export_rows(
     members: list[CohortMemberPublic],
     summaries: dict[uuid.UUID, CsvRow],
     pretests: dict[uuid.UUID, CsvRow],
+    surveys: dict[uuid.UUID, TrialSurvey],
 ) -> list[CsvRow]:
-    """帳號基本資料、練習統計、前測與檢測摘要；未作答者也有一列。"""
+    """帳號基本資料、練習統計、前測、檢測與問卷摘要；未作答者也有一列。"""
     rows: list[CsvRow] = []
     for member in members:
         exam = summaries.get(member.id, empty_exam_summary())
         pretest = pretests.get(member.id, empty_pretest_summary())
-        rows.append(
-            {
-                "user_id": str(member.id),
-                "participant_code": member.participant_code or "",
-                "nickname": member.nickname or "",
-                "created_at": member.created_at.isoformat()
-                if member.created_at
-                else "",
-                "is_active": str(member.is_active).lower(),
-                "answer_count": member.answer_count,
-                "correct_count": member.correct_count,
-                "incorrect_count": member.answer_count - member.correct_count,
-                **exam,
-                **pretest,
-                # 試測發錢的條件：做完入門前測，且至少一次檢測正常交卷
-                "payout_eligible": str(
-                    pretest["pretest_done"] == "true"
-                    and exam["exam_completed"] == "true"
-                ).lower(),
-            }
-        )
+        row: CsvRow = {
+            "user_id": str(member.id),
+            "participant_code": member.participant_code or "",
+            "nickname": member.nickname or "",
+            "created_at": member.created_at.isoformat() if member.created_at else "",
+            "is_active": str(member.is_active).lower(),
+            "answer_count": member.answer_count,
+            "correct_count": member.correct_count,
+            "incorrect_count": member.answer_count - member.correct_count,
+            **exam,
+            **pretest,
+            **survey_summary(surveys.get(member.id)),
+        }
+        # 試測發錢的條件見 app/trial/payout.py
+        reasons = payout_reasons(row)
+        row["payout_eligible"] = str(not reasons).lower()
+        row["payout_reasons"] = "；".join(reasons)
+        rows.append(row)
     return rows
 
 
@@ -263,9 +303,51 @@ def export_cohort(cohort_id: uuid.UUID, session: SessionDep) -> Response:
             members,
             cohort_exam_summaries(session, cohort_id),
             cohort_pretest_summaries(session, cohort_id),
+            cohort_survey_summaries(session, cohort_id),
         ),
         f"cohort-{cohort_id}.csv",
     )
+
+
+SURVEY_EXPORT_FIELDS = (
+    "participant_code",
+    "submitted_at",
+    "survey_seconds",
+    "survey_attention_ok",
+    *export_columns(),
+)
+
+
+@router.get(
+    "/{cohort_id}/survey.csv",
+    response_class=Response,
+    responses={200: {"content": {"text/csv": {"schema": {"type": "string"}}}}},
+)
+def export_cohort_survey(cohort_id: uuid.UUID, session: SessionDep) -> Response:
+    """交過問卷的人一人一列、每題一欄；量表是 1～5 的數字，複選用「；」分開。"""
+    get_cohort(session, cohort_id)
+    surveys = cohort_survey_summaries(session, cohort_id)
+    users = session.exec(
+        select(User)
+        .where(col(User.id).in_(list(surveys)))
+        .order_by(col(User.created_at), col(User.id))
+    ).all()
+    rows: list[CsvRow] = []
+    for user in users:
+        survey = surveys[user.id]
+        summary = survey_summary(survey)
+        rows.append(
+            {
+                "participant_code": user.participant_code or "",
+                "submitted_at": survey.submitted_at.isoformat()
+                if survey.submitted_at
+                else "",
+                "survey_seconds": summary["survey_seconds"],
+                "survey_attention_ok": summary["survey_attention_ok"],
+                **{key: export_value(survey.answers, key) for key in export_columns()},
+            }
+        )
+    return csv_response(SURVEY_EXPORT_FIELDS, rows, f"cohort-{cohort_id}-survey.csv")
 
 
 @router.get(

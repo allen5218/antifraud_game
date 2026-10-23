@@ -87,8 +87,10 @@ function PretestPage() {
     setSubmitting(true)
     setSubmitError(null)
     try {
+      // 從題目載入到交卷的時間，試測用來排除亂按的人
+      const elapsed = Date.now() - questionsQuery.dataUpdatedAt
       const result = await PretestService.submitPretest({
-        requestBody: { answers: all },
+        requestBody: { answers: all, elapsed_ms: Math.max(0, elapsed) },
       })
       sessionStorage.setItem("pretestResult", JSON.stringify(result))
       refreshPracticeProfileSoon(queryClient)

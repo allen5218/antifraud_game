@@ -7,6 +7,10 @@ import { errorCode } from "@/components/exam/exam"
 import { ActionCard } from "@/components/scenario/ActionCard"
 import { JudgeSheet } from "@/components/scenario/JudgeSheet"
 import { MessageList, toChatEntries } from "@/components/scenario/MessageList"
+import {
+  MESSAGE_MAX_CHARS,
+  messageRejection,
+} from "@/components/scenario/messageRejection"
 import { OutcomeBadge } from "@/components/scenario/OutcomeBadge"
 import { ResultSheet } from "@/components/scenario/ResultSheet"
 import { ScenarioAvatar } from "@/components/scenario/ScenarioAvatar"
@@ -150,6 +154,8 @@ export function ScenarioChatPage({ scenarioId }: { scenarioId: string }) {
         <MessageList
           entries={entries}
           typing={sendM.isPending}
+          avatar={detail.avatar}
+          name={detail.display_name}
           trailing={
             decisionPoint && (
               <ActionCard
@@ -173,8 +179,12 @@ export function ScenarioChatPage({ scenarioId }: { scenarioId: string }) {
             </p>
           )}
           {sendM.isError && (
-            <p className="pb-1 text-center text-[11px] text-destructive">
-              訊息沒送出，請再試一次
+            <p
+              role="alert"
+              className="pb-1 text-center text-[11px] text-destructive"
+            >
+              {messageRejection(errorCode(sendM.error)) ??
+                "訊息沒送出，請再試一次"}
             </p>
           )}
           <form
@@ -188,6 +198,8 @@ export function ScenarioChatPage({ scenarioId }: { scenarioId: string }) {
               value={input}
               onChange={(e) => setInput(e.target.value)}
               disabled={inputLocked}
+              maxLength={MESSAGE_MAX_CHARS}
+              aria-label="對話訊息"
               placeholder={
                 turnsLeft > 0
                   ? `輸入訊息…（還能回 ${turnsLeft} 次）`

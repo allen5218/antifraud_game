@@ -128,6 +128,15 @@ function CohortsPage() {
     },
     onError: () => setNotice("下載失敗，請稍後再試。"),
   })
+  const exportSurveyCsv = useMutation({
+    mutationFn: (cohortId: string) =>
+      AdminCohortsService.exportCohortSurvey({ cohortId }),
+    onSuccess: (data, cohortId) => {
+      downloadCsv(data, `cohort-${cohortId}-survey.csv`)
+      setNotice(null)
+    },
+    onError: () => setNotice("下載失敗，請稍後再試。"),
+  })
   const submit = (event: FormEvent) => {
     event.preventDefault()
     if (name.trim()) create.mutate()
@@ -239,6 +248,14 @@ function CohortsPage() {
             >
               <Download aria-hidden className="size-4" />
               下載檢測作答 CSV
+            </Button>
+            <Button
+              variant="outline"
+              disabled={exportSurveyCsv.isPending}
+              onClick={() => exportSurveyCsv.mutate(selected.id)}
+            >
+              <Download aria-hidden className="size-4" />
+              下載問卷 CSV
             </Button>
           </div>
           {members.isPending && <output>正在載入成員…</output>}

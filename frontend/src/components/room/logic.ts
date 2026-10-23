@@ -23,9 +23,10 @@ export type MenuTo =
   | "/leaderboard"
   | "/exam"
   | "/team"
+  | "/survey"
 
 export type MenuItem = {
-  id: HotspotId | "leaderboard" | "badges" | "team"
+  id: HotspotId | "leaderboard" | "badges" | "team" | "survey"
   label: string
   status: string
   done: boolean
@@ -248,6 +249,16 @@ export function menuItems(s: HomeSummary): MenuItem[] {
       to: "/exam",
     },
   ]
+  if (s.survey_pending) {
+    // 試測帳號：做完一次檢測才能填，放在最前面
+    items.unshift({
+      id: "survey",
+      label: "試測問卷",
+      status: s.survey_ready ? "還沒填" : "做完檢測後填",
+      done: !s.survey_ready,
+      to: "/survey",
+    })
+  }
   if (s.team_access) {
     items.push({
       id: "team",

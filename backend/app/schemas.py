@@ -40,6 +40,8 @@ class PretestAnswer(BaseModel):
 
 class PretestSubmitRequest(BaseModel):
     answers: list[PretestAnswer]
+    # 從題目載入到交卷的毫秒數（前端計時）；試測用來排除亂按的人
+    elapsed_ms: int | None = Field(default=None, ge=0, le=24 * 60 * 60 * 1000)
 
 
 class FraudTypeResult(BaseModel):
@@ -87,6 +89,9 @@ class HomeSummary(BaseModel):
     badges: list[str]
     # 團隊成員或管理員：房間選單多一個「團隊題庫」
     team_access: bool = False
+    # 試測帳號還沒交問卷；做完一次檢測（survey_ready）才能填
+    survey_pending: bool = False
+    survey_ready: bool = False
 
 
 # ── Economy ───────────────────────────────────────────────
@@ -232,6 +237,9 @@ class ScenarioInboxItem(BaseModel):
     status: str
     outcome: str | None
     unread: bool
+    # 聊天列表右邊的未讀數字與時間：最後一段是對方傳的才算未讀
+    unread_count: int = 0
+    last_at: str | None = None
 
 
 class ScenarioNewRequest(BaseModel):
@@ -767,3 +775,31 @@ class TeamCommentPublic(BaseModel):
     author: str
     mine: bool
     created_at: str
+
+
+# ── 試測問卷 ─────────────────────────────────────────────────
+
+
+class SurveyQuestionPublic(BaseModel):
+    id: str
+    kind: Literal["consent", "single", "multi", "scale", "text"]
+    text: str
+    section: str
+    options: list[str]
+    # 量表每一點的字（1～5）
+    labels: list[str]
+    required: bool
+    # 選了「其他」要另外填說明
+    other: bool
+
+
+class TrialSurveyPublic(BaseModel):
+    questions: list[SurveyQuestionPublic]
+    started: bool
+    submitted: bool
+    # 做完一次檢測才能填（問卷有問檢測的難度）
+    exam_done: bool
+
+
+class TrialSurveySubmit(BaseModel):
+    answers: dict[str, Any]

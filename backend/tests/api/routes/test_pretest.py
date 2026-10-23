@@ -89,7 +89,7 @@ def test_submit_pretest(
     response = client.post(
         f"{settings.API_V1_STR}/pretest/submit",
         headers=superuser_token_headers,
-        json={"answers": answers},
+        json={"answers": answers, "elapsed_ms": 75500},
     )
     assert response.status_code == 200
     data = response.json()
@@ -115,6 +115,11 @@ def test_submit_pretest(
     user = db.exec(select(User).where(User.email == settings.FIRST_SUPERUSER)).one()
     db.expire_all()
     assert latest_weakest_type(db, user.id) == data["weakest_type"]
+    # 前端計的作答時間跟著存下來，試測匯出用
+    attempt = db.exec(
+        select(PretestAttempt).where(PretestAttempt.user_id == user.id)
+    ).one()
+    assert attempt.duration_seconds == 75.5
 
     # 清理。PretestAttempt 不刪的話,後面的發牌測試會被偏重到這一類
     db.execute(delete(PretestAttempt))
@@ -233,3 +238,14 @@ def test_submit_pretest_breaks_ties_in_fixed_order(
     for q in questions:
         db.delete(q)
     db.commit()
+
+
+def test_submit_pretest_rejects_negative_elapsed_time(
+    client: TestClient, superuser_token_headers: dict[str, str]
+) -> None:
+    response = client.post(
+        f"{settings.API_V1_STR}/pretest/submit",
+        headers=superuser_token_headers,
+        json={"answers": [], "elapsed_ms": -1},
+    )
+    assert response.status_code == 422

@@ -1341,6 +1341,16 @@ export const HomeSummarySchema = {
             type: 'boolean',
             title: 'Team Access',
             default: false
+        },
+        survey_pending: {
+            type: 'boolean',
+            title: 'Survey Pending',
+            default: false
+        },
+        survey_ready: {
+            type: 'boolean',
+            title: 'Survey Ready',
+            default: false
         }
     },
     type: 'object',
@@ -1915,6 +1925,19 @@ export const PretestSubmitRequestSchema = {
             },
             type: 'array',
             title: 'Answers'
+        },
+        elapsed_ms: {
+            anyOf: [
+                {
+                    type: 'integer',
+                    maximum: 86400000,
+                    minimum: 0
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Elapsed Ms'
         }
     },
     type: 'object',
@@ -2743,6 +2766,22 @@ export const ScenarioInboxItemSchema = {
         unread: {
             type: 'boolean',
             title: 'Unread'
+        },
+        unread_count: {
+            type: 'integer',
+            title: 'Unread Count',
+            default: 0
+        },
+        last_at: {
+            anyOf: [
+                {
+                    type: 'string'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Last At'
         }
     },
     type: 'object',
@@ -2870,6 +2909,53 @@ export const ScenarioNewRequestSchema = {
     type: 'object',
     required: ['fraud_type'],
     title: 'ScenarioNewRequest'
+} as const;
+
+export const SurveyQuestionPublicSchema = {
+    properties: {
+        id: {
+            type: 'string',
+            title: 'Id'
+        },
+        kind: {
+            type: 'string',
+            enum: ['consent', 'single', 'multi', 'scale', 'text'],
+            title: 'Kind'
+        },
+        text: {
+            type: 'string',
+            title: 'Text'
+        },
+        section: {
+            type: 'string',
+            title: 'Section'
+        },
+        options: {
+            items: {
+                type: 'string'
+            },
+            type: 'array',
+            title: 'Options'
+        },
+        labels: {
+            items: {
+                type: 'string'
+            },
+            type: 'array',
+            title: 'Labels'
+        },
+        required: {
+            type: 'boolean',
+            title: 'Required'
+        },
+        other: {
+            type: 'boolean',
+            title: 'Other'
+        }
+    },
+    type: 'object',
+    required: ['id', 'kind', 'text', 'section', 'options', 'labels', 'required', 'other'],
+    title: 'SurveyQuestionPublic'
 } as const;
 
 export const SwipeAnswerRequestSchema = {
@@ -3479,6 +3565,46 @@ export const TokenSchema = {
     type: 'object',
     required: ['access_token'],
     title: 'Token'
+} as const;
+
+export const TrialSurveyPublicSchema = {
+    properties: {
+        questions: {
+            items: {
+                '$ref': '#/components/schemas/SurveyQuestionPublic'
+            },
+            type: 'array',
+            title: 'Questions'
+        },
+        started: {
+            type: 'boolean',
+            title: 'Started'
+        },
+        submitted: {
+            type: 'boolean',
+            title: 'Submitted'
+        },
+        exam_done: {
+            type: 'boolean',
+            title: 'Exam Done'
+        }
+    },
+    type: 'object',
+    required: ['questions', 'started', 'submitted', 'exam_done'],
+    title: 'TrialSurveyPublic'
+} as const;
+
+export const TrialSurveySubmitSchema = {
+    properties: {
+        answers: {
+            additionalProperties: true,
+            type: 'object',
+            title: 'Answers'
+        }
+    },
+    type: 'object',
+    required: ['answers'],
+    title: 'TrialSurveySubmit'
 } as const;
 
 export const UpdatePasswordSchema = {
