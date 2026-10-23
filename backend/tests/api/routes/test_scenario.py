@@ -72,6 +72,9 @@ def test_inbox_bootstraps_five_types_without_leaking_role(
     for item in items:
         assert item["preview"]
         assert "persona_role" not in item
+        # 未讀時至少一則，已讀為 0；每一場都有最後訊息的時間
+        assert (item["unread_count"] >= 1) == item["unread"]
+        assert datetime.fromisoformat(item["last_at"]).tzinfo is not None
     assert "persona_role" not in r.text
     assert "tactics" not in r.text
 

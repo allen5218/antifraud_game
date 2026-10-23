@@ -237,6 +237,9 @@ class ScenarioInboxItem(BaseModel):
     status: str
     outcome: str | None
     unread: bool
+    # 聊天列表右邊的未讀數字與時間：最後一段是對方傳的才算未讀
+    unread_count: int = 0
+    last_at: str | None = None
 
 
 class ScenarioNewRequest(BaseModel):

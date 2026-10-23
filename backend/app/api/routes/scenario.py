@@ -106,6 +106,9 @@ def _to_inbox_item(sc: ScenarioSession) -> ScenarioInboxItem:
         status=sc.status,
         outcome=sc.outcome,
         unread=unread,
+        unread_count=len(history[-1].get("messages", [])) if unread else 0,
+        last_at=(history[-1].get("at") if history else None)
+        or (sc.created_at.isoformat() if sc.created_at else None),
     )
 
 

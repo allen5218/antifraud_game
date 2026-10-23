@@ -649,6 +649,8 @@ export type ScenarioInboxItem = {
     status: string;
     outcome: (string | null);
     unread: boolean;
+    unread_count?: number;
+    last_at?: (string | null);
 };
 
 export type ScenarioJudgeRequest = {

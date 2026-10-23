@@ -2,9 +2,8 @@
 
 擋下的訊息不寫進對話、不扣回合、不呼叫 AI。
 
-- 毒品、色情：關鍵字比對。比對前先做全形半形統一、拿掉空白與符號，
-  「做 愛」「做.愛」這類拆字一樣擋得到。
-  不擋「裸照」「私密照」「一夜情」：假交友與性勒索詐騙會談到，玩家拒絕時也會用到。
+- 毒品、色情：關鍵字比對，詞表與出處在 blocked_terms.py。比對前先做全形半形統一、
+  拿掉空白與符號，「做 愛」「做.愛」這類拆字一樣擋得到。
 - 海綿樣本（sponge examples，故意讓模型多花運算與時間的輸入）：
   字數上限、同一個字連續重複、亂碼與罕見符號比例過高、看不見的控制字元。
   另外在 agent 端限制輸出長度與逾時（agent.py）。
@@ -12,6 +11,15 @@
 
 import re
 import unicodedata
+from functools import cache
+
+from app.scenario.blocked_terms import (
+    ALLOWED_PHRASES,
+    DRUG_CONTEXT,
+    DRUG_SLANG,
+    DRUG_TERMS,
+    SEXUAL_TERMS,
+)
 
 MAX_CHARS = 200
 """一則聊天訊息的上限。手機上一則訊息很少超過這個長度。"""
@@ -21,72 +29,6 @@ MAX_REPEAT = 20
 
 MIN_READABLE_RATIO = 0.6
 """中英文字、數字、常用標點與表情符號至少要佔這個比例。"""
-
-DRUG_TERMS = (
-    "毒品",
-    "吸毒",
-    "販毒",
-    "運毒",
-    "製毒",
-    "大麻",
-    "安非他命",
-    "冰毒",
-    "k他命",
-    "愷他命",
-    "凱他命",
-    "搖頭丸",
-    "海洛因",
-    "古柯鹼",
-    "可卡因",
-    "毒咖啡包",
-    "笑氣",
-    "神仙水",
-    "fm2",
-    "lsd",
-    "mdma",
-    "cocaine",
-    "heroin",
-    "ketamine",
-    "methamphetamine",
-)
-
-SEXUAL_TERMS = (
-    "色情",
-    "做愛",
-    "性交",
-    "口交",
-    "肛交",
-    "打砲",
-    "打炮",
-    "約砲",
-    "約炮",
-    "砲友",
-    "炮友",
-    "援交",
-    "嫖",
-    "性服務",
-    "a片",
-    "成人片",
-    "自慰",
-    "陰莖",
-    "陰道",
-    "雞巴",
-    "奶子",
-    "porn",
-    "sex",
-)
-
-# 正常詞語裡剛好含有關鍵字的，比對前先拿掉
-ALLOWED_PHRASES = (
-    "做愛心",
-    "叫做愛",
-    "當做愛",
-    "看做愛",
-    "稱做愛",
-    "做愛國",
-    "大麻煩",
-    "大麻將",
-)
 
 # 看不見的格式字元（零寬字元、方向控制等）可以塞進大量 token 卻不顯示
 _INVISIBLE = {"Cf", "Cc", "Co", "Cn"}
@@ -123,18 +65,40 @@ def normalize(text: str) -> str:
     return re.sub(r"\s+", " ", text).strip()
 
 
+@cache
+def _term_pattern(term: str) -> re.Pattern[str]:
+    """中文詞直接比對；中英混合的詞（「拉k」「k粉」「a片」）前後不能緊貼英數字，
+    避免「拉ktv」「pink粉」「5kg水」被當成毒品色情。"""
+    pattern = re.escape(term)
+    if term[0].isascii() and term[0].isalnum():
+        pattern = r"(?<![a-z0-9])" + pattern
+    if term[-1].isascii() and term[-1].isalnum():
+        pattern += r"(?![a-z0-9])"
+    return re.compile(pattern)
+
+
+def _found(terms: tuple[str, ...], squashed: str, words: set[str]) -> str | None:
+    for term in terms:
+        # 英文詞：整個字相符（「is sex」），或拆字拼回來前後不貼英數字（「f.u.c.k」）；
+        # 「essex」「method」這類字裡剛好含有的不算
+        if (term.isascii() and term in words) or _term_pattern(term).search(squashed):
+            return term
+    return None
+
+
 def _blocked_term(text: str) -> str | None:
-    squashed = _STRIP_FOR_MATCH.sub("", text.casefold())
+    lowered = text.casefold()
+    squashed = _STRIP_FOR_MATCH.sub("", lowered)
     for phrase in ALLOWED_PHRASES:
         squashed = squashed.replace(phrase, "")
-    words = set(re.findall(r"[a-z0-9]+", text.casefold()))
-    for term in (*DRUG_TERMS, *SEXUAL_TERMS):
-        if term.isascii():
-            # 英文詞要整個字相符，避免「Sussex」「essex」這類地名誤擋
-            if term in words:
-                return term
-        elif term in squashed:
-            return term
+    words = set(re.findall(r"[a-z0-9]+", lowered))
+    found = _found(DRUG_TERMS, squashed, words) or _found(SEXUAL_TERMS, squashed, words)
+    if found:
+        return found
+    # 一般用語也會用到的暗語，要同時出現使用毒品的說法才算
+    slang = _found(DRUG_SLANG, squashed, words)
+    if slang and _found(DRUG_CONTEXT, squashed, words):
+        return slang
     return None
 
 

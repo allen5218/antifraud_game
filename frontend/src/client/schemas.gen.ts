@@ -2766,6 +2766,22 @@ export const ScenarioInboxItemSchema = {
         unread: {
             type: 'boolean',
             title: 'Unread'
+        },
+        unread_count: {
+            type: 'integer',
+            title: 'Unread Count',
+            default: 0
+        },
+        last_at: {
+            anyOf: [
+                {
+                    type: 'string'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Last At'
         }
     },
     type: 'object',

@@ -1,4 +1,3 @@
-import { motion } from "framer-motion"
 import { type ReactNode, useEffect, useRef } from "react"
 import { cn } from "@/lib/utils"
 import { ScenarioAvatar } from "./ScenarioAvatar"
@@ -57,7 +56,6 @@ const NPC_TAIL =
   "before:absolute before:top-0 before:-left-2 before:border-t-[10px] before:border-l-[10px] before:border-t-card before:border-l-transparent before:content-['']"
 const PLAYER_TAIL =
   "before:absolute before:top-0 before:-right-2 before:border-t-[10px] before:border-r-[10px] before:border-t-primary before:border-r-transparent before:content-['']"
-const ENTER = { initial: { opacity: 0, y: 8 }, animate: { opacity: 1, y: 0 } }
 
 function Time({ at, read = false }: { at: string | null; read?: boolean }) {
   const time = chatTime(at)
@@ -119,11 +117,7 @@ export function MessageList({
     }
     if (entry.role === "player") {
       nodes.push(
-        <motion.div
-          key={i}
-          {...ENTER}
-          className="flex items-end justify-end gap-1.5 pr-2"
-        >
+        <div key={i} className="flex items-end justify-end gap-1.5 pr-2">
           <Time at={entry.at} read={i < lastNpc} />
           <div
             className={cn(
@@ -133,7 +127,7 @@ export function MessageList({
           >
             {entry.text}
           </div>
-        </motion.div>,
+        </div>,
       )
       return
     }
@@ -145,9 +139,8 @@ export function MessageList({
             {name}
           </span>
           {entry.messages.map((m, j) => (
-            <motion.div
+            <div
               key={`${i}-${j}`}
-              {...ENTER}
               className="flex max-w-[85%] items-end gap-1.5"
             >
               <div
@@ -159,7 +152,7 @@ export function MessageList({
                 {m}
               </div>
               {j === entry.messages.length - 1 && <Time at={entry.at} />}
-            </motion.div>
+            </div>
           ))}
         </div>
       </div>,
