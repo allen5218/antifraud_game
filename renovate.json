@@ -5,7 +5,7 @@
   "prConcurrentLimit": 5,
   "packageRules": [
     {
-      "matchUpdateTypes": ["minor", "patch", "digest", "pin"],
+      "matchUpdateTypes": ["minor", "patch", "digest", "pin", "pinDigest"],
       "automerge": true,
       "automergeType": "pr",
       "platformAutomerge": true
@@ -16,6 +16,16 @@
       "matchDepNames": ["python"],
       "matchUpdateTypes": ["minor", "major"],
       "automerge": false
+    },
+    {
+      "description": "Playwright 的 npm 套件與測試用 Docker 映像要同一版(套件只認映像裡同版號的瀏覽器),分開升級兩個 PR 都會失敗,所以綁成一組",
+      "matchPackageNames": ["@playwright/test", "mcr.microsoft.com/playwright"],
+      "groupName": "playwright"
+    },
+    {
+      "description": "openapi-ts 釘在 0.73:之後的版本拿掉了 legacy/axios,照現在的設定會產生 0 個檔,升級等於改寫整個前端的 API 呼叫",
+      "matchPackageNames": ["@hey-api/openapi-ts"],
+      "enabled": false
     }
   ],
   "docker-compose": { "enabled": true },
