@@ -58,5 +58,6 @@ export function Logo({
     return content
   }
 
-  return <Link to="/pretest">{content}</Link>
+  // 回首頁（房間）；早期首頁是前測，這裡一直沒跟著改
+  return <Link to="/">{content}</Link>
 }
