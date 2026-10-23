@@ -101,6 +101,53 @@ export const BuyPropertyResponseSchema = {
     title: 'BuyPropertyResponse'
 } as const;
 
+export const ChoiceCountSchema = {
+    properties: {
+        label: {
+            type: 'string',
+            title: 'Label'
+        },
+        count: {
+            type: 'integer',
+            title: 'Count'
+        }
+    },
+    type: 'object',
+    required: ['label', 'count'],
+    title: 'ChoiceCount'
+} as const;
+
+export const ChoiceItemSchema = {
+    properties: {
+        id: {
+            type: 'string',
+            title: 'Id'
+        },
+        question: {
+            type: 'string',
+            title: 'Question'
+        },
+        multi: {
+            type: 'boolean',
+            title: 'Multi'
+        },
+        n: {
+            type: 'integer',
+            title: 'N'
+        },
+        options: {
+            items: {
+                '$ref': '#/components/schemas/ChoiceCount'
+            },
+            type: 'array',
+            title: 'Options'
+        }
+    },
+    type: 'object',
+    required: ['id', 'question', 'multi', 'n', 'options'],
+    title: 'ChoiceItem'
+} as const;
+
 export const CohortCreateSchema = {
     properties: {
         name: {
@@ -238,6 +285,11 @@ export const CohortProgressSchema = {
 
 export const CohortProgressMemberSchema = {
     properties: {
+        user_id: {
+            type: 'string',
+            format: 'uuid',
+            title: 'User Id'
+        },
         participant_code: {
             anyOf: [
                 {
@@ -363,7 +415,7 @@ export const CohortProgressMemberSchema = {
         }
     },
     type: 'object',
-    required: ['participant_code', 'created_at', 'pretest_done', 'pretest_correct', 'pretest_total', 'pretest_seconds', 'exam_completed', 'best_exam_score', 'exam_seconds', 'survey_done', 'survey_seconds', 'survey_attention_ok', 'payout_eligible', 'payout_reasons'],
+    required: ['user_id', 'participant_code', 'created_at', 'pretest_done', 'pretest_correct', 'pretest_total', 'pretest_seconds', 'exam_completed', 'best_exam_score', 'exam_seconds', 'survey_done', 'survey_seconds', 'survey_attention_ok', 'payout_eligible', 'payout_reasons'],
     title: 'CohortProgressMember',
     description: '管理頁上每位成員的試測進度；判定和成員 CSV 的 payout_eligible 相同。'
 } as const;
@@ -440,6 +492,19 @@ export const CohortPublicSchema = {
 
 export const CohortUpdateSchema = {
     properties: {
+        name: {
+            anyOf: [
+                {
+                    type: 'string',
+                    maxLength: 100,
+                    minLength: 1
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Name'
+        },
         is_active: {
             anyOf: [
                 {
@@ -480,6 +545,63 @@ export const CohortUpdateSchema = {
     type: 'object',
     title: 'CohortUpdate',
     description: '只改有送的欄位；max_members、expires_at 送 null 是不限。'
+} as const;
+
+export const ConfidenceShiftSchema = {
+    properties: {
+        n: {
+            type: 'integer',
+            title: 'N'
+        },
+        before_mean: {
+            anyOf: [
+                {
+                    type: 'number'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Before Mean'
+        },
+        after_mean: {
+            anyOf: [
+                {
+                    type: 'number'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'After Mean'
+        },
+        diff_mean: {
+            anyOf: [
+                {
+                    type: 'number'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Diff Mean'
+        },
+        improved: {
+            type: 'integer',
+            title: 'Improved'
+        },
+        same: {
+            type: 'integer',
+            title: 'Same'
+        },
+        worse: {
+            type: 'integer',
+            title: 'Worse'
+        }
+    },
+    type: 'object',
+    required: ['n', 'before_mean', 'after_mean', 'diff_mean', 'improved', 'same', 'worse'],
+    title: 'ConfidenceShift'
 } as const;
 
 export const DailyResultPublicSchema = {
@@ -732,6 +854,85 @@ export const ExamBadgeVerificationSchema = {
     type: 'object',
     required: ['nickname', 'badge_name', 'criteria', 'last_passed_day', 'suggested_retest_day', 'status'],
     title: 'ExamBadgeVerification'
+} as const;
+
+export const ExamDetailSchema = {
+    properties: {
+        id: {
+            type: 'string',
+            format: 'uuid',
+            title: 'Id'
+        },
+        mode: {
+            type: 'string',
+            title: 'Mode'
+        },
+        fraud_type: {
+            anyOf: [
+                {
+                    type: 'string'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Fraud Type'
+        },
+        status: {
+            type: 'string',
+            title: 'Status'
+        },
+        counted: {
+            type: 'boolean',
+            title: 'Counted'
+        },
+        started_at: {
+            type: 'string',
+            format: 'date-time',
+            title: 'Started At'
+        },
+        completed_at: {
+            anyOf: [
+                {
+                    type: 'string',
+                    format: 'date-time'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Completed At'
+        },
+        seconds: {
+            anyOf: [
+                {
+                    type: 'integer'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Seconds'
+        },
+        score: {
+            type: 'integer',
+            title: 'Score'
+        },
+        passed: {
+            type: 'boolean',
+            title: 'Passed'
+        },
+        stages: {
+            items: {
+                '$ref': '#/components/schemas/ExamStageDetail'
+            },
+            type: 'array',
+            title: 'Stages'
+        }
+    },
+    type: 'object',
+    required: ['id', 'mode', 'fraud_type', 'status', 'counted', 'started_at', 'completed_at', 'seconds', 'score', 'passed', 'stages'],
+    title: 'ExamDetail'
 } as const;
 
 export const ExamGateSchema = {
@@ -1195,6 +1396,30 @@ export const ExamScenarioJudgeRequestSchema = {
     title: 'ExamScenarioJudgeRequest'
 } as const;
 
+export const ExamStageDetailSchema = {
+    properties: {
+        stage: {
+            type: 'string',
+            title: 'Stage'
+        },
+        correct: {
+            type: 'integer',
+            title: 'Correct'
+        },
+        answered: {
+            type: 'integer',
+            title: 'Answered'
+        },
+        total: {
+            type: 'integer',
+            title: 'Total'
+        }
+    },
+    type: 'object',
+    required: ['stage', 'correct', 'answered', 'total'],
+    title: 'ExamStageDetail'
+} as const;
+
 export const ExamStartRequestSchema = {
     properties: {
         mode: {
@@ -1460,6 +1685,26 @@ export const FraudTypeResultSchema = {
     title: 'FraudTypeResult'
 } as const;
 
+export const FunnelStepSchema = {
+    properties: {
+        key: {
+            type: 'string',
+            title: 'Key'
+        },
+        label: {
+            type: 'string',
+            title: 'Label'
+        },
+        count: {
+            type: 'integer',
+            title: 'Count'
+        }
+    },
+    type: 'object',
+    required: ['key', 'label', 'count'],
+    title: 'FunnelStep'
+} as const;
+
 export const HTTPValidationErrorSchema = {
     properties: {
         detail: {
@@ -1472,6 +1717,27 @@ export const HTTPValidationErrorSchema = {
     },
     type: 'object',
     title: 'HTTPValidationError'
+} as const;
+
+export const HistogramBinSchema = {
+    properties: {
+        label: {
+            type: 'string',
+            title: 'Label'
+        },
+        count: {
+            type: 'integer',
+            title: 'Count'
+        },
+        below: {
+            type: 'boolean',
+            title: 'Below',
+            default: false
+        }
+    },
+    type: 'object',
+    required: ['label', 'count'],
+    title: 'HistogramBin'
 } as const;
 
 export const HomeSummarySchema = {
@@ -1786,6 +2052,55 @@ export const LeaderboardResponseSchema = {
     title: 'LeaderboardResponse'
 } as const;
 
+export const LikertItemSchema = {
+    properties: {
+        id: {
+            type: 'string',
+            title: 'Id'
+        },
+        section: {
+            type: 'string',
+            title: 'Section'
+        },
+        question: {
+            type: 'string',
+            title: 'Question'
+        },
+        labels: {
+            items: {
+                type: 'string'
+            },
+            type: 'array',
+            title: 'Labels'
+        },
+        counts: {
+            items: {
+                type: 'integer'
+            },
+            type: 'array',
+            title: 'Counts'
+        },
+        n: {
+            type: 'integer',
+            title: 'N'
+        },
+        mean: {
+            anyOf: [
+                {
+                    type: 'number'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Mean'
+        }
+    },
+    type: 'object',
+    required: ['id', 'section', 'question', 'labels', 'counts', 'n', 'mean'],
+    title: 'LikertItem'
+} as const;
+
 export const LiquidateRequestSchema = {
     properties: {
         property_ids: {
@@ -2062,6 +2377,189 @@ export const OwnedPropertyPublicSchema = {
     title: 'OwnedPropertyPublic'
 } as const;
 
+export const PairedPretestSchema = {
+    properties: {
+        n: {
+            type: 'integer',
+            title: 'N'
+        },
+        total: {
+            type: 'integer',
+            title: 'Total'
+        },
+        before_mean: {
+            anyOf: [
+                {
+                    type: 'number'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Before Mean'
+        },
+        after_mean: {
+            anyOf: [
+                {
+                    type: 'number'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'After Mean'
+        },
+        diff_mean: {
+            anyOf: [
+                {
+                    type: 'number'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Diff Mean'
+        },
+        improved: {
+            type: 'integer',
+            title: 'Improved'
+        },
+        same: {
+            type: 'integer',
+            title: 'Same'
+        },
+        worse: {
+            type: 'integer',
+            title: 'Worse'
+        },
+        pairs: {
+            items: {
+                '$ref': '#/components/schemas/PretestPair'
+            },
+            type: 'array',
+            title: 'Pairs'
+        }
+    },
+    type: 'object',
+    required: ['n', 'total', 'before_mean', 'after_mean', 'diff_mean', 'improved', 'same', 'worse', 'pairs'],
+    title: 'PairedPretest',
+    description: '同一人入門前測與第一次綜合檢測前測關（同題庫、同抽法）的答對數。'
+} as const;
+
+export const ParticipantDetailSchema = {
+    properties: {
+        user_id: {
+            type: 'string',
+            format: 'uuid',
+            title: 'User Id'
+        },
+        participant_code: {
+            anyOf: [
+                {
+                    type: 'string'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Participant Code'
+        },
+        nickname: {
+            anyOf: [
+                {
+                    type: 'string'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Nickname'
+        },
+        created_at: {
+            anyOf: [
+                {
+                    type: 'string',
+                    format: 'date-time'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Created At'
+        },
+        last_active_at: {
+            anyOf: [
+                {
+                    type: 'string',
+                    format: 'date-time'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Last Active At'
+        },
+        pretests: {
+            items: {
+                '$ref': '#/components/schemas/PretestDetail'
+            },
+            type: 'array',
+            title: 'Pretests'
+        },
+        exams: {
+            items: {
+                '$ref': '#/components/schemas/ExamDetail'
+            },
+            type: 'array',
+            title: 'Exams'
+        },
+        practice: {
+            items: {
+                '$ref': '#/components/schemas/PracticeDetail'
+            },
+            type: 'array',
+            title: 'Practice'
+        },
+        scenario_sessions: {
+            type: 'integer',
+            title: 'Scenario Sessions'
+        },
+        survey: {
+            anyOf: [
+                {
+                    '$ref': '#/components/schemas/SurveyDetail'
+                },
+                {
+                    type: 'null'
+                }
+            ]
+        }
+    },
+    type: 'object',
+    required: ['user_id', 'participant_code', 'nickname', 'created_at', 'last_active_at', 'pretests', 'exams', 'practice', 'scenario_sessions', 'survey'],
+    title: 'ParticipantDetail'
+} as const;
+
+export const PracticeDetailSchema = {
+    properties: {
+        mode: {
+            type: 'string',
+            title: 'Mode'
+        },
+        total: {
+            type: 'integer',
+            title: 'Total'
+        },
+        correct: {
+            type: 'integer',
+            title: 'Correct'
+        }
+    },
+    type: 'object',
+    required: ['mode', 'total', 'correct'],
+    title: 'PracticeDetail'
+} as const;
+
 export const PracticeProfilePublicSchema = {
     properties: {
         focus_type: {
@@ -2137,6 +2635,100 @@ export const PretestAnswerSchema = {
     type: 'object',
     required: ['question_id', 'selected_option'],
     title: 'PretestAnswer'
+} as const;
+
+export const PretestDetailSchema = {
+    properties: {
+        at: {
+            anyOf: [
+                {
+                    type: 'string',
+                    format: 'date-time'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'At'
+        },
+        seconds: {
+            anyOf: [
+                {
+                    type: 'integer'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Seconds'
+        },
+        correct: {
+            type: 'integer',
+            title: 'Correct'
+        },
+        total: {
+            type: 'integer',
+            title: 'Total'
+        },
+        weakest_type: {
+            type: 'string',
+            title: 'Weakest Type'
+        },
+        items: {
+            items: {
+                '$ref': '#/components/schemas/PretestItemDetail'
+            },
+            type: 'array',
+            title: 'Items'
+        }
+    },
+    type: 'object',
+    required: ['at', 'seconds', 'correct', 'total', 'weakest_type', 'items'],
+    title: 'PretestDetail'
+} as const;
+
+export const PretestItemDetailSchema = {
+    properties: {
+        fraud_type: {
+            type: 'string',
+            title: 'Fraud Type'
+        },
+        question: {
+            type: 'string',
+            title: 'Question'
+        },
+        selected: {
+            type: 'string',
+            title: 'Selected'
+        },
+        correct_option: {
+            type: 'string',
+            title: 'Correct Option'
+        },
+        is_correct: {
+            type: 'boolean',
+            title: 'Is Correct'
+        }
+    },
+    type: 'object',
+    required: ['fraud_type', 'question', 'selected', 'correct_option', 'is_correct'],
+    title: 'PretestItemDetail'
+} as const;
+
+export const PretestPairSchema = {
+    properties: {
+        before: {
+            type: 'integer',
+            title: 'Before'
+        },
+        after: {
+            type: 'integer',
+            title: 'After'
+        }
+    },
+    type: 'object',
+    required: ['before', 'after'],
+    title: 'PretestPair'
 } as const;
 
 export const PretestSubmitRequestSchema = {
@@ -3133,6 +3725,154 @@ export const ScenarioNewRequestSchema = {
     title: 'ScenarioNewRequest'
 } as const;
 
+export const ScoreStatsSchema = {
+    properties: {
+        n: {
+            type: 'integer',
+            title: 'N'
+        },
+        passed: {
+            type: 'integer',
+            title: 'Passed'
+        },
+        mean: {
+            anyOf: [
+                {
+                    type: 'number'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Mean'
+        },
+        bins: {
+            items: {
+                '$ref': '#/components/schemas/HistogramBin'
+            },
+            type: 'array',
+            title: 'Bins'
+        }
+    },
+    type: 'object',
+    required: ['n', 'passed', 'mean', 'bins'],
+    title: 'ScoreStats'
+} as const;
+
+export const SurveyAnalyticsSchema = {
+    properties: {
+        valid_only: {
+            type: 'boolean',
+            title: 'Valid Only'
+        },
+        responses: {
+            type: 'integer',
+            title: 'Responses'
+        },
+        included: {
+            type: 'integer',
+            title: 'Included'
+        },
+        attention_failed: {
+            type: 'integer',
+            title: 'Attention Failed'
+        },
+        too_fast: {
+            type: 'integer',
+            title: 'Too Fast'
+        },
+        likert: {
+            items: {
+                '$ref': '#/components/schemas/LikertItem'
+            },
+            type: 'array',
+            title: 'Likert'
+        },
+        confidence: {
+            '$ref': '#/components/schemas/ConfidenceShift'
+        },
+        choices: {
+            items: {
+                '$ref': '#/components/schemas/ChoiceItem'
+            },
+            type: 'array',
+            title: 'Choices'
+        },
+        texts: {
+            items: {
+                '$ref': '#/components/schemas/TextItem'
+            },
+            type: 'array',
+            title: 'Texts'
+        }
+    },
+    type: 'object',
+    required: ['valid_only', 'responses', 'included', 'attention_failed', 'too_fast', 'likert', 'confidence', 'choices', 'texts'],
+    title: 'SurveyAnalytics'
+} as const;
+
+export const SurveyAnswerDetailSchema = {
+    properties: {
+        section: {
+            type: 'string',
+            title: 'Section'
+        },
+        question: {
+            type: 'string',
+            title: 'Question'
+        },
+        answer: {
+            type: 'string',
+            title: 'Answer'
+        }
+    },
+    type: 'object',
+    required: ['section', 'question', 'answer'],
+    title: 'SurveyAnswerDetail'
+} as const;
+
+export const SurveyDetailSchema = {
+    properties: {
+        submitted_at: {
+            anyOf: [
+                {
+                    type: 'string',
+                    format: 'date-time'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Submitted At'
+        },
+        seconds: {
+            anyOf: [
+                {
+                    type: 'integer'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Seconds'
+        },
+        attention_ok: {
+            type: 'boolean',
+            title: 'Attention Ok'
+        },
+        answers: {
+            items: {
+                '$ref': '#/components/schemas/SurveyAnswerDetail'
+            },
+            type: 'array',
+            title: 'Answers'
+        }
+    },
+    type: 'object',
+    required: ['submitted_at', 'seconds', 'attention_ok', 'answers'],
+    title: 'SurveyDetail'
+} as const;
+
 export const SurveyQuestionPublicSchema = {
     properties: {
         id: {
@@ -3772,6 +4512,91 @@ export const TeamSwipeSchema = {
     title: 'TeamSwipe'
 } as const;
 
+export const TextAnswerSchema = {
+    properties: {
+        participant_code: {
+            type: 'string',
+            title: 'Participant Code'
+        },
+        text: {
+            type: 'string',
+            title: 'Text'
+        }
+    },
+    type: 'object',
+    required: ['participant_code', 'text'],
+    title: 'TextAnswer'
+} as const;
+
+export const TextItemSchema = {
+    properties: {
+        id: {
+            type: 'string',
+            title: 'Id'
+        },
+        question: {
+            type: 'string',
+            title: 'Question'
+        },
+        answers: {
+            items: {
+                '$ref': '#/components/schemas/TextAnswer'
+            },
+            type: 'array',
+            title: 'Answers'
+        }
+    },
+    type: 'object',
+    required: ['id', 'question', 'answers'],
+    title: 'TextItem'
+} as const;
+
+export const TimingStatsSchema = {
+    properties: {
+        key: {
+            type: 'string',
+            title: 'Key'
+        },
+        label: {
+            type: 'string',
+            title: 'Label'
+        },
+        threshold_seconds: {
+            type: 'integer',
+            title: 'Threshold Seconds'
+        },
+        n: {
+            type: 'integer',
+            title: 'N'
+        },
+        below: {
+            type: 'integer',
+            title: 'Below'
+        },
+        median_seconds: {
+            anyOf: [
+                {
+                    type: 'number'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Median Seconds'
+        },
+        bins: {
+            items: {
+                '$ref': '#/components/schemas/HistogramBin'
+            },
+            type: 'array',
+            title: 'Bins'
+        }
+    },
+    type: 'object',
+    required: ['key', 'label', 'threshold_seconds', 'n', 'below', 'median_seconds', 'bins'],
+    title: 'TimingStats'
+} as const;
+
 export const TokenSchema = {
     properties: {
         access_token: {
@@ -3787,6 +4612,48 @@ export const TokenSchema = {
     type: 'object',
     required: ['access_token'],
     title: 'Token'
+} as const;
+
+export const TrialAnalyticsSchema = {
+    properties: {
+        member_count: {
+            type: 'integer',
+            title: 'Member Count'
+        },
+        funnel: {
+            items: {
+                '$ref': '#/components/schemas/FunnelStep'
+            },
+            type: 'array',
+            title: 'Funnel'
+        },
+        paired_pretest: {
+            '$ref': '#/components/schemas/PairedPretest'
+        },
+        type_accuracy: {
+            items: {
+                '$ref': '#/components/schemas/TypeAccuracy'
+            },
+            type: 'array',
+            title: 'Type Accuracy'
+        },
+        scores: {
+            '$ref': '#/components/schemas/ScoreStats'
+        },
+        timings: {
+            items: {
+                '$ref': '#/components/schemas/TimingStats'
+            },
+            type: 'array',
+            title: 'Timings'
+        },
+        survey: {
+            '$ref': '#/components/schemas/SurveyAnalytics'
+        }
+    },
+    type: 'object',
+    required: ['member_count', 'funnel', 'paired_pretest', 'type_accuracy', 'scores', 'timings', 'survey'],
+    title: 'TrialAnalytics'
 } as const;
 
 export const TrialSurveyPublicSchema = {
@@ -3827,6 +4694,48 @@ export const TrialSurveySubmitSchema = {
     type: 'object',
     required: ['answers'],
     title: 'TrialSurveySubmit'
+} as const;
+
+export const TypeAccuracySchema = {
+    properties: {
+        fraud_type: {
+            type: 'string',
+            title: 'Fraud Type'
+        },
+        before: {
+            anyOf: [
+                {
+                    type: 'number'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Before'
+        },
+        after: {
+            anyOf: [
+                {
+                    type: 'number'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'After'
+        },
+        before_n: {
+            type: 'integer',
+            title: 'Before N'
+        },
+        after_n: {
+            type: 'integer',
+            title: 'After N'
+        }
+    },
+    type: 'object',
+    required: ['fraud_type', 'before', 'after', 'before_n', 'after_n'],
+    title: 'TypeAccuracy'
 } as const;
 
 export const UpdatePasswordSchema = {
@@ -4026,9 +4935,17 @@ export const UserUpdateSchema = {
         email: {
             anyOf: [
                 {
-                    type: 'string',
-                    maxLength: 255,
-                    format: 'email'
+                    anyOf: [
+                        {
+                            type: 'string',
+                            format: 'email'
+                        },
+                        {
+                            type: 'string',
+                            pattern: '^(guest-[0-9a-f]{32}@participants|(line|google)-[0-9a-f]{32}@oauth)\\.invalid$'
+                        }
+                    ],
+                    maxLength: 255
                 },
                 {
                     type: 'null'
@@ -4098,9 +5015,17 @@ export const UserUpdateMeSchema = {
         email: {
             anyOf: [
                 {
-                    type: 'string',
-                    maxLength: 255,
-                    format: 'email'
+                    anyOf: [
+                        {
+                            type: 'string',
+                            format: 'email'
+                        },
+                        {
+                            type: 'string',
+                            pattern: '^(guest-[0-9a-f]{32}@participants|(line|google)-[0-9a-f]{32}@oauth)\\.invalid$'
+                        }
+                    ],
+                    maxLength: 255
                 },
                 {
                     type: 'null'

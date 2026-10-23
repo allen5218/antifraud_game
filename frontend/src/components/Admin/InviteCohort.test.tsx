@@ -20,6 +20,7 @@ let mode = "success"
 let cohorts: any[] = []
 let createBody: unknown
 let toggleBody: unknown
+let analyticsScope: string | undefined = "unset"
 let qrValue: string
 const downloads: { href: string; filename: string }[] = []
 const navigate = mock(async () => {})
@@ -109,6 +110,7 @@ mock.module("@/client", () => ({
       payout_eligible: 0,
       members: [
         {
+          user_id: "user-one",
           participant_code: "T-0001",
           created_at: null,
           pretest_done: true,
@@ -130,6 +132,85 @@ mock.module("@/client", () => ({
       toggleBody = requestBody
       cohorts = [{ ...cohorts[0], ...requestBody }]
       return cohorts[0]
+    },
+    memberDetail: async ({ userId }: { userId: string }) => {
+      expect(userId).toBe("user-one")
+      return {
+        user_id: "user-one",
+        participant_code: "T-0001",
+        nickname: null,
+        created_at: null,
+        last_active_at: null,
+        pretests: [
+          {
+            at: null,
+            seconds: 95,
+            correct: 1,
+            total: 1,
+            weakest_type: "atm",
+            items: [
+              {
+                fraud_type: "atm",
+                question: "客服來電說要解除分期",
+                selected: "A",
+                correct_option: "A",
+                is_correct: true,
+              },
+            ],
+          },
+        ],
+        exams: [],
+        practice: [
+          { mode: "swipe", total: 6, correct: 5 },
+          { mode: "quiz", total: 0, correct: 0 },
+          { mode: "scenario", total: 1, correct: 1 },
+        ],
+        scenario_sessions: 2,
+        survey: null,
+      }
+    },
+    analytics: async ({ cohortId }: { cohortId?: string }) => {
+      analyticsScope = cohortId
+      return {
+        member_count: 1,
+        funnel: [
+          { key: "joined", label: "加入", count: 1 },
+          { key: "pretest", label: "做完前測", count: 1 },
+        ],
+        paired_pretest: {
+          n: 0,
+          total: 20,
+          before_mean: null,
+          after_mean: null,
+          diff_mean: null,
+          improved: 0,
+          same: 0,
+          worse: 0,
+          pairs: [],
+        },
+        type_accuracy: [],
+        scores: { n: 0, passed: 0, mean: null, bins: [] },
+        timings: [],
+        survey: {
+          valid_only: false,
+          responses: 0,
+          included: 0,
+          attention_failed: 0,
+          too_fast: 0,
+          likert: [],
+          confidence: {
+            n: 0,
+            before_mean: null,
+            after_mean: null,
+            diff_mean: null,
+            improved: 0,
+            same: 0,
+            worse: 0,
+          },
+          choices: [],
+          texts: [],
+        },
+      }
     },
     exportCohort: async () =>
       "\ufeffparticipant_code,answer_count\r\nT-0001,3\r\n",
@@ -219,12 +300,18 @@ test("建立梯次、顯示成員、產生邀請網址、下載圖片與 CSV、�
     </QueryClientProvider>,
   )
   await screen.findByText("還沒有試測梯次。")
-  fireEvent.change(screen.getByLabelText("梯次名稱"), {
+  fireEvent.change(screen.getByLabelText("新梯次名稱"), {
     target: { value: "  第一梯  " },
   })
-  fireEvent.submit(screen.getByLabelText("梯次名稱").closest("form")!)
+  fireEvent.change(screen.getByLabelText("新梯次最後一天（留空是不限期限）"), {
+    target: { value: "2026-11-30" },
+  })
+  fireEvent.submit(screen.getByLabelText("新梯次名稱").closest("form")!)
   await screen.findAllByText("T-0001")
-  expect(createBody).toEqual({ name: "第一梯" })
+  expect(createBody).toEqual({
+    name: "第一梯",
+    expires_at: "2026-11-30T23:59:59+08:00",
+  })
   // 卡片寫人數、名額、期限；進度表寫每個人缺什麼
   expect(
     screen.getByText("已加入 1 人・名額 60 人・2026/11/2 到期"),
@@ -252,9 +339,25 @@ test("建立梯次、顯示成員、產生邀請網址、下載圖片與 CSV、�
   fireEvent.change(screen.getByLabelText("最後一天（留空是不限期限）"), {
     target: { value: "" },
   })
+  // 改名
+  fireEvent.change(screen.getByLabelText("梯次名稱"), {
+    target: { value: " 第一梯（延長） " },
+  })
   fireEvent.click(screen.getByRole("button", { name: "儲存設定" }))
   await screen.findByText("已儲存。")
-  expect(toggleBody).toEqual({ max_members: null, expires_at: null })
+  expect(toggleBody).toEqual({
+    name: "第一梯（延長）",
+    max_members: null,
+    expires_at: null,
+  })
+  // 點受試編號看詳情
+  fireEvent.click(screen.getAllByRole("button", { name: "T-0001" })[0])
+  await screen.findByText("情境對抗聊過 2 場（有回過訊息的，含還沒判斷的）。")
+  // 前測每題收在摺疊裡
+  expect(screen.getByText("客服來電說要解除分期")).toBeTruthy()
+  fireEvent.keyDown(document.activeElement ?? document.body, {
+    key: "Escape",
+  })
   expect(qrValue).toBe(`${window.location.origin}/invite/invitation-token`)
   fireEvent.click(screen.getByRole("button", { name: "下載邀請圖片" }))
   expect(downloads[0]).toEqual({
@@ -275,4 +378,17 @@ test("建立梯次、顯示成員、產生邀請網址、下載圖片與 CSV、�
   fireEvent.click(screen.getByRole("button", { name: "停用邀請" }))
   await screen.findByText("邀請已停用，既有成員仍可繼續練習。")
   expect(toggleBody).toEqual({ is_active: false })
+})
+
+test("數據分析分頁：預設看全部梯次合計", async () => {
+  render(
+    <QueryClientProvider client={queryClient}>
+      {React.createElement(AdminRoute.options.component as React.ComponentType)}
+    </QueryClientProvider>,
+  )
+  fireEvent.click(await screen.findByRole("tab", { name: "數據分析" }))
+  await screen.findByText("試測數據（1 人）")
+  expect(analyticsScope).toBeUndefined()
+  expect(screen.getByText("問卷分析")).toBeTruthy()
+  expect(screen.getByText("還沒有問卷可以分析。")).toBeTruthy()
 })

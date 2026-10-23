@@ -22,6 +22,19 @@ export type BuyPropertyResponse = {
     new_cash: number;
 };
 
+export type ChoiceCount = {
+    label: string;
+    count: number;
+};
+
+export type ChoiceItem = {
+    id: string;
+    question: string;
+    multi: boolean;
+    n: number;
+    options: Array<ChoiceCount>;
+};
+
 export type CohortCreate = {
     name: string;
     max_members?: (number | null);
@@ -51,6 +64,7 @@ export type CohortProgress = {
  * 管理頁上每位成員的試測進度；判定和成員 CSV 的 payout_eligible 相同。
  */
 export type CohortProgressMember = {
+    user_id: string;
     participant_code: (string | null);
     created_at: (string | null);
     pretest_done: boolean;
@@ -83,9 +97,20 @@ export type CohortPublic = {
  * 只改有送的欄位；max_members、expires_at 送 null 是不限。
  */
 export type CohortUpdate = {
+    name?: (string | null);
     is_active?: (boolean | null);
     max_members?: (number | null);
     expires_at?: (string | null);
+};
+
+export type ConfidenceShift = {
+    n: number;
+    before_mean: (number | null);
+    after_mean: (number | null);
+    diff_mean: (number | null);
+    improved: number;
+    same: number;
+    worse: number;
 };
 
 export type DailyResultPublic = {
@@ -146,6 +171,20 @@ export type ExamBadgeVerification = {
 };
 
 export type status2 = 'current' | 'retest_recommended';
+
+export type ExamDetail = {
+    id: string;
+    mode: string;
+    fraud_type: (string | null);
+    status: string;
+    counted: boolean;
+    started_at: string;
+    completed_at: (string | null);
+    seconds: (number | null);
+    score: number;
+    passed: boolean;
+    stages: Array<ExamStageDetail>;
+};
 
 export type ExamGate = {
     fraud_type: string;
@@ -263,6 +302,13 @@ export type ExamScenarioJudgeRequest = {
 
 export type action = 'report' | 'comply';
 
+export type ExamStageDetail = {
+    stage: string;
+    correct: number;
+    answered: number;
+    total: number;
+};
+
 export type ExamStartRequest = {
     mode: 'comprehensive' | 'specialized';
     fraud_type?: (string | null);
@@ -317,6 +363,18 @@ export type FlagItem = {
 export type FraudTypeResult = {
     correct: number;
     total: number;
+};
+
+export type FunnelStep = {
+    key: string;
+    label: string;
+    count: number;
+};
+
+export type HistogramBin = {
+    label: string;
+    count: number;
+    below?: boolean;
 };
 
 export type HomeSummary = {
@@ -384,6 +442,16 @@ export type LeaderboardResponse = {
 };
 
 export type period = 'today' | 'week';
+
+export type LikertItem = {
+    id: string;
+    section: string;
+    question: string;
+    labels: Array<(string)>;
+    counts: Array<(number)>;
+    n: number;
+    mean: (number | null);
+};
 
 export type LiquidateRequest = {
     property_ids: Array<(string)>;
@@ -465,6 +533,40 @@ export type OwnedPropertyPublic = {
 };
 
 /**
+ * 同一人入門前測與第一次綜合檢測前測關（同題庫、同抽法）的答對數。
+ */
+export type PairedPretest = {
+    n: number;
+    total: number;
+    before_mean: (number | null);
+    after_mean: (number | null);
+    diff_mean: (number | null);
+    improved: number;
+    same: number;
+    worse: number;
+    pairs: Array<PretestPair>;
+};
+
+export type ParticipantDetail = {
+    user_id: string;
+    participant_code: (string | null);
+    nickname: (string | null);
+    created_at: (string | null);
+    last_active_at: (string | null);
+    pretests: Array<PretestDetail>;
+    exams: Array<ExamDetail>;
+    practice: Array<PracticeDetail>;
+    scenario_sessions: number;
+    survey: (SurveyDetail | null);
+};
+
+export type PracticeDetail = {
+    mode: string;
+    total: number;
+    correct: number;
+};
+
+/**
  * 玩家目前的練習重點。訊息判讀、滑卡、情境收件匣都照這個比例出題。
  */
 export type PracticeProfilePublic = {
@@ -484,6 +586,28 @@ export type source = 'gemini' | 'rule' | 'pretest' | 'none';
 export type PretestAnswer = {
     question_id: string;
     selected_option: string;
+};
+
+export type PretestDetail = {
+    at: (string | null);
+    seconds: (number | null);
+    correct: number;
+    total: number;
+    weakest_type: string;
+    items: Array<PretestItemDetail>;
+};
+
+export type PretestItemDetail = {
+    fraud_type: string;
+    question: string;
+    selected: string;
+    correct_option: string;
+    is_correct: boolean;
+};
+
+export type PretestPair = {
+    before: number;
+    after: number;
 };
 
 export type PretestSubmitRequest = {
@@ -719,6 +843,38 @@ export type ScenarioNewRequest = {
     fraud_type: string;
 };
 
+export type ScoreStats = {
+    n: number;
+    passed: number;
+    mean: (number | null);
+    bins: Array<HistogramBin>;
+};
+
+export type SurveyAnalytics = {
+    valid_only: boolean;
+    responses: number;
+    included: number;
+    attention_failed: number;
+    too_fast: number;
+    likert: Array<LikertItem>;
+    confidence: ConfidenceShift;
+    choices: Array<ChoiceItem>;
+    texts: Array<TextItem>;
+};
+
+export type SurveyAnswerDetail = {
+    section: string;
+    question: string;
+    answer: string;
+};
+
+export type SurveyDetail = {
+    submitted_at: (string | null);
+    seconds: (number | null);
+    attention_ok: boolean;
+    answers: Array<SurveyAnswerDetail>;
+};
+
 export type SurveyQuestionPublic = {
     id: string;
     kind: 'consent' | 'single' | 'multi' | 'scale' | 'text';
@@ -880,9 +1036,40 @@ export type TeamSwipe = {
     explanation: string;
 };
 
+export type TextAnswer = {
+    participant_code: string;
+    text: string;
+};
+
+export type TextItem = {
+    id: string;
+    question: string;
+    answers: Array<TextAnswer>;
+};
+
+export type TimingStats = {
+    key: string;
+    label: string;
+    threshold_seconds: number;
+    n: number;
+    below: number;
+    median_seconds: (number | null);
+    bins: Array<HistogramBin>;
+};
+
 export type Token = {
     access_token: string;
     token_type?: string;
+};
+
+export type TrialAnalytics = {
+    member_count: number;
+    funnel: Array<FunnelStep>;
+    paired_pretest: PairedPretest;
+    type_accuracy: Array<TypeAccuracy>;
+    scores: ScoreStats;
+    timings: Array<TimingStats>;
+    survey: SurveyAnalytics;
 };
 
 export type TrialSurveyPublic = {
@@ -896,6 +1083,14 @@ export type TrialSurveySubmit = {
     answers: {
         [key: string]: unknown;
     };
+};
+
+export type TypeAccuracy = {
+    fraud_type: string;
+    before: (number | null);
+    after: (number | null);
+    before_n: number;
+    after_n: number;
 };
 
 export type UpdatePassword = {
@@ -937,7 +1132,7 @@ export type UsersPublic = {
 };
 
 export type UserUpdate = {
-    email?: (string | null);
+    email?: ((string) | null);
     is_active?: boolean;
     is_superuser?: boolean;
     is_team?: boolean;
@@ -947,7 +1142,7 @@ export type UserUpdate = {
 
 export type UserUpdateMe = {
     full_name?: (string | null);
-    email?: (string | null);
+    email?: ((string) | null);
 };
 
 export type ValidationError = {
@@ -1010,6 +1205,20 @@ export type AdminCohortsExportCohortExamData = {
 };
 
 export type AdminCohortsExportCohortExamResponse = (string);
+
+export type AdminCohortsMemberDetailData = {
+    cohortId: string;
+    userId: string;
+};
+
+export type AdminCohortsMemberDetailResponse = (ParticipantDetail);
+
+export type AdminCohortsAnalyticsData = {
+    cohortId?: (string | null);
+    validOnly?: boolean;
+};
+
+export type AdminCohortsAnalyticsResponse = (TrialAnalytics);
 
 export type BadgesOwnBadgesResponse = (Array<ExamBadgePublic>);
 

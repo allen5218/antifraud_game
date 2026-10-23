@@ -23,8 +23,9 @@ def upgrade():
                existing_type=sa.INTEGER(),
                nullable=True)
     # ### end Alembic commands ###
-    # 使用者 10-23：單一邀請網址不限名額。上線時只有三個試測梯次（各 60 人、0 人加入），一起改成不限。
-    op.execute("UPDATE cohort SET max_members = NULL")
+    # 使用者 10-23：單一邀請網址不限名額、三條 QR code 不要設期限。
+    # 上線時只有三個試測梯次（各 60 人、0 人加入、11/2 到期），一起改成不限人數、不限期限。
+    op.execute("UPDATE cohort SET max_members = NULL, expires_at = NULL")
 
 
 def downgrade():

@@ -34,6 +34,16 @@ class UserBase(SQLModel):
     full_name: str | None = Field(default=None, max_length=255)
 
 
+# EmailStr 拒絕 .invalid 保留網域，但訪客與 LINE／Google 登入的帳號用的是系統產生的
+# 固定內部格式（invite.py、oauth.py）。讀出與更新都要接受，否則管理員改不了這些帳號；
+# 能不能改成另一個內部格式由路由擋（users.py 的 reject_new_internal_email）。
+INTERNAL_EMAIL_PATTERN = (
+    r"^(guest-[0-9a-f]{32}@participants|(line|google)-[0-9a-f]{32}@oauth)\.invalid$"
+)
+InternalEmail = Annotated[str, StringConstraints(pattern=INTERNAL_EMAIL_PATTERN)]
+AccountEmail = EmailStr | InternalEmail
+
+
 # Properties to receive via API on creation
 class UserCreate(UserBase):
     password: str = Field(min_length=8, max_length=128)
@@ -47,13 +57,13 @@ class UserRegister(SQLModel):
 
 # Properties to receive via API on update, all are optional
 class UserUpdate(UserBase):
-    email: EmailStr | None = Field(default=None, max_length=255)  # type: ignore
+    email: AccountEmail | None = Field(default=None, max_length=255)  # type: ignore
     password: str | None = Field(default=None, min_length=8, max_length=128)
 
 
 class UserUpdateMe(SQLModel):
     full_name: str | None = Field(default=None, max_length=255)
-    email: EmailStr | None = Field(default=None, max_length=255)
+    email: AccountEmail | None = Field(default=None, max_length=255)
 
 
 class UpdatePassword(SQLModel):
@@ -99,17 +109,7 @@ class User(UserBase, table=True):
 
 # Properties to return via API, id is always required
 class UserPublic(UserBase):
-    # EmailStr 拒絕保留網域；只有訪客的固定內部格式可作為回應。
-    # 註冊與更新的輸入 schema 仍維持 EmailStr。
-    email: (
-        EmailStr
-        | Annotated[
-            str,
-            StringConstraints(
-                pattern=r"^(guest-[0-9a-f]{32}@participants|(line|google)-[0-9a-f]{32}@oauth)\.invalid$"
-            ),
-        ]
-    )
+    email: AccountEmail
     id: uuid.UUID
     created_at: datetime | None = None
     is_guest: bool = False
@@ -153,28 +153,33 @@ class Cohort(SQLModel, table=True):
     created_by: uuid.UUID | None = Field(default=None)
 
 
+def clean_cohort_name(value: str | None) -> str | None:
+    if value is None:
+        return None
+    value = value.strip()
+    if not value:
+        raise ValueError("梯次名稱不能是空白")
+    return value
+
+
 class CohortCreate(SQLModel):
     name: str = Field(min_length=1, max_length=100)
-    # 沒填就是不限名額
+    # 沒填就是不限名額、不限期限
     max_members: int | None = Field(default=None, ge=1, le=5000)
-    # 沒填就是建立後 30 天
     expires_at: datetime | None = None
 
-    @field_validator("name")
-    @classmethod
-    def clean_name(cls, value: str) -> str:
-        value = value.strip()
-        if not value:
-            raise ValueError("梯次名稱不能是空白")
-        return value
+    _clean_name = field_validator("name")(clean_cohort_name)
 
 
 class CohortUpdate(SQLModel):
     """只改有送的欄位；max_members、expires_at 送 null 是不限。"""
 
+    name: str | None = Field(default=None, min_length=1, max_length=100)
     is_active: bool | None = None
     max_members: int | None = Field(default=None, ge=1, le=5000)
     expires_at: datetime | None = None
+
+    _clean_name = field_validator("name")(clean_cohort_name)
 
 
 class CohortPublic(SQLModel):
@@ -192,6 +197,7 @@ class CohortPublic(SQLModel):
 class CohortProgressMember(SQLModel):
     """管理頁上每位成員的試測進度；判定和成員 CSV 的 payout_eligible 相同。"""
 
+    user_id: uuid.UUID
     participant_code: str | None
     created_at: datetime | None
     pretest_done: bool

@@ -95,6 +95,10 @@ const EditUser = ({ user, onSuccess }: EditUserProps) => {
     if (!submitData.password) {
       delete submitData.password
     }
+    // 沒改的 email 不送：LINE／Google 登入與試測帳號的 email 是系統產生的內部格式
+    if (submitData.email === user.email) {
+      delete (submitData as Partial<FormData>).email
+    }
     mutation.mutate(submitData)
   }
 

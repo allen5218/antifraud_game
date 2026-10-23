@@ -210,7 +210,9 @@ description: 一句話描述  # 必填，≤1024 字
 - **補考期**：沒過（含放棄、到期）就進該類補考期，兩種檢測都鎖住；練夠 `gate.py`（該類滑卡 6、訊息判讀 5、情境 1 場，且滑卡＋訊息判讀最近 10 題對 7）才能再考。補考期間練習重點強制換成那一類（比例拉到上限）。**檢測作答不寫 `practice_answer`**。
 - **徽章**：第一次通過給獎勵（走 `economy.service`）；預設不公開，公開頁只有暱稱、徽章名、通過條件、日期（`badges.py`；noindex 設在 `routes/badge.$slug.tsx`）。
 
-**試測梯次與訪客**：`api/routes/invite.py`（掃 QR code 兌換成訪客帳號，`User.is_guest`、`cohort_id`、受試編號 `participant_code` T-NNNN）、`api/routes/admin_cohorts.py`（superuser：建梯次；名額預設不限、名額與到期隨時可改（`PATCH` 只改有送的欄位，送 null 是不限）；成員；`progress` 每人前測／檢測／問卷與能不能領錢，和成員 CSV 同一套判定；房間選單的「試測管理」只給管理員；`export.csv` 一人一列、`exam.csv` 檢測一題一列，`exam/export.py`；`survey.csv` 問卷一人一列）。訪客不能重設密碼；登出要清 `lib/inviteSession.ts` 的暫存憑證。
+**試測梯次與訪客**：`api/routes/invite.py`（掃 QR code 兌換成訪客帳號，`User.is_guest`、`cohort_id`、受試編號 `participant_code` T-NNNN）、`api/routes/admin_cohorts.py`（superuser：建梯次；名額與期限預設都不限，名稱、名額、期限隨時可改（`PATCH` 只改有送的欄位，送 null 是不限）；成員；`progress` 每人前測／檢測／問卷與能不能領錢，和成員 CSV 同一套判定（`cohort_rows`）；`members/{user_id}` 個人詳情（`app/trial/detail.py`：前測每題、每次檢測各關、練習量、問卷答案）；`analytics` 試測數據與問卷分析（`app/trial/analytics.py`，不給 `cohort_id` 是全部梯次合計，`valid_only` 只算合格問卷）；`export.csv` 一人一列、`exam.csv` 檢測一題一列，`exam/export.py`；`survey.csv` 問卷一人一列）。管理頁 `/admin/cohorts`（元件在 `components/trialAdmin/`）的入口：房間頁首「試測管理」、「我」頁、房間選單，都只給管理員。分析圖的顏色是 `index.css` 的 `--chart-before/after`、`--likert-1..5`。訪客不能重設密碼；登出要清 `lib/inviteSession.ts` 的暫存憑證。
+
+**系統產生的 email**：訪客 `guest-<hex>@participants.invalid`、LINE／Google 登入 `<provider>-<hex>@oauth.invalid`。`EmailStr` 不收 `.invalid`，所以 `models.py` 的 `AccountEmail` 另外放行這兩種固定格式；更新帳號時 email 沒改就當沒送，不能改成另一個內部格式（`users.py`）。
 
 **試測問卷與發錢條件**：題目只定義在 `app/trial/survey.py`（前端 `/survey` 照 `GET /trial/survey` 畫），只給有 `cohort_id` 的帳號，**做完一次正常交卷的檢測才能開始填**，一人只能交一次。開始時間由伺服器記（`POST /trial/survey/start`，會開始計時，不能放進 loader）。入門前測由前端計時（`elapsed_ms` → `pretest_attempt.duration_seconds`）。成員 CSV 的 `payout_eligible` 由 `app/trial/payout.py` 判定：前測做過且第一次 ≥ 60 秒、至少一次正常交卷的檢測 ≥ 3 分鐘（取最長那次）、問卷交了、注意力題答對、作答 ≥ 60 秒；不合格的原因寫在 `payout_reasons`。
 

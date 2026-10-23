@@ -184,8 +184,8 @@ def test_full_or_expired_cohort_stops_new_guests(
 ) -> None:
     row = db.get(Cohort, uuid.UUID(cohort["id"]))
     assert row is not None
-    # 預設不限名額
-    assert row.max_members is None and row.expires_at is not None
+    # 預設不限名額、不限期限
+    assert row.max_members is None and row.expires_at is None
     for _ in range(3):
         redeem(client, cohort["token"])
     row.max_members = 1
@@ -213,10 +213,21 @@ def test_admin_can_set_capacity_and_expiry(
     )
     assert response.status_code == 200, response.text
     data = response.json()
-    assert data["max_members"] == 20 and data["expires_at"] is not None
+    assert data["max_members"] == 20 and data["expires_at"] is None
     assert data["member_count"] == 0
     url = f"{BASE}/admin/cohorts/{data['id']}"
     try:
+        # 改名：前後空白去掉，空白名稱不行
+        response = client.patch(
+            url, json={"name": "  評審試玩二  "}, headers=superuser_token_headers
+        )
+        assert response.status_code == 200, response.text
+        assert response.json()["name"] == "評審試玩二"
+        assert response.json()["max_members"] == 20
+        response = client.patch(
+            url, json={"name": "   "}, headers=superuser_token_headers
+        )
+        assert response.status_code == 422
         # 名額與期限送 null 是不限；沒送的欄位不動
         response = client.patch(
             url,
@@ -243,6 +254,16 @@ def test_admin_can_set_capacity_and_expiry(
             url, json={"max_members": 0}, headers=superuser_token_headers
         )
         assert response.status_code == 422
+        # 建立時就填好最後一天
+        created = client.post(
+            f"{BASE}/admin/cohorts",
+            json={"name": "第二輪", "expires_at": "2026-11-30T15:59:59Z"},
+            headers=superuser_token_headers,
+        ).json()
+        db.execute(delete(Cohort).where(Cohort.id == uuid.UUID(created["id"])))
+        db.commit()
+        assert created["expires_at"].startswith("2026-11-30T15:59:59")
+        assert created["max_members"] is None
     finally:
         db.execute(delete(Cohort).where(Cohort.id == uuid.UUID(data["id"])))
         db.commit()

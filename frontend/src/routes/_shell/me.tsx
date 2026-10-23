@@ -4,8 +4,10 @@ import {
   ClipboardList,
   LogOut,
   type LucideIcon,
+  QrCode,
   Settings,
   ShoppingBag,
+  UsersRound,
 } from "lucide-react"
 import { PracticeFocusCard } from "@/components/practice/PracticeFocus"
 import { MascotAvatar } from "@/components/room/MascotAvatar"
@@ -37,6 +39,15 @@ const LINKS: {
   { to: "/settings", icon: Settings, label: "帳號設定" },
 ]
 
+const ADMIN_LINKS: {
+  to: "/admin/cohorts" | "/admin"
+  icon: LucideIcon
+  label: string
+}[] = [
+  { to: "/admin/cohorts", icon: QrCode, label: "試測管理" },
+  { to: "/admin", icon: UsersRound, label: "帳號管理" },
+]
+
 const ROW =
   "flex w-full items-center gap-3 rounded-xl border border-border bg-card px-3 py-3 text-sm transition hover:bg-accent"
 
@@ -66,6 +77,21 @@ function Me() {
       </section>
 
       <PracticeFocusCard />
+
+      {user?.is_superuser && (
+        <nav className="grid gap-2" aria-label="管理">
+          {ADMIN_LINKS.map(({ to, icon: Icon, label }) => (
+            <Link key={to} to={to} className={ROW}>
+              <Icon aria-hidden className="size-4 text-primary" />
+              <span className="flex-1 font-bold">{label}</span>
+              <ChevronRight
+                aria-hidden
+                className="size-4 text-muted-foreground"
+              />
+            </Link>
+          ))}
+        </nav>
+      )}
 
       <nav className="grid gap-2" aria-label="個人選單">
         {LINKS.map(({ to, icon: Icon, label }) => (

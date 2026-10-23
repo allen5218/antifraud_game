@@ -4,7 +4,7 @@ import csv
 import io
 import secrets
 import uuid
-from datetime import datetime, timedelta
+from datetime import datetime
 from typing import Annotated
 
 from fastapi import APIRouter, Depends, HTTPException, Response
@@ -31,8 +31,9 @@ from app.models import (
     PretestResult,
     TrialSurvey,
     User,
-    get_datetime_utc,
 )
+from app.trial.analytics import TrialAnalytics, trial_analytics
+from app.trial.detail import ParticipantDetail, participant_detail
 from app.trial.payout import payout_reasons
 from app.trial.survey import export_columns, export_value
 
@@ -84,7 +85,7 @@ def create_cohort(
         token=secrets.token_urlsafe(32),
         created_by=admin.id,
         max_members=body.max_members,
-        expires_at=body.expires_at or get_datetime_utc() + timedelta(days=30),
+        expires_at=body.expires_at,
     )
     session.add(cohort)
     session.commit()
@@ -114,6 +115,8 @@ def update_cohort(
         raise HTTPException(status_code=404, detail={"code": "cohort_not_found"})
     # 只改有送的欄位：名額、期限送 null 是改成不限
     sent = body.model_fields_set
+    if body.name is not None:
+        cohort.name = body.name
     if "is_active" in sent and body.is_active is not None:
         cohort.is_active = body.is_active
     if "max_members" in sent:
@@ -317,22 +320,24 @@ def csv_cell(value: str | int) -> str | int:
     return value
 
 
+def cohort_rows(session: Session, cohort_id: uuid.UUID) -> list[CsvRow]:
+    """成員 CSV 的每一列；進度表、數據分析都用這一份。"""
+    return build_export_rows(
+        list_members(cohort_id, session),
+        cohort_exam_summaries(session, cohort_id),
+        cohort_pretest_summaries(session, cohort_id),
+        cohort_survey_summaries(session, cohort_id),
+    )
+
+
 @router.get(
     "/{cohort_id}/export.csv",
     response_class=Response,
     responses={200: {"content": {"text/csv": {"schema": {"type": "string"}}}}},
 )
 def export_cohort(cohort_id: uuid.UUID, session: SessionDep) -> Response:
-    members = list_members(cohort_id, session)
     return csv_response(
-        EXPORT_FIELDS,
-        build_export_rows(
-            members,
-            cohort_exam_summaries(session, cohort_id),
-            cohort_pretest_summaries(session, cohort_id),
-            cohort_survey_summaries(session, cohort_id),
-        ),
-        f"cohort-{cohort_id}.csv",
+        EXPORT_FIELDS, cohort_rows(session, cohort_id), f"cohort-{cohort_id}.csv"
     )
 
 
@@ -344,14 +349,10 @@ def _number(value: str | int) -> int | None:
 def cohort_progress(cohort_id: uuid.UUID, session: SessionDep) -> CohortProgress:
     """管理頁看的試測進度：每人前測、檢測、問卷與能不能領錢（和成員 CSV 同一套判定）。"""
     members = list_members(cohort_id, session)
-    rows = build_export_rows(
-        members,
-        cohort_exam_summaries(session, cohort_id),
-        cohort_pretest_summaries(session, cohort_id),
-        cohort_survey_summaries(session, cohort_id),
-    )
+    rows = cohort_rows(session, cohort_id)
     progress = [
         CohortProgressMember(
+            user_id=member.id,
             participant_code=member.participant_code,
             created_at=member.created_at,
             pretest_done=row["pretest_done"] == "true",
@@ -453,3 +454,43 @@ def csv_response(
             "Cache-Control": "no-store",
         },
     )
+
+
+@router.get("/{cohort_id}/members/{user_id}", response_model=ParticipantDetail)
+def member_detail(
+    cohort_id: uuid.UUID, user_id: uuid.UUID, session: SessionDep
+) -> ParticipantDetail:
+    """一位成員的前測每題、每次檢測、練習量、問卷答案與最後活動時間。"""
+    user = session.get(User, user_id)
+    if user is None or user.cohort_id != cohort_id:
+        raise HTTPException(status_code=404, detail={"code": "member_not_found"})
+    return participant_detail(session, user)
+
+
+@router.get("/analytics", response_model=TrialAnalytics)
+def analytics(
+    session: SessionDep, cohort_id: uuid.UUID | None = None, valid_only: bool = False
+) -> TrialAnalytics:
+    """試測數據與問卷分析；沒給 cohort_id 是全部梯次合計。
+
+    `valid_only` 只影響問卷：只算注意力題答對、作答夠久的。
+    """
+    if cohort_id is not None:
+        get_cohort(session, cohort_id)
+        cohort_ids = [cohort_id]
+    else:
+        cohort_ids = list(session.exec(select(Cohort.id)).all())
+    rows: list[CsvRow] = []
+    surveys: list[tuple[str, TrialSurvey]] = []
+    for cid in cohort_ids:
+        rows.extend(cohort_rows(session, cid))
+        submitted = cohort_survey_summaries(session, cid)
+        codes = {
+            user.id: user.participant_code or ""
+            for user in session.exec(
+                select(User).where(col(User.id).in_(list(submitted)))
+            ).all()
+        }
+        surveys.extend((codes.get(uid, ""), s) for uid, s in submitted.items())
+    surveys.sort(key=lambda item: item[0])
+    return trial_analytics(session, rows, surveys, valid_only)
