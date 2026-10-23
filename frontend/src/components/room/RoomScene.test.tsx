@@ -246,3 +246,17 @@ test("資料回來後記住這次的房間與吉祥物", async () => {
     }),
   )
 })
+
+test("管理員在頁首看到試測管理，一般玩家沒有", async () => {
+  await renderScene()
+  await screen.findByTestId("room-me")
+  await waitFor(() => expect(homeApi.summary).toHaveBeenCalled())
+  expect(screen.queryByTestId("room-admin")).toBeNull()
+  cleanup()
+  qc.clear()
+  current = summary({ admin_access: true })
+  await renderScene()
+  const admin = await screen.findByTestId("room-admin")
+  expect(admin.getAttribute("href")).toBe("/admin/cohorts")
+  expect(admin.textContent).toBe("試測管理")
+})

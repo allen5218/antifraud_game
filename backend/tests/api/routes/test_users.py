@@ -532,3 +532,109 @@ def test_delete_user_without_privileges(
     )
     assert r.status_code == 403
     assert r.json()["detail"] == "The user doesn't have enough privileges"
+
+
+def _oauth_user(db: Session) -> User:
+    """LINE 登入建立的帳號：email 是系統產生的內部格式（oauth.py）"""
+    user = User(
+        email=f"line-{uuid.uuid4().hex}@oauth.invalid", hashed_password="unusable"
+    )
+    db.add(user)
+    db.commit()
+    db.refresh(user)
+    return user
+
+
+def test_admin_sets_line_account_as_team_member(
+    client: TestClient, superuser_token_headers: dict[str, str], db: Session
+) -> None:
+    """10-23 使用者截圖：編輯 LINE 帳號勾團隊成員，表單把原 email 一起送回被擋"""
+    user = _oauth_user(db)
+    r = client.patch(
+        f"{settings.API_V1_STR}/users/{user.id}",
+        headers=superuser_token_headers,
+        json={"email": user.email, "full_name": "呂同學", "is_team": True},
+    )
+    assert r.status_code == 200, r.text
+    assert r.json()["is_team"] is True
+    assert r.json()["email"] == user.email
+    db.refresh(user)
+    assert user.is_team
+
+
+def test_admin_cannot_switch_to_another_internal_email(
+    client: TestClient, superuser_token_headers: dict[str, str], db: Session
+) -> None:
+    user = _oauth_user(db)
+    r = client.patch(
+        f"{settings.API_V1_STR}/users/{user.id}",
+        headers=superuser_token_headers,
+        json={"email": f"google-{uuid.uuid4().hex}@oauth.invalid"},
+    )
+    assert r.status_code == 400
+    assert r.json()["detail"] == {"code": "internal_email"}
+
+
+def test_admin_can_give_line_account_a_real_email(
+    client: TestClient, superuser_token_headers: dict[str, str], db: Session
+) -> None:
+    user = _oauth_user(db)
+    email = random_email()
+    r = client.patch(
+        f"{settings.API_V1_STR}/users/{user.id}",
+        headers=superuser_token_headers,
+        json={"email": email},
+    )
+    assert r.status_code == 200
+    assert r.json()["email"] == email
+
+
+def test_arbitrary_invalid_domain_is_still_rejected(
+    client: TestClient, superuser_token_headers: dict[str, str], db: Session
+) -> None:
+    user = _oauth_user(db)
+    r = client.patch(
+        f"{settings.API_V1_STR}/users/{user.id}",
+        headers=superuser_token_headers,
+        json={"email": "someone@example.invalid"},
+    )
+    assert r.status_code == 422
+
+
+def test_line_account_updates_own_name_with_unchanged_email(
+    client: TestClient, db: Session
+) -> None:
+    user = _oauth_user(db)
+    token = create_access_token(str(user.id), timedelta(minutes=5))
+    r = client.patch(
+        f"{settings.API_V1_STR}/users/me",
+        headers={"Authorization": f"Bearer {token}"},
+        json={"email": user.email, "full_name": "小雞"},
+    )
+    assert r.status_code == 200, r.text
+    assert r.json()["full_name"] == "小雞"
+
+
+def test_admin_edits_guest_with_unchanged_email(
+    client: TestClient, superuser_token_headers: dict[str, str], db: Session
+) -> None:
+    guest = User(
+        email=f"guest-{uuid.uuid4().hex}@participants.invalid",
+        hashed_password="unusable",
+        is_guest=True,
+    )
+    db.add(guest)
+    db.commit()
+    r = client.patch(
+        f"{settings.API_V1_STR}/users/{guest.id}",
+        headers=superuser_token_headers,
+        json={"email": guest.email, "full_name": "T-0001"},
+    )
+    assert r.status_code == 200, r.text
+    r = client.patch(
+        f"{settings.API_V1_STR}/users/{guest.id}",
+        headers=superuser_token_headers,
+        json={"email": random_email()},
+    )
+    assert r.status_code == 400
+    assert r.json()["detail"] == {"code": "guest_account"}

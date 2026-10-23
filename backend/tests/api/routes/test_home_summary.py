@@ -74,6 +74,7 @@ def test_summary_creates_no_rows_for_new_player(client, player, db):
             "team_access": False,
             "survey_pending": False,
             "survey_ready": False,
+            "admin_access": False,
         }
     after = [db.exec(select(func.count()).select_from(t)).one() for t in tables]
     assert after == before
@@ -294,3 +295,11 @@ def test_summary_expired_exam_does_not_settle(client, player, db):
     assert attempt.status == "active"
     assert attempt.completed_at is None
     assert user.cash == before_cash
+
+
+def test_admin_access_only_for_superuser(
+    client, superuser_token_headers, normal_user_token_headers
+):
+    url = f"{API}/home/summary"
+    assert client.get(url, headers=superuser_token_headers).json()["admin_access"]
+    assert not client.get(url, headers=normal_user_token_headers).json()["admin_access"]

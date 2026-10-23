@@ -92,6 +92,8 @@ class HomeSummary(BaseModel):
     # 試測帳號還沒交問卷；做完一次檢測（survey_ready）才能填
     survey_pending: bool = False
     survey_ready: bool = False
+    # 管理員：房間選單多一個「試測管理」
+    admin_access: bool = False
 
 
 # ── Economy ───────────────────────────────────────────────

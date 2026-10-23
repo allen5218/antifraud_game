@@ -1,5 +1,12 @@
 import { Link, useRouter } from "@tanstack/react-router"
-import { Coins, House, Menu, ShoppingBag, UserRound } from "lucide-react"
+import {
+  Coins,
+  House,
+  Menu,
+  QrCode,
+  ShoppingBag,
+  UserRound,
+} from "lucide-react"
 import { useEffect, useState } from "react"
 import { useClaimAccrual, useEconomyMe } from "@/hooks/useEconomy"
 import { useHomeSummary } from "@/hooks/useHomeSummary"
@@ -174,13 +181,25 @@ export function RoomScene() {
           房子
         </Link>
       </div>
-      <Link
-        to="/me"
-        data-testid="room-me"
-        className={`absolute top-[calc(env(safe-area-inset-top)+0.75rem)] left-3 z-20 flex items-center gap-1 rounded-full bg-card px-2.5 py-1.5 text-xs font-bold text-card-foreground shadow ${PRESS}`}
-      >
-        <UserRound aria-hidden className="size-3.5" />我
-      </Link>
+      <div className="absolute top-[calc(env(safe-area-inset-top)+0.75rem)] left-3 z-20 flex items-center gap-1">
+        <Link
+          to="/me"
+          data-testid="room-me"
+          className={`flex items-center gap-1 rounded-full bg-card px-2.5 py-1.5 text-xs font-bold text-card-foreground shadow ${PRESS}`}
+        >
+          <UserRound aria-hidden className="size-3.5" />我
+        </Link>
+        {data?.admin_access && (
+          <Link
+            to="/admin/cohorts"
+            data-testid="room-admin"
+            className={`flex items-center gap-1 rounded-full bg-primary px-2.5 py-1.5 text-xs font-bold text-primary-foreground shadow ${PRESS}`}
+          >
+            <QrCode aria-hidden className="size-3.5" />
+            試測管理
+          </Link>
+        )}
+      </div>
       <div className="absolute top-[calc(env(safe-area-inset-top)+0.75rem)] right-3 z-20 flex items-center gap-1">
         <Link
           to="/assets"

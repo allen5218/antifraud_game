@@ -40,6 +40,13 @@
   --color-chart-3: var(--chart-3);
   --color-chart-4: var(--chart-4);
   --color-chart-5: var(--chart-5);
+  --color-chart-before: var(--chart-before);
+  --color-chart-after: var(--chart-after);
+  --color-likert-1: var(--likert-1);
+  --color-likert-2: var(--likert-2);
+  --color-likert-3: var(--likert-3);
+  --color-likert-4: var(--likert-4);
+  --color-likert-5: var(--likert-5);
   --color-sidebar: var(--sidebar);
   --color-sidebar-foreground: var(--sidebar-foreground);
   --color-sidebar-primary: var(--sidebar-primary);
@@ -87,6 +94,14 @@
   --chart-3: oklch(0.45 0.08 50);
   --chart-4: oklch(0.7 0.12 80);
   --chart-5: oklch(0.62 0.14 30);
+  /* 試測分析：前後比較兩色、五點量表的發散色（中間是灰）；用 dataviz 的檢查腳本驗過色盲區分與對比 */
+  --chart-before: oklch(0.52 0.12 245);
+  --chart-after: oklch(0.55 0.14 45);
+  --likert-1: oklch(0.48 0.14 35);
+  --likert-2: oklch(0.63 0.1 38);
+  --likert-3: oklch(0.76 0.01 80);
+  --likert-4: oklch(0.63 0.11 242);
+  --likert-5: oklch(0.48 0.12 245);
   --sidebar: oklch(0.96 0.014 88);
   --sidebar-foreground: oklch(0.28 0.03 50);
   --sidebar-primary: oklch(0.48 0.12 48);
@@ -133,6 +148,13 @@
   --chart-3: oklch(0.7 0.08 50);
   --chart-4: oklch(0.8 0.1 85);
   --chart-5: oklch(0.7 0.13 30);
+  --chart-before: oklch(0.64 0.11 245);
+  --chart-after: oklch(0.66 0.13 60);
+  --likert-1: oklch(0.66 0.13 35);
+  --likert-2: oklch(0.56 0.11 38);
+  --likert-3: oklch(0.46 0.01 80);
+  --likert-4: oklch(0.56 0.11 242);
+  --likert-5: oklch(0.66 0.11 245);
   --sidebar: oklch(0.26 0.022 55);
   --sidebar-foreground: oklch(0.95 0.014 90);
   --sidebar-primary: oklch(0.78 0.11 75);

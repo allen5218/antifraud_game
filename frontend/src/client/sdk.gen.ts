@@ -3,7 +3,7 @@
 import type { CancelablePromise } from './core/CancelablePromise';
 import { OpenAPI } from './core/OpenAPI';
 import { request as __request } from './core/request';
-import type { AdminCohortsListCohortsResponse, AdminCohortsCreateCohortData, AdminCohortsCreateCohortResponse, AdminCohortsUpdateCohortData, AdminCohortsUpdateCohortResponse, AdminCohortsListMembersData, AdminCohortsListMembersResponse, AdminCohortsExportCohortData, AdminCohortsExportCohortResponse, AdminCohortsExportCohortSurveyData, AdminCohortsExportCohortSurveyResponse, AdminCohortsExportCohortExamData, AdminCohortsExportCohortExamResponse, BadgesOwnBadgesResponse, BadgesUpdateBadgeData, BadgesUpdateBadgeResponse, BadgesPublicBadgeData, BadgesPublicBadgeResponse, DailyDailyTodayResponse, EconomyReadMeResponse, EconomyPostSettleResponse, EconomyClaimResponse, EconomyListPropertiesResponse, EconomyBuyPropertyData, EconomyBuyPropertyResponse, EconomyGetAssetsResponse, EconomyPostLiquidateData, EconomyPostLiquidateResponse, ExamReadStatusResponse, ExamStartData, ExamStartResponse, ExamActiveResponse, ExamHistoryResponse, ExamReadData, ExamReadResponse, ExamPretestData, ExamPretestResponse, ExamSwipeData, ExamSwipeResponse, ExamMessageData, ExamMessageResponse, ExamScenarioStartData, ExamScenarioStartResponse, ExamScenarioJudgeData, ExamScenarioJudgeResponse, ExamAbandonData, ExamAbandonResponse, HomeHomeSummaryResponse, InviteRedeemInviteData, InviteRedeemInviteResponse, ItemsReadItemsData, ItemsReadItemsResponse, ItemsCreateItemData, ItemsCreateItemResponse, ItemsReadItemData, ItemsReadItemResponse, ItemsUpdateItemData, ItemsUpdateItemResponse, ItemsDeleteItemData, ItemsDeleteItemResponse, LeaderboardReadLeaderboardData, LeaderboardReadLeaderboardResponse, LeaderboardUpdateNicknameData, LeaderboardUpdateNicknameResponse, LoginLoginAccessTokenData, LoginLoginAccessTokenResponse, LoginTestTokenResponse, LoginRecoverPasswordData, LoginRecoverPasswordResponse, LoginResetPasswordData, LoginResetPasswordResponse, LoginRecoverPasswordHtmlContentData, LoginRecoverPasswordHtmlContentResponse, LoginListProvidersResponse, LoginStartData, LoginStartResponse, LoginCallbackData, LoginCallbackResponse, MascotListMascotItemsResponse, MascotPurchaseItemData, MascotPurchaseItemResponse, MascotToggleEquipData, MascotToggleEquipResponse, MascotGetMyMascotResponse, PracticeReadProfileResponse, PretestGetPretestQuestionsResponse, PretestSubmitPretestData, PretestSubmitPretestResponse, PrivateCreateUserData, PrivateCreateUserResponse, QuickSwipeDeckData, QuickSwipeDeckResponse, QuickSwipeAnswerData, QuickSwipeAnswerResponse, QuickSwipeCompleteData, QuickSwipeCompleteResponse, QuickQuizDeckData, QuickQuizDeckResponse, QuickQuizAnswerData, QuickQuizAnswerResponse, QuickQuizCompleteData, QuickQuizCompleteResponse, ScenarioInboxResponse, ScenarioCreateScenarioData, ScenarioCreateScenarioResponse, ScenarioReadScenarioData, ScenarioReadScenarioResponse, ScenarioSendMessageData, ScenarioSendMessageResponse, ScenarioJudgeScenarioData, ScenarioJudgeScenarioResponse, ScoreGetMyScoreResponse, TeamReadBankResponse, TeamListCommentsData, TeamListCommentsResponse, TeamCreateCommentData, TeamCreateCommentResponse, TeamDeleteCommentData, TeamDeleteCommentResponse, TrialReadSurveyResponse, TrialSubmitSurveyData, TrialSubmitSurveyResponse, TrialStartSurveyResponse, UsersReadUsersData, UsersReadUsersResponse, UsersCreateUserData, UsersCreateUserResponse, UsersReadUserMeResponse, UsersDeleteUserMeResponse, UsersUpdateUserMeData, UsersUpdateUserMeResponse, UsersUpdatePasswordMeData, UsersUpdatePasswordMeResponse, UsersRegisterUserData, UsersRegisterUserResponse, UsersReadUserByIdData, UsersReadUserByIdResponse, UsersUpdateUserData, UsersUpdateUserResponse, UsersDeleteUserData, UsersDeleteUserResponse, UtilsTestEmailData, UtilsTestEmailResponse, UtilsHealthCheckResponse } from './types.gen';
+import type { AdminCohortsListCohortsResponse, AdminCohortsCreateCohortData, AdminCohortsCreateCohortResponse, AdminCohortsUpdateCohortData, AdminCohortsUpdateCohortResponse, AdminCohortsListMembersData, AdminCohortsListMembersResponse, AdminCohortsExportCohortData, AdminCohortsExportCohortResponse, AdminCohortsCohortProgressData, AdminCohortsCohortProgressResponse, AdminCohortsExportCohortSurveyData, AdminCohortsExportCohortSurveyResponse, AdminCohortsExportCohortExamData, AdminCohortsExportCohortExamResponse, AdminCohortsMemberDetailData, AdminCohortsMemberDetailResponse, AdminCohortsAnalyticsData, AdminCohortsAnalyticsResponse, BadgesOwnBadgesResponse, BadgesUpdateBadgeData, BadgesUpdateBadgeResponse, BadgesPublicBadgeData, BadgesPublicBadgeResponse, DailyDailyTodayResponse, EconomyReadMeResponse, EconomyPostSettleResponse, EconomyClaimResponse, EconomyListPropertiesResponse, EconomyBuyPropertyData, EconomyBuyPropertyResponse, EconomyGetAssetsResponse, EconomyPostLiquidateData, EconomyPostLiquidateResponse, ExamReadStatusResponse, ExamStartData, ExamStartResponse, ExamActiveResponse, ExamHistoryResponse, ExamReadData, ExamReadResponse, ExamPretestData, ExamPretestResponse, ExamSwipeData, ExamSwipeResponse, ExamMessageData, ExamMessageResponse, ExamScenarioStartData, ExamScenarioStartResponse, ExamScenarioJudgeData, ExamScenarioJudgeResponse, ExamAbandonData, ExamAbandonResponse, HomeHomeSummaryResponse, InviteRedeemInviteData, InviteRedeemInviteResponse, ItemsReadItemsData, ItemsReadItemsResponse, ItemsCreateItemData, ItemsCreateItemResponse, ItemsReadItemData, ItemsReadItemResponse, ItemsUpdateItemData, ItemsUpdateItemResponse, ItemsDeleteItemData, ItemsDeleteItemResponse, LeaderboardReadLeaderboardData, LeaderboardReadLeaderboardResponse, LeaderboardUpdateNicknameData, LeaderboardUpdateNicknameResponse, LoginLoginAccessTokenData, LoginLoginAccessTokenResponse, LoginTestTokenResponse, LoginRecoverPasswordData, LoginRecoverPasswordResponse, LoginResetPasswordData, LoginResetPasswordResponse, LoginRecoverPasswordHtmlContentData, LoginRecoverPasswordHtmlContentResponse, LoginListProvidersResponse, LoginStartData, LoginStartResponse, LoginCallbackData, LoginCallbackResponse, MascotListMascotItemsResponse, MascotPurchaseItemData, MascotPurchaseItemResponse, MascotToggleEquipData, MascotToggleEquipResponse, MascotGetMyMascotResponse, PracticeReadProfileResponse, PretestGetPretestQuestionsResponse, PretestSubmitPretestData, PretestSubmitPretestResponse, PrivateCreateUserData, PrivateCreateUserResponse, QuickSwipeDeckData, QuickSwipeDeckResponse, QuickSwipeAnswerData, QuickSwipeAnswerResponse, QuickSwipeCompleteData, QuickSwipeCompleteResponse, QuickQuizDeckData, QuickQuizDeckResponse, QuickQuizAnswerData, QuickQuizAnswerResponse, QuickQuizCompleteData, QuickQuizCompleteResponse, ScenarioInboxResponse, ScenarioCreateScenarioData, ScenarioCreateScenarioResponse, ScenarioReadScenarioData, ScenarioReadScenarioResponse, ScenarioSendMessageData, ScenarioSendMessageResponse, ScenarioJudgeScenarioData, ScenarioJudgeScenarioResponse, ScoreGetMyScoreResponse, TeamReadBankResponse, TeamListCommentsData, TeamListCommentsResponse, TeamCreateCommentData, TeamCreateCommentResponse, TeamDeleteCommentData, TeamDeleteCommentResponse, TrialReadSurveyResponse, TrialSubmitSurveyData, TrialSubmitSurveyResponse, TrialStartSurveyResponse, UsersReadUsersData, UsersReadUsersResponse, UsersCreateUserData, UsersCreateUserResponse, UsersReadUserMeResponse, UsersDeleteUserMeResponse, UsersUpdateUserMeData, UsersUpdateUserMeResponse, UsersUpdatePasswordMeData, UsersUpdatePasswordMeResponse, UsersRegisterUserData, UsersRegisterUserResponse, UsersReadUserByIdData, UsersReadUserByIdResponse, UsersUpdateUserData, UsersUpdateUserResponse, UsersDeleteUserData, UsersDeleteUserResponse, UtilsTestEmailData, UtilsTestEmailResponse, UtilsHealthCheckResponse } from './types.gen';
 
 export class AdminCohortsService {
     /**
@@ -101,6 +101,27 @@ export class AdminCohortsService {
     }
     
     /**
+     * Cohort Progress
+     * 管理頁看的試測進度：每人前測、檢測、問卷與能不能領錢（和成員 CSV 同一套判定）。
+     * @param data The data for the request.
+     * @param data.cohortId
+     * @returns CohortProgress Successful Response
+     * @throws ApiError
+     */
+    public static cohortProgress(data: AdminCohortsCohortProgressData): CancelablePromise<AdminCohortsCohortProgressResponse> {
+        return __request(OpenAPI, {
+            method: 'GET',
+            url: '/api/v1/admin/cohorts/{cohort_id}/progress',
+            path: {
+                cohort_id: data.cohortId
+            },
+            errors: {
+                422: 'Validation Error'
+            }
+        });
+    }
+    
+    /**
      * Export Cohort Survey
      * 交過問卷的人一人一列、每題一欄；量表是 1～5 的數字，複選用「；」分開。
      * @param data The data for the request.
@@ -134,6 +155,54 @@ export class AdminCohortsService {
             url: '/api/v1/admin/cohorts/{cohort_id}/exam.csv',
             path: {
                 cohort_id: data.cohortId
+            },
+            errors: {
+                422: 'Validation Error'
+            }
+        });
+    }
+    
+    /**
+     * Member Detail
+     * 一位成員的前測每題、每次檢測、練習量、問卷答案與最後活動時間。
+     * @param data The data for the request.
+     * @param data.cohortId
+     * @param data.userId
+     * @returns ParticipantDetail Successful Response
+     * @throws ApiError
+     */
+    public static memberDetail(data: AdminCohortsMemberDetailData): CancelablePromise<AdminCohortsMemberDetailResponse> {
+        return __request(OpenAPI, {
+            method: 'GET',
+            url: '/api/v1/admin/cohorts/{cohort_id}/members/{user_id}',
+            path: {
+                cohort_id: data.cohortId,
+                user_id: data.userId
+            },
+            errors: {
+                422: 'Validation Error'
+            }
+        });
+    }
+    
+    /**
+     * Analytics
+     * 試測數據與問卷分析；沒給 cohort_id 是全部梯次合計。
+     *
+     * `valid_only` 只影響問卷：只算注意力題答對、作答夠久的。
+     * @param data The data for the request.
+     * @param data.cohortId
+     * @param data.validOnly
+     * @returns TrialAnalytics Successful Response
+     * @throws ApiError
+     */
+    public static analytics(data: AdminCohortsAnalyticsData = {}): CancelablePromise<AdminCohortsAnalyticsResponse> {
+        return __request(OpenAPI, {
+            method: 'GET',
+            url: '/api/v1/admin/cohorts/analytics',
+            query: {
+                cohort_id: data.cohortId,
+                valid_only: data.validOnly
             },
             errors: {
                 422: 'Validation Error'

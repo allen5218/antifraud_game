@@ -1,3 +1,4 @@
+import re
 import uuid
 from typing import Any
 
@@ -13,6 +14,7 @@ from app.api.deps import (
 from app.core.config import settings
 from app.core.security import get_password_hash, verify_password
 from app.models import (
+    INTERNAL_EMAIL_PATTERN,
     Item,
     Message,
     UpdatePassword,
@@ -27,6 +29,19 @@ from app.models import (
 from app.utils import generate_new_account_email, send_email
 
 router = APIRouter(prefix="/users", tags=["users"])
+
+
+def drop_unchanged_email(user_in: UserUpdate | UserUpdateMe, current: str) -> None:
+    """表單常把原本的 email 一起送回來；沒改就當作沒送。"""
+    if "email" in user_in.model_fields_set and user_in.email == current:
+        user_in.email = None
+        user_in.model_fields_set.discard("email")
+
+
+def reject_new_internal_email(email: str | None) -> None:
+    """系統產生的內部 email 只能留著，不能改成另一個（例如冒用別的登入帳號的格式）。"""
+    if email and re.fullmatch(INTERNAL_EMAIL_PATTERN, email):
+        raise HTTPException(status_code=400, detail={"code": "internal_email"})
 
 
 @router.get(
@@ -85,8 +100,10 @@ def update_user_me(
     Update own user.
     """
 
+    drop_unchanged_email(user_in, current_user.email)
     if current_user.is_guest and "email" in user_in.model_fields_set:
         raise HTTPException(status_code=400, detail={"code": "guest_account"})
+    reject_new_internal_email(user_in.email)
     if user_in.email:
         existing_user = crud.get_user_by_email(session=session, email=user_in.email)
         if existing_user and existing_user.id != current_user.id:
@@ -203,8 +220,10 @@ def update_user(
             status_code=404,
             detail="The user with this id does not exist in the system",
         )
+    drop_unchanged_email(user_in, db_user.email)
     if db_user.is_guest and {"email", "password"} & user_in.model_fields_set:
         raise HTTPException(status_code=400, detail={"code": "guest_account"})
+    reject_new_internal_email(user_in.email)
     if user_in.email:
         existing_user = crud.get_user_by_email(session=session, email=user_in.email)
         if existing_user and existing_user.id != user_id:

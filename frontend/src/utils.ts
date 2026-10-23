@@ -24,6 +24,12 @@ const BACKEND_MESSAGES: Record<string, string> = {
   "Network Error": "連不上伺服器，請檢查網路",
 }
 
+/** 帳號 API 用 `{ code }` 回的錯誤 */
+const CODE_MESSAGES: Record<string, string> = {
+  guest_account: "試測帳號不能改電子郵件或密碼",
+  internal_email: "這個電子郵件是系統產生的，不能改成這種格式",
+}
+
 export function translateMessage(message: string): string {
   return BACKEND_MESSAGES[message.replace(/\.$/, "")] ?? message
 }
@@ -34,6 +40,9 @@ function extractErrorMessage(err: ApiError): string {
   }
 
   const errDetail = (err.body as any)?.detail
+  if (typeof errDetail?.code === "string") {
+    return CODE_MESSAGES[errDetail.code] ?? "發生錯誤，請稍後再試"
+  }
   if (Array.isArray(errDetail) && errDetail.length > 0) {
     return translateMessage(errDetail[0].msg)
   }
