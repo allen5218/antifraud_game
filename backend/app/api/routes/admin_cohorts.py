@@ -22,6 +22,8 @@ from app.models import (
     Cohort,
     CohortCreate,
     CohortMemberPublic,
+    CohortProgress,
+    CohortProgressMember,
     CohortPublic,
     CohortUpdate,
     PracticeAnswer,
@@ -57,10 +59,26 @@ def get_cohort(session: SessionDep, cohort_id: uuid.UUID) -> Cohort:
     return cohort
 
 
+def member_counts(session: Session) -> dict[uuid.UUID, int]:
+    return {
+        cohort_id: count
+        for cohort_id, count in session.exec(
+            select(User.cohort_id, func.count())
+            .where(col(User.cohort_id).is_not(None))
+            .group_by(col(User.cohort_id))
+        ).all()
+        if cohort_id is not None
+    }
+
+
+def to_public(cohort: Cohort, member_count: int) -> CohortPublic:
+    return CohortPublic.model_validate(cohort, update={"member_count": member_count})
+
+
 @router.post("", response_model=CohortPublic)
 def create_cohort(
     body: CohortCreate, session: SessionDep, admin: CohortAdmin
-) -> Cohort:
+) -> CohortPublic:
     cohort = Cohort(
         name=body.name,
         token=secrets.token_urlsafe(32),
@@ -71,32 +89,41 @@ def create_cohort(
     session.add(cohort)
     session.commit()
     session.refresh(cohort)
-    return cohort
+    return to_public(cohort, 0)
 
 
 @router.get("", response_model=list[CohortPublic])
-def list_cohorts(session: SessionDep) -> list[Cohort]:
-    return list(
-        session.exec(
+def list_cohorts(session: SessionDep) -> list[CohortPublic]:
+    counts = member_counts(session)
+    return [
+        to_public(cohort, counts.get(cohort.id, 0))
+        for cohort in session.exec(
             select(Cohort).order_by(col(Cohort.created_at).desc(), col(Cohort.id))
         ).all()
-    )
+    ]
 
 
 @router.patch("/{cohort_id}", response_model=CohortPublic)
 def update_cohort(
     cohort_id: uuid.UUID, body: CohortUpdate, session: SessionDep
-) -> Cohort:
+) -> CohortPublic:
     cohort = session.exec(
         select(Cohort).where(Cohort.id == cohort_id).with_for_update()
     ).first()
     if not cohort:
         raise HTTPException(status_code=404, detail={"code": "cohort_not_found"})
-    cohort.is_active = body.is_active
+    # 只改有送的欄位：名額、期限送 null 是改成不限
+    sent = body.model_fields_set
+    if "is_active" in sent and body.is_active is not None:
+        cohort.is_active = body.is_active
+    if "max_members" in sent:
+        cohort.max_members = body.max_members
+    if "expires_at" in sent:
+        cohort.expires_at = body.expires_at
     session.add(cohort)
     session.commit()
     session.refresh(cohort)
-    return cohort
+    return to_public(cohort, member_counts(session).get(cohort.id, 0))
 
 
 @router.get("/{cohort_id}/members", response_model=list[CohortMemberPublic])
@@ -306,6 +333,51 @@ def export_cohort(cohort_id: uuid.UUID, session: SessionDep) -> Response:
             cohort_survey_summaries(session, cohort_id),
         ),
         f"cohort-{cohort_id}.csv",
+    )
+
+
+def _number(value: str | int) -> int | None:
+    return None if value == "" else int(value)
+
+
+@router.get("/{cohort_id}/progress", response_model=CohortProgress)
+def cohort_progress(cohort_id: uuid.UUID, session: SessionDep) -> CohortProgress:
+    """管理頁看的試測進度：每人前測、檢測、問卷與能不能領錢（和成員 CSV 同一套判定）。"""
+    members = list_members(cohort_id, session)
+    rows = build_export_rows(
+        members,
+        cohort_exam_summaries(session, cohort_id),
+        cohort_pretest_summaries(session, cohort_id),
+        cohort_survey_summaries(session, cohort_id),
+    )
+    progress = [
+        CohortProgressMember(
+            participant_code=member.participant_code,
+            created_at=member.created_at,
+            pretest_done=row["pretest_done"] == "true",
+            pretest_correct=_number(row["pretest_correct"]),
+            pretest_total=_number(row["pretest_total"]),
+            pretest_seconds=_number(row["pretest_seconds"]),
+            exam_completed=row["exam_completed"] == "true",
+            best_exam_score=_number(row["best_exam_score"]),
+            exam_seconds=_number(row["exam_seconds"]),
+            survey_done=row["survey_done"] == "true",
+            survey_seconds=_number(row["survey_seconds"]),
+            survey_attention_ok=None
+            if row["survey_attention_ok"] == ""
+            else row["survey_attention_ok"] == "true",
+            payout_eligible=row["payout_eligible"] == "true",
+            payout_reasons=[r for r in str(row["payout_reasons"]).split("；") if r],
+        )
+        for member, row in zip(members, rows, strict=True)
+    ]
+    return CohortProgress(
+        member_count=len(progress),
+        pretest_done=sum(m.pretest_done for m in progress),
+        exam_completed=sum(m.exam_completed for m in progress),
+        survey_done=sum(m.survey_done for m in progress),
+        payout_eligible=sum(m.payout_eligible for m in progress),
+        members=progress,
     )
 
 

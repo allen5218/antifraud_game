@@ -254,6 +254,34 @@ def test_export_payout_rules_and_survey_csv(
     assert row["payout_reasons"] == "前測沒做；檢測沒有交卷；問卷沒填"
     assert row["survey_done"] == "false" and row["survey_seconds"] == ""
 
+    # 管理頁的進度和成員 CSV 是同一套判定
+    response = client.get(
+        f"{BASE}/admin/cohorts/{cohort['id']}/progress",
+        headers=superuser_token_headers,
+    )
+    assert response.status_code == 200, response.text
+    progress = response.json()
+    assert (
+        progress["member_count"],
+        progress["pretest_done"],
+        progress["exam_completed"],
+        progress["survey_done"],
+        progress["payout_eligible"],
+    ) == (3, 2, 2, 2, 1)
+    by_code = {m["participant_code"]: m for m in progress["members"]}
+    for user_id, row in rows.items():
+        code = db.get(User, uuid.UUID(user_id)).participant_code  # type: ignore[union-attr]
+        member = by_code[code]
+        assert str(member["payout_eligible"]).lower() == row["payout_eligible"]
+        assert "；".join(member["payout_reasons"]) == row["payout_reasons"]
+    good_code = db.get(User, good).participant_code  # type: ignore[union-attr]
+    assert by_code[good_code]["pretest_seconds"] == 75
+    assert by_code[good_code]["exam_seconds"] == 400
+    assert by_code[good_code]["survey_attention_ok"] is True
+    lists = client.get(f"{BASE}/admin/cohorts", headers=superuser_token_headers)
+    listed = next(c for c in lists.json() if c["id"] == cohort["id"])
+    assert listed["member_count"] == 3
+
     survey_rows = read_csv(client, cohort, superuser_token_headers, "survey.csv")
     assert len(survey_rows) == 2
     by_code = {r["participant_code"]: r for r in survey_rows}

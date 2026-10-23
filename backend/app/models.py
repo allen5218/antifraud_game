@@ -140,8 +140,8 @@ class Cohort(SQLModel, table=True):
     name: str = Field(max_length=100)
     token: str = Field(max_length=64, unique=True, index=True)
     is_active: bool = True
-    # 名額與到期時間擋住 QR code 外流後被拿去大量建帳號
-    max_members: int = Field(default=150, ge=1)
+    # 名額（None 是不限）與到期時間；QR code 外流時管理員可以隨時設上限或停用
+    max_members: int | None = Field(default=None, ge=1)
     expires_at: datetime | None = Field(
         default=None,
         sa_type=DateTime(timezone=True),  # type: ignore
@@ -155,7 +155,8 @@ class Cohort(SQLModel, table=True):
 
 class CohortCreate(SQLModel):
     name: str = Field(min_length=1, max_length=100)
-    max_members: int = Field(default=150, ge=1, le=5000)
+    # 沒填就是不限名額
+    max_members: int | None = Field(default=None, ge=1, le=5000)
     # 沒填就是建立後 30 天
     expires_at: datetime | None = None
 
@@ -169,7 +170,11 @@ class CohortCreate(SQLModel):
 
 
 class CohortUpdate(SQLModel):
-    is_active: bool
+    """只改有送的欄位；max_members、expires_at 送 null 是不限。"""
+
+    is_active: bool | None = None
+    max_members: int | None = Field(default=None, ge=1, le=5000)
+    expires_at: datetime | None = None
 
 
 class CohortPublic(SQLModel):
@@ -177,10 +182,39 @@ class CohortPublic(SQLModel):
     name: str
     token: str
     is_active: bool
-    max_members: int
+    max_members: int | None
     expires_at: datetime | None
     created_at: datetime
     created_by: uuid.UUID | None
+    member_count: int = 0
+
+
+class CohortProgressMember(SQLModel):
+    """管理頁上每位成員的試測進度；判定和成員 CSV 的 payout_eligible 相同。"""
+
+    participant_code: str | None
+    created_at: datetime | None
+    pretest_done: bool
+    pretest_correct: int | None
+    pretest_total: int | None
+    pretest_seconds: int | None
+    exam_completed: bool
+    best_exam_score: int | None
+    exam_seconds: int | None
+    survey_done: bool
+    survey_seconds: int | None
+    survey_attention_ok: bool | None
+    payout_eligible: bool
+    payout_reasons: list[str]
+
+
+class CohortProgress(SQLModel):
+    member_count: int
+    pretest_done: int
+    exam_completed: int
+    survey_done: int
+    payout_eligible: int
+    members: list[CohortProgressMember]
 
 
 class CohortMemberPublic(SQLModel):

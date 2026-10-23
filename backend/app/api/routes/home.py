@@ -88,6 +88,7 @@ def home_summary(session: SessionDep, current_user: CurrentUser) -> HomeSummary:
         focus_type=profile.focus_type,
         focus_label=profile.focus_label,
         team_access=has_team_access(current_user),
+        admin_access=current_user.is_superuser,
         survey_pending=survey_pending,
         survey_ready=survey_pending and exam_done(session, current_user.id),
         badges=[

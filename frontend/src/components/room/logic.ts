@@ -24,9 +24,10 @@ export type MenuTo =
   | "/exam"
   | "/team"
   | "/survey"
+  | "/admin/cohorts"
 
 export type MenuItem = {
-  id: HotspotId | "leaderboard" | "badges" | "team" | "survey"
+  id: HotspotId | "leaderboard" | "badges" | "team" | "survey" | "admin"
   label: string
   status: string
   done: boolean
@@ -266,6 +267,15 @@ export function menuItems(s: HomeSummary): MenuItem[] {
       status: "全部題目與答案",
       done: false,
       to: "/team",
+    })
+  }
+  if (s.admin_access) {
+    items.push({
+      id: "admin",
+      label: "試測管理",
+      status: "發邀請、看進度",
+      done: false,
+      to: "/admin/cohorts",
     })
   }
   if (!s.exam_active_attempt_id) return items

@@ -6,6 +6,7 @@ import {
   ClipboardList,
   Mail,
   MessageCircle,
+  QrCode,
   Trophy,
   Tv,
 } from "lucide-react"
@@ -21,6 +22,7 @@ const ICONS = {
   badges: Award,
   team: BookOpen,
   survey: ClipboardList,
+  admin: QrCode,
 } as const
 
 export function RoomMenu({

@@ -3,7 +3,13 @@ import { createFileRoute, Link, redirect } from "@tanstack/react-router"
 import { Download, QrCode, Users } from "lucide-react"
 import { QRCodeCanvas } from "qrcode.react"
 import { type FormEvent, useRef, useState } from "react"
-import { AdminCohortsService, type CohortPublic, UsersService } from "@/client"
+import {
+  AdminCohortsService,
+  type CohortProgress,
+  type CohortProgressMember,
+  type CohortPublic,
+  UsersService,
+} from "@/client"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 
@@ -72,9 +78,241 @@ function InvitationCode({ cohort }: { cohort: CohortPublic }) {
   )
 }
 
+const TAIPEI = "Asia/Taipei"
+
+/** 到期時間顯示成台灣日期，例如 2026/11/2 */
+function taipeiDate(iso: string): string {
+  return new Date(iso).toLocaleDateString("zh-TW", { timeZone: TAIPEI })
+}
+
+/** 日期欄位的值（YYYY-MM-DD，台灣時間） */
+function dateInputValue(iso: string | null | undefined): string {
+  if (!iso) return ""
+  return new Date(iso).toLocaleDateString("sv-SE", { timeZone: TAIPEI })
+}
+
+/** 選的那天的台灣時間 23:59:59 到期 */
+function expiryOf(date: string): string {
+  return `${date}T23:59:59+08:00`
+}
+
+function limitText(cohort: CohortPublic): string {
+  const quota =
+    cohort.max_members == null ? "名額不限" : `名額 ${cohort.max_members} 人`
+  const expiry = cohort.expires_at
+    ? `${taipeiDate(cohort.expires_at)} 到期`
+    : "不限期限"
+  return `已加入 ${cohort.member_count ?? 0} 人・${quota}・${expiry}`
+}
+
+/** 名額與期限：留空是不限。改了馬上生效，已經加入的人不受影響 */
+function CohortSettings({ cohort }: { cohort: CohortPublic }) {
+  const queryClient = useQueryClient()
+  const [quota, setQuota] = useState(
+    cohort.max_members == null ? "" : String(cohort.max_members),
+  )
+  const [date, setDate] = useState(dateInputValue(cohort.expires_at))
+  const [message, setMessage] = useState<string | null>(null)
+  const save = useMutation({
+    mutationFn: () =>
+      AdminCohortsService.updateCohort({
+        cohortId: cohort.id,
+        requestBody: {
+          max_members: quota.trim() ? Number(quota) : null,
+          expires_at: date ? expiryOf(date) : null,
+        },
+      }),
+    onSuccess: () => {
+      setMessage("已儲存。")
+      queryClient.invalidateQueries({ queryKey: ["admin", "cohorts"] })
+    },
+    onError: () => setMessage("儲存失敗，名額要是 1 到 5000 的整數。"),
+  })
+  return (
+    <form
+      className="mt-6 flex flex-wrap items-end gap-3"
+      onSubmit={(event) => {
+        event.preventDefault()
+        save.mutate()
+      }}
+    >
+      <div>
+        <label
+          htmlFor="cohort-quota"
+          className="mb-1 block text-sm font-medium"
+        >
+          名額（留空是不限）
+        </label>
+        <Input
+          id="cohort-quota"
+          type="number"
+          min={1}
+          max={5000}
+          inputMode="numeric"
+          value={quota}
+          onChange={(event) => setQuota(event.target.value)}
+          placeholder="不限"
+          className="w-32"
+        />
+      </div>
+      <div>
+        <label
+          htmlFor="cohort-expiry"
+          className="mb-1 block text-sm font-medium"
+        >
+          最後一天（留空是不限期限）
+        </label>
+        <Input
+          id="cohort-expiry"
+          type="date"
+          value={date}
+          onChange={(event) => setDate(event.target.value)}
+          className="w-44"
+        />
+      </div>
+      <Button type="submit" variant="outline" disabled={save.isPending}>
+        儲存設定
+      </Button>
+      {message && (
+        <output className="text-sm text-muted-foreground">{message}</output>
+      )}
+    </form>
+  )
+}
+
+function seconds(value: number | null | undefined): string {
+  if (value == null) return "沒有計時"
+  if (value < 60) return `${value} 秒`
+  return `${Math.floor(value / 60)} 分 ${value % 60} 秒`
+}
+
+function pretestText(m: CohortProgressMember): string {
+  return m.pretest_done
+    ? `答對 ${m.pretest_correct}／${m.pretest_total}・${seconds(m.pretest_seconds)}`
+    : "沒做"
+}
+
+function examText(m: CohortProgressMember): string {
+  return m.exam_completed
+    ? `${m.best_exam_score} 分・最久 ${seconds(m.exam_seconds)}`
+    : "沒交卷"
+}
+
+function surveyText(m: CohortProgressMember): string {
+  return m.survey_done
+    ? `${seconds(m.survey_seconds)}・注意力題${m.survey_attention_ok ? "對" : "錯"}`
+    : "沒填"
+}
+
+/** 每個人的前測、檢測、問卷與能不能領錢（和「下載作答資料」同一套判定） */
+function ProgressTable({ progress }: { progress: CohortProgress }) {
+  const stats = [
+    ["已加入", progress.member_count],
+    ["前測做完", progress.pretest_done],
+    ["檢測交卷", progress.exam_completed],
+    ["問卷交了", progress.survey_done],
+    ["可以領錢", progress.payout_eligible],
+  ] as const
+  return (
+    <div className="flex flex-col gap-3">
+      <dl className="grid grid-cols-5 gap-2">
+        {stats.map(([label, value]) => (
+          <div
+            key={label}
+            className="rounded-lg border border-border bg-card p-2 text-center"
+          >
+            <dt className="whitespace-nowrap text-[11px] text-muted-foreground">
+              {label}
+            </dt>
+            <dd className="text-xl font-bold">{value}</dd>
+          </div>
+        ))}
+      </dl>
+      {progress.members.length === 0 ? (
+        <p className="text-muted-foreground">還沒有人加入。</p>
+      ) : (
+        <>
+          {/* 手機：一人一張卡片 */}
+          <ul className="flex flex-col gap-2 md:hidden">
+            {progress.members.map((m) => (
+              <li
+                key={m.participant_code ?? m.created_at}
+                className="rounded-lg border border-border bg-card p-3 text-sm"
+              >
+                <div className="flex items-center justify-between">
+                  <span className="font-bold">{m.participant_code}</span>
+                  <span
+                    className={`font-bold ${m.payout_eligible ? "text-legit" : "text-muted-foreground"}`}
+                  >
+                    {m.payout_eligible ? "可以領錢" : "還不能領"}
+                  </span>
+                </div>
+                <p>前測：{pretestText(m)}</p>
+                <p>檢測：{examText(m)}</p>
+                <p>問卷：{surveyText(m)}</p>
+                {m.payout_reasons.length > 0 && (
+                  <p className="text-muted-foreground">
+                    原因：{m.payout_reasons.join("、")}
+                  </p>
+                )}
+              </li>
+            ))}
+          </ul>
+          <div className="hidden overflow-x-auto md:block">
+            <table className="w-full text-left text-sm">
+              <thead>
+                <tr className="border-b border-border">
+                  <th className="whitespace-nowrap p-2">受試編號</th>
+                  <th className="whitespace-nowrap p-2">加入時間</th>
+                  <th className="whitespace-nowrap p-2">前測</th>
+                  <th className="whitespace-nowrap p-2">檢測</th>
+                  <th className="whitespace-nowrap p-2">問卷</th>
+                  <th className="whitespace-nowrap p-2">可以領錢</th>
+                  <th className="whitespace-nowrap p-2">不能領的原因</th>
+                </tr>
+              </thead>
+              <tbody>
+                {progress.members.map((m) => (
+                  <tr
+                    key={m.participant_code ?? m.created_at}
+                    className="border-b border-border align-top"
+                  >
+                    <td className="whitespace-nowrap p-2 font-medium">
+                      {m.participant_code}
+                    </td>
+                    <td className="p-2 whitespace-nowrap">
+                      {m.created_at
+                        ? new Date(m.created_at).toLocaleString("zh-TW", {
+                            timeZone: TAIPEI,
+                          })
+                        : "尚無資料"}
+                    </td>
+                    <td className="p-2">{pretestText(m)}</td>
+                    <td className="p-2">{examText(m)}</td>
+                    <td className="p-2">{surveyText(m)}</td>
+                    <td
+                      className={`whitespace-nowrap p-2 font-bold ${m.payout_eligible ? "text-legit" : "text-muted-foreground"}`}
+                    >
+                      {m.payout_eligible ? "可以" : "還不行"}
+                    </td>
+                    <td className="p-2 text-muted-foreground">
+                      {m.payout_reasons.join("、")}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </>
+      )}
+    </div>
+  )
+}
+
 function CohortsPage() {
   const queryClient = useQueryClient()
   const [name, setName] = useState("")
+  const [quota, setQuota] = useState("")
   const [selectedId, setSelectedId] = useState<string | null>(null)
   const [notice, setNotice] = useState<string | null>(null)
   const cohorts = useQuery({
@@ -82,16 +320,23 @@ function CohortsPage() {
     queryFn: () => AdminCohortsService.listCohorts(),
   })
   const selected = cohorts.data?.find((cohort) => cohort.id === selectedId)
-  const members = useQuery({
-    queryKey: ["admin", "cohorts", selectedId, "members"],
-    queryFn: () => AdminCohortsService.listMembers({ cohortId: selectedId! }),
+  const progress = useQuery({
+    queryKey: ["admin", "cohorts", selectedId, "progress"],
+    queryFn: () =>
+      AdminCohortsService.cohortProgress({ cohortId: selectedId! }),
     enabled: Boolean(selectedId),
   })
   const create = useMutation({
     mutationFn: () =>
-      AdminCohortsService.createCohort({ requestBody: { name: name.trim() } }),
+      AdminCohortsService.createCohort({
+        requestBody: {
+          name: name.trim(),
+          ...(quota.trim() ? { max_members: Number(quota) } : {}),
+        },
+      }),
     onSuccess: (cohort) => {
       setName("")
+      setQuota("")
       setSelectedId(cohort.id)
       setNotice(null)
       queryClient.invalidateQueries({ queryKey: ["admin", "cohorts"] })
@@ -145,14 +390,22 @@ function CohortsPage() {
   return (
     <div className="flex flex-col gap-6">
       <header>
-        <Link to="/admin" className="text-sm text-primary">
-          回到帳號管理
-        </Link>
+        <div className="flex gap-4 text-sm">
+          <Link to="/" className="text-primary">
+            回房間
+          </Link>
+          <Link to="/admin" className="text-primary">
+            回到帳號管理
+          </Link>
+        </div>
         <h1 className="mt-2 text-2xl font-bold">試測梯次</h1>
-        <p className="text-muted-foreground">建立邀請碼，讓試測者掃碼加入。</p>
+        <p className="text-muted-foreground">
+          建立邀請網址與 QR
+          code，看每個人做到哪裡、能不能領錢。名額和期限隨時可以改。
+        </p>
       </header>
       <form onSubmit={submit} className="flex flex-wrap items-end gap-3">
-        <div className="flex-1">
+        <div className="basis-full sm:flex-1 sm:basis-auto">
           <label
             htmlFor="cohort-name"
             className="mb-2 block text-sm font-medium"
@@ -166,6 +419,25 @@ function CohortsPage() {
             required
             onChange={(event) => setName(event.target.value)}
             placeholder="例如：十月試測"
+          />
+        </div>
+        <div>
+          <label
+            htmlFor="new-cohort-quota"
+            className="mb-2 block text-sm font-medium"
+          >
+            名額（留空是不限）
+          </label>
+          <Input
+            id="new-cohort-quota"
+            type="number"
+            min={1}
+            max={5000}
+            inputMode="numeric"
+            value={quota}
+            onChange={(event) => setQuota(event.target.value)}
+            placeholder="不限"
+            className="w-32"
           />
         </div>
         <Button type="submit" disabled={!name.trim() || create.isPending}>
@@ -199,6 +471,9 @@ function CohortsPage() {
             <p className="mt-1 text-sm text-muted-foreground">
               {cohort.is_active ? "開放加入" : "已停用"}
             </p>
+            <p className="mt-1 text-sm text-muted-foreground">
+              {limitText(cohort)}
+            </p>
             <div className="mt-3 flex flex-wrap gap-2">
               <Button
                 variant="outline"
@@ -227,12 +502,19 @@ function CohortsPage() {
             </p>
           )}
           <InvitationCode key={selected.id} cohort={selected} />
+          <CohortSettings key={`settings-${selected.id}`} cohort={selected} />
           <div className="mb-3 mt-6 flex flex-wrap items-center gap-3">
             <h3 className="flex-1 font-bold">
-              成員（{members.data?.length ?? 0} 人）
+              試測進度（{progress.data?.member_count ?? 0} 人）
             </h3>
-            <Button variant="outline" onClick={() => members.refetch()}>
-              更新成員
+            <Button
+              variant="outline"
+              onClick={() => {
+                progress.refetch()
+                cohorts.refetch()
+              }}
+            >
+              更新
             </Button>
             <Button
               disabled={exportCsv.isPending}
@@ -258,48 +540,13 @@ function CohortsPage() {
               下載問卷 CSV
             </Button>
           </div>
-          {members.isPending && <output>正在載入成員…</output>}
-          {members.isError && (
+          {progress.isPending && <output>正在載入試測進度…</output>}
+          {progress.isError && (
             <p role="alert" className="text-scam">
-              無法載入成員，請再更新一次。
+              無法載入試測進度，請再更新一次。
             </p>
           )}
-          {members.data?.length === 0 && (
-            <p className="text-muted-foreground">還沒有人加入。</p>
-          )}
-          {members.data && members.data.length > 0 && (
-            <div className="overflow-x-auto">
-              <table className="w-full text-left text-sm">
-                <thead>
-                  <tr className="border-b border-border">
-                    <th className="p-2">受試編號</th>
-                    <th className="p-2">暱稱</th>
-                    <th className="p-2">加入時間</th>
-                    <th className="p-2">作答題數</th>
-                    <th className="p-2">答對題數</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {members.data.map((member) => (
-                    <tr key={member.id} className="border-b border-border">
-                      <td className="p-2">{member.participant_code}</td>
-                      <td className="p-2">{member.nickname || "尚未設定"}</td>
-                      <td className="p-2">
-                        {member.created_at
-                          ? new Date(member.created_at).toLocaleString(
-                              "zh-TW",
-                              { timeZone: "Asia/Taipei" },
-                            )
-                          : "尚無資料"}
-                      </td>
-                      <td className="p-2">{member.answer_count}</td>
-                      <td className="p-2">{member.correct_count}</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          )}
+          {progress.data && <ProgressTable progress={progress.data} />}
         </section>
       )}
     </div>

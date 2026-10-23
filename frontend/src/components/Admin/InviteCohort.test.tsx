@@ -31,6 +31,9 @@ const cohort = {
   name: "第一梯",
   token: "invitation-token",
   is_active: true,
+  max_members: 60,
+  expires_at: "2026-11-02T15:59:59Z",
+  member_count: 1,
   created_at: new Date().toISOString(),
   created_by: "admin",
 }
@@ -98,16 +101,31 @@ mock.module("@/client", () => ({
       cohorts = [{ ...cohort, name: requestBody.name }]
       return cohorts[0]
     },
-    listMembers: async () => [
-      {
-        id: "guest",
-        participant_code: "T-0001",
-        nickname: null,
-        created_at: null,
-        answer_count: 3,
-        correct_count: 2,
-      },
-    ],
+    cohortProgress: async () => ({
+      member_count: 1,
+      pretest_done: 1,
+      exam_completed: 0,
+      survey_done: 0,
+      payout_eligible: 0,
+      members: [
+        {
+          participant_code: "T-0001",
+          created_at: null,
+          pretest_done: true,
+          pretest_correct: 12,
+          pretest_total: 20,
+          pretest_seconds: 95,
+          exam_completed: false,
+          best_exam_score: null,
+          exam_seconds: null,
+          survey_done: false,
+          survey_seconds: null,
+          survey_attention_ok: null,
+          payout_eligible: false,
+          payout_reasons: ["檢測沒有交卷", "問卷沒填"],
+        },
+      ],
+    }),
     updateCohort: async ({ requestBody }: any) => {
       toggleBody = requestBody
       cohorts = [{ ...cohorts[0], ...requestBody }]
@@ -205,8 +223,38 @@ test("建立梯次、顯示成員、產生邀請網址、下載圖片與 CSV、�
     target: { value: "  第一梯  " },
   })
   fireEvent.submit(screen.getByLabelText("梯次名稱").closest("form")!)
-  await screen.findByText("T-0001")
+  await screen.findAllByText("T-0001")
   expect(createBody).toEqual({ name: "第一梯" })
+  // 卡片寫人數、名額、期限；進度表寫每個人缺什麼
+  expect(
+    screen.getByText("已加入 1 人・名額 60 人・2026/11/2 到期"),
+  ).toBeTruthy()
+  expect(screen.getByText("答對 12／20・1 分 35 秒")).toBeTruthy()
+  expect(screen.getByText("檢測沒有交卷、問卷沒填")).toBeTruthy()
+  // 名額與期限清空就是不限
+  expect(
+    (
+      screen.getByLabelText("名額（留空是不限）", {
+        selector: "#cohort-quota",
+      }) as HTMLInputElement
+    ).value,
+  ).toBe("60")
+  expect(
+    (screen.getByLabelText("最後一天（留空是不限期限）") as HTMLInputElement)
+      .value,
+  ).toBe("2026-11-02")
+  fireEvent.change(
+    screen.getByLabelText("名額（留空是不限）", { selector: "#cohort-quota" }),
+    {
+      target: { value: "" },
+    },
+  )
+  fireEvent.change(screen.getByLabelText("最後一天（留空是不限期限）"), {
+    target: { value: "" },
+  })
+  fireEvent.click(screen.getByRole("button", { name: "儲存設定" }))
+  await screen.findByText("已儲存。")
+  expect(toggleBody).toEqual({ max_members: null, expires_at: null })
   expect(qrValue).toBe(`${window.location.origin}/invite/invitation-token`)
   fireEvent.click(screen.getByRole("button", { name: "下載邀請圖片" }))
   expect(downloads[0]).toEqual({

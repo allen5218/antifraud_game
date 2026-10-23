@@ -353,3 +353,13 @@ describe("試測問卷入口", () => {
     expect(item).toMatchObject({ id: "survey", status: "還沒填", done: false })
   })
 })
+
+describe("試測管理入口", () => {
+  it("只有管理員的選單才有，檢測中也不暫停", () => {
+    expect(menuItems(summary()).some((i) => i.id === "admin")).toBe(false)
+    const admin = menuItems(
+      summary({ admin_access: true, exam_active_attempt_id: "a" }),
+    ).find((i) => i.id === "admin")
+    expect(admin).toMatchObject({ to: "/admin/cohorts", done: false })
+  })
+})

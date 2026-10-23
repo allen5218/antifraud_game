@@ -28,7 +28,7 @@ def check_capacity(session: SessionDep, cohort: Cohort) -> None:
     members = session.exec(
         select(func.count()).select_from(User).where(User.cohort_id == cohort.id)
     ).one()
-    if members >= cohort.max_members:
+    if cohort.max_members is not None and members >= cohort.max_members:
         raise HTTPException(status_code=409, detail={"code": "invite_full"})
     recent = session.exec(
         select(func.count())

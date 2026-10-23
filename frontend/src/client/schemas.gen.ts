@@ -110,11 +110,17 @@ export const CohortCreateSchema = {
             title: 'Name'
         },
         max_members: {
-            type: 'integer',
-            maximum: 5000,
-            minimum: 1,
-            title: 'Max Members',
-            default: 150
+            anyOf: [
+                {
+                    type: 'integer',
+                    maximum: 5000,
+                    minimum: 1
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Max Members'
         },
         expires_at: {
             anyOf: [
@@ -195,6 +201,173 @@ export const CohortMemberPublicSchema = {
     title: 'CohortMemberPublic'
 } as const;
 
+export const CohortProgressSchema = {
+    properties: {
+        member_count: {
+            type: 'integer',
+            title: 'Member Count'
+        },
+        pretest_done: {
+            type: 'integer',
+            title: 'Pretest Done'
+        },
+        exam_completed: {
+            type: 'integer',
+            title: 'Exam Completed'
+        },
+        survey_done: {
+            type: 'integer',
+            title: 'Survey Done'
+        },
+        payout_eligible: {
+            type: 'integer',
+            title: 'Payout Eligible'
+        },
+        members: {
+            items: {
+                '$ref': '#/components/schemas/CohortProgressMember'
+            },
+            type: 'array',
+            title: 'Members'
+        }
+    },
+    type: 'object',
+    required: ['member_count', 'pretest_done', 'exam_completed', 'survey_done', 'payout_eligible', 'members'],
+    title: 'CohortProgress'
+} as const;
+
+export const CohortProgressMemberSchema = {
+    properties: {
+        participant_code: {
+            anyOf: [
+                {
+                    type: 'string'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Participant Code'
+        },
+        created_at: {
+            anyOf: [
+                {
+                    type: 'string',
+                    format: 'date-time'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Created At'
+        },
+        pretest_done: {
+            type: 'boolean',
+            title: 'Pretest Done'
+        },
+        pretest_correct: {
+            anyOf: [
+                {
+                    type: 'integer'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Pretest Correct'
+        },
+        pretest_total: {
+            anyOf: [
+                {
+                    type: 'integer'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Pretest Total'
+        },
+        pretest_seconds: {
+            anyOf: [
+                {
+                    type: 'integer'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Pretest Seconds'
+        },
+        exam_completed: {
+            type: 'boolean',
+            title: 'Exam Completed'
+        },
+        best_exam_score: {
+            anyOf: [
+                {
+                    type: 'integer'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Best Exam Score'
+        },
+        exam_seconds: {
+            anyOf: [
+                {
+                    type: 'integer'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Exam Seconds'
+        },
+        survey_done: {
+            type: 'boolean',
+            title: 'Survey Done'
+        },
+        survey_seconds: {
+            anyOf: [
+                {
+                    type: 'integer'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Survey Seconds'
+        },
+        survey_attention_ok: {
+            anyOf: [
+                {
+                    type: 'boolean'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Survey Attention Ok'
+        },
+        payout_eligible: {
+            type: 'boolean',
+            title: 'Payout Eligible'
+        },
+        payout_reasons: {
+            items: {
+                type: 'string'
+            },
+            type: 'array',
+            title: 'Payout Reasons'
+        }
+    },
+    type: 'object',
+    required: ['participant_code', 'created_at', 'pretest_done', 'pretest_correct', 'pretest_total', 'pretest_seconds', 'exam_completed', 'best_exam_score', 'exam_seconds', 'survey_done', 'survey_seconds', 'survey_attention_ok', 'payout_eligible', 'payout_reasons'],
+    title: 'CohortProgressMember',
+    description: '管理頁上每位成員的試測進度；判定和成員 CSV 的 payout_eligible 相同。'
+} as const;
+
 export const CohortPublicSchema = {
     properties: {
         id: {
@@ -215,7 +388,14 @@ export const CohortPublicSchema = {
             title: 'Is Active'
         },
         max_members: {
-            type: 'integer',
+            anyOf: [
+                {
+                    type: 'integer'
+                },
+                {
+                    type: 'null'
+                }
+            ],
             title: 'Max Members'
         },
         expires_at: {
@@ -246,6 +426,11 @@ export const CohortPublicSchema = {
                 }
             ],
             title: 'Created By'
+        },
+        member_count: {
+            type: 'integer',
+            title: 'Member Count',
+            default: 0
         }
     },
     type: 'object',
@@ -256,13 +441,45 @@ export const CohortPublicSchema = {
 export const CohortUpdateSchema = {
     properties: {
         is_active: {
-            type: 'boolean',
+            anyOf: [
+                {
+                    type: 'boolean'
+                },
+                {
+                    type: 'null'
+                }
+            ],
             title: 'Is Active'
+        },
+        max_members: {
+            anyOf: [
+                {
+                    type: 'integer',
+                    maximum: 5000,
+                    minimum: 1
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Max Members'
+        },
+        expires_at: {
+            anyOf: [
+                {
+                    type: 'string',
+                    format: 'date-time'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Expires At'
         }
     },
     type: 'object',
-    required: ['is_active'],
-    title: 'CohortUpdate'
+    title: 'CohortUpdate',
+    description: '只改有送的欄位；max_members、expires_at 送 null 是不限。'
 } as const;
 
 export const DailyResultPublicSchema = {
@@ -1350,6 +1567,11 @@ export const HomeSummarySchema = {
         survey_ready: {
             type: 'boolean',
             title: 'Survey Ready',
+            default: false
+        },
+        admin_access: {
+            type: 'boolean',
+            title: 'Admin Access',
             default: false
         }
     },

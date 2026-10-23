@@ -24,7 +24,7 @@ export type BuyPropertyResponse = {
 
 export type CohortCreate = {
     name: string;
-    max_members?: number;
+    max_members?: (number | null);
     expires_at?: (string | null);
 };
 
@@ -38,19 +38,54 @@ export type CohortMemberPublic = {
     correct_count?: number;
 };
 
+export type CohortProgress = {
+    member_count: number;
+    pretest_done: number;
+    exam_completed: number;
+    survey_done: number;
+    payout_eligible: number;
+    members: Array<CohortProgressMember>;
+};
+
+/**
+ * 管理頁上每位成員的試測進度；判定和成員 CSV 的 payout_eligible 相同。
+ */
+export type CohortProgressMember = {
+    participant_code: (string | null);
+    created_at: (string | null);
+    pretest_done: boolean;
+    pretest_correct: (number | null);
+    pretest_total: (number | null);
+    pretest_seconds: (number | null);
+    exam_completed: boolean;
+    best_exam_score: (number | null);
+    exam_seconds: (number | null);
+    survey_done: boolean;
+    survey_seconds: (number | null);
+    survey_attention_ok: (boolean | null);
+    payout_eligible: boolean;
+    payout_reasons: Array<(string)>;
+};
+
 export type CohortPublic = {
     id: string;
     name: string;
     token: string;
     is_active: boolean;
-    max_members: number;
+    max_members: (number | null);
     expires_at: (string | null);
     created_at: string;
     created_by: (string | null);
+    member_count?: number;
 };
 
+/**
+ * 只改有送的欄位；max_members、expires_at 送 null 是不限。
+ */
 export type CohortUpdate = {
-    is_active: boolean;
+    is_active?: (boolean | null);
+    max_members?: (number | null);
+    expires_at?: (string | null);
 };
 
 export type DailyResultPublic = {
@@ -300,6 +335,7 @@ export type HomeSummary = {
     team_access?: boolean;
     survey_pending?: boolean;
     survey_ready?: boolean;
+    admin_access?: boolean;
 };
 
 export type HTTPValidationError = {
@@ -956,6 +992,12 @@ export type AdminCohortsExportCohortData = {
 };
 
 export type AdminCohortsExportCohortResponse = (string);
+
+export type AdminCohortsCohortProgressData = {
+    cohortId: string;
+};
+
+export type AdminCohortsCohortProgressResponse = (CohortProgress);
 
 export type AdminCohortsExportCohortSurveyData = {
     cohortId: string;
