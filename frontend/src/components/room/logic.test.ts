@@ -330,3 +330,26 @@ describe("團隊題庫入口", () => {
     expect(team?.status).toBe("全部題目與答案")
   })
 })
+
+describe("試測問卷入口", () => {
+  it("一般帳號和交過問卷的人沒有", () => {
+    expect(menuItems(summary()).some((i) => i.id === "survey")).toBe(false)
+  })
+
+  it("檢測還沒做完時變淡並寫做完檢測後填", () => {
+    const item = menuItems(summary({ survey_pending: true }))[0]
+    expect(item).toMatchObject({
+      id: "survey",
+      to: "/survey",
+      status: "做完檢測後填",
+      done: true,
+    })
+  })
+
+  it("做完檢測就可以填，放在選單最前面", () => {
+    const item = menuItems(
+      summary({ survey_pending: true, survey_ready: true }),
+    )[0]
+    expect(item).toMatchObject({ id: "survey", status: "還沒填", done: false })
+  })
+})

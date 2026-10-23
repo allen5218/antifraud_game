@@ -319,6 +319,8 @@ class PretestAttempt(SQLModel, table=True):
         foreign_key="user.id", nullable=False, ondelete="CASCADE", index=True
     )
     weakest_type: str = Field(max_length=32)
+    # 前端從題目載入到交卷的秒數；試測用來排除亂按的人。舊紀錄沒有。
+    duration_seconds: float | None = Field(default=None)
     created_at: datetime | None = Field(
         default_factory=get_datetime_utc,
         sa_type=DateTime(timezone=True),  # type: ignore
@@ -801,3 +803,25 @@ class UserIdentity(SQLModel, table=True):
     created_at: datetime = Field(
         default_factory=get_datetime_utc, sa_type=DateTime(timezone=True)
     )  # type: ignore
+
+
+class TrialSurvey(SQLModel, table=True):
+    """試測問卷，一人一份。開始時間由伺服器記，交卷時算作答秒數。
+
+    題目定義在 `app/trial/survey.py`，這裡只存答案。
+    """
+
+    __tablename__ = "trial_survey"
+
+    user_id: uuid.UUID = Field(
+        foreign_key="user.id", primary_key=True, ondelete="CASCADE"
+    )
+    answers: dict[str, Any] = Field(
+        default={}, sa_column=Column(JSONB, nullable=False, server_default="{}")
+    )
+    started_at: datetime = Field(
+        default_factory=get_datetime_utc, sa_type=DateTime(timezone=True)
+    )  # type: ignore
+    submitted_at: datetime | None = Field(default=None, sa_type=DateTime(timezone=True))  # type: ignore
+    duration_seconds: float | None = Field(default=None)
+    attention_ok: bool | None = Field(default=None)

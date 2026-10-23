@@ -119,6 +119,10 @@ mock.module("@/client", () => ({
       expect(cohortId).toBe("cohort-one")
       return "\ufeffparticipant_code,correct\r\nT-0001,true\r\n"
     },
+    exportCohortSurvey: async ({ cohortId }: { cohortId: string }) => {
+      expect(cohortId).toBe("cohort-one")
+      return "\ufeffparticipant_code,satisfied\r\nT-0001,4\r\n"
+    },
   },
 }))
 HTMLAnchorElement.prototype.click = function () {
@@ -217,6 +221,9 @@ test("建立梯次、顯示成員、產生邀請網址、下載圖片與 CSV、�
   await waitFor(() => expect(downloads).toHaveLength(3))
   expect(downloads[2].filename).toBe("cohort-cohort-one-exam.csv")
   expect(downloads[2].href).toStartWith("blob:")
+  fireEvent.click(screen.getByRole("button", { name: "下載問卷 CSV" }))
+  await waitFor(() => expect(downloads).toHaveLength(4))
+  expect(downloads[3].filename).toBe("cohort-cohort-one-survey.csv")
   fireEvent.click(screen.getByRole("button", { name: "停用邀請" }))
   await screen.findByText("邀請已停用，既有成員仍可繼續練習。")
   expect(toggleBody).toEqual({ is_active: false })

@@ -69,6 +69,13 @@ def cohort_exam_summaries(
             best = row["best_exam_score"]
             score = round_score(total_score)
             row["best_exam_score"] = score if best == "" else max(int(best), score)
+            # 試測發錢看用時最長的那一次，考太快的不算
+            if attempt.completed_at is not None:
+                seconds = round((attempt.completed_at - created_at).total_seconds())
+                longest = row["exam_seconds"]
+                row["exam_seconds"] = (
+                    seconds if longest == "" else max(int(longest), seconds)
+                )
     badges = session.exec(
         select(ExamBadge)
         .join(User, col(User.id) == col(ExamBadge.user_id))
@@ -95,6 +102,7 @@ def empty_exam_summary() -> CsvRow:
         "first_exam_pretest_correct": "",
         "best_exam_score": "",
         "exam_completed": "false",
+        "exam_seconds": "",
     }
 
 

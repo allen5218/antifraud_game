@@ -401,7 +401,13 @@ def test_members_and_csv_are_scoped_and_include_statistics(
             "first_exam_pretest_correct",
             "best_exam_score",
             "exam_completed",
+            "pretest_seconds",
+            "exam_seconds",
+            "survey_done",
+            "survey_seconds",
+            "survey_attention_ok",
             "payout_eligible",
+            "payout_reasons",
         ]
         rows = {row["user_id"]: row for row in reader}
         assert len(rows) == 2
@@ -788,7 +794,7 @@ def test_csv_has_pretest_and_exam_scores_for_payout(
     db: Session,
     superuser_token_headers: dict[str, str],
 ) -> None:
-    """試測發錢看「前測做過、檢測交卷」；前後測比較用入門前測與綜合檢測的前測關。"""
+    """前後測比較用入門前測與綜合檢測的前測關。發錢條件的細節在 test_trial_survey。"""
     _, done = redeem(client, cohort["token"])
     _, pretest_only = redeem(client, cohort["token"])
     _, nothing = redeem(client, cohort["token"])
@@ -870,7 +876,10 @@ def test_csv_has_pretest_and_exam_scores_for_payout(
     assert row["first_exam_score"] == "65"
     assert row["first_exam_pretest_correct"] == "15"
     assert row["best_exam_score"] == "82"
-    assert row["exam_completed"] == row["payout_eligible"] == "true"
+    assert row["exam_completed"] == "true"
+    # 這些舊紀錄沒有計時，也沒填問卷
+    assert row["payout_eligible"] == "false"
+    assert row["payout_reasons"] == "前測沒有計時；檢測太快；問卷沒填"
 
     row = rows[pretest_only["id"]]
     assert row["pretest_done"] == "true"

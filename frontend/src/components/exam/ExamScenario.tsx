@@ -46,6 +46,13 @@ export function ExamScenario({
   })
   const detail = detailQuery.data
   const entries = detail ? toChatEntries(detail.history) : []
+  // 對話框固定高度、內部捲動：新訊息或「對方輸入中」出現時捲到最底
+  const chatBox = useRef<HTMLDivElement>(null)
+  const chatSize = entries.length + (sending ? 1 : 0)
+  useEffect(() => {
+    const el = chatBox.current
+    if (el && chatSize > 0) el.scrollTop = el.scrollHeight
+  }, [chatSize])
   const last = [...entries].reverse().find((entry) => entry.role === "npc")
   const decision = last?.role === "npc" ? last.decision_point : null
   useEffect(() => {
@@ -171,7 +178,10 @@ export function ExamScenario({
           下判斷
         </Button>
       </header>
-      <div className="max-h-[45dvh] overflow-y-auto bg-surface-2">
+      <div
+        ref={chatBox}
+        className="h-[calc(100dvh-27rem)] min-h-56 overflow-y-auto bg-surface-2"
+      >
         <MessageList
           entries={entries}
           typing={sending}

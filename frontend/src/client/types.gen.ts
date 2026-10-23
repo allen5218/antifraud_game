@@ -298,6 +298,8 @@ export type HomeSummary = {
     focus_label: (string | null);
     badges: Array<(string)>;
     team_access?: boolean;
+    survey_pending?: boolean;
+    survey_ready?: boolean;
 };
 
 export type HTTPValidationError = {
@@ -450,6 +452,7 @@ export type PretestAnswer = {
 
 export type PretestSubmitRequest = {
     answers: Array<PretestAnswer>;
+    elapsed_ms?: (number | null);
 };
 
 export type PretestSubmitResponse = {
@@ -678,6 +681,19 @@ export type ScenarioNewRequest = {
     fraud_type: string;
 };
 
+export type SurveyQuestionPublic = {
+    id: string;
+    kind: 'consent' | 'single' | 'multi' | 'scale' | 'text';
+    text: string;
+    section: string;
+    options: Array<(string)>;
+    labels: Array<(string)>;
+    required: boolean;
+    other: boolean;
+};
+
+export type kind3 = 'consent' | 'single' | 'multi' | 'scale' | 'text';
+
 export type SwipeAnswerRequest = {
     session_id: string;
     card_id: string;
@@ -831,6 +847,19 @@ export type Token = {
     token_type?: string;
 };
 
+export type TrialSurveyPublic = {
+    questions: Array<SurveyQuestionPublic>;
+    started: boolean;
+    submitted: boolean;
+    exam_done: boolean;
+};
+
+export type TrialSurveySubmit = {
+    answers: {
+        [key: string]: unknown;
+    };
+};
+
 export type UpdatePassword = {
     current_password: string;
     new_password: string;
@@ -925,6 +954,12 @@ export type AdminCohortsExportCohortData = {
 };
 
 export type AdminCohortsExportCohortResponse = (string);
+
+export type AdminCohortsExportCohortSurveyData = {
+    cohortId: string;
+};
+
+export type AdminCohortsExportCohortSurveyResponse = (string);
 
 export type AdminCohortsExportCohortExamData = {
     cohortId: string;
@@ -1241,6 +1276,16 @@ export type TeamDeleteCommentData = {
 };
 
 export type TeamDeleteCommentResponse = (void);
+
+export type TrialReadSurveyResponse = (TrialSurveyPublic);
+
+export type TrialSubmitSurveyData = {
+    requestBody: TrialSurveySubmit;
+};
+
+export type TrialSubmitSurveyResponse = (TrialSurveyPublic);
+
+export type TrialStartSurveyResponse = (TrialSurveyPublic);
 
 export type UsersReadUsersData = {
     limit?: number;

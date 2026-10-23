@@ -72,6 +72,8 @@ def test_summary_creates_no_rows_for_new_player(client, player, db):
             "focus_label": None,
             "badges": [],
             "team_access": False,
+            "survey_pending": False,
+            "survey_ready": False,
         }
     after = [db.exec(select(func.count()).select_from(t)).one() for t in tables]
     assert after == before

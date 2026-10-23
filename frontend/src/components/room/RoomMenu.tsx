@@ -3,6 +3,7 @@ import {
   Award,
   BookOpen,
   CalendarDays,
+  ClipboardList,
   Mail,
   MessageCircle,
   Trophy,
@@ -19,6 +20,7 @@ const ICONS = {
   leaderboard: Trophy,
   badges: Award,
   team: BookOpen,
+  survey: ClipboardList,
 } as const
 
 export function RoomMenu({
