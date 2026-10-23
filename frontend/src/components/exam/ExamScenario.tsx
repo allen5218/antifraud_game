@@ -6,6 +6,7 @@ import { ExamService, ScenarioService } from "@/client/sdk.gen"
 import { ActionCard } from "@/components/scenario/ActionCard"
 import { JudgeSheet } from "@/components/scenario/JudgeSheet"
 import { MessageList, toChatEntries } from "@/components/scenario/MessageList"
+import { MESSAGE_MAX_CHARS } from "@/components/scenario/messageRejection"
 import { ScenarioAvatar } from "@/components/scenario/ScenarioAvatar"
 import { Button } from "@/components/ui/button"
 import { errorCode, examError } from "./exam"
@@ -46,13 +47,6 @@ export function ExamScenario({
   })
   const detail = detailQuery.data
   const entries = detail ? toChatEntries(detail.history) : []
-  // 對話框固定高度、內部捲動：新訊息或「對方輸入中」出現時捲到最底
-  const chatBox = useRef<HTMLDivElement>(null)
-  const chatSize = entries.length + (sending ? 1 : 0)
-  useEffect(() => {
-    const el = chatBox.current
-    if (el && chatSize > 0) el.scrollTop = el.scrollHeight
-  }, [chatSize])
   const last = [...entries].reverse().find((entry) => entry.role === "npc")
   const decision = last?.role === "npc" ? last.decision_point : null
   useEffect(() => {
@@ -178,13 +172,13 @@ export function ExamScenario({
           下判斷
         </Button>
       </header>
-      <div
-        ref={chatBox}
-        className="h-[calc(100dvh-27rem)] min-h-56 overflow-y-auto bg-surface-2"
-      >
+      {/* 對話框固定高度、內部捲動；MessageList 會捲到最新訊息 */}
+      <div className="h-[calc(100dvh-27rem)] min-h-56 overflow-y-auto bg-surface-2">
         <MessageList
           entries={entries}
           typing={sending}
+          avatar={detail.avatar}
+          name={detail.display_name}
           trailing={
             last?.role === "npc" && last.decision_point && !judgment ? (
               <ActionCard
@@ -253,6 +247,7 @@ export function ExamScenario({
             aria-label="對話訊息"
             value={input}
             onChange={(event) => setInput(event.target.value)}
+            maxLength={MESSAGE_MAX_CHARS}
             disabled={
               disabled || turns <= 0 || judgeOpen || detailQuery.isError
             }

@@ -5,6 +5,7 @@ import type {
   ExamState,
   ExamSwipeAnswer,
 } from "@/client"
+import { messageRejection } from "@/components/scenario/messageRejection"
 import { fraudTypeLabel } from "@/lib/fraudTypes"
 
 export type DraftAnswer =
@@ -45,7 +46,7 @@ export function examError(error: unknown): string {
     case "turn_limit_reached":
       return "回覆次數用完了，請下判斷。"
     default:
-      return "目前無法完成，請再試一次。"
+      return messageRejection(errorCode(error)) ?? "目前無法完成，請再試一次。"
   }
 }
 export function secondsLeft(expiresAt: string, now = Date.now()): number {

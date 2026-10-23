@@ -31,6 +31,7 @@ from app.scenario.config import (
     SCENARIO_ECONOMY,
     ScenarioEconomyConfig,
 )
+from app.scenario.input_guard import InputRejected, check_player_text
 from app.schemas import (
     ScenarioDetail,
     ScenarioInboxItem,
@@ -61,7 +62,12 @@ def _create_session(
         display_name=random.choice(DISPLAY_NAME_POOL[fraud_type]),
         avatar=random.choice(AVATAR_POOL[fraud_type]),
         conversation_history=[
-            {"role": "npc", "messages": [meta.teaser], "decision_point": None}
+            {
+                "role": "npc",
+                "messages": [meta.teaser],
+                "decision_point": None,
+                "at": _now_iso(),
+            }
         ],
         stake_loss=econ.stake_loss,
         reward_win=econ.reward_win,
@@ -202,9 +208,10 @@ def read_scenario(
                 "role": "npc",
                 "messages": e.get("messages", []),
                 "decision_point": e.get("decision_point"),
+                "at": e.get("at"),
             }
             if e.get("role") == "npc"
-            else {"role": "player", "text": e.get("text", "")}
+            else {"role": "player", "text": e.get("text", ""), "at": e.get("at")}
         )
         for e in sc.conversation_history
     ]
@@ -219,6 +226,11 @@ def read_scenario(
         max_turns=sc.max_turns,
         history=public_history,
     )
+
+
+def _now_iso() -> str:
+    """對話紀錄每一則的時間，聊天畫面顯示用。"""
+    return datetime.now(timezone.utc).isoformat()
 
 
 @router.post("/{scenario_id}/message", response_model=ScenarioMessageResponse)
@@ -240,10 +252,15 @@ async def send_message(
         raise HTTPException(400, {"code": "not_active"})
     if not manager.can_send_message(sc.player_turns, sc.max_turns):
         raise HTTPException(400, {"code": "turn_limit_reached"})
+    # 不適合或會拖垮模型的訊息在這裡擋下：不寫入、不扣回合、不呼叫 AI
+    try:
+        text = check_player_text(payload.text)
+    except InputRejected as rejected:
+        raise HTTPException(400, {"code": rejected.code}) from rejected
 
     original_history = list(sc.conversation_history)
     history = list(original_history)
-    history.append({"role": "player", "text": payload.text})
+    history.append({"role": "player", "text": text, "at": _now_iso()})
     sc.conversation_history = history  # 先入稿供 transcript 使用;失敗不 commit
 
     try:
@@ -254,7 +271,7 @@ async def send_message(
             if sc.case_id
             else None
         )
-        reply = await scenario_agent.generate_reply(sc, payload.text, case=case)
+        reply = await scenario_agent.generate_reply(sc, text, case=case)
     except Exception as exc:
         sc.conversation_history = original_history
         if sc.pool == "exam" and sc.exam_attempt_id is not None:
@@ -301,6 +318,7 @@ async def send_message(
             "messages": reply.messages,
             "decision_point": reply.decision_point,
             "tactics_used": reply.tactics_used,
+            "at": _now_iso(),
         }
     )
     sc.conversation_history = history

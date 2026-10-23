@@ -142,6 +142,72 @@ def test_message_appends_history_and_counts_turns(
     assert sc.tactics_seen == ["time_pressure"]
 
 
+def test_message_history_records_time_and_cleaned_text(
+    client: TestClient,
+    db: Session,
+    normal_user_token_headers: dict[str, str],
+    monkeypatch,
+) -> None:
+    seen: list[str] = []
+
+    async def reply(session, player_text, case=None):  # noqa: ANN001, ARG001
+        seen.append(player_text)
+        return await _fake_reply(session, player_text, case)
+
+    monkeypatch.setattr("app.scenario.agent.generate_reply", reply)
+    sc = _make_session(db, _test_user(db), role="scam")
+    r = client.post(
+        f"{settings.API_V1_STR}/scenario/{sc.id}/message",
+        headers=normal_user_token_headers,
+        json={"text": "  請問\u200b在嗎？\n "},
+    )
+    assert r.status_code == 200, r.text
+    # AI 拿到的是整理過的文字
+    assert seen == ["請問在嗎?"]
+    db.refresh(sc)
+    player, npc = sc.conversation_history[-2:]
+    assert player["text"] == "請問在嗎?"
+    for entry in (player, npc):
+        assert datetime.fromisoformat(entry["at"]).tzinfo is not None
+    detail = client.get(
+        f"{settings.API_V1_STR}/scenario/{sc.id}", headers=normal_user_token_headers
+    ).json()
+    assert detail["history"][-1]["at"] == npc["at"]
+    # 舊紀錄沒有時間，回傳 null
+    assert detail["history"][0]["at"] is None
+
+
+def test_blocked_or_sponge_message_never_reaches_ai(
+    client: TestClient,
+    db: Session,
+    normal_user_token_headers: dict[str, str],
+    monkeypatch,
+) -> None:
+    async def boom(*args, **kwargs):  # noqa: ANN002, ANN003, ARG001
+        raise AssertionError("不該呼叫 AI")
+
+    monkeypatch.setattr("app.scenario.agent.generate_reply", boom)
+    sc = _make_session(db, _test_user(db), role="scam")
+    before = list(sc.conversation_history)
+    for text, code in [
+        ("要不要一起吸毒", "message_blocked"),
+        ("我們來做 愛", "message_blocked"),
+        ("好" * 300, "message_too_long"),
+        ("啊" * 30, "message_garbled"),
+        ("\u200b" * 5, "message_empty"),
+    ]:
+        r = client.post(
+            f"{settings.API_V1_STR}/scenario/{sc.id}/message",
+            headers=normal_user_token_headers,
+            json={"text": text},
+        )
+        assert r.status_code == 400, text
+        assert r.json()["detail"]["code"] == code
+    db.refresh(sc)
+    assert sc.player_turns == 0
+    assert sc.conversation_history == before
+
+
 def test_message_turn_limit(
     client: TestClient,
     db: Session,

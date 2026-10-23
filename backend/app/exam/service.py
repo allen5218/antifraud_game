@@ -2,7 +2,7 @@
 
 import random
 import uuid
-from datetime import datetime, time, timedelta
+from datetime import datetime, time, timedelta, timezone
 from typing import Any
 
 from fastapi import HTTPException
@@ -335,7 +335,12 @@ def start_scenario(
         reward_legit=0,
         penalty_misreport=0,
         conversation_history=[
-            {"role": "npc", "messages": [meta.teaser], "decision_point": None}
+            {
+                "role": "npc",
+                "messages": [meta.teaser],
+                "decision_point": None,
+                "at": datetime.now(timezone.utc).isoformat(),
+            }
         ],
     )
     session.add(sc)

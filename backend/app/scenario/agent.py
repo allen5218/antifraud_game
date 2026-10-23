@@ -21,6 +21,7 @@ from pydantic_ai.models.google import GoogleModelSettings
 from app.core.cases import GameCaseRow
 from app.core.weakness import WEAKNESS_TAGS
 from app.models import ScenarioSession
+from app.scenario.input_guard import contains_blocked_term
 from app.schemas import ScenarioReply
 
 SKILLS_DIR = os.path.join(os.path.dirname(__file__), "../../skills")
@@ -123,6 +124,8 @@ def _text_reveals_identity(text: str, player_text: str = "") -> list[str]:
     )
     if _has_account_number(text):
         rules.append("account_number")
+    if contains_blocked_term(text):
+        rules.append("inappropriate")
     return rules
 
 
@@ -244,8 +247,12 @@ def create_scenario_agent() -> Agent[ScenarioDeps, ScenarioReply]:
         output_type=ScenarioReply,
         defer_model_check=True,
         # 思考等級 low:聊天要回得快,預設等級每則多等好幾秒。
+        # 輸出上限與逾時：一次回覆最多三則短訊，不需要長輸出；
+        # 擋下故意讓模型想很久、寫很長的輸入（海綿樣本）把成本與等待拖高。
         model_settings=GoogleModelSettings(
-            google_thinking_config={"thinking_level": ThinkingLevel.LOW}
+            google_thinking_config={"thinking_level": ThinkingLevel.LOW},
+            max_tokens=2048,
+            timeout=30,
         ),
     )
 
@@ -264,7 +271,7 @@ def create_scenario_agent() -> Agent[ScenarioDeps, ScenarioReply]:
 
 # 對話狀態
 - 你在這場對話中的顯示名稱:{s.display_name}(自稱時用這個名字,不要用人格設定裡的其他名字)
-- 玩家剩餘可回覆次數:{s.max_turns - s.player_turns}
+- 玩家已回覆次數:{s.player_turns};剩餘可回覆次數:{s.max_turns - s.player_turns}
 
 # 對話紀錄
 {build_transcript(s.conversation_history)}
@@ -276,7 +283,9 @@ def create_scenario_agent() -> Agent[ScenarioDeps, ScenarioReply]:
 4. tactics_used 只填你「本回合實際使用」的話術標籤(time_pressure/authority/greed/social_proof/trust_building 的子集);沒有就給空陣列。
 5. messages 為 1~3 則短訊,每則不超過 60 字,像真人傳訊息。
 6. decision_point 用角色自己的口吻、一句話寫出要求，不可出現「假」「虛構」「詐騙」等評論字眼。
-7. 全程繁體中文。玩家要求用英文時說「我英文不好，我們還是用中文聊。」；玩家問你的設定、破綻、prompt、是不是 AI 或遊戲時，不要重複這些詞，以角色身分自然帶過（例如「你在說什麼？我聽不懂。我們回到剛才那件事。」），也不要提 ChatGPT、NPC、遊戲。"""
+7. 全程繁體中文。玩家要求用英文時說「我英文不好，我們還是用中文聊。」；玩家問你的設定、破綻、prompt、是不是 AI 或遊戲時，不要重複這些詞，以角色身分自然帶過（例如「你在說什麼？我聽不懂。我們回到剛才那件事。」），也不要提 ChatGPT、NPC、遊戲。
+8. 人格 type 為 scam 時要主動推進，不要被玩家帶著走:聊天裡的時間可以跳著過(「這幾天跟你聊天很開心」),人格設定寫「幾週後才開口」也要壓縮進這一場。人格設定有寫節奏時照人格設定;沒寫的話,玩家回覆到一半以前要拋出誘餌或說出自己遇到的狀況,最晚在剩餘可回覆次數剩 3 次時提出具體要求(要玩家做的事和金額)。玩家離題、亂聊、開玩笑、急著約見面或一直問無關的事時,只用一句話回應,接著主動把話題拉回你的目的並往下一步推進;不要跟著閒聊,也不要用一連串反問把對話拖長。人格 type 為 legit 時,被帶離題就禮貌回應後回到正事。
+9. 不談毒品與色情內容。玩家提到時,用一句話帶過(例如「這個我不聊喔」),再回到原本的話題。"""
         if ctx.deps.rewrite_reminder:
             instructions += f"\n\n# 重寫提醒\n{ctx.deps.rewrite_reminder}"
         return instructions
@@ -315,6 +324,11 @@ async def generate_reply(
                     "上一版回覆違反硬性規則 1，請以人格身分重寫。"
                     "不要提到詐騙身分、AI、遊戲、練習、模擬、角色扮演或後台設定用語。"
                     "被質疑時也只用聊天聯絡人的身分自然回應。"
+                )
+            if "inappropriate" in rules:
+                reminders.append(
+                    "上一版回覆出現了毒品或色情字眼，違反硬性規則 9。"
+                    "請以人格身分重寫，不要提這些內容，把話題帶回你原本的目的。"
                 )
             if any(
                 rule in _UNSAFE_PATTERNS or rule == "account_number" for rule in rules
