@@ -62,7 +62,8 @@ export function StudentDetail({
                       <span>{a.title}</span>
                       <span className="text-muted-foreground">
                         {STATUS_LABELS[a.status] ?? a.status}
-                        {a.status === "todo" || a.status === "overdue"
+                        {(a.status === "todo" || a.status === "overdue") &&
+                        a.progress_text !== STATUS_LABELS.todo
                           ? `・${a.progress_text}`
                           : ""}
                       </span>
