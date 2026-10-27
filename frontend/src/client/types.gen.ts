@@ -8,6 +8,46 @@ export type AssetSummaryResponse = {
     owned_count: number;
 };
 
+export type AssignmentCreate = {
+    kind: string;
+    title?: (string | null);
+    params?: {
+        [key: string]: unknown;
+    };
+    due_at: string;
+};
+
+export type AssignmentPublic = {
+    id: string;
+    kind: string;
+    title: string;
+    params: {
+        [key: string]: unknown;
+    };
+    due_at: string;
+    created_at: string;
+};
+
+export type AssignmentSummary = {
+    id: string;
+    kind: string;
+    title: string;
+    params: {
+        [key: string]: unknown;
+    };
+    due_at: string;
+    created_at: string;
+    done: number;
+    late: number;
+    pending: Array<PendingStudent>;
+    late_students: Array<PendingStudent>;
+};
+
+export type AssignmentUpdate = {
+    title?: (string | null);
+    due_at?: (string | null);
+};
+
 export type Body_login_login_access_token = {
     grant_type?: (string | null);
     username: string;
@@ -35,6 +75,17 @@ export type ChoiceItem = {
     options: Array<ChoiceCount>;
 };
 
+export type ClassMemberDetail = {
+    user_id: string;
+    student_number: (string | null);
+    student_name: (string | null);
+    joined_at: string;
+    last_active_at: (string | null);
+    exams: Array<ExamDetail>;
+    practice: Array<PracticeDetail>;
+    assignments: Array<MyAssignment>;
+};
+
 export type ClassMemberPublic = {
     user_id: string;
     student_number: (string | null);
@@ -52,6 +103,14 @@ export type ClassMemberUpdate = {
     student_name?: (string | null);
 };
 
+export type ClassOverview = {
+    member_count: number;
+    type_accuracy: Array<TypeAccuracy>;
+    accuracy_n: number;
+    weakest: Array<(string)>;
+    assignments: Array<AssignmentSummary>;
+};
+
 export type ClassroomCreate = {
     name: string;
 };
@@ -65,6 +124,7 @@ export type ClassroomPublic = {
     created_at: string;
     member_count: number;
     assignment_count: number;
+    pending_count: number;
 };
 
 export type ClassroomUpdate = {
@@ -611,6 +671,14 @@ export type ParticipantDetail = {
     practice: Array<PracticeDetail>;
     scenario_sessions: number;
     survey: (SurveyDetail | null);
+};
+
+export type PendingStudent = {
+    user_id: string;
+    student_number: (string | null);
+    student_name: (string | null);
+    status: string;
+    progress_text: string;
 };
 
 export type PracticeDetail = {
@@ -1369,6 +1437,47 @@ export type ClassesRemoveMemberData = {
 };
 
 export type ClassesRemoveMemberResponse = (Message);
+
+export type ClassesReadMemberData = {
+    classId: string;
+    userId: string;
+};
+
+export type ClassesReadMemberResponse = (ClassMemberDetail);
+
+export type ClassesReadOverviewData = {
+    classId: string;
+};
+
+export type ClassesReadOverviewResponse = (ClassOverview);
+
+export type ClassesExportClassData = {
+    classId: string;
+};
+
+export type ClassesExportClassResponse = (unknown);
+
+export type ClassesCreateAssignmentData = {
+    classId: string;
+    requestBody: AssignmentCreate;
+};
+
+export type ClassesCreateAssignmentResponse = (AssignmentPublic);
+
+export type ClassesUpdateAssignmentData = {
+    assignmentId: string;
+    classId: string;
+    requestBody: AssignmentUpdate;
+};
+
+export type ClassesUpdateAssignmentResponse = (AssignmentPublic);
+
+export type ClassesDeleteAssignmentData = {
+    assignmentId: string;
+    classId: string;
+};
+
+export type ClassesDeleteAssignmentResponse = (Message);
 
 export type DailyDailyTodayResponse = (DailyTodayResponse);
 

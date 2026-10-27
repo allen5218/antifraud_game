@@ -1,6 +1,7 @@
 """管理頁「點受試編號看個人詳情」：唯讀彙整一位試測成員的所有紀錄。"""
 
 import uuid
+from collections.abc import Sequence
 from datetime import datetime
 from typing import Any
 
@@ -231,13 +232,11 @@ def survey_detail(survey: TrialSurvey | None) -> SurveyDetail | None:
     )
 
 
-def participant_detail(session: Session, user: User) -> ParticipantDetail:
-    practice_rows = session.exec(
-        select(
-            PracticeAnswer.mode, PracticeAnswer.correct, PracticeAnswer.created_at
-        ).where(PracticeAnswer.user_id == user.id)
-    ).all()
-    practice = [
+def practice_details(
+    practice_rows: Sequence[tuple[str, bool, datetime | None]],
+) -> list[PracticeDetail]:
+    """三種練習各做幾題、答對幾題；`practice_rows` 是 (mode, correct, created_at)。"""
+    return [
         PracticeDetail(
             mode=mode,
             total=sum(row_mode == mode for row_mode, _, _ in practice_rows),
@@ -247,6 +246,21 @@ def participant_detail(session: Session, user: User) -> ParticipantDetail:
         )
         for mode in PRACTICE_MODES
     ]
+
+
+def practice_rows_of(
+    session: Session, user_id: uuid.UUID
+) -> Sequence[tuple[str, bool, datetime | None]]:
+    return session.exec(
+        select(
+            PracticeAnswer.mode, PracticeAnswer.correct, PracticeAnswer.created_at
+        ).where(PracticeAnswer.user_id == user_id)
+    ).all()
+
+
+def participant_detail(session: Session, user: User) -> ParticipantDetail:
+    practice_rows = practice_rows_of(session, user.id)
+    practice = practice_details(practice_rows)
     # 收件匣會自動開好每一類的對話，玩家回過訊息的才算聊過
     scenario_sessions = sum(
         any(m.get("role") == "player" for m in history)

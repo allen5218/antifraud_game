@@ -7,15 +7,30 @@
 import secrets
 import uuid
 
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, Response
 from sqlmodel import Session, col, func, select
 
 from app.api.deps import CurrentUser, SessionDep, TeacherUser
+from app.api.routes.admin_cohorts import csv_response
 from app.classroom.members import member_rows
 from app.classroom.mine import my_class, my_classes
+from app.classroom.overview import (
+    InvalidAssignment,
+    auto_title,
+    class_overview,
+    clean_params,
+    export_rows,
+    member_detail,
+    pending_student_count,
+)
 from app.classroom.schemas import (
+    AssignmentCreate,
+    AssignmentPublic,
+    AssignmentUpdate,
+    ClassMemberDetail,
     ClassMemberPublic,
     ClassMemberUpdate,
+    ClassOverview,
     ClassroomCreate,
     ClassroomPublic,
     ClassroomUpdate,
@@ -61,6 +76,7 @@ def to_public(session: Session, classroom: Classroom) -> ClassroomPublic:
         **classroom.model_dump(),
         member_count=member_count,
         assignment_count=assignment_count,
+        pending_count=pending_student_count(session, classroom.id),
     )
 
 
@@ -226,3 +242,104 @@ def remove_member(
     session.delete(get_member(session, class_id, user_id))
     session.commit()
     return Message(message="removed")
+
+
+@router.get("/{class_id}/members/{user_id}", response_model=ClassMemberDetail)
+def read_member(
+    class_id: uuid.UUID, user_id: uuid.UUID, session: SessionDep, teacher: TeacherUser
+) -> ClassMemberDetail:
+    own_class(session, teacher, class_id)
+    return member_detail(session, get_member(session, class_id, user_id))
+
+
+@router.get("/{class_id}/overview", response_model=ClassOverview)
+def read_overview(
+    class_id: uuid.UUID, session: SessionDep, teacher: TeacherUser
+) -> ClassOverview:
+    own_class(session, teacher, class_id)
+    return class_overview(session, class_id)
+
+
+@router.get(
+    "/{class_id}/export.csv",
+    response_class=Response,
+    responses={200: {"content": {"text/csv": {}}}},
+)
+def export_class(
+    class_id: uuid.UUID, session: SessionDep, teacher: TeacherUser
+) -> Response:
+    own_class(session, teacher, class_id)
+    fields, rows = export_rows(session, class_id)
+    return csv_response(fields, rows, f"class-{class_id}.csv")
+
+
+def own_assignment(
+    session: Session, classroom: Classroom, assignment_id: uuid.UUID
+) -> ClassAssignment:
+    row = session.get(ClassAssignment, assignment_id)
+    if row is None or row.classroom_id != classroom.id:
+        raise HTTPException(status_code=404, detail={"code": "assignment_not_found"})
+    return row
+
+
+@router.post("/{class_id}/assignments", response_model=AssignmentPublic)
+def create_assignment(
+    class_id: uuid.UUID,
+    body: AssignmentCreate,
+    session: SessionDep,
+    teacher: TeacherUser,
+) -> ClassAssignment:
+    classroom = own_class(session, teacher, class_id)
+    try:
+        params = clean_params(body.kind, body.params)
+    except InvalidAssignment as error:
+        raise HTTPException(
+            status_code=400, detail={"code": "invalid_assignment"}
+        ) from error
+    title = (body.title or "").strip() or auto_title(body.kind, params)
+    row = ClassAssignment(
+        classroom_id=classroom.id,
+        kind=body.kind,
+        title=title,
+        params=params,
+        due_at=body.due_at,
+    )
+    session.add(row)
+    session.commit()
+    session.refresh(row)
+    return row
+
+
+@router.patch(
+    "/{class_id}/assignments/{assignment_id}", response_model=AssignmentPublic
+)
+def update_assignment(
+    class_id: uuid.UUID,
+    assignment_id: uuid.UUID,
+    body: AssignmentUpdate,
+    session: SessionDep,
+    teacher: TeacherUser,
+) -> ClassAssignment:
+    """只能改名稱與期限；要改條件就刪掉重出，免得完成的定義中途變了。"""
+    row = own_assignment(session, own_class(session, teacher, class_id), assignment_id)
+    if body.title is not None:
+        row.title = body.title
+    if body.due_at is not None:
+        row.due_at = body.due_at
+    session.add(row)
+    session.commit()
+    session.refresh(row)
+    return row
+
+
+@router.delete("/{class_id}/assignments/{assignment_id}", response_model=Message)
+def delete_assignment(
+    class_id: uuid.UUID,
+    assignment_id: uuid.UUID,
+    session: SessionDep,
+    teacher: TeacherUser,
+) -> Message:
+    row = own_assignment(session, own_class(session, teacher, class_id), assignment_id)
+    session.delete(row)
+    session.commit()
+    return Message(message="deleted")
