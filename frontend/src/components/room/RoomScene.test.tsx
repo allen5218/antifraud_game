@@ -182,6 +182,17 @@ test("新玩家看到開始按鈕", async () => {
   expect(await screen.findByText("進了前測")).toBeTruthy()
 })
 
+test("試測帳號今天看過對話框，回房間仍打開並帶去檢測", async () => {
+  current = summary({ trial: true, pretest_done: false, survey_pending: true })
+  localStorage.setItem(
+    "room-guide-seen",
+    new Date().toLocaleDateString("sv-SE", { timeZone: "Asia/Taipei" }),
+  )
+  await renderScene()
+  const start = await screen.findByRole("link", { name: "開始檢測" })
+  expect(start.getAttribute("href")).toBe("/exam")
+})
+
 test("待領收益顯示可領，點了就領", async () => {
   pendingAccrual = 840
   let claimed = false
