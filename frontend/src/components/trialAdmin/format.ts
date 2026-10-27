@@ -41,12 +41,6 @@ export function seconds(value: number | null | undefined): string {
   return `${Math.floor(value / 60)} 分 ${value % 60} 秒`
 }
 
-export function pretestText(m: CohortProgressMember): string {
-  return m.pretest_done
-    ? `答對 ${m.pretest_correct}／${m.pretest_total}・${seconds(m.pretest_seconds)}`
-    : "沒做"
-}
-
 export function examText(m: CohortProgressMember): string {
   return m.exam_completed
     ? `${m.best_exam_score} 分・最久 ${seconds(m.exam_seconds)}`

@@ -4,6 +4,7 @@ import { useState } from "react"
 import type { ExamStartRequest } from "@/client"
 import { ExamService } from "@/client/sdk.gen"
 import { Button } from "@/components/ui/button"
+import { useHomeSummary } from "@/hooks/useHomeSummary"
 import { FRAUD_TYPES, fraudTypeLabel } from "@/lib/fraudTypes"
 import { ExamBadges } from "./ExamBadges"
 import { ExamGate } from "./ExamGate"
@@ -13,6 +14,8 @@ export function ExamHome() {
   const qc = useQueryClient()
   const navigate = useNavigate()
   const [type, setType] = useState<string>(FRAUD_TYPES[0])
+  // 試測帳號只考綜合檢測（第一關是前測），領錢也只看綜合檢測
+  const trial = useHomeSummary().data?.trial === true
   const status = useQuery({
     queryKey: ["exam", "status"],
     queryFn: () => ExamService.readStatus(),
@@ -129,36 +132,38 @@ export function ExamHome() {
           開始綜合檢測
         </Button>
       </section>
-      <section className="space-y-3 rounded-2xl border bg-card p-5">
-        <h2 className="text-lg font-bold">專項檢測</h2>
-        <p className="text-sm">選一類，完成滑卡、訊息判讀和情境對抗三關。</p>
-        <label className="block text-sm">
-          要考哪一類？
-          <select
-            aria-label="檢測類型"
-            className="mt-2 w-full rounded-xl border bg-background p-3"
-            value={type}
-            disabled={start.isPending}
-            onChange={(event) => setType(event.target.value)}
+      {!trial && (
+        <section className="space-y-3 rounded-2xl border bg-card p-5">
+          <h2 className="text-lg font-bold">專項檢測</h2>
+          <p className="text-sm">選一類，完成滑卡、訊息判讀和情境對抗三關。</p>
+          <label className="block text-sm">
+            要考哪一類？
+            <select
+              aria-label="檢測類型"
+              className="mt-2 w-full rounded-xl border bg-background p-3"
+              value={type}
+              disabled={start.isPending}
+              onChange={(event) => setType(event.target.value)}
+            >
+              {FRAUD_TYPES.map((slug) => (
+                <option key={slug} value={slug}>
+                  {fraudTypeLabel(slug)}
+                </option>
+              ))}
+            </select>
+          </label>
+          <Button
+            className="w-full"
+            disabled={blocked}
+            onClick={() => {
+              if (!start.isPending)
+                start.mutate({ mode: "specialized", fraud_type: type })
+            }}
           >
-            {FRAUD_TYPES.map((slug) => (
-              <option key={slug} value={slug}>
-                {fraudTypeLabel(slug)}
-              </option>
-            ))}
-          </select>
-        </label>
-        <Button
-          className="w-full"
-          disabled={blocked}
-          onClick={() => {
-            if (!start.isPending)
-              start.mutate({ mode: "specialized", fraud_type: type })
-          }}
-        >
-          開始專項檢測
-        </Button>
-      </section>
+            開始專項檢測
+          </Button>
+        </section>
+      )}
       <ExamBadges badges={data.badges} />
       <section className="space-y-3">
         <h2 className="text-lg font-bold">檢測紀錄</h2>

@@ -168,7 +168,7 @@ def test_analytics(
     good_headers, good = redeem(client, cohort["token"])
     rushed_headers, rushed = redeem(client, cohort["token"])
     redeem(client, cohort["token"])
-    good_pretest = do_pretest(client, good_headers, 90_000)
+    do_pretest(client, good_headers, 90_000)
     do_pretest(client, rushed_headers, 20_000)
     add_comprehensive_exam(
         db,
@@ -190,44 +190,30 @@ def test_analytics(
     assert response.status_code == 200, response.text
     data = response.json()
     assert data["member_count"] == 3
-    assert [s["count"] for s in data["funnel"]] == [3, 2, 2, 2, 1]
+    assert [s["count"] for s in data["funnel"]] == [3, 2, 2, 1]
 
-    paired = data["paired_pretest"]
-    before = sum(r["correct"] for r in good_pretest["results_by_type"].values())
-    assert paired["n"] == 1 and paired["total"] == 20
-    assert paired["pairs"] == [{"before": before, "after": 19}]
-    assert paired["diff_mean"] == 19 - before
-
+    # 試測不做入門前測：各類答對率只看綜合檢測的前測關
+    assert "paired_pretest" not in data
     shopping = next(t for t in data["type_accuracy"] if t["fraud_type"] == "shopping")
-    assert shopping["after"] == 0.75 and shopping["after_n"] == 4
-    assert shopping["before_n"] == 8  # 兩個人各 4 題
+    assert shopping["accuracy"] == 0.75 and shopping["n"] == 4
 
     scores = data["scores"]
     assert scores["n"] == 2 and scores["passed"] == 1
     assert sum(b["count"] for b in scores["bins"]) == 2
     timings = {t["key"]: t for t in data["timings"]}
-    assert timings["pretest"]["n"] == 2 and timings["pretest"]["below"] == 1
+    assert "pretest" not in timings
     assert timings["exam"]["below"] == 1  # rushed 100 秒
     assert timings["survey"]["below"] == 1
 
+    # 注意力題答錯、作答太快的問卷也一起分析；注意力題本身不列
     survey = data["survey"]
-    assert survey["responses"] == survey["included"] == 2
-    assert survey["attention_failed"] == 1 and survey["too_fast"] == 1
+    assert survey["responses"] == 2
     assert all(item["id"] != "attention" for item in survey["likert"])
     satisfied = next(i for i in survey["likert"] if i["id"] == "satisfied")
     assert satisfied["counts"] == [0, 0, 0, 2, 0] and satisfied["mean"] == 4
     assert survey["confidence"]["n"] == 2
     improve = next(t for t in survey["texts"] if t["id"] == "improve")
     assert [a["text"] for a in improve["answers"]] == ["字可以大一點"]
-
-    # 只看合格問卷：注意力錯又太快的那份不算
-    valid = client.get(
-        url,
-        params={"cohort_id": cohort["id"], "valid_only": True},
-        headers=superuser_token_headers,
-    ).json()["survey"]
-    assert valid["responses"] == 2 and valid["included"] == 1
-    assert valid["confidence"]["diff_mean"] == 3
 
     # 不給 cohort_id 是全部梯次合計
     everything = client.get(url, headers=superuser_token_headers)

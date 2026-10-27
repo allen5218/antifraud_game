@@ -15,9 +15,9 @@ export function MascotGuide({
   return (
     <div className="absolute top-[34%] left-1/2 z-30 w-[78%] -translate-x-1/2 rounded-2xl border bg-card p-3 text-sm text-card-foreground shadow-lg">
       {line && <p>{line.text}</p>}
-      {line?.action?.to === "/pretest" && (
+      {line?.action && (
         <Link
-          to="/pretest"
+          to={line.action.to}
           className="mt-3 inline-flex rounded-xl bg-primary px-3 py-2 text-sm font-bold text-primary-foreground"
         >
           {line.action.label}

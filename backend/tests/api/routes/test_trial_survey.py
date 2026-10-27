@@ -68,8 +68,8 @@ def answers(attention: int = 4) -> dict[str, Any]:
 def add_exam(db: Session, user_id: uuid.UUID, seconds: float, **kw: Any) -> None:
     start = get_datetime_utc() - timedelta(hours=2)
     values: dict[str, Any] = {
-        "mode": "specialized",
-        "fraud_type": "romance",
+        # 試測只認綜合檢測
+        "mode": "comprehensive",
         "status": "completed",
         "expires_at": start + timedelta(hours=1),
         "created_at": start,
@@ -120,8 +120,10 @@ def test_survey_needs_a_finished_exam_then_submits_once(
     home = summary(client, headers)
     assert home["survey_pending"] is True and home["survey_ready"] is False
 
-    # 檢測還沒交卷（放棄的不算）就不能開始
+    # 綜合檢測還沒交卷（放棄的、專項檢測都不算）就不能開始
     add_exam(db, user_id, 600, status="abandoned")
+    add_exam(db, user_id, 600, mode="specialized", fraud_type="romance")
+    assert summary(client, headers)["trial"] is True
     response = client.post(f"{BASE}/trial/survey/start", headers=headers)
     assert response.json()["detail"]["code"] == "exam_required"
     response = client.post(
@@ -156,8 +158,11 @@ def test_survey_needs_a_finished_exam_then_submits_once(
     )
     assert response.status_code == 200, response.text
     assert response.json()["submitted"] is True
-    # 回應不透露注意力題的結果
-    assert set(response.json()) == {"questions", "started", "submitted", "exam_done"}
+    # 交完才給編號與能不能領錢，讓受試者出示給工作人員核對（和進度表同一套判定）
+    body = response.json()
+    assert body["participant_code"] is not None
+    assert body["payout_eligible"] is False
+    assert "問卷注意力題答錯" in body["payout_reasons"]
     db.expire_all()
     survey = db.get(TrialSurvey, user_id)
     assert survey is not None and survey.submitted_at is not None
@@ -247,11 +252,11 @@ def test_export_payout_rules_and_survey_csv(
 
     row = rows[str(rushed)]
     assert row["payout_eligible"] == "false"
-    assert row["payout_reasons"] == "前測太快；檢測太快；問卷注意力題答錯；問卷太快"
+    assert row["payout_reasons"] == "檢測太快；問卷注意力題答錯；問卷太快"
 
     row = rows[str(idle)]
     assert row["payout_eligible"] == "false"
-    assert row["payout_reasons"] == "前測沒做；檢測沒有交卷；問卷沒填"
+    assert row["payout_reasons"] == "檢測沒有交卷；問卷沒填"
     assert row["survey_done"] == "false" and row["survey_seconds"] == ""
 
     # 管理頁的進度和成員 CSV 是同一套判定

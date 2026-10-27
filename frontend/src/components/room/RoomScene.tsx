@@ -19,6 +19,7 @@ import {
   poseImage,
   recommended,
   roomBadges,
+  trialStep,
 } from "./logic"
 import { MascotGuide } from "./MascotGuide"
 import { RoomMenu } from "./RoomMenu"
@@ -118,6 +119,12 @@ export function RoomScene() {
   useEffect(() => {
     if (data?.exam_active_attempt_id) setGuideOpen(true)
   }, [data?.exam_active_attempt_id])
+
+  // 試測還有下一步（檢測或問卷）時，每次回房間都打開對話框帶路
+  const step = data ? trialStep(data) : null
+  useEffect(() => {
+    if (step) setGuideOpen(true)
+  }, [step])
 
   useEffect(() => {
     if (guideOpen) rememberGuide()

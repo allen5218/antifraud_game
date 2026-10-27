@@ -1,5 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router"
 import { useEffect, useState } from "react"
+import { TrialDone } from "@/components/survey/TrialDone"
 import { TrialSurveyForm } from "@/components/survey/TrialSurveyForm"
 import { Button } from "@/components/ui/button"
 import { extractErrorCode } from "@/hooks/useEconomy"
@@ -56,16 +57,7 @@ function SurveyPage() {
     )
   }
   if (isPending) return <Message>載入中…</Message>
-  if (data.submitted) {
-    return (
-      <Message>
-        <p className="font-bold text-foreground">問卷收到了，謝謝你！</p>
-        <Button asChild className="mt-4">
-          <Link to="/">回房間</Link>
-        </Button>
-      </Message>
-    )
-  }
+  if (data.submitted) return <TrialDone data={data} />
   if (!data.exam_done) {
     return (
       <Message>

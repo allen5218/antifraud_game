@@ -6,7 +6,6 @@ import {
   CartesianGrid,
   Cell,
   LabelList,
-  Legend,
   ResponsiveContainer,
   Tooltip,
   XAxis,
@@ -176,7 +175,6 @@ function Histogram({
 
 function TrialSection({ data }: { data: Analytics }) {
   const joined = data.member_count
-  const paired = data.paired_pretest
   return (
     <div className="grid gap-3 lg:grid-cols-2">
       <Card title="試測流程" note="每一步做完的人數，百分比以加入人數為準。">
@@ -186,42 +184,18 @@ function TrialSection({ data }: { data: Analytics }) {
         />
       </Card>
       <Card
-        title="前測與檢測前測關（同一人配對）"
-        note={`入門前測和第一次綜合檢測的前測關同題庫、同抽法，各 ${paired.total || 20} 題。只算兩個都做過的人。`}
-      >
-        <Tiles
-          items={[
-            ["配對人數", `${paired.n}`],
-            ["入門前測平均", num(paired.before_mean)],
-            ["檢測前測關平均", num(paired.after_mean)],
-            [
-              "平均多答對",
-              paired.diff_mean == null
-                ? "–"
-                : `${paired.diff_mean > 0 ? "+" : ""}${num(paired.diff_mean)}`,
-            ],
-          ]}
-        />
-        <p className="text-sm">
-          進步 {paired.improved} 人・持平 {paired.same} 人・退步 {paired.worse}{" "}
-          人
-        </p>
-      </Card>
-      <Card
-        title="五類答對率：前測 vs 檢測前測關"
-        note="把同一類的題目合起來算答對率；括號是題數。"
+        title="五類答對率：綜合檢測的前測關"
+        note="每人第一次考完的綜合檢測，第一關 20 題前測，把同一類的題目合起來算答對率；滑過看題數。"
       >
         <ResponsiveContainer width="100%" height={240}>
           <BarChart
             data={data.type_accuracy.map((t) => ({
               type: fraudTypeLabel(t.fraud_type),
-              before: t.before == null ? null : Math.round(t.before * 100),
-              after: t.after == null ? null : Math.round(t.after * 100),
-              before_n: t.before_n,
-              after_n: t.after_n,
+              accuracy:
+                t.accuracy == null ? null : Math.round(t.accuracy * 100),
+              n: t.n,
             }))}
             margin={{ top: 16, right: 4, left: -24 }}
-            barGap={2}
           >
             <CartesianGrid vertical={false} stroke="var(--border)" />
             <XAxis dataKey="type" tick={AXIS_TICK} interval={0} />
@@ -230,36 +204,19 @@ function TrialSection({ data }: { data: Analytics }) {
               cursor={{ fill: "var(--surface-2)" }}
               contentStyle={TOOLTIP_STYLE}
               itemStyle={TOOLTIP_ITEM}
-              formatter={(value, name, item) => {
-                const n =
-                  name === "入門前測"
-                    ? item.payload.before_n
-                    : item.payload.after_n
-                return [
-                  value == null ? "沒有資料" : `${value}%（${n} 題）`,
-                  name,
-                ]
-              }}
-            />
-            <Legend
-              wrapperStyle={{ fontSize: 12 }}
-              formatter={(value) => (
-                <span style={{ color: "var(--foreground)" }}>{value}</span>
-              )}
+              formatter={(value, name, item) => [
+                value == null
+                  ? "沒有資料"
+                  : `${value}%（${item.payload.n} 題）`,
+                name,
+              ]}
             />
             <Bar
-              dataKey="before"
-              name="入門前測"
-              fill="var(--chart-before)"
-              radius={[4, 4, 0, 0]}
-              maxBarSize={28}
-            />
-            <Bar
-              dataKey="after"
-              name="檢測前測關"
+              dataKey="accuracy"
+              name="答對率"
               fill="var(--chart-after)"
               radius={[4, 4, 0, 0]}
-              maxBarSize={28}
+              maxBarSize={36}
             />
           </BarChart>
         </ResponsiveContainer>
@@ -370,15 +327,11 @@ function SurveySection({ data }: { data: Analytics }) {
   const conf = survey.confidence
   return (
     <div className="flex flex-col gap-3">
-      <Tiles
-        items={[
-          ["交了問卷", `${survey.responses}`],
-          ["這裡算進來", `${survey.included}`],
-          ["注意力題答錯", `${survey.attention_failed}`],
-          ["作答太快", `${survey.too_fast}`],
-        ]}
-      />
-      {survey.included === 0 ? (
+      <p className="text-sm text-muted-foreground">
+        交了問卷的 {survey.responses}{" "}
+        人全部列入分析，注意力題答錯的也算；注意力題本身不列。
+      </p>
+      {survey.responses === 0 ? (
         <p className="text-muted-foreground">還沒有問卷可以分析。</p>
       ) : (
         <div className="grid gap-3 lg:grid-cols-2">
@@ -477,14 +430,10 @@ function SurveySection({ data }: { data: Analytics }) {
 /** 試測數據與問卷分析：可以看單一梯次或全部梯次合計 */
 export function TrialAnalytics({ cohorts }: { cohorts: CohortPublic[] }) {
   const [scope, setScope] = useState("")
-  const [validOnly, setValidOnly] = useState(false)
   const analytics = useQuery({
-    queryKey: ["admin", "cohorts", "analytics", scope, validOnly],
+    queryKey: ["admin", "cohorts", "analytics", scope],
     queryFn: () =>
-      AdminCohortsService.analytics({
-        cohortId: scope || undefined,
-        validOnly,
-      }),
+      AdminCohortsService.analytics({ cohortId: scope || undefined }),
   })
   return (
     <div className="flex flex-col gap-4">
@@ -510,15 +459,6 @@ export function TrialAnalytics({ cohorts }: { cohorts: CohortPublic[] }) {
             ))}
           </select>
         </div>
-        <label className="flex h-9 items-center gap-2 text-sm">
-          <input
-            type="checkbox"
-            checked={validOnly}
-            onChange={(event) => setValidOnly(event.target.checked)}
-            className="size-4 accent-primary"
-          />
-          問卷只看合格的（注意力題對、作答 60 秒以上）
-        </label>
         <Button variant="outline" onClick={() => analytics.refetch()}>
           更新
         </Button>

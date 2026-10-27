@@ -74,6 +74,7 @@ def test_summary_creates_no_rows_for_new_player(client, player, db):
             "team_access": False,
             "survey_pending": False,
             "survey_ready": False,
+            "trial": False,
             "admin_access": False,
         }
     after = [db.exec(select(func.count()).select_from(t)).one() for t in tables]

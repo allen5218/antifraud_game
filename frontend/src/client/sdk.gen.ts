@@ -187,12 +187,9 @@ export class AdminCohortsService {
     
     /**
      * Analytics
-     * 試測數據與問卷分析；沒給 cohort_id 是全部梯次合計。
-     *
-     * `valid_only` 只影響問卷：只算注意力題答對、作答夠久的。
+     * 試測數據與問卷分析；沒給 cohort_id 是全部梯次合計。交了問卷的全部列入分析。
      * @param data The data for the request.
      * @param data.cohortId
-     * @param data.validOnly
      * @returns TrialAnalytics Successful Response
      * @throws ApiError
      */
@@ -201,8 +198,7 @@ export class AdminCohortsService {
             method: 'GET',
             url: '/api/v1/admin/cohorts/analytics',
             query: {
-                cohort_id: data.cohortId,
-                valid_only: data.validOnly
+                cohort_id: data.cohortId
             },
             errors: {
                 422: 'Validation Error'

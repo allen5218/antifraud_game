@@ -4,7 +4,7 @@ import { randomEmail, randomPassword } from "./utils/random"
 import { logInUser } from "./utils/user"
 
 // 用新帳號：共用的 superuser 會被其他測試改現金與房產，房間階段就不固定。
-// 新玩家固定 1,000 元，雅房剛好 1,000、貓 3,000，所以結果每次都一樣。
+// 新玩家固定 1,000 元，雅房剛好 1,000、貓 1,500，所以結果每次都一樣。
 test.describe("房間首頁", () => {
   test.use({
     storageState: { cookies: [], origins: [] },

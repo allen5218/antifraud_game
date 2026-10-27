@@ -40,7 +40,6 @@
   --color-chart-3: var(--chart-3);
   --color-chart-4: var(--chart-4);
   --color-chart-5: var(--chart-5);
-  --color-chart-before: var(--chart-before);
   --color-chart-after: var(--chart-after);
   --color-likert-1: var(--likert-1);
   --color-likert-2: var(--likert-2);
@@ -95,7 +94,6 @@
   --chart-4: oklch(0.7 0.12 80);
   --chart-5: oklch(0.62 0.14 30);
   /* 試測分析：前後比較兩色、五點量表的發散色（中間是灰）；用 dataviz 的檢查腳本驗過色盲區分與對比 */
-  --chart-before: oklch(0.52 0.12 245);
   --chart-after: oklch(0.55 0.14 45);
   --likert-1: oklch(0.48 0.14 35);
   --likert-2: oklch(0.63 0.1 38);
@@ -148,7 +146,6 @@
   --chart-3: oklch(0.7 0.08 50);
   --chart-4: oklch(0.8 0.1 85);
   --chart-5: oklch(0.7 0.13 30);
-  --chart-before: oklch(0.64 0.11 245);
   --chart-after: oklch(0.66 0.13 60);
   --likert-1: oklch(0.66 0.13 35);
   --likert-2: oklch(0.56 0.11 38);

@@ -90,6 +90,7 @@ def home_summary(session: SessionDep, current_user: CurrentUser) -> HomeSummary:
         team_access=has_team_access(current_user),
         admin_access=current_user.is_superuser,
         survey_pending=survey_pending,
+        trial=current_user.cohort_id is not None,
         survey_ready=survey_pending and exam_done(session, current_user.id),
         badges=[
             b.fraud_type if b.kind == "type" and b.fraud_type else b.kind

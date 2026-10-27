@@ -12,7 +12,7 @@ export type Bubble = {
 export type MascotLine = {
   text: string
   highlight: HotspotId | null
-  action?: { label: string; to: string }
+  action?: { label: string; to: "/pretest" | "/exam" | "/survey" }
 }
 
 export type MenuTo =
@@ -44,7 +44,7 @@ export function mascotPose(s: HomeSummary, talking: boolean): MascotPose {
   if (s.exam_active_attempt_id) return "think"
   if (s.retake && !s.retake.gate.met) return "think"
   if (s.retake?.gate.met) return "cheer"
-  if (!s.pretest_done || talking) return "point"
+  if (trialStep(s) || (!s.pretest_done && !s.trial) || talking) return "point"
   if (s.daily_unlocked && s.daily_done) return "cheer"
   return "base"
 }
@@ -71,9 +71,19 @@ function retakeGaps(s: HomeSummary): { id: HotspotId; count: number }[] {
   return gaps
 }
 
+/**
+ * 試測帳號還沒做完的那一步：先綜合檢測，再填問卷（交完會顯示受試編號）。
+ * 試測不做入門前測，綜合檢測第一關就是前測。
+ */
+export function trialStep(s: HomeSummary): "exam" | "survey" | null {
+  if (!s.trial || !s.survey_pending || s.exam_active_attempt_id) return null
+  return s.survey_ready ? "survey" : "exam"
+}
+
 /** 泡泡第一步：吉祥物要玩家先去的物件。沒做前測時對話框不指物件，泡泡仍先亮電視。 */
 export function recommended(s: HomeSummary): HotspotId | null {
   if (s.exam_active_attempt_id) return "bookshelf"
+  if (trialStep(s) === "exam") return "bookshelf"
   if (s.retake && !s.retake.gate.met) return retakeGaps(s)[0]?.id ?? null
   if (s.retake?.gate.met) return "bookshelf"
   return "tv"
@@ -138,7 +148,22 @@ export function pausedHotspots(s: HomeSummary): HotspotId[] {
 }
 
 export function mascotLine(s: HomeSummary): MascotLine {
-  if (!s.pretest_done) {
+  const step = trialStep(s)
+  if (step === "exam") {
+    return {
+      text: "歡迎參加試測！先做一次綜合檢測，做完再填問卷。",
+      highlight: "bookshelf",
+      action: { label: "開始檢測", to: "/exam" },
+    }
+  }
+  if (step === "survey") {
+    return {
+      text: "最後一步：填試測問卷，填完會顯示你的受試編號。",
+      highlight: null,
+      action: { label: "填問卷", to: "/survey" },
+    }
+  }
+  if (!s.pretest_done && !s.trial) {
     return {
       text: "歡迎！先做個小測驗，看看你最容易被哪一種詐騙騙到。",
       highlight: null,
@@ -251,12 +276,21 @@ export function menuItems(s: HomeSummary): MenuItem[] {
     },
   ]
   if (s.survey_pending) {
-    // 試測帳號：做完一次檢測才能填，放在最前面
+    // 試測帳號：做完一次綜合檢測才能填，放在最前面
     items.unshift({
       id: "survey",
       label: "試測問卷",
       status: s.survey_ready ? "還沒填" : "做完檢測後填",
       done: !s.survey_ready,
+      to: "/survey",
+    })
+  } else if (s.trial) {
+    // 交完問卷後還能再打開編號頁，給工作人員核對
+    items.unshift({
+      id: "survey",
+      label: "試測完成",
+      status: "看受試編號",
+      done: false,
       to: "/survey",
     })
   }

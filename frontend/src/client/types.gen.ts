@@ -393,6 +393,7 @@ export type HomeSummary = {
     team_access?: boolean;
     survey_pending?: boolean;
     survey_ready?: boolean;
+    trial?: boolean;
     admin_access?: boolean;
 };
 
@@ -532,21 +533,6 @@ export type OwnedPropertyPublic = {
     purchased_at: string;
 };
 
-/**
- * 同一人入門前測與第一次綜合檢測前測關（同題庫、同抽法）的答對數。
- */
-export type PairedPretest = {
-    n: number;
-    total: number;
-    before_mean: (number | null);
-    after_mean: (number | null);
-    diff_mean: (number | null);
-    improved: number;
-    same: number;
-    worse: number;
-    pairs: Array<PretestPair>;
-};
-
 export type ParticipantDetail = {
     user_id: string;
     participant_code: (string | null);
@@ -603,11 +589,6 @@ export type PretestItemDetail = {
     selected: string;
     correct_option: string;
     is_correct: boolean;
-};
-
-export type PretestPair = {
-    before: number;
-    after: number;
 };
 
 export type PretestSubmitRequest = {
@@ -850,12 +831,11 @@ export type ScoreStats = {
     bins: Array<HistogramBin>;
 };
 
+/**
+ * 交了問卷的人全部算進來（注意力題答錯、作答太快也算）；注意力題本身不列。
+ */
 export type SurveyAnalytics = {
-    valid_only: boolean;
     responses: number;
-    included: number;
-    attention_failed: number;
-    too_fast: number;
     likert: Array<LikertItem>;
     confidence: ConfidenceShift;
     choices: Array<ChoiceItem>;
@@ -1065,7 +1045,6 @@ export type Token = {
 export type TrialAnalytics = {
     member_count: number;
     funnel: Array<FunnelStep>;
-    paired_pretest: PairedPretest;
     type_accuracy: Array<TypeAccuracy>;
     scores: ScoreStats;
     timings: Array<TimingStats>;
@@ -1077,6 +1056,9 @@ export type TrialSurveyPublic = {
     started: boolean;
     submitted: boolean;
     exam_done: boolean;
+    participant_code?: (string | null);
+    payout_eligible?: boolean;
+    payout_reasons?: Array<(string)>;
 };
 
 export type TrialSurveySubmit = {
@@ -1085,12 +1067,13 @@ export type TrialSurveySubmit = {
     };
 };
 
+/**
+ * 第一次考完的綜合檢測，前測關這一類的答對率與題數。
+ */
 export type TypeAccuracy = {
     fraud_type: string;
-    before: (number | null);
-    after: (number | null);
-    before_n: number;
-    after_n: number;
+    accuracy: (number | null);
+    n: number;
 };
 
 export type UpdatePassword = {
@@ -1215,7 +1198,6 @@ export type AdminCohortsMemberDetailResponse = (ParticipantDetail);
 
 export type AdminCohortsAnalyticsData = {
     cohortId?: (string | null);
-    validOnly?: boolean;
 };
 
 export type AdminCohortsAnalyticsResponse = (TrialAnalytics);

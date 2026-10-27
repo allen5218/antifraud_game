@@ -12,7 +12,7 @@ const OUTCOME_META: Record<
   win_report: {
     title: "識破成功！",
     win: true,
-    flagsTitle: "你抓到的破綻",
+    flagsTitle: "對方用過的話術",
   },
   win_trust: {
     title: "正確信任！",
