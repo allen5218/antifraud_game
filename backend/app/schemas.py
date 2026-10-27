@@ -94,6 +94,13 @@ class HomeSummary(BaseModel):
     survey_ready: bool = False
     # 試測帳號（有梯次）：不引導入門前測，改引導綜合檢測
     trial: bool = False
+    # 老師身分（none／pending／approved／rejected／suspended），決定頁首「班級管理」
+    teacher_status: str = "none"
+    # 加入的班級數（選單「班級作業」）；已認領班級裡還沒做與已過期的作業數
+    class_count: int = 0
+    classwork_pending: int = 0
+    # 期限最近的那份未完成作業，吉祥物說的那一句
+    classwork_next: str | None = None
     # 管理員：房間選單多一個「試測管理」
     admin_access: bool = False
 

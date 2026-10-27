@@ -1,7 +1,7 @@
 """老師的班級、學生加入與認領、我的班級。"""
 
 import secrets
-from datetime import timedelta
+from datetime import datetime, timedelta, timezone
 
 from fastapi.testclient import TestClient
 from sqlmodel import Session, select
@@ -349,3 +349,69 @@ def test_removed_member_and_suspended_teacher(client: TestClient, db: Session) -
         f"{API}/classes/join", headers=headers, json={"code": classroom.code}
     )
     assert rejoined.json()["student_number"] is None
+
+
+# ── 首頁資料與隱私 ──────────────────────────────────────
+
+
+def test_home_summary_classwork(client: TestClient, db: Session) -> None:
+    owner, _ = teacher_headers(db)
+    classroom = make_class(db, owner)
+    student = create_random_user(db)
+    headers = user_headers(student)
+    db.add(ClassMember(classroom_id=classroom.id, user_id=student.id))
+    for days, title in ((9, "練習"), (2, "期中檢測")):
+        db.add(
+            ClassAssignment(
+                classroom_id=classroom.id,
+                kind="pretest",
+                title=title,
+                params={},
+                # 台灣時間 11/2 23:59:59 = UTC 11/2 15:59:59
+                due_at=datetime(2030, 11, days, 15, 59, 59, tzinfo=timezone.utc),
+            )
+        )
+    db.commit()
+    url = f"{API}/home/summary"
+    # 沒認領的班不算作業，但算加入的班級數
+    body = client.get(url, headers=headers).json()
+    assert (body["class_count"], body["classwork_pending"], body["classwork_next"]) == (
+        1,
+        0,
+        None,
+    )
+    member = db.get(ClassMember, (classroom.id, student.id))
+    assert member is not None
+    member.student_number, member.student_name = "S1", "甲"
+    db.add(member)
+    db.commit()
+    body = client.get(url, headers=headers).json()
+    assert body["classwork_pending"] == 2
+    assert body["classwork_next"] == "老師交代的：11/2 前完成「期中檢測」。"
+    teacher_body = client.get(url, headers=user_headers(owner)).json()
+    assert teacher_body["teacher_status"] == "approved"
+
+
+def test_student_name_not_public(client: TestClient, db: Session) -> None:
+    owner, _ = teacher_headers(db)
+    classroom = make_class(db, owner)
+    student = create_random_user(db)
+    secret = "隱私測試的名字"
+    db.add(
+        ClassMember(
+            classroom_id=classroom.id,
+            user_id=student.id,
+            student_number="PRIVATE-9",
+            student_name=secret,
+        )
+    )
+    db.commit()
+    headers = user_headers(student)
+    for path in (
+        "/users/me",
+        "/home/summary",
+        "/leaderboard?period=today",
+        "/leaderboard?period=week",
+    ):
+        text = client.get(f"{API}{path}", headers=headers).text
+        assert secret not in text and "PRIVATE-9" not in text, path

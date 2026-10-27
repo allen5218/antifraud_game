@@ -1,6 +1,7 @@
 """學生看到的「我的班級」：班名、老師、自己的學號名字、作業與進度。"""
 
 import uuid
+from zoneinfo import ZoneInfo
 
 from sqlmodel import Session, col, select
 
@@ -59,3 +60,26 @@ def my_classes(session: Session, user_id: uuid.UUID) -> list[MyClassPublic]:
         .order_by(col(ClassMember.joined_at))
     ).all()
     return [my_class(session, m) for m in members]
+
+
+TAIPEI = ZoneInfo("Asia/Taipei")
+
+
+def classwork_reminder(classes: list[MyClassPublic]) -> tuple[int, str | None]:
+    """未完成作業數，與期限最近那份的一句提醒（先挑還沒過期的）。"""
+    pending = [
+        a for c in classes for a in c.assignments if a.status in ("todo", "overdue")
+    ]
+    upcoming = sorted(
+        (a for a in pending if a.status == "todo"), key=lambda a: a.due_at
+    )
+    if upcoming:
+        first = upcoming[0]
+        due = first.due_at.astimezone(TAIPEI)
+        return len(
+            pending
+        ), f"老師交代的：{due.month}/{due.day} 前完成「{first.title}」。"
+    if pending:
+        first = min(pending, key=lambda a: a.due_at)
+        return len(pending), f"老師交代的「{first.title}」已經過期了，還是可以補做。"
+    return 0, None

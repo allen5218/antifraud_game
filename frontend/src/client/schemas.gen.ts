@@ -2298,6 +2298,32 @@ export const HomeSummarySchema = {
             title: 'Trial',
             default: false
         },
+        teacher_status: {
+            type: 'string',
+            title: 'Teacher Status',
+            default: 'none'
+        },
+        class_count: {
+            type: 'integer',
+            title: 'Class Count',
+            default: 0
+        },
+        classwork_pending: {
+            type: 'integer',
+            title: 'Classwork Pending',
+            default: 0
+        },
+        classwork_next: {
+            anyOf: [
+                {
+                    type: 'string'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Classwork Next'
+        },
         admin_access: {
             type: 'boolean',
             title: 'Admin Access',

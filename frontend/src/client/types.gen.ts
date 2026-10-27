@@ -491,6 +491,10 @@ export type HomeSummary = {
     survey_pending?: boolean;
     survey_ready?: boolean;
     trial?: boolean;
+    teacher_status?: string;
+    class_count?: number;
+    classwork_pending?: number;
+    classwork_next?: (string | null);
     admin_access?: boolean;
 };
 
