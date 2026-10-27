@@ -101,6 +101,16 @@ class User(UserBase, table=True):
     )
     participant_code: str | None = Field(default=None, max_length=32, unique=True)
     is_guest: bool = Field(default=False, sa_column_kwargs={"server_default": "false"})
+    # 老師身分：none／pending（申請中）／approved／rejected／suspended。管理員核准才算老師
+    teacher_status: str = Field(
+        default="none", max_length=16, sa_column_kwargs={"server_default": "none"}
+    )
+    teacher_school: str | None = Field(default=None, max_length=100)
+    teacher_subject: str | None = Field(default=None, max_length=100)
+    teacher_applied_at: datetime | None = Field(
+        default=None,
+        sa_type=DateTime(timezone=True),  # type: ignore
+    )
 
     properties: list["UserProperty"] = Relationship(
         back_populates="owner", cascade_delete=True
@@ -865,3 +875,59 @@ class TrialSurvey(SQLModel, table=True):
     submitted_at: datetime | None = Field(default=None, sa_type=DateTime(timezone=True))  # type: ignore
     duration_seconds: float | None = Field(default=None)
     attention_ok: bool | None = Field(default=None)
+
+
+class Classroom(SQLModel, table=True):
+    """老師的班級。學生掃 QR（token）或輸入代碼（code）加入；停止加入不影響已加入的人。"""
+
+    id: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True)
+    name: str = Field(max_length=100)
+    teacher_id: uuid.UUID = Field(foreign_key="user.id", ondelete="CASCADE", index=True)
+    token: str = Field(max_length=64, unique=True, index=True)
+    code: str = Field(max_length=6, unique=True, index=True)
+    is_open: bool = Field(default=True, sa_column_kwargs={"server_default": "true"})
+    created_at: datetime = Field(
+        default_factory=get_datetime_utc,
+        sa_type=DateTime(timezone=True),  # type: ignore
+    )
+
+
+class ClassMember(SQLModel, table=True):
+    """班級成員。學號、名字由學生填來認領，只給該班老師與管理員看。"""
+
+    __tablename__ = "class_member"
+
+    classroom_id: uuid.UUID = Field(
+        foreign_key="classroom.id", primary_key=True, ondelete="CASCADE"
+    )
+    user_id: uuid.UUID = Field(
+        foreign_key="user.id", primary_key=True, ondelete="CASCADE", index=True
+    )
+    student_number: str | None = Field(default=None, max_length=32)
+    student_name: str | None = Field(default=None, max_length=50)
+    joined_at: datetime = Field(
+        default_factory=get_datetime_utc,
+        sa_type=DateTime(timezone=True),  # type: ignore
+    )
+
+
+class ClassAssignment(SQLModel, table=True):
+    """老師出的作業。進度不存，從檢測、練習、前測紀錄即時算（app/classroom/progress.py）。"""
+
+    __tablename__ = "class_assignment"
+
+    id: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True)
+    classroom_id: uuid.UUID = Field(
+        foreign_key="classroom.id", ondelete="CASCADE", index=True
+    )
+    # comprehensive／specialized／practice／pretest
+    kind: str = Field(max_length=16)
+    title: str = Field(max_length=100)
+    params: dict[str, Any] = Field(
+        default={}, sa_column=Column(JSONB, nullable=False, server_default="{}")
+    )
+    due_at: datetime = Field(sa_type=DateTime(timezone=True))  # type: ignore
+    created_at: datetime = Field(
+        default_factory=get_datetime_utc,
+        sa_type=DateTime(timezone=True),  # type: ignore
+    )
