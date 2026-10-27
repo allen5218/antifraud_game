@@ -49,10 +49,28 @@ class UserCreate(UserBase):
     password: str = Field(min_length=8, max_length=128)
 
 
+def clean_required_text(value: str) -> str:
+    value = value.strip()
+    if not value:
+        raise ValueError("不能空白")
+    return value
+
+
+class TeacherApplication(SQLModel):
+    """申請成為老師：學校與任教科目，給管理員判斷要不要核准。"""
+
+    school: str = Field(min_length=1, max_length=100)
+    subject: str = Field(min_length=1, max_length=100)
+
+    _clean = field_validator("school", "subject")(clean_required_text)
+
+
 class UserRegister(SQLModel):
     email: EmailStr = Field(max_length=255)
     password: str = Field(min_length=8, max_length=128)
     full_name: str | None = Field(default=None, max_length=255)
+    # 註冊時勾「我是老師」才有；送出後是申請中，管理員核准才算老師
+    teacher: TeacherApplication | None = None
 
 
 # Properties to receive via API on update, all are optional
@@ -125,6 +143,7 @@ class UserPublic(UserBase):
     is_guest: bool = False
     participant_code: str | None = None
     cohort_id: uuid.UUID | None = None
+    teacher_status: str = "none"
 
 
 class UsersPublic(SQLModel):

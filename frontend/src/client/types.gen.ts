@@ -908,6 +908,26 @@ export type SwipeDeckResponse = {
     cards: Array<SwipeCardPublic>;
 };
 
+/**
+ * 申請成為老師：學校與任教科目，給管理員判斷要不要核准。
+ */
+export type TeacherApplication = {
+    school: string;
+    subject: string;
+};
+
+export type TeacherPublic = {
+    id: string;
+    email: string;
+    full_name: (string | null);
+    school: (string | null);
+    subject: (string | null);
+    status: string;
+    applied_at: (string | null);
+    class_count: number;
+    student_count: number;
+};
+
 export type TeamBank = {
     pretest: Array<TeamPretest>;
     swipe: Array<TeamSwipe>;
@@ -1101,12 +1121,14 @@ export type UserPublic = {
     is_guest?: boolean;
     participant_code?: (string | null);
     cohort_id?: (string | null);
+    teacher_status?: string;
 };
 
 export type UserRegister = {
     email: string;
     password: string;
     full_name?: (string | null);
+    teacher?: (TeacherApplication | null);
 };
 
 export type UsersPublic = {
@@ -1201,6 +1223,19 @@ export type AdminCohortsAnalyticsData = {
 };
 
 export type AdminCohortsAnalyticsResponse = (TrialAnalytics);
+
+export type AdminTeachersListTeachersData = {
+    status: 'pending' | 'approved' | 'rejected' | 'suspended';
+};
+
+export type AdminTeachersListTeachersResponse = (Array<TeacherPublic>);
+
+export type AdminTeachersChangeTeacherData = {
+    action: 'approve' | 'reject' | 'suspend' | 'restore';
+    userId: string;
+};
+
+export type AdminTeachersChangeTeacherResponse = (TeacherPublic);
 
 export type BadgesOwnBadgesResponse = (Array<ExamBadgePublic>);
 
@@ -1550,6 +1585,12 @@ export type UsersUpdatePasswordMeData = {
 };
 
 export type UsersUpdatePasswordMeResponse = (Message);
+
+export type UsersApplyTeacherMeData = {
+    requestBody: TeacherApplication;
+};
+
+export type UsersApplyTeacherMeResponse = (UserPublic);
 
 export type UsersRegisterUserData = {
     requestBody: UserRegister;

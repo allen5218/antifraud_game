@@ -3973,6 +3973,101 @@ export const SwipeDeckResponseSchema = {
     title: 'SwipeDeckResponse'
 } as const;
 
+export const TeacherApplicationSchema = {
+    properties: {
+        school: {
+            type: 'string',
+            maxLength: 100,
+            minLength: 1,
+            title: 'School'
+        },
+        subject: {
+            type: 'string',
+            maxLength: 100,
+            minLength: 1,
+            title: 'Subject'
+        }
+    },
+    type: 'object',
+    required: ['school', 'subject'],
+    title: 'TeacherApplication',
+    description: '申請成為老師：學校與任教科目，給管理員判斷要不要核准。'
+} as const;
+
+export const TeacherPublicSchema = {
+    properties: {
+        id: {
+            type: 'string',
+            format: 'uuid',
+            title: 'Id'
+        },
+        email: {
+            type: 'string',
+            title: 'Email'
+        },
+        full_name: {
+            anyOf: [
+                {
+                    type: 'string'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Full Name'
+        },
+        school: {
+            anyOf: [
+                {
+                    type: 'string'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'School'
+        },
+        subject: {
+            anyOf: [
+                {
+                    type: 'string'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Subject'
+        },
+        status: {
+            type: 'string',
+            title: 'Status'
+        },
+        applied_at: {
+            anyOf: [
+                {
+                    type: 'string',
+                    format: 'date-time'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Applied At'
+        },
+        class_count: {
+            type: 'integer',
+            title: 'Class Count'
+        },
+        student_count: {
+            type: 'integer',
+            title: 'Student Count'
+        }
+    },
+    type: 'object',
+    required: ['id', 'email', 'full_name', 'school', 'subject', 'status', 'applied_at', 'class_count', 'student_count'],
+    title: 'TeacherPublic'
+} as const;
+
 export const TeamBankSchema = {
     properties: {
         pretest: {
@@ -4803,6 +4898,11 @@ export const UserPublicSchema = {
                 }
             ],
             title: 'Cohort Id'
+        },
+        teacher_status: {
+            type: 'string',
+            title: 'Teacher Status',
+            default: 'none'
         }
     },
     type: 'object',
@@ -4835,6 +4935,16 @@ export const UserRegisterSchema = {
                 }
             ],
             title: 'Full Name'
+        },
+        teacher: {
+            anyOf: [
+                {
+                    '$ref': '#/components/schemas/TeacherApplication'
+                },
+                {
+                    type: 'null'
+                }
+            ]
         }
     },
     type: 'object',

@@ -17,6 +17,7 @@ from app.models import (
     INTERNAL_EMAIL_PATTERN,
     Item,
     Message,
+    TeacherApplication,
     UpdatePassword,
     User,
     UserCreate,
@@ -25,6 +26,7 @@ from app.models import (
     UsersPublic,
     UserUpdate,
     UserUpdateMe,
+    get_datetime_utc,
 )
 from app.utils import generate_new_account_email, send_email
 
@@ -141,6 +143,29 @@ def update_password_me(
     return Message(message="Password updated successfully")
 
 
+def apply_teacher(user: User, application: TeacherApplication) -> None:
+    user.teacher_status = "pending"
+    user.teacher_school = application.school
+    user.teacher_subject = application.subject
+    user.teacher_applied_at = get_datetime_utc()
+
+
+@router.post("/me/teacher-application", response_model=UserPublic)
+def apply_teacher_me(
+    session: SessionDep, body: TeacherApplication, current_user: CurrentUser
+) -> Any:
+    """申請成為老師（LINE／Google 帳號沒有註冊表單，從「我」頁申請）。審核中重送只更新欄位。"""
+    if current_user.is_guest:
+        raise HTTPException(status_code=400, detail={"code": "guest_account"})
+    if current_user.teacher_status in ("approved", "suspended"):
+        raise HTTPException(status_code=400, detail={"code": "teacher_already"})
+    apply_teacher(current_user, body)
+    session.add(current_user)
+    session.commit()
+    session.refresh(current_user)
+    return current_user
+
+
 @router.get("/me", response_model=UserPublic)
 def read_user_me(current_user: CurrentUser) -> Any:
     """
@@ -176,6 +201,11 @@ def register_user(session: SessionDep, user_in: UserRegister) -> Any:
         )
     user_create = UserCreate.model_validate(user_in)
     user = crud.create_user(session=session, user_create=user_create)
+    if user_in.teacher is not None:
+        apply_teacher(user, user_in.teacher)
+        session.add(user)
+        session.commit()
+        session.refresh(user)
     return user
 
 
