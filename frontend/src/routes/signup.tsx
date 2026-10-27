@@ -5,9 +5,14 @@ import {
   redirect,
 } from "@tanstack/react-router"
 import { useForm } from "react-hook-form"
-import { z } from "zod"
 import { AuthLayout } from "@/components/Common/AuthLayout"
 import { OAuthButtons } from "@/components/Common/OAuthButtons"
+import {
+  type SignupForm,
+  signupSchema,
+  toSignupBody,
+} from "@/components/classroom/signupForm"
+import { Checkbox } from "@/components/ui/checkbox"
 import {
   Form,
   FormControl,
@@ -20,23 +25,6 @@ import { Input } from "@/components/ui/input"
 import { LoadingButton } from "@/components/ui/loading-button"
 import { PasswordInput } from "@/components/ui/password-input"
 import useAuth, { isLoggedIn } from "@/hooks/useAuth"
-
-const formSchema = z
-  .object({
-    email: z.email({ message: "電子郵件格式不正確" }),
-    full_name: z.string().min(1, { message: "請輸入名稱" }),
-    password: z
-      .string()
-      .min(1, { message: "請輸入密碼" })
-      .min(8, { message: "密碼至少要 8 個字元" }),
-    confirm_password: z.string().min(1, { message: "請再輸入一次密碼" }),
-  })
-  .refine((data) => data.password === data.confirm_password, {
-    message: "兩次輸入的密碼不一樣",
-    path: ["confirm_password"],
-  })
-
-type FormData = z.infer<typeof formSchema>
 
 export const Route = createFileRoute("/signup")({
   component: SignUp,
@@ -58,8 +46,8 @@ export const Route = createFileRoute("/signup")({
 
 function SignUp() {
   const { signUpMutation } = useAuth()
-  const form = useForm<FormData>({
-    resolver: zodResolver(formSchema),
+  const form = useForm<SignupForm>({
+    resolver: zodResolver(signupSchema),
     mode: "onBlur",
     criteriaMode: "all",
     defaultValues: {
@@ -67,15 +55,16 @@ function SignUp() {
       full_name: "",
       password: "",
       confirm_password: "",
+      teacher: false,
+      school: "",
+      subject: "",
     },
   })
+  const asTeacher = form.watch("teacher")
 
-  const onSubmit = (data: FormData) => {
+  const onSubmit = (data: SignupForm) => {
     if (signUpMutation.isPending) return
-
-    // exclude confirm_password from submission data
-    const { confirm_password: _confirm_password, ...submitData } = data
-    signUpMutation.mutate(submitData)
+    signUpMutation.mutate(toSignupBody(data))
   }
 
   return (
@@ -163,6 +152,56 @@ function SignUp() {
                 </FormItem>
               )}
             />
+
+            <FormField
+              control={form.control}
+              name="teacher"
+              render={({ field }) => (
+                <FormItem className="flex items-center gap-2">
+                  <FormControl>
+                    <Checkbox
+                      checked={field.value}
+                      onCheckedChange={(checked) =>
+                        field.onChange(checked === true)
+                      }
+                    />
+                  </FormControl>
+                  <FormLabel className="font-normal">
+                    我是老師（要管理員核准）
+                  </FormLabel>
+                </FormItem>
+              )}
+            />
+            {asTeacher && (
+              <>
+                <FormField
+                  control={form.control}
+                  name="school"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>學校</FormLabel>
+                      <FormControl>
+                        <Input maxLength={100} {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="subject"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>任教科目</FormLabel>
+                      <FormControl>
+                        <Input maxLength={100} {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </>
+            )}
 
             <LoadingButton
               type="submit"

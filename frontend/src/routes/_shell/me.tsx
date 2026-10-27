@@ -9,6 +9,7 @@ import {
   ShoppingBag,
   UsersRound,
 } from "lucide-react"
+import { TeacherStatusCard } from "@/components/classroom/TeacherStatusCard"
 import { PracticeFocusCard } from "@/components/practice/PracticeFocus"
 import { MascotAvatar } from "@/components/room/MascotAvatar"
 import useAuth, { currentUserQuery } from "@/hooks/useAuth"
@@ -77,6 +78,8 @@ function Me() {
       </section>
 
       <PracticeFocusCard />
+
+      {user && <TeacherStatusCard user={user} />}
 
       {user?.is_superuser && (
         <nav className="grid gap-2" aria-label="管理">

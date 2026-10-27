@@ -28,6 +28,7 @@ import { Route as ShellMeRouteImport } from './routes/_shell/me'
 import { Route as ShellLeaderboardRouteImport } from './routes/_shell/leaderboard'
 import { Route as ShellExamRouteImport } from './routes/_shell/exam'
 import { Route as ShellDailyRouteImport } from './routes/_shell/daily'
+import { Route as ShellClassesRouteImport } from './routes/_shell/classes'
 import { Route as ShellAssetsRouteImport } from './routes/_shell/assets'
 import { Route as LayoutSettingsRouteImport } from './routes/_layout/settings'
 import { Route as LayoutItemsRouteImport } from './routes/_layout/items'
@@ -133,6 +134,11 @@ const ShellDailyRoute = ShellDailyRouteImport.update({
   path: '/daily',
   getParentRoute: () => ShellRoute,
 } as any)
+const ShellClassesRoute = ShellClassesRouteImport.update({
+  id: '/classes',
+  path: '/classes',
+  getParentRoute: () => ShellRoute,
+} as any)
 const ShellAssetsRoute = ShellAssetsRouteImport.update({
   id: '/assets',
   path: '/assets',
@@ -202,6 +208,7 @@ export interface FileRoutesByFullPath {
   '/items': typeof LayoutItemsRoute
   '/settings': typeof LayoutSettingsRoute
   '/assets': typeof ShellAssetsRoute
+  '/classes': typeof ShellClassesRoute
   '/daily': typeof ShellDailyRoute
   '/exam': typeof ShellExamRoute
   '/leaderboard': typeof ShellLeaderboardRoute
@@ -232,6 +239,7 @@ export interface FileRoutesByTo {
   '/items': typeof LayoutItemsRoute
   '/settings': typeof LayoutSettingsRoute
   '/assets': typeof ShellAssetsRoute
+  '/classes': typeof ShellClassesRoute
   '/daily': typeof ShellDailyRoute
   '/exam': typeof ShellExamRoute
   '/leaderboard': typeof ShellLeaderboardRoute
@@ -264,6 +272,7 @@ export interface FileRoutesById {
   '/_layout/items': typeof LayoutItemsRoute
   '/_layout/settings': typeof LayoutSettingsRoute
   '/_shell/assets': typeof ShellAssetsRoute
+  '/_shell/classes': typeof ShellClassesRoute
   '/_shell/daily': typeof ShellDailyRoute
   '/_shell/exam': typeof ShellExamRoute
   '/_shell/leaderboard': typeof ShellLeaderboardRoute
@@ -297,6 +306,7 @@ export interface FileRouteTypes {
     | '/items'
     | '/settings'
     | '/assets'
+    | '/classes'
     | '/daily'
     | '/exam'
     | '/leaderboard'
@@ -327,6 +337,7 @@ export interface FileRouteTypes {
     | '/items'
     | '/settings'
     | '/assets'
+    | '/classes'
     | '/daily'
     | '/exam'
     | '/leaderboard'
@@ -358,6 +369,7 @@ export interface FileRouteTypes {
     | '/_layout/items'
     | '/_layout/settings'
     | '/_shell/assets'
+    | '/_shell/classes'
     | '/_shell/daily'
     | '/_shell/exam'
     | '/_shell/leaderboard'
@@ -527,6 +539,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ShellDailyRouteImport
       parentRoute: typeof ShellRoute
     }
+    '/_shell/classes': {
+      id: '/_shell/classes'
+      path: '/classes'
+      fullPath: '/classes'
+      preLoaderRoute: typeof ShellClassesRouteImport
+      parentRoute: typeof ShellRoute
+    }
     '/_shell/assets': {
       id: '/_shell/assets'
       path: '/assets'
@@ -626,6 +645,7 @@ const LayoutRouteWithChildren =
 
 interface ShellRouteChildren {
   ShellAssetsRoute: typeof ShellAssetsRoute
+  ShellClassesRoute: typeof ShellClassesRoute
   ShellDailyRoute: typeof ShellDailyRoute
   ShellExamRoute: typeof ShellExamRoute
   ShellLeaderboardRoute: typeof ShellLeaderboardRoute
@@ -643,6 +663,7 @@ interface ShellRouteChildren {
 
 const ShellRouteChildren: ShellRouteChildren = {
   ShellAssetsRoute: ShellAssetsRoute,
+  ShellClassesRoute: ShellClassesRoute,
   ShellDailyRoute: ShellDailyRoute,
   ShellExamRoute: ShellExamRoute,
   ShellLeaderboardRoute: ShellLeaderboardRoute,
