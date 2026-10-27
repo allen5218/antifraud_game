@@ -1,5 +1,6 @@
 import uuid
 from datetime import datetime
+from typing import Any
 
 from pydantic import field_validator
 from sqlmodel import Field, SQLModel
@@ -48,3 +49,31 @@ class ClassMemberUpdate(SQLModel):
 
     student_number: str | None = Field(default=None, max_length=32)
     student_name: str | None = Field(default=None, max_length=50)
+
+
+class JoinClass(SQLModel):
+    """掃 QR（token）或輸入代碼（code）擇一。"""
+
+    token: str | None = Field(default=None, max_length=64)
+    code: str | None = Field(default=None, max_length=6)
+
+
+class MyAssignment(SQLModel):
+    id: uuid.UUID
+    title: str
+    kind: str
+    params: dict[str, Any]
+    due_at: datetime
+    status: str
+    progress_text: str
+    completed_at: datetime | None
+
+
+class MyClassPublic(SQLModel):
+    id: uuid.UUID
+    name: str
+    teacher_name: str
+    student_number: str | None
+    student_name: str | None
+    # 填了學號名字才看得到作業
+    assignments: list[MyAssignment]

@@ -2158,6 +2158,38 @@ export const ItemsPublicSchema = {
     title: 'ItemsPublic'
 } as const;
 
+export const JoinClassSchema = {
+    properties: {
+        token: {
+            anyOf: [
+                {
+                    type: 'string',
+                    maxLength: 64
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Token'
+        },
+        code: {
+            anyOf: [
+                {
+                    type: 'string',
+                    maxLength: 6
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Code'
+        }
+    },
+    type: 'object',
+    title: 'JoinClass',
+    description: '掃 QR（token）或輸入代碼（code）擇一。'
+} as const;
+
 export const LeaderboardEntrySchema = {
     properties: {
         rank: {
@@ -2424,6 +2456,107 @@ export const MessageSchema = {
     type: 'object',
     required: ['message'],
     title: 'Message'
+} as const;
+
+export const MyAssignmentSchema = {
+    properties: {
+        id: {
+            type: 'string',
+            format: 'uuid',
+            title: 'Id'
+        },
+        title: {
+            type: 'string',
+            title: 'Title'
+        },
+        kind: {
+            type: 'string',
+            title: 'Kind'
+        },
+        params: {
+            additionalProperties: true,
+            type: 'object',
+            title: 'Params'
+        },
+        due_at: {
+            type: 'string',
+            format: 'date-time',
+            title: 'Due At'
+        },
+        status: {
+            type: 'string',
+            title: 'Status'
+        },
+        progress_text: {
+            type: 'string',
+            title: 'Progress Text'
+        },
+        completed_at: {
+            anyOf: [
+                {
+                    type: 'string',
+                    format: 'date-time'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Completed At'
+        }
+    },
+    type: 'object',
+    required: ['id', 'title', 'kind', 'params', 'due_at', 'status', 'progress_text', 'completed_at'],
+    title: 'MyAssignment'
+} as const;
+
+export const MyClassPublicSchema = {
+    properties: {
+        id: {
+            type: 'string',
+            format: 'uuid',
+            title: 'Id'
+        },
+        name: {
+            type: 'string',
+            title: 'Name'
+        },
+        teacher_name: {
+            type: 'string',
+            title: 'Teacher Name'
+        },
+        student_number: {
+            anyOf: [
+                {
+                    type: 'string'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Student Number'
+        },
+        student_name: {
+            anyOf: [
+                {
+                    type: 'string'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Student Name'
+        },
+        assignments: {
+            items: {
+                '$ref': '#/components/schemas/MyAssignment'
+            },
+            type: 'array',
+            title: 'Assignments'
+        }
+    },
+    type: 'object',
+    required: ['id', 'name', 'teacher_name', 'student_number', 'student_name', 'assignments'],
+    title: 'MyClassPublic'
 } as const;
 
 export const NewPasswordSchema = {

@@ -10,7 +10,7 @@ from sqlmodel import col, func, select
 
 from app.api.deps import SessionDep
 from app.core.security import create_access_token, get_password_hash
-from app.models import Cohort, Token, User, get_datetime_utc
+from app.models import ClassMember, Classroom, Cohort, Token, User, get_datetime_utc
 
 router = APIRouter(prefix="/invite", tags=["invite"])
 REDEEM_LIMIT_PER_MINUTE = 120
@@ -76,3 +76,47 @@ def redeem_invite(token: str, session: SessionDep) -> Token:
     return Token(
         access_token=create_access_token(user.id, expires_delta=timedelta(days=30))
     )
+
+
+def guest_token(user: User) -> Token:
+    return Token(
+        access_token=create_access_token(user.id, expires_delta=timedelta(days=30))
+    )
+
+
+@router.post("/class/{token}/redeem", response_model=Token)
+def redeem_class_invite(token: str, session: SessionDep) -> Token:
+    """沒登入的人掃班級 QR：開免註冊帳號並加入班（沒有梯次、沒有受試編號）。"""
+    classroom = session.exec(
+        select(Classroom).where(Classroom.token == token).with_for_update()
+    ).first()
+    if not classroom or not classroom.is_open:
+        raise HTTPException(status_code=404, detail={"code": "invalid_invite"})
+    recent = session.exec(
+        select(func.count())
+        .select_from(ClassMember)
+        .where(
+            ClassMember.classroom_id == classroom.id,
+            col(ClassMember.joined_at) >= get_datetime_utc() - timedelta(minutes=1),
+        )
+    ).one()
+    if recent >= REDEEM_LIMIT_PER_MINUTE:
+        raise HTTPException(
+            status_code=429,
+            detail={"code": "invite_rate_limit"},
+            headers={"Retry-After": "60"},
+        )
+    user_id = uuid.uuid4()
+    user = User(
+        id=user_id,
+        email=f"guest-{user_id.hex}@participants.invalid",
+        hashed_password=get_password_hash(secrets.token_urlsafe(48)),
+        full_name="班級學生",
+        is_guest=True,
+    )
+    session.add(user)
+    # 兩張表之間沒有 ORM 關聯，先寫入帳號，成員那一列的外鍵才找得到
+    session.flush()
+    session.add(ClassMember(classroom_id=classroom.id, user_id=user_id))
+    session.commit()
+    return guest_token(user)

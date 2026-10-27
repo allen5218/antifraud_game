@@ -10,14 +10,17 @@ import uuid
 from fastapi import APIRouter, HTTPException
 from sqlmodel import Session, col, func, select
 
-from app.api.deps import SessionDep, TeacherUser
+from app.api.deps import CurrentUser, SessionDep, TeacherUser
 from app.classroom.members import member_rows
+from app.classroom.mine import my_class, my_classes
 from app.classroom.schemas import (
     ClassMemberPublic,
     ClassMemberUpdate,
     ClassroomCreate,
     ClassroomPublic,
     ClassroomUpdate,
+    JoinClass,
+    MyClassPublic,
 )
 from app.models import ClassAssignment, ClassMember, Classroom, Message, User
 
@@ -68,6 +71,73 @@ def clean_member_field(value: str | None) -> str | None:
     if not value:
         raise HTTPException(status_code=400, detail={"code": "invalid_name"})
     return value
+
+
+def joinable_class(session: Session, body: JoinClass) -> Classroom:
+    """還開放加入的班；找不到或停止加入都回 404 invalid_invite。"""
+    query = None
+    if body.token:
+        query = select(Classroom).where(Classroom.token == body.token)
+    elif body.code:
+        query = select(Classroom).where(Classroom.code == body.code.strip().upper())
+    classroom = session.exec(query).first() if query is not None else None
+    if classroom is None or not classroom.is_open:
+        raise HTTPException(status_code=404, detail={"code": "invalid_invite"})
+    return classroom
+
+
+def add_member(
+    session: Session, classroom: Classroom, user_id: uuid.UUID
+) -> ClassMember:
+    """已經在班上就回原本那一列，不重複加入。"""
+    member = session.get(ClassMember, (classroom.id, user_id))
+    if member is None:
+        member = ClassMember(classroom_id=classroom.id, user_id=user_id)
+        session.add(member)
+        session.commit()
+        session.refresh(member)
+    return member
+
+
+# ── 學生端（固定路徑放在 /{class_id} 之前） ──
+
+
+@router.get("/mine", response_model=list[MyClassPublic])
+def read_my_classes(
+    session: SessionDep, current_user: CurrentUser
+) -> list[MyClassPublic]:
+    return my_classes(session, current_user.id)
+
+
+@router.post("/join", response_model=MyClassPublic)
+def join_class(
+    body: JoinClass, session: SessionDep, current_user: CurrentUser
+) -> MyClassPublic:
+    classroom = joinable_class(session, body)
+    return my_class(session, add_member(session, classroom, current_user.id))
+
+
+@router.patch("/{class_id}/me", response_model=MyClassPublic)
+def claim_membership(
+    class_id: uuid.UUID,
+    body: ClassMemberUpdate,
+    session: SessionDep,
+    current_user: CurrentUser,
+) -> MyClassPublic:
+    """學生自己填學號、名字（認領）；兩個都要有，之後也可以改。"""
+    member = session.get(ClassMember, (class_id, current_user.id))
+    if member is None:
+        raise HTTPException(status_code=404, detail={"code": "class_not_found"})
+    number = clean_member_field(body.student_number or "")
+    name = clean_member_field(body.student_name or "")
+    member.student_number, member.student_name = number, name
+    session.add(member)
+    session.commit()
+    session.refresh(member)
+    return my_class(session, member)
+
+
+# ── 老師端 ──
 
 
 @router.post("", response_model=ClassroomPublic)

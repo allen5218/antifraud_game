@@ -197,3 +197,155 @@ def test_edit_and_remove_member(client: TestClient, db: Session) -> None:
     assert client.get(base, headers=headers).json() == []
     missing = client.delete(f"{base}/{student.id}", headers=headers)
     assert missing.status_code == 404
+
+
+# ── 學生端 ──────────────────────────────────────────────
+
+
+def add_assignment(db: Session, classroom: Classroom) -> ClassAssignment:
+    row = ClassAssignment(
+        classroom_id=classroom.id,
+        kind="pretest",
+        title="入門前測",
+        params={},
+        due_at=get_datetime_utc() + timedelta(days=7),
+    )
+    db.add(row)
+    db.commit()
+    return row
+
+
+def test_join_by_token_and_code_once(client: TestClient, db: Session) -> None:
+    owner, _ = teacher_headers(db)
+    owner.full_name = "林老師"
+    db.add(owner)
+    db.commit()
+    classroom = make_class(db, owner)
+    student = create_random_user(db)
+    headers = user_headers(student)
+    joined = client.post(
+        f"{API}/classes/join", headers=headers, json={"token": classroom.token}
+    )
+    assert joined.status_code == 200, joined.text
+    body = joined.json()
+    assert (body["name"], body["teacher_name"]) == ("三年一班", "林老師")
+    assert body["student_number"] is None and body["assignments"] == []
+    # 同一個班再加入（代碼小寫也可以）不重複
+    again = client.post(
+        f"{API}/classes/join", headers=headers, json={"code": classroom.code.lower()}
+    )
+    assert again.status_code == 200
+    count = db.exec(
+        select(ClassMember).where(ClassMember.classroom_id == classroom.id)
+    ).all()
+    assert len(count) == 1
+
+
+def test_join_closed_or_unknown(client: TestClient, db: Session) -> None:
+    owner, _ = teacher_headers(db)
+    classroom = make_class(db, owner)
+    classroom.is_open = False
+    db.add(classroom)
+    db.commit()
+    headers = user_headers(create_random_user(db))
+    for body in ({"token": classroom.token}, {"code": "ZZZZZZ"}, {}):
+        response = client.post(f"{API}/classes/join", headers=headers, json=body)
+        assert response.status_code == 404, body
+        assert response.json()["detail"]["code"] == "invalid_invite"
+
+
+def test_anonymous_redeem_creates_class_guest(client: TestClient, db: Session) -> None:
+    owner, _ = teacher_headers(db)
+    classroom = make_class(db, owner)
+    response = client.post(f"{API}/invite/class/{classroom.token}/redeem")
+    assert response.status_code == 200, response.text
+    headers = {"Authorization": f"Bearer {response.json()['access_token']}"}
+    me = client.get(f"{API}/users/me", headers=headers).json()
+    assert me["is_guest"] is True
+    assert me["cohort_id"] is None and me["participant_code"] is None
+    mine = client.get(f"{API}/classes/mine", headers=headers).json()
+    assert [c["id"] for c in mine] == [str(classroom.id)]
+    closed = make_class(db, owner, "停止加入")
+    closed.is_open = False
+    db.add(closed)
+    db.commit()
+    assert client.post(f"{API}/invite/class/{closed.token}/redeem").status_code == 404
+
+
+def test_redeem_rate_limit(client: TestClient, db: Session, monkeypatch) -> None:  # type: ignore[no-untyped-def]
+    from app.api.routes import invite
+
+    monkeypatch.setattr(invite, "REDEEM_LIMIT_PER_MINUTE", 1)
+    owner, _ = teacher_headers(db)
+    classroom = make_class(db, owner)
+    assert (
+        client.post(f"{API}/invite/class/{classroom.token}/redeem").status_code == 200
+    )
+    assert (
+        client.post(f"{API}/invite/class/{classroom.token}/redeem").status_code == 429
+    )
+
+
+def test_claim_before_seeing_assignments(client: TestClient, db: Session) -> None:
+    owner, _ = teacher_headers(db)
+    classroom = make_class(db, owner)
+    add_assignment(db, classroom)
+    headers = user_headers(create_random_user(db))
+    client.post(f"{API}/classes/join", headers=headers, json={"code": classroom.code})
+    mine = client.get(f"{API}/classes/mine", headers=headers).json()
+    assert mine[0]["assignments"] == []
+    url = f"{API}/classes/{classroom.id}/me"
+    blank = client.patch(
+        url, headers=headers, json={"student_number": " ", "student_name": "王"}
+    )
+    assert blank.status_code == 400 and blank.json()["detail"]["code"] == "invalid_name"
+    claimed = client.patch(
+        url, headers=headers, json={"student_number": "S01", "student_name": "王小明"}
+    )
+    assert claimed.status_code == 200, claimed.text
+    item = claimed.json()["assignments"][0]
+    assert (item["title"], item["status"], item["progress_text"]) == (
+        "入門前測",
+        "todo",
+        "還沒做",
+    )
+
+
+def test_not_member_cannot_claim(client: TestClient, db: Session) -> None:
+    owner, _ = teacher_headers(db)
+    classroom = make_class(db, owner)
+    headers = user_headers(create_random_user(db))
+    response = client.patch(
+        f"{API}/classes/{classroom.id}/me",
+        headers=headers,
+        json={"student_number": "1", "student_name": "a"},
+    )
+    assert response.status_code == 404
+
+
+def test_removed_member_and_suspended_teacher(client: TestClient, db: Session) -> None:
+    owner, teacher = teacher_headers(db)
+    classroom = make_class(db, owner)
+    student = create_random_user(db)
+    headers = user_headers(student)
+    client.post(f"{API}/classes/join", headers=headers, json={"code": classroom.code})
+    client.patch(
+        f"{API}/classes/{classroom.id}/me",
+        headers=headers,
+        json={"student_number": "S1", "student_name": "甲"},
+    )
+    # 老師被停權：學生仍看得到班
+    owner.teacher_status = "suspended"
+    db.add(owner)
+    db.commit()
+    assert len(client.get(f"{API}/classes/mine", headers=headers).json()) == 1
+    owner.teacher_status = "approved"
+    db.add(owner)
+    db.commit()
+    # 被移出後看不到；重新加入學號名字要重填
+    client.delete(f"{API}/classes/{classroom.id}/members/{student.id}", headers=teacher)
+    assert client.get(f"{API}/classes/mine", headers=headers).json() == []
+    rejoined = client.post(
+        f"{API}/classes/join", headers=headers, json={"code": classroom.code}
+    )
+    assert rejoined.json()["student_number"] is None

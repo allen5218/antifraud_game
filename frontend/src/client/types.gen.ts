@@ -461,6 +461,14 @@ export type ItemUpdate = {
     description?: (string | null);
 };
 
+/**
+ * 掃 QR（token）或輸入代碼（code）擇一。
+ */
+export type JoinClass = {
+    token?: (string | null);
+    code?: (string | null);
+};
+
 export type LeaderboardEntry = {
     rank: number;
     name: string;
@@ -530,6 +538,28 @@ export type MascotShopItem = {
 
 export type Message = {
     message: string;
+};
+
+export type MyAssignment = {
+    id: string;
+    title: string;
+    kind: string;
+    params: {
+        [key: string]: unknown;
+    };
+    due_at: string;
+    status: string;
+    progress_text: string;
+    completed_at: (string | null);
+};
+
+export type MyClassPublic = {
+    id: string;
+    name: string;
+    teacher_name: string;
+    student_number: (string | null);
+    student_name: (string | null);
+    assignments: Array<MyAssignment>;
 };
 
 export type NewPassword = {
@@ -1289,6 +1319,21 @@ export type BadgesPublicBadgeData = {
 
 export type BadgesPublicBadgeResponse = (ExamBadgeVerification);
 
+export type ClassesReadMyClassesResponse = (Array<MyClassPublic>);
+
+export type ClassesJoinClassData = {
+    requestBody: JoinClass;
+};
+
+export type ClassesJoinClassResponse = (MyClassPublic);
+
+export type ClassesClaimMembershipData = {
+    classId: string;
+    requestBody: ClassMemberUpdate;
+};
+
+export type ClassesClaimMembershipResponse = (MyClassPublic);
+
 export type ClassesListClassesResponse = (Array<ClassroomPublic>);
 
 export type ClassesCreateClassData = {
@@ -1414,6 +1459,12 @@ export type InviteRedeemInviteData = {
 };
 
 export type InviteRedeemInviteResponse = (Token);
+
+export type InviteRedeemClassInviteData = {
+    token: string;
+};
+
+export type InviteRedeemClassInviteResponse = (Token);
 
 export type ItemsReadItemsData = {
     limit?: number;
