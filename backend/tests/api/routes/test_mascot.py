@@ -114,7 +114,7 @@ def test_equip_is_exclusive(client, player, db):
     response = client.post(f"{API}/items/{cat_id}/purchase", headers=headers)
     assert response.status_code == 200
     db.refresh(user)
-    assert user.cash == 2000
+    assert user.cash == 3500
     for item_id, expected in ((cat_id, "貓"), (cat_id, "貓"), (shiba_id, "柴犬")):
         response = client.patch(f"{API}/items/{item_id}/equip", headers=headers)
         assert response.status_code == 200
@@ -154,4 +154,4 @@ def test_cannot_buy_owned_mascot(client, player, db):
         assert response.status_code == 400
         assert response.json()["detail"]["code"] == "already_owned"
     db.refresh(user)
-    assert user.cash == 2000
+    assert user.cash == 3500

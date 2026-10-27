@@ -1,5 +1,5 @@
 import type { CohortProgress, CohortProgressMember } from "@/client"
-import { examText, pretestText, surveyText, taipeiTime } from "./format"
+import { examText, surveyText, taipeiTime } from "./format"
 
 function CodeButton({
   member,
@@ -19,7 +19,7 @@ function CodeButton({
   )
 }
 
-/** 每個人的前測、檢測、問卷與能不能領錢（和「下載作答資料」同一套判定）；點編號看詳情 */
+/** 每個人的綜合檢測、問卷與能不能領錢（和「下載作答資料」同一套判定）；點編號看詳情 */
 export function ProgressTable({
   progress,
   onOpen,
@@ -29,14 +29,13 @@ export function ProgressTable({
 }) {
   const stats = [
     ["已加入", progress.member_count],
-    ["前測做完", progress.pretest_done],
     ["檢測交卷", progress.exam_completed],
     ["問卷交了", progress.survey_done],
     ["可以領錢", progress.payout_eligible],
   ] as const
   return (
     <div className="flex flex-col gap-3">
-      <dl className="grid grid-cols-5 gap-2">
+      <dl className="grid grid-cols-4 gap-2">
         {stats.map(([label, value]) => (
           <div
             key={label}
@@ -54,7 +53,7 @@ export function ProgressTable({
       ) : (
         <>
           <p className="text-xs text-muted-foreground">
-            點受試編號看這個人的前測每題、每次檢測、練習量與問卷答案。
+            點受試編號看這個人的每次檢測、練習量與問卷答案。
           </p>
           {/* 手機：一人一張卡片 */}
           <ul className="flex flex-col gap-2 md:hidden">
@@ -71,7 +70,6 @@ export function ProgressTable({
                     {m.payout_eligible ? "可以領錢" : "還不能領"}
                   </span>
                 </div>
-                <p>前測：{pretestText(m)}</p>
                 <p>檢測：{examText(m)}</p>
                 <p>問卷：{surveyText(m)}</p>
                 {m.payout_reasons.length > 0 && (
@@ -88,7 +86,6 @@ export function ProgressTable({
                 <tr className="border-b border-border">
                   <th className="whitespace-nowrap p-2">受試編號</th>
                   <th className="whitespace-nowrap p-2">加入時間</th>
-                  <th className="whitespace-nowrap p-2">前測</th>
                   <th className="whitespace-nowrap p-2">檢測</th>
                   <th className="whitespace-nowrap p-2">問卷</th>
                   <th className="whitespace-nowrap p-2">可以領錢</th>
@@ -107,7 +104,6 @@ export function ProgressTable({
                     <td className="p-2 whitespace-nowrap">
                       {taipeiTime(m.created_at)}
                     </td>
-                    <td className="p-2">{pretestText(m)}</td>
                     <td className="p-2">{examText(m)}</td>
                     <td className="p-2">{surveyText(m)}</td>
                     <td

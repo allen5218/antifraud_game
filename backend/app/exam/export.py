@@ -64,7 +64,8 @@ def cohort_exam_summaries(
                 if mode == "comprehensive"
                 else "",
             )
-        if counted and status == "completed":
+        # 試測只看綜合檢測（第一關是前測）；專項檢測不算交卷
+        if counted and status == "completed" and mode == "comprehensive":
             row["exam_completed"] = "true"
             best = row["best_exam_score"]
             score = round_score(total_score)

@@ -1835,6 +1835,11 @@ export const HomeSummarySchema = {
             title: 'Survey Ready',
             default: false
         },
+        trial: {
+            type: 'boolean',
+            title: 'Trial',
+            default: false
+        },
         admin_access: {
             type: 'boolean',
             title: 'Admin Access',
@@ -2377,75 +2382,6 @@ export const OwnedPropertyPublicSchema = {
     title: 'OwnedPropertyPublic'
 } as const;
 
-export const PairedPretestSchema = {
-    properties: {
-        n: {
-            type: 'integer',
-            title: 'N'
-        },
-        total: {
-            type: 'integer',
-            title: 'Total'
-        },
-        before_mean: {
-            anyOf: [
-                {
-                    type: 'number'
-                },
-                {
-                    type: 'null'
-                }
-            ],
-            title: 'Before Mean'
-        },
-        after_mean: {
-            anyOf: [
-                {
-                    type: 'number'
-                },
-                {
-                    type: 'null'
-                }
-            ],
-            title: 'After Mean'
-        },
-        diff_mean: {
-            anyOf: [
-                {
-                    type: 'number'
-                },
-                {
-                    type: 'null'
-                }
-            ],
-            title: 'Diff Mean'
-        },
-        improved: {
-            type: 'integer',
-            title: 'Improved'
-        },
-        same: {
-            type: 'integer',
-            title: 'Same'
-        },
-        worse: {
-            type: 'integer',
-            title: 'Worse'
-        },
-        pairs: {
-            items: {
-                '$ref': '#/components/schemas/PretestPair'
-            },
-            type: 'array',
-            title: 'Pairs'
-        }
-    },
-    type: 'object',
-    required: ['n', 'total', 'before_mean', 'after_mean', 'diff_mean', 'improved', 'same', 'worse', 'pairs'],
-    title: 'PairedPretest',
-    description: '同一人入門前測與第一次綜合檢測前測關（同題庫、同抽法）的答對數。'
-} as const;
-
 export const ParticipantDetailSchema = {
     properties: {
         user_id: {
@@ -2713,22 +2649,6 @@ export const PretestItemDetailSchema = {
     type: 'object',
     required: ['fraud_type', 'question', 'selected', 'correct_option', 'is_correct'],
     title: 'PretestItemDetail'
-} as const;
-
-export const PretestPairSchema = {
-    properties: {
-        before: {
-            type: 'integer',
-            title: 'Before'
-        },
-        after: {
-            type: 'integer',
-            title: 'After'
-        }
-    },
-    type: 'object',
-    required: ['before', 'after'],
-    title: 'PretestPair'
 } as const;
 
 export const PretestSubmitRequestSchema = {
@@ -3761,25 +3681,9 @@ export const ScoreStatsSchema = {
 
 export const SurveyAnalyticsSchema = {
     properties: {
-        valid_only: {
-            type: 'boolean',
-            title: 'Valid Only'
-        },
         responses: {
             type: 'integer',
             title: 'Responses'
-        },
-        included: {
-            type: 'integer',
-            title: 'Included'
-        },
-        attention_failed: {
-            type: 'integer',
-            title: 'Attention Failed'
-        },
-        too_fast: {
-            type: 'integer',
-            title: 'Too Fast'
         },
         likert: {
             items: {
@@ -3807,8 +3711,9 @@ export const SurveyAnalyticsSchema = {
         }
     },
     type: 'object',
-    required: ['valid_only', 'responses', 'included', 'attention_failed', 'too_fast', 'likert', 'confidence', 'choices', 'texts'],
-    title: 'SurveyAnalytics'
+    required: ['responses', 'likert', 'confidence', 'choices', 'texts'],
+    title: 'SurveyAnalytics',
+    description: '交了問卷的人全部算進來（注意力題答錯、作答太快也算）；注意力題本身不列。'
 } as const;
 
 export const SurveyAnswerDetailSchema = {
@@ -4627,9 +4532,6 @@ export const TrialAnalyticsSchema = {
             type: 'array',
             title: 'Funnel'
         },
-        paired_pretest: {
-            '$ref': '#/components/schemas/PairedPretest'
-        },
         type_accuracy: {
             items: {
                 '$ref': '#/components/schemas/TypeAccuracy'
@@ -4652,7 +4554,7 @@ export const TrialAnalyticsSchema = {
         }
     },
     type: 'object',
-    required: ['member_count', 'funnel', 'paired_pretest', 'type_accuracy', 'scores', 'timings', 'survey'],
+    required: ['member_count', 'funnel', 'type_accuracy', 'scores', 'timings', 'survey'],
     title: 'TrialAnalytics'
 } as const;
 
@@ -4676,6 +4578,30 @@ export const TrialSurveyPublicSchema = {
         exam_done: {
             type: 'boolean',
             title: 'Exam Done'
+        },
+        participant_code: {
+            anyOf: [
+                {
+                    type: 'string'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Participant Code'
+        },
+        payout_eligible: {
+            type: 'boolean',
+            title: 'Payout Eligible',
+            default: false
+        },
+        payout_reasons: {
+            items: {
+                type: 'string'
+            },
+            type: 'array',
+            title: 'Payout Reasons',
+            default: []
         }
     },
     type: 'object',
@@ -4702,7 +4628,7 @@ export const TypeAccuracySchema = {
             type: 'string',
             title: 'Fraud Type'
         },
-        before: {
+        accuracy: {
             anyOf: [
                 {
                     type: 'number'
@@ -4711,31 +4637,17 @@ export const TypeAccuracySchema = {
                     type: 'null'
                 }
             ],
-            title: 'Before'
+            title: 'Accuracy'
         },
-        after: {
-            anyOf: [
-                {
-                    type: 'number'
-                },
-                {
-                    type: 'null'
-                }
-            ],
-            title: 'After'
-        },
-        before_n: {
+        n: {
             type: 'integer',
-            title: 'Before N'
-        },
-        after_n: {
-            type: 'integer',
-            title: 'After N'
+            title: 'N'
         }
     },
     type: 'object',
-    required: ['fraud_type', 'before', 'after', 'before_n', 'after_n'],
-    title: 'TypeAccuracy'
+    required: ['fraud_type', 'accuracy', 'n'],
+    title: 'TypeAccuracy',
+    description: '第一次考完的綜合檢測，前測關這一類的答對率與題數。'
 } as const;
 
 export const UpdatePasswordSchema = {

@@ -7,6 +7,7 @@ from sqlalchemy.dialects.postgresql import insert
 from sqlmodel import Session, col, select
 
 from app.api.deps import CurrentUser, SessionDep
+from app.api.routes.admin_cohorts import cohort_rows
 from app.models import ExamAttempt, TrialSurvey, User, get_datetime_utc
 from app.schemas import SurveyQuestionPublic, TrialSurveyPublic, TrialSurveySubmit
 from app.trial.survey import QUESTIONS, SurveyError, attention_ok, validate_answers
@@ -15,11 +16,12 @@ router = APIRouter(prefix="/trial", tags=["trial"])
 
 
 def exam_done(session: Session, user_id: uuid.UUID) -> bool:
-    """至少一次正常交卷、有算次數的檢測。放棄、到期、作廢都不算。"""
+    """至少一次正常交卷、有算次數的綜合檢測。放棄、到期、作廢、專項檢測都不算。"""
     return (
         session.exec(
             select(ExamAttempt.id).where(
                 ExamAttempt.user_id == user_id,
+                ExamAttempt.mode == "comprehensive",
                 ExamAttempt.status == "completed",
                 col(ExamAttempt.counted).is_(True),
             )
@@ -34,8 +36,22 @@ def _require_trial(user: User) -> None:
         raise HTTPException(status_code=400, detail={"code": "trial_only"})
 
 
+def _payout(session: Session, user: User) -> tuple[bool, list[str]]:
+    """和管理頁進度表、成員 CSV 同一套判定（`cohort_rows`）。"""
+    assert user.cohort_id is not None
+    for row in cohort_rows(session, user.cohort_id):
+        if row["user_id"] == str(user.id):
+            reasons = str(row["payout_reasons"])
+            return row["payout_eligible"] == "true", (
+                reasons.split("；") if reasons else []
+            )
+    return False, []
+
+
 def _public(session: Session, user: User) -> TrialSurveyPublic:
     survey = session.get(TrialSurvey, user.id)
+    submitted = survey is not None and survey.submitted_at is not None
+    eligible, reasons = _payout(session, user) if submitted else (False, [])
     return TrialSurveyPublic(
         questions=[
             SurveyQuestionPublic(
@@ -51,8 +67,11 @@ def _public(session: Session, user: User) -> TrialSurveyPublic:
             for q in QUESTIONS
         ],
         started=survey is not None,
-        submitted=survey is not None and survey.submitted_at is not None,
+        submitted=submitted,
         exam_done=exam_done(session, user.id),
+        participant_code=user.participant_code,
+        payout_eligible=eligible,
+        payout_reasons=reasons,
     )
 
 

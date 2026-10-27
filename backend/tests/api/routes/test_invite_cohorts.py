@@ -928,11 +928,12 @@ def test_csv_has_pretest_and_exam_scores_for_payout(
     assert row["first_exam_status"] == "completed"
     assert row["first_exam_score"] == "65"
     assert row["first_exam_pretest_correct"] == "15"
-    assert row["best_exam_score"] == "82"
+    # 試測只看綜合檢測：專項檢測 82 分不算
+    assert row["best_exam_score"] == "65"
     assert row["exam_completed"] == "true"
-    # 這些舊紀錄沒有計時，也沒填問卷
+    # 這些舊紀錄沒有計時，也沒填問卷；入門前測不影響領錢
     assert row["payout_eligible"] == "false"
-    assert row["payout_reasons"] == "前測沒有計時；檢測太快；問卷沒填"
+    assert row["payout_reasons"] == "檢測太快；問卷沒填"
 
     row = rows[pretest_only["id"]]
     assert row["pretest_done"] == "true"

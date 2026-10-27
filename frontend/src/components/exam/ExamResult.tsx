@@ -8,7 +8,10 @@ import {
   ResponsiveContainer,
 } from "recharts"
 import type { ExamState } from "@/client"
-import { SurveyPrompt } from "@/components/survey/SurveyPrompt"
+import {
+  SurveyNextDialog,
+  SurveyPrompt,
+} from "@/components/survey/SurveyPrompt"
 import { FRAUD_TYPES, fraudTypeLabel } from "@/lib/fraudTypes"
 import { ExamBadges } from "./ExamBadges"
 
@@ -118,6 +121,7 @@ export function ExamResult({ state }: { state: ExamState }) {
         </p>
       )}
       <SurveyPrompt />
+      <SurveyNextDialog />
       {!result.passed && (
         // 首頁的補考卡列出滑卡、訊息判讀、情境對抗三個入口，門檻三種都要練
         <Link

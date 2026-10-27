@@ -121,8 +121,6 @@ def test_export_values() -> None:
 
 def payout_row(**overrides: str | int) -> dict[str, str | int]:
     row: dict[str, str | int] = {
-        "pretest_done": "true",
-        "pretest_seconds": 60,
         "exam_completed": "true",
         "exam_seconds": 180,
         "survey_done": "true",
@@ -140,9 +138,8 @@ def test_payout_passes_exactly_at_thresholds() -> None:
 @pytest.mark.parametrize(
     ("overrides", "reasons"),
     [
-        ({"pretest_done": "false", "pretest_seconds": ""}, ["前測沒做"]),
-        ({"pretest_seconds": ""}, ["前測沒有計時"]),
-        ({"pretest_seconds": 59}, ["前測太快"]),
+        # 試測不做入門前測，前測欄位不影響
+        ({"pretest_done": "false", "pretest_seconds": ""}, []),
         ({"exam_completed": "false", "exam_seconds": ""}, ["檢測沒有交卷"]),
         ({"exam_seconds": 179}, ["檢測太快"]),
         (
@@ -152,8 +149,8 @@ def test_payout_passes_exactly_at_thresholds() -> None:
         ({"survey_attention_ok": "false"}, ["問卷注意力題答錯"]),
         ({"survey_seconds": 30}, ["問卷太快"]),
         (
-            {"pretest_seconds": 10, "exam_seconds": 10, "survey_seconds": 10},
-            ["前測太快", "檢測太快", "問卷太快"],
+            {"exam_seconds": 10, "survey_seconds": 10},
+            ["檢測太快", "問卷太快"],
         ),
     ],
 )

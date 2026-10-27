@@ -92,6 +92,8 @@ class HomeSummary(BaseModel):
     # 試測帳號還沒交問卷；做完一次檢測（survey_ready）才能填
     survey_pending: bool = False
     survey_ready: bool = False
+    # 試測帳號（有梯次）：不引導入門前測，改引導綜合檢測
+    trial: bool = False
     # 管理員：房間選單多一個「試測管理」
     admin_access: bool = False
 
@@ -799,8 +801,12 @@ class TrialSurveyPublic(BaseModel):
     questions: list[SurveyQuestionPublic]
     started: bool
     submitted: bool
-    # 做完一次檢測才能填（問卷有問檢測的難度）
+    # 做完一次綜合檢測才能填（問卷有問檢測的難度）
     exam_done: bool
+    # 交完後給受試者看、出示給工作人員核對；和進度表同一套判定
+    participant_code: str | None = None
+    payout_eligible: bool = False
+    payout_reasons: list[str] = []
 
 
 class TrialSurveySubmit(BaseModel):

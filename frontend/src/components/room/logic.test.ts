@@ -363,3 +363,45 @@ describe("試測管理入口", () => {
     expect(admin).toMatchObject({ to: "/admin/cohorts", done: false })
   })
 })
+
+describe("試測帳號：不做入門前測，先綜合檢測再填問卷", () => {
+  const fresh = { trial: true, pretest_done: false, survey_pending: true }
+
+  it("剛掃完 QR code：帶去檢測，不帶去前測", () => {
+    const line = mascotLine(summary(fresh))
+    expect(line.action).toEqual({ label: "開始檢測", to: "/exam" })
+    expect(line.highlight).toBe("bookshelf")
+    expect(mascotPose(summary(fresh), false)).toBe("point")
+    expect(pickBubbles(summary(fresh))[0]).toMatchObject({
+      id: "bookshelf",
+      highlight: true,
+    })
+  })
+
+  it("檢測交卷後：帶去填問卷", () => {
+    const line = mascotLine(summary({ ...fresh, survey_ready: true }))
+    expect(line.action).toEqual({ label: "填問卷", to: "/survey" })
+  })
+
+  it("檢測進行中：照一般的檢測提示", () => {
+    const line = mascotLine(summary({ ...fresh, exam_active_attempt_id: "a1" }))
+    expect(line.action).toBeUndefined()
+    expect(line.text).toBe("檢測做完前，練習先暫停。")
+  })
+
+  it("問卷交完：不再要求前測，選單可以再打開編號頁", () => {
+    const done = summary({ trial: true, pretest_done: false })
+    expect(mascotLine(done).action).toBeUndefined()
+    expect(menuItems(done)[0]).toMatchObject({
+      id: "survey",
+      label: "試測完成",
+      status: "看受試編號",
+      to: "/survey",
+    })
+  })
+
+  it("一般帳號沒做前測：照舊帶去前測", () => {
+    const line = mascotLine(summary({ pretest_done: false }))
+    expect(line.action?.to).toBe("/pretest")
+  })
+})

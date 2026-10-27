@@ -469,12 +469,9 @@ def member_detail(
 
 @router.get("/analytics", response_model=TrialAnalytics)
 def analytics(
-    session: SessionDep, cohort_id: uuid.UUID | None = None, valid_only: bool = False
+    session: SessionDep, cohort_id: uuid.UUID | None = None
 ) -> TrialAnalytics:
-    """試測數據與問卷分析；沒給 cohort_id 是全部梯次合計。
-
-    `valid_only` 只影響問卷：只算注意力題答對、作答夠久的。
-    """
+    """試測數據與問卷分析；沒給 cohort_id 是全部梯次合計。交了問卷的全部列入分析。"""
     if cohort_id is not None:
         get_cohort(session, cohort_id)
         cohort_ids = [cohort_id]
@@ -493,4 +490,4 @@ def analytics(
         }
         surveys.extend((codes.get(uid, ""), s) for uid, s in submitted.items())
     surveys.sort(key=lambda item: item[0])
-    return trial_analytics(session, rows, surveys, valid_only)
+    return trial_analytics(session, rows, surveys)

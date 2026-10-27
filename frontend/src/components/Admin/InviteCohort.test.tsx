@@ -175,28 +175,13 @@ mock.module("@/client", () => ({
         member_count: 1,
         funnel: [
           { key: "joined", label: "加入", count: 1 },
-          { key: "pretest", label: "做完前測", count: 1 },
+          { key: "exam", label: "檢測交卷", count: 0 },
         ],
-        paired_pretest: {
-          n: 0,
-          total: 20,
-          before_mean: null,
-          after_mean: null,
-          diff_mean: null,
-          improved: 0,
-          same: 0,
-          worse: 0,
-          pairs: [],
-        },
         type_accuracy: [],
         scores: { n: 0, passed: 0, mean: null, bins: [] },
         timings: [],
         survey: {
-          valid_only: false,
           responses: 0,
-          included: 0,
-          attention_failed: 0,
-          too_fast: 0,
           likert: [],
           confidence: {
             n: 0,
@@ -264,7 +249,8 @@ test("StrictMode 只兌換一次，切換帳號清除舊資料，重開邀請保
   expect(localStorage.getItem("access_token")).toBe("access-first")
   expect(sessionStorage.getItem("pretestResult")).toBeNull()
   expect(queryClient.getQueryData(["currentUser"])).toBeUndefined()
-  expect(navigate.mock.calls[0][0]).toEqual({ to: "/pretest", replace: true })
+  // 試測不做入門前測：直接進房間，吉祥物帶去綜合檢測
+  expect(navigate.mock.calls[0][0]).toEqual({ to: "/", replace: true })
   cleanup()
   mountInvite()
   await waitFor(() => expect(navigate).toHaveBeenCalledTimes(2))
@@ -316,7 +302,6 @@ test("建立梯次、顯示成員、產生邀請網址、下載圖片與 CSV、�
   expect(
     screen.getByText("已加入 1 人・名額 60 人・2026/11/2 到期"),
   ).toBeTruthy()
-  expect(screen.getByText("答對 12／20・1 分 35 秒")).toBeTruthy()
   expect(screen.getByText("檢測沒有交卷、問卷沒填")).toBeTruthy()
   // 名額與期限清空就是不限
   expect(

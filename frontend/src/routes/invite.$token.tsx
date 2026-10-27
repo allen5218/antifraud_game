@@ -13,8 +13,7 @@ export const Route = createFileRoute("/invite/$token")({
 // 共用進行中的請求，避免 StrictMode 重掛與重繪建立兩個訪客。
 const pending = new Map<string, Promise<Redeemed>>()
 
-// returning：沿用這個瀏覽器先前兌換的帳號（不是新開的）
-type Redeemed = { accessToken: string; returning: boolean }
+type Redeemed = { accessToken: string }
 
 async function redeemOnce(token: string): Promise<Redeemed> {
   const key = `${INVITE_SESSION_PREFIX}${token}`
@@ -26,7 +25,7 @@ async function redeemOnce(token: string): Promise<Redeemed> {
         expiresAt: number
       }
       if (session.expiresAt > Date.now() && session.accessToken) {
-        return { accessToken: session.accessToken, returning: true }
+        return { accessToken: session.accessToken }
       }
     } catch {
       localStorage.removeItem(key)
@@ -44,7 +43,7 @@ async function redeemOnce(token: string): Promise<Redeemed> {
           expiresAt: Date.now() + 30 * 24 * 60 * 60 * 1000,
         }),
       )
-      return { accessToken: result.access_token, returning: false }
+      return { accessToken: result.access_token }
     })
     .finally(() => pending.delete(token))
   pending.set(token, request)
@@ -71,7 +70,7 @@ function InviteRedeemer({ retry }: { retry: () => void }) {
     let active = true
     setError(null)
     redeemOnce(token)
-      .then(async ({ accessToken, returning }) => {
+      .then(async ({ accessToken }) => {
         if (!active) return
         // 清掉上一個帳號的畫面與前測結果，再切換到訪客。
         await queryClient.cancelQueries()
@@ -79,8 +78,8 @@ function InviteRedeemer({ retry }: { retry: () => void }) {
         queryClient.clear()
         sessionStorage.removeItem("pretestResult")
         localStorage.setItem("access_token", accessToken)
-        // 新帳號先做前測；隔天再掃同一個 QR code 的人直接回首頁接著玩
-        await navigate({ to: returning ? "/" : "/pretest", replace: true })
+        // 試測不做入門前測：直接進房間，吉祥物帶去做綜合檢測、再填問卷
+        await navigate({ to: "/", replace: true })
       })
       .catch((cause: unknown) => {
         if (!active) return
