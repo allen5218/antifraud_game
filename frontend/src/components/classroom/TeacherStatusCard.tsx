@@ -3,10 +3,10 @@ import { Link } from "@tanstack/react-router"
 import { ChevronRight, GraduationCap } from "lucide-react"
 import { useState } from "react"
 import type { UserPublic } from "@/client"
-import { UsersService } from "@/client/sdk.gen"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { HOME_SUMMARY_KEY } from "@/hooks/useHomeSummary"
+import { teacherApi } from "./classroomApi"
 
 /** 「我」頁的老師身分：申請、審核中、沒通過、已核准（進班級管理）、暫停 */
 export function TeacherStatusCard({ user }: { user: UserPublic }) {
@@ -65,9 +65,7 @@ function TeacherApplyForm({ onDone }: { onDone: () => void }) {
   const [subject, setSubject] = useState("")
   const apply = useMutation({
     mutationFn: () =>
-      UsersService.applyTeacherMe({
-        requestBody: { school: school.trim(), subject: subject.trim() },
-      }),
+      teacherApi.apply({ school: school.trim(), subject: subject.trim() }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["currentUser"] })
       queryClient.invalidateQueries({ queryKey: HOME_SUMMARY_KEY })

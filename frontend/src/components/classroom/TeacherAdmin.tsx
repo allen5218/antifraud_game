@@ -1,9 +1,9 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
 import { useState } from "react"
 import type { TeacherPublic } from "@/client"
-import { AdminTeachersService } from "@/client/sdk.gen"
 import { taipeiTime } from "@/components/trialAdmin/format"
 import { Button } from "@/components/ui/button"
+import { teacherApi } from "./classroomApi"
 
 type Status = "pending" | "approved" | "suspended" | "rejected"
 type Action = "approve" | "reject" | "suspend" | "restore"
@@ -31,11 +31,11 @@ export function TeacherAdmin() {
   const [status, setStatus] = useState<Status>("pending")
   const teachers = useQuery({
     queryKey: ["admin", "teachers", status],
-    queryFn: () => AdminTeachersService.listTeachers({ status }),
+    queryFn: () => teacherApi.list(status),
   })
   const change = useMutation({
     mutationFn: ({ userId, action }: { userId: string; action: Action }) =>
-      AdminTeachersService.changeTeacher({ userId, action }),
+      teacherApi.change(userId, action),
     onSuccess: () =>
       queryClient.invalidateQueries({ queryKey: ["admin", "teachers"] }),
   })

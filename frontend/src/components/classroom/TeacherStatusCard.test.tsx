@@ -15,7 +15,7 @@ import {
 } from "@testing-library/react"
 import type { UserPublic } from "@/client"
 import { CancelablePromise } from "@/client/core/CancelablePromise"
-import { UsersService } from "@/client/sdk.gen"
+import { teacherApi } from "./classroomApi"
 import { TeacherStatusCard } from "./TeacherStatusCard"
 
 afterEach(() => {
@@ -45,12 +45,13 @@ function renderCard(status: string, isGuest = false) {
 }
 
 test("還不是老師：可以申請，送出學校與科目", async () => {
-  const apply = spyOn(UsersService, "applyTeacherMe").mockImplementation(
-    () =>
-      new CancelablePromise((resolve) =>
-        resolve({ teacher_status: "pending" } as UserPublic),
-      ),
-  )
+  const sent: unknown[] = []
+  spyOn(teacherApi, "apply").mockImplementation((data) => {
+    sent.push(data)
+    return new CancelablePromise((resolve) =>
+      resolve({ teacher_status: "pending" } as UserPublic),
+    )
+  })
   renderCard("none")
   fireEvent.click(await screen.findByRole("button", { name: "申請成為老師" }))
   fireEvent.change(screen.getByLabelText("學校"), {
@@ -60,10 +61,8 @@ test("還不是老師：可以申請，送出學校與科目", async () => {
     target: { value: "公民" },
   })
   fireEvent.click(screen.getByRole("button", { name: "送出申請" }))
-  await waitFor(() => expect(apply).toHaveBeenCalledTimes(1))
-  expect(apply.mock.calls[0][0]).toEqual({
-    requestBody: { school: "範例國中", subject: "公民" },
-  })
+  await waitFor(() => expect(sent).toHaveLength(1))
+  expect(sent[0]).toEqual({ school: "範例國中", subject: "公民" })
 })
 
 test("審核中、沒通過、已核准、停權各自的文字", async () => {

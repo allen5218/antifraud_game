@@ -9,7 +9,7 @@ import {
 } from "@testing-library/react"
 import type { TeacherPublic } from "@/client"
 import { CancelablePromise } from "@/client/core/CancelablePromise"
-import { AdminTeachersService } from "@/client/sdk.gen"
+import { teacherApi } from "./classroomApi"
 import { TeacherAdmin } from "./TeacherAdmin"
 
 const response = <T,>(value: T) =>
@@ -43,21 +43,19 @@ beforeEach(() => {
       student_count: 30,
     }),
   ]
-  spyOn(AdminTeachersService, "listTeachers").mockImplementation(({ status }) =>
+  spyOn(teacherApi, "list").mockImplementation((status) =>
     response(rows.filter((r) => r.status === status)),
   )
-  spyOn(AdminTeachersService, "changeTeacher").mockImplementation(
-    ({ userId, action }) => {
-      const row = rows.find((r) => r.id === userId)!
-      row.status = {
-        approve: "approved",
-        reject: "rejected",
-        suspend: "suspended",
-        restore: "approved",
-      }[action]
-      return response(row)
-    },
-  )
+  spyOn(teacherApi, "change").mockImplementation((userId, action) => {
+    const row = rows.find((r) => r.id === userId)!
+    row.status = {
+      approve: "approved",
+      reject: "rejected",
+      suspend: "suspended",
+      restore: "approved",
+    }[action]
+    return response(row)
+  })
 })
 
 afterEach(() => {
@@ -80,10 +78,7 @@ test("審核中列出申請，按核准後從列表消失", async () => {
   expect(screen.getByText(/範例國中・公民/)).toBeTruthy()
   fireEvent.click(screen.getByRole("button", { name: "核准" }))
   await waitFor(() =>
-    expect(AdminTeachersService.changeTeacher).toHaveBeenCalledWith({
-      userId: "t1",
-      action: "approve",
-    }),
+    expect(teacherApi.change).toHaveBeenCalledWith("t1", "approve"),
   )
   await waitFor(() => expect(screen.queryByText("林老師")).toBeNull())
 })
@@ -95,9 +90,6 @@ test("切到已核准看班級數，可以停權", async () => {
   expect(screen.getByText(/2 個班・30 位學生/)).toBeTruthy()
   fireEvent.click(screen.getByRole("button", { name: "停權" }))
   await waitFor(() =>
-    expect(AdminTeachersService.changeTeacher).toHaveBeenCalledWith({
-      userId: "t2",
-      action: "suspend",
-    }),
+    expect(teacherApi.change).toHaveBeenCalledWith("t2", "suspend"),
   )
 })
