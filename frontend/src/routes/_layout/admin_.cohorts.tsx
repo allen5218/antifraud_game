@@ -17,6 +17,7 @@ import { ProgressTable } from "@/components/trialAdmin/ProgressTable"
 import { TrialAnalytics } from "@/components/trialAdmin/TrialAnalytics"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
+import { downloadCsv, downloadFile } from "@/lib/download"
 
 export const Route = createFileRoute("/_layout/admin_/cohorts")({
   component: CohortsPage,
@@ -26,23 +27,6 @@ export const Route = createFileRoute("/_layout/admin_/cohorts")({
   },
   head: () => ({ meta: [{ title: "試測梯次 - ScamGym 識詐練習場" }] }),
 })
-
-function downloadFile(href: string, filename: string) {
-  const link = document.createElement("a")
-  link.href = href
-  link.download = filename
-  link.click()
-}
-
-function downloadCsv(data: string, filename: string) {
-  const blob = new Blob(["\ufeff", data.replace(/^\ufeff/, "")], {
-    type: "text/csv;charset=utf-8",
-  })
-  const url = URL.createObjectURL(blob)
-  downloadFile(url, filename)
-  // 保留到瀏覽器開始下載後再釋放。
-  window.setTimeout(() => URL.revokeObjectURL(url), 1000)
-}
 
 function InvitationCode({ cohort }: { cohort: CohortPublic }) {
   const canvas = useRef<HTMLCanvasElement>(null)

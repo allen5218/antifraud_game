@@ -25,9 +25,17 @@ export type MenuTo =
   | "/team"
   | "/survey"
   | "/admin/cohorts"
+  | "/classes"
 
 export type MenuItem = {
-  id: HotspotId | "leaderboard" | "badges" | "team" | "survey" | "admin"
+  id:
+    | HotspotId
+    | "leaderboard"
+    | "badges"
+    | "team"
+    | "survey"
+    | "admin"
+    | "classes"
   label: string
   status: string
   done: boolean
@@ -301,6 +309,15 @@ export function menuItems(s: HomeSummary): MenuItem[] {
       status: "全部題目與答案",
       done: false,
       to: "/team",
+    })
+  }
+  if (s.teacher_status === "approved" || s.admin_access) {
+    items.push({
+      id: "classes",
+      label: "班級管理",
+      status: "建班、出作業",
+      done: false,
+      to: "/classes",
     })
   }
   if (s.admin_access) {

@@ -39,6 +39,7 @@ import { Route as ShellScenariosScenarioIdRouteImport } from './routes/_shell/sc
 import { Route as ShellQuickSwipeRouteImport } from './routes/_shell/quick/swipe'
 import { Route as ShellQuickQuizRouteImport } from './routes/_shell/quick/quiz'
 import { Route as ShellExamAttemptIdRouteImport } from './routes/_shell/exam_.$attemptId'
+import { Route as ShellClassesClassIdRouteImport } from './routes/_shell/classes_.$classId'
 import { Route as LayoutAdminCohortsRouteImport } from './routes/_layout/admin_.cohorts'
 
 const SignupRoute = SignupRouteImport.update({
@@ -190,6 +191,11 @@ const ShellExamAttemptIdRoute = ShellExamAttemptIdRouteImport.update({
   path: '/exam/$attemptId',
   getParentRoute: () => ShellRoute,
 } as any)
+const ShellClassesClassIdRoute = ShellClassesClassIdRouteImport.update({
+  id: '/classes_/$classId',
+  path: '/classes/$classId',
+  getParentRoute: () => ShellRoute,
+} as any)
 const LayoutAdminCohortsRoute = LayoutAdminCohortsRouteImport.update({
   id: '/admin_/cohorts',
   path: '/admin/cohorts',
@@ -220,6 +226,7 @@ export interface FileRoutesByFullPath {
   '/invite/$token': typeof InviteTokenRoute
   '/pretest/result': typeof PretestResultRoute
   '/admin/cohorts': typeof LayoutAdminCohortsRoute
+  '/classes/$classId': typeof ShellClassesClassIdRoute
   '/exam/$attemptId': typeof ShellExamAttemptIdRoute
   '/quick/quiz': typeof ShellQuickQuizRoute
   '/quick/swipe': typeof ShellQuickSwipeRoute
@@ -251,6 +258,7 @@ export interface FileRoutesByTo {
   '/invite/$token': typeof InviteTokenRoute
   '/pretest/result': typeof PretestResultRoute
   '/admin/cohorts': typeof LayoutAdminCohortsRoute
+  '/classes/$classId': typeof ShellClassesClassIdRoute
   '/exam/$attemptId': typeof ShellExamAttemptIdRoute
   '/quick/quiz': typeof ShellQuickQuizRoute
   '/quick/swipe': typeof ShellQuickSwipeRoute
@@ -285,6 +293,7 @@ export interface FileRoutesById {
   '/pretest/result': typeof PretestResultRoute
   '/_shell/': typeof ShellIndexRoute
   '/_layout/admin_/cohorts': typeof LayoutAdminCohortsRoute
+  '/_shell/classes_/$classId': typeof ShellClassesClassIdRoute
   '/_shell/exam_/$attemptId': typeof ShellExamAttemptIdRoute
   '/_shell/quick/quiz': typeof ShellQuickQuizRoute
   '/_shell/quick/swipe': typeof ShellQuickSwipeRoute
@@ -318,6 +327,7 @@ export interface FileRouteTypes {
     | '/invite/$token'
     | '/pretest/result'
     | '/admin/cohorts'
+    | '/classes/$classId'
     | '/exam/$attemptId'
     | '/quick/quiz'
     | '/quick/swipe'
@@ -349,6 +359,7 @@ export interface FileRouteTypes {
     | '/invite/$token'
     | '/pretest/result'
     | '/admin/cohorts'
+    | '/classes/$classId'
     | '/exam/$attemptId'
     | '/quick/quiz'
     | '/quick/swipe'
@@ -382,6 +393,7 @@ export interface FileRouteTypes {
     | '/pretest/result'
     | '/_shell/'
     | '/_layout/admin_/cohorts'
+    | '/_shell/classes_/$classId'
     | '/_shell/exam_/$attemptId'
     | '/_shell/quick/quiz'
     | '/_shell/quick/swipe'
@@ -616,6 +628,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ShellExamAttemptIdRouteImport
       parentRoute: typeof ShellRoute
     }
+    '/_shell/classes_/$classId': {
+      id: '/_shell/classes_/$classId'
+      path: '/classes/$classId'
+      fullPath: '/classes/$classId'
+      preLoaderRoute: typeof ShellClassesClassIdRouteImport
+      parentRoute: typeof ShellRoute
+    }
     '/_layout/admin_/cohorts': {
       id: '/_layout/admin_/cohorts'
       path: '/admin/cohorts'
@@ -654,6 +673,7 @@ interface ShellRouteChildren {
   ShellSurveyRoute: typeof ShellSurveyRoute
   ShellTeamRoute: typeof ShellTeamRoute
   ShellIndexRoute: typeof ShellIndexRoute
+  ShellClassesClassIdRoute: typeof ShellClassesClassIdRoute
   ShellExamAttemptIdRoute: typeof ShellExamAttemptIdRoute
   ShellQuickQuizRoute: typeof ShellQuickQuizRoute
   ShellQuickSwipeRoute: typeof ShellQuickSwipeRoute
@@ -672,6 +692,7 @@ const ShellRouteChildren: ShellRouteChildren = {
   ShellSurveyRoute: ShellSurveyRoute,
   ShellTeamRoute: ShellTeamRoute,
   ShellIndexRoute: ShellIndexRoute,
+  ShellClassesClassIdRoute: ShellClassesClassIdRoute,
   ShellExamAttemptIdRoute: ShellExamAttemptIdRoute,
   ShellQuickQuizRoute: ShellQuickQuizRoute,
   ShellQuickSwipeRoute: ShellQuickSwipeRoute,
