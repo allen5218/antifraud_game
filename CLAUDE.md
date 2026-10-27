@@ -216,6 +216,8 @@ description: 一句話描述  # 必填，≤1024 字
 
 **系統產生的 email**：訪客 `guest-<hex>@participants.invalid`、LINE／Google 登入 `<provider>-<hex>@oauth.invalid`。`EmailStr` 不收 `.invalid`，所以 `models.py` 的 `AccountEmail` 另外放行這兩種固定格式；更新帳號時 email 沒改就當沒送，不能改成另一個內部格式（`users.py`）。
 
+**老師與班級**：`User.teacher_status`（none／pending／approved／rejected／suspended）。註冊時勾「我是老師」或「我」頁申請（`POST /users/me/teacher-application`，學校＋任教科目）→ 管理員在試測管理頁的「老師管理」分頁核准（`api/routes/admin_teachers.py`）。`deps.require_teacher`：核准的老師或管理員，否則 400 `teacher_required`；不是自己的班 404 `class_not_found`（管理員看得到全部）。班級 `api/routes/classes.py`：老師建班（`token` 給 QR、6 碼 `code`，可停止加入）、名單、作業（`comprehensive`／`specialized`／`practice`／`pretest`，只能改名稱與期限）、總覽（`app/classroom/overview.py`：全班五類答對率取每人最近一次綜合檢測前測關，沒有就最近一次入門前測；每份作業還沒完成與遲交名單）、學生詳情、CSV。學生 `/class/$token`（已登入加入；沒登入 `POST /invite/class/{token}/redeem` 開免註冊帳號，沒有梯次與受試編號）或「班級作業」頁輸入代碼，**填學號名字才看得到作業**。作業進度不存，`app/classroom/progress.py` 每次從檢測、練習、前測紀錄即時算，**只算作業建立之後的紀錄**，完成晚於期限是遲交、過期沒完成是已過期。學號名字只在該班老師與管理員的 API 出現。前端 `components/classroom/`（API 都經 `classroomApi.ts`，測試 spy 這一層）、`/classes`、`/classes/$classId`、`/classwork`；房間頁首「班級管理」、選單「班級管理」「班級作業」、吉祥物提醒（`HomeSummary.class_count／classwork_pending／classwork_next`，排在補考之後、練習重點之前）。
+
 **試測問卷與發錢條件**：題目只定義在 `app/trial/survey.py`（前端 `/survey` 照 `GET /trial/survey` 畫），只給有 `cohort_id` 的帳號，**做完一次正常交卷的綜合檢測才能開始填**，一人只能交一次。開始時間由伺服器記（`POST /trial/survey/start`，會開始計時，不能放進 loader）。入門前測由前端計時（`elapsed_ms` → `pretest_attempt.duration_seconds`）。成員 CSV 的 `payout_eligible` 由 `app/trial/payout.py` 判定：至少一次正常交卷的綜合檢測 ≥ 3 分鐘（取最長那次；專項檢測不算）、問卷交了、注意力題答對、作答 ≥ 60 秒（入門前測不檢查）；不合格的原因寫在 `payout_reasons`。
 
 ## 五種詐騙類型
