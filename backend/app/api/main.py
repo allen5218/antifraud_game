@@ -3,6 +3,7 @@ from fastapi import APIRouter
 from app.api.routes import (
     admin_cohorts,
     admin_teachers,
+    classes,
     daily,
     economy,
     exam,
@@ -49,6 +50,7 @@ api_router.include_router(leaderboard.router)
 api_router.include_router(invite.router)
 api_router.include_router(admin_cohorts.router)
 api_router.include_router(admin_teachers.router)
+api_router.include_router(classes.router)
 
 
 if settings.ENVIRONMENT == "local":

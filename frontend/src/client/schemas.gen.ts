@@ -148,6 +148,188 @@ export const ChoiceItemSchema = {
     title: 'ChoiceItem'
 } as const;
 
+export const ClassMemberPublicSchema = {
+    properties: {
+        user_id: {
+            type: 'string',
+            format: 'uuid',
+            title: 'User Id'
+        },
+        student_number: {
+            anyOf: [
+                {
+                    type: 'string'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Student Number'
+        },
+        student_name: {
+            anyOf: [
+                {
+                    type: 'string'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Student Name'
+        },
+        joined_at: {
+            type: 'string',
+            format: 'date-time',
+            title: 'Joined At'
+        },
+        last_active_at: {
+            anyOf: [
+                {
+                    type: 'string',
+                    format: 'date-time'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Last Active At'
+        },
+        latest_exam_score: {
+            anyOf: [
+                {
+                    type: 'integer'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Latest Exam Score'
+        }
+    },
+    type: 'object',
+    required: ['user_id', 'student_number', 'student_name', 'joined_at', 'last_active_at', 'latest_exam_score'],
+    title: 'ClassMemberPublic'
+} as const;
+
+export const ClassMemberUpdateSchema = {
+    properties: {
+        student_number: {
+            anyOf: [
+                {
+                    type: 'string',
+                    maxLength: 32
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Student Number'
+        },
+        student_name: {
+            anyOf: [
+                {
+                    type: 'string',
+                    maxLength: 50
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Student Name'
+        }
+    },
+    type: 'object',
+    title: 'ClassMemberUpdate',
+    description: '學號、名字；老師和學生自己都能改。空白由路由回 400 invalid_name。'
+} as const;
+
+export const ClassroomCreateSchema = {
+    properties: {
+        name: {
+            type: 'string',
+            maxLength: 100,
+            minLength: 1,
+            title: 'Name'
+        }
+    },
+    type: 'object',
+    required: ['name'],
+    title: 'ClassroomCreate'
+} as const;
+
+export const ClassroomPublicSchema = {
+    properties: {
+        id: {
+            type: 'string',
+            format: 'uuid',
+            title: 'Id'
+        },
+        name: {
+            type: 'string',
+            title: 'Name'
+        },
+        token: {
+            type: 'string',
+            title: 'Token'
+        },
+        code: {
+            type: 'string',
+            title: 'Code'
+        },
+        is_open: {
+            type: 'boolean',
+            title: 'Is Open'
+        },
+        created_at: {
+            type: 'string',
+            format: 'date-time',
+            title: 'Created At'
+        },
+        member_count: {
+            type: 'integer',
+            title: 'Member Count'
+        },
+        assignment_count: {
+            type: 'integer',
+            title: 'Assignment Count'
+        }
+    },
+    type: 'object',
+    required: ['id', 'name', 'token', 'code', 'is_open', 'created_at', 'member_count', 'assignment_count'],
+    title: 'ClassroomPublic'
+} as const;
+
+export const ClassroomUpdateSchema = {
+    properties: {
+        name: {
+            anyOf: [
+                {
+                    type: 'string',
+                    maxLength: 100,
+                    minLength: 1
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Name'
+        },
+        is_open: {
+            anyOf: [
+                {
+                    type: 'boolean'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Is Open'
+        }
+    },
+    type: 'object',
+    title: 'ClassroomUpdate'
+} as const;
+
 export const CohortCreateSchema = {
     properties: {
         name: {

@@ -35,6 +35,43 @@ export type ChoiceItem = {
     options: Array<ChoiceCount>;
 };
 
+export type ClassMemberPublic = {
+    user_id: string;
+    student_number: (string | null);
+    student_name: (string | null);
+    joined_at: string;
+    last_active_at: (string | null);
+    latest_exam_score: (number | null);
+};
+
+/**
+ * 學號、名字；老師和學生自己都能改。空白由路由回 400 invalid_name。
+ */
+export type ClassMemberUpdate = {
+    student_number?: (string | null);
+    student_name?: (string | null);
+};
+
+export type ClassroomCreate = {
+    name: string;
+};
+
+export type ClassroomPublic = {
+    id: string;
+    name: string;
+    token: string;
+    code: string;
+    is_open: boolean;
+    created_at: string;
+    member_count: number;
+    assignment_count: number;
+};
+
+export type ClassroomUpdate = {
+    name?: (string | null);
+    is_open?: (boolean | null);
+};
+
 export type CohortCreate = {
     name: string;
     max_members?: (number | null);
@@ -1251,6 +1288,42 @@ export type BadgesPublicBadgeData = {
 };
 
 export type BadgesPublicBadgeResponse = (ExamBadgeVerification);
+
+export type ClassesListClassesResponse = (Array<ClassroomPublic>);
+
+export type ClassesCreateClassData = {
+    requestBody: ClassroomCreate;
+};
+
+export type ClassesCreateClassResponse = (ClassroomPublic);
+
+export type ClassesUpdateClassData = {
+    classId: string;
+    requestBody: ClassroomUpdate;
+};
+
+export type ClassesUpdateClassResponse = (ClassroomPublic);
+
+export type ClassesListMembersData = {
+    classId: string;
+};
+
+export type ClassesListMembersResponse = (Array<ClassMemberPublic>);
+
+export type ClassesUpdateMemberData = {
+    classId: string;
+    requestBody: ClassMemberUpdate;
+    userId: string;
+};
+
+export type ClassesUpdateMemberResponse = (ClassMemberPublic);
+
+export type ClassesRemoveMemberData = {
+    classId: string;
+    userId: string;
+};
+
+export type ClassesRemoveMemberResponse = (Message);
 
 export type DailyDailyTodayResponse = (DailyTodayResponse);
 
