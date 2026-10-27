@@ -12,7 +12,10 @@ export type Bubble = {
 export type MascotLine = {
   text: string
   highlight: HotspotId | null
-  action?: { label: string; to: "/pretest" | "/exam" | "/survey" }
+  action?: {
+    label: string
+    to: "/pretest" | "/exam" | "/survey" | "/classwork"
+  }
 }
 
 export type MenuTo =
@@ -26,6 +29,7 @@ export type MenuTo =
   | "/survey"
   | "/admin/cohorts"
   | "/classes"
+  | "/classwork"
 
 export type MenuItem = {
   id:
@@ -36,6 +40,7 @@ export type MenuItem = {
     | "survey"
     | "admin"
     | "classes"
+    | "classwork"
   label: string
   status: string
   done: boolean
@@ -206,6 +211,13 @@ export function mascotLine(s: HomeSummary): MascotLine {
   if (s.retake?.gate.met) {
     return { text: "可以再檢測了！", highlight: "bookshelf" }
   }
+  if (s.classwork_next) {
+    return {
+      text: s.classwork_next,
+      highlight: null,
+      action: { label: "看作業", to: "/classwork" },
+    }
+  }
   if (s.focus_label) {
     return {
       text: `本輪加強：${s.focus_label}。先去練練看，做完就有錢。`,
@@ -283,6 +295,16 @@ export function menuItems(s: HomeSummary): MenuItem[] {
       to: "/exam",
     },
   ]
+  if ((s.class_count ?? 0) > 0) {
+    const pending = s.classwork_pending ?? 0
+    items.unshift({
+      id: "classwork",
+      label: "班級作業",
+      status: pending > 0 ? `還有 ${pending} 份沒做` : "都做完了",
+      done: pending === 0,
+      to: "/classwork",
+    })
+  }
   if (s.survey_pending) {
     // 試測帳號：做完一次綜合檢測才能填，放在最前面
     items.unshift({

@@ -20,6 +20,7 @@ import { Route as LayoutRouteImport } from './routes/_layout'
 import { Route as ShellIndexRouteImport } from './routes/_shell/index'
 import { Route as PretestResultRouteImport } from './routes/pretest.result'
 import { Route as InviteTokenRouteImport } from './routes/invite.$token'
+import { Route as ClassTokenRouteImport } from './routes/class.$token'
 import { Route as BadgeSlugRouteImport } from './routes/badge.$slug'
 import { Route as ShellTeamRouteImport } from './routes/_shell/team'
 import { Route as ShellSurveyRouteImport } from './routes/_shell/survey'
@@ -28,6 +29,7 @@ import { Route as ShellMeRouteImport } from './routes/_shell/me'
 import { Route as ShellLeaderboardRouteImport } from './routes/_shell/leaderboard'
 import { Route as ShellExamRouteImport } from './routes/_shell/exam'
 import { Route as ShellDailyRouteImport } from './routes/_shell/daily'
+import { Route as ShellClassworkRouteImport } from './routes/_shell/classwork'
 import { Route as ShellClassesRouteImport } from './routes/_shell/classes'
 import { Route as ShellAssetsRouteImport } from './routes/_shell/assets'
 import { Route as LayoutSettingsRouteImport } from './routes/_layout/settings'
@@ -95,6 +97,11 @@ const InviteTokenRoute = InviteTokenRouteImport.update({
   path: '/invite/$token',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ClassTokenRoute = ClassTokenRouteImport.update({
+  id: '/class/$token',
+  path: '/class/$token',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const BadgeSlugRoute = BadgeSlugRouteImport.update({
   id: '/badge/$slug',
   path: '/badge/$slug',
@@ -133,6 +140,11 @@ const ShellExamRoute = ShellExamRouteImport.update({
 const ShellDailyRoute = ShellDailyRouteImport.update({
   id: '/daily',
   path: '/daily',
+  getParentRoute: () => ShellRoute,
+} as any)
+const ShellClassworkRoute = ShellClassworkRouteImport.update({
+  id: '/classwork',
+  path: '/classwork',
   getParentRoute: () => ShellRoute,
 } as any)
 const ShellClassesRoute = ShellClassesRouteImport.update({
@@ -215,6 +227,7 @@ export interface FileRoutesByFullPath {
   '/settings': typeof LayoutSettingsRoute
   '/assets': typeof ShellAssetsRoute
   '/classes': typeof ShellClassesRoute
+  '/classwork': typeof ShellClassworkRoute
   '/daily': typeof ShellDailyRoute
   '/exam': typeof ShellExamRoute
   '/leaderboard': typeof ShellLeaderboardRoute
@@ -223,6 +236,7 @@ export interface FileRoutesByFullPath {
   '/survey': typeof ShellSurveyRoute
   '/team': typeof ShellTeamRoute
   '/badge/$slug': typeof BadgeSlugRoute
+  '/class/$token': typeof ClassTokenRoute
   '/invite/$token': typeof InviteTokenRoute
   '/pretest/result': typeof PretestResultRoute
   '/admin/cohorts': typeof LayoutAdminCohortsRoute
@@ -247,6 +261,7 @@ export interface FileRoutesByTo {
   '/settings': typeof LayoutSettingsRoute
   '/assets': typeof ShellAssetsRoute
   '/classes': typeof ShellClassesRoute
+  '/classwork': typeof ShellClassworkRoute
   '/daily': typeof ShellDailyRoute
   '/exam': typeof ShellExamRoute
   '/leaderboard': typeof ShellLeaderboardRoute
@@ -255,6 +270,7 @@ export interface FileRoutesByTo {
   '/survey': typeof ShellSurveyRoute
   '/team': typeof ShellTeamRoute
   '/badge/$slug': typeof BadgeSlugRoute
+  '/class/$token': typeof ClassTokenRoute
   '/invite/$token': typeof InviteTokenRoute
   '/pretest/result': typeof PretestResultRoute
   '/admin/cohorts': typeof LayoutAdminCohortsRoute
@@ -281,6 +297,7 @@ export interface FileRoutesById {
   '/_layout/settings': typeof LayoutSettingsRoute
   '/_shell/assets': typeof ShellAssetsRoute
   '/_shell/classes': typeof ShellClassesRoute
+  '/_shell/classwork': typeof ShellClassworkRoute
   '/_shell/daily': typeof ShellDailyRoute
   '/_shell/exam': typeof ShellExamRoute
   '/_shell/leaderboard': typeof ShellLeaderboardRoute
@@ -289,6 +306,7 @@ export interface FileRoutesById {
   '/_shell/survey': typeof ShellSurveyRoute
   '/_shell/team': typeof ShellTeamRoute
   '/badge/$slug': typeof BadgeSlugRoute
+  '/class/$token': typeof ClassTokenRoute
   '/invite/$token': typeof InviteTokenRoute
   '/pretest/result': typeof PretestResultRoute
   '/_shell/': typeof ShellIndexRoute
@@ -316,6 +334,7 @@ export interface FileRouteTypes {
     | '/settings'
     | '/assets'
     | '/classes'
+    | '/classwork'
     | '/daily'
     | '/exam'
     | '/leaderboard'
@@ -324,6 +343,7 @@ export interface FileRouteTypes {
     | '/survey'
     | '/team'
     | '/badge/$slug'
+    | '/class/$token'
     | '/invite/$token'
     | '/pretest/result'
     | '/admin/cohorts'
@@ -348,6 +368,7 @@ export interface FileRouteTypes {
     | '/settings'
     | '/assets'
     | '/classes'
+    | '/classwork'
     | '/daily'
     | '/exam'
     | '/leaderboard'
@@ -356,6 +377,7 @@ export interface FileRouteTypes {
     | '/survey'
     | '/team'
     | '/badge/$slug'
+    | '/class/$token'
     | '/invite/$token'
     | '/pretest/result'
     | '/admin/cohorts'
@@ -381,6 +403,7 @@ export interface FileRouteTypes {
     | '/_layout/settings'
     | '/_shell/assets'
     | '/_shell/classes'
+    | '/_shell/classwork'
     | '/_shell/daily'
     | '/_shell/exam'
     | '/_shell/leaderboard'
@@ -389,6 +412,7 @@ export interface FileRouteTypes {
     | '/_shell/survey'
     | '/_shell/team'
     | '/badge/$slug'
+    | '/class/$token'
     | '/invite/$token'
     | '/pretest/result'
     | '/_shell/'
@@ -412,6 +436,7 @@ export interface RootRouteChildren {
   ResetPasswordRoute: typeof ResetPasswordRoute
   SignupRoute: typeof SignupRoute
   BadgeSlugRoute: typeof BadgeSlugRoute
+  ClassTokenRoute: typeof ClassTokenRoute
   InviteTokenRoute: typeof InviteTokenRoute
   OauthProviderCallbackRoute: typeof OauthProviderCallbackRoute
 }
@@ -495,6 +520,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof InviteTokenRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/class/$token': {
+      id: '/class/$token'
+      path: '/class/$token'
+      fullPath: '/class/$token'
+      preLoaderRoute: typeof ClassTokenRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/badge/$slug': {
       id: '/badge/$slug'
       path: '/badge/$slug'
@@ -549,6 +581,13 @@ declare module '@tanstack/react-router' {
       path: '/daily'
       fullPath: '/daily'
       preLoaderRoute: typeof ShellDailyRouteImport
+      parentRoute: typeof ShellRoute
+    }
+    '/_shell/classwork': {
+      id: '/_shell/classwork'
+      path: '/classwork'
+      fullPath: '/classwork'
+      preLoaderRoute: typeof ShellClassworkRouteImport
       parentRoute: typeof ShellRoute
     }
     '/_shell/classes': {
@@ -665,6 +704,7 @@ const LayoutRouteWithChildren =
 interface ShellRouteChildren {
   ShellAssetsRoute: typeof ShellAssetsRoute
   ShellClassesRoute: typeof ShellClassesRoute
+  ShellClassworkRoute: typeof ShellClassworkRoute
   ShellDailyRoute: typeof ShellDailyRoute
   ShellExamRoute: typeof ShellExamRoute
   ShellLeaderboardRoute: typeof ShellLeaderboardRoute
@@ -684,6 +724,7 @@ interface ShellRouteChildren {
 const ShellRouteChildren: ShellRouteChildren = {
   ShellAssetsRoute: ShellAssetsRoute,
   ShellClassesRoute: ShellClassesRoute,
+  ShellClassworkRoute: ShellClassworkRoute,
   ShellDailyRoute: ShellDailyRoute,
   ShellExamRoute: ShellExamRoute,
   ShellLeaderboardRoute: ShellLeaderboardRoute,
@@ -723,6 +764,7 @@ const rootRouteChildren: RootRouteChildren = {
   ResetPasswordRoute: ResetPasswordRoute,
   SignupRoute: SignupRoute,
   BadgeSlugRoute: BadgeSlugRoute,
+  ClassTokenRoute: ClassTokenRoute,
   InviteTokenRoute: InviteTokenRoute,
   OauthProviderCallbackRoute: OauthProviderCallbackRoute,
 }

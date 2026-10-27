@@ -7,6 +7,7 @@ import {
   GraduationCap,
   Mail,
   MessageCircle,
+  NotebookPen,
   QrCode,
   Trophy,
   Tv,
@@ -25,6 +26,7 @@ const ICONS = {
   survey: ClipboardList,
   admin: QrCode,
   classes: GraduationCap,
+  classwork: NotebookPen,
 } as const
 
 export function RoomMenu({

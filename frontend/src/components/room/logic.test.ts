@@ -405,3 +405,43 @@ describe("試測帳號：不做入門前測，先綜合檢測再填問卷", () =
     expect(line.action?.to).toBe("/pretest")
   })
 })
+
+describe("班級作業", () => {
+  it("有加入班級才出現在選單，寫還有幾份沒做", () => {
+    expect(menuItems(summary()).some((i) => i.id === "classwork")).toBe(false)
+    const item = menuItems(
+      summary({ class_count: 1, classwork_pending: 2 }),
+    ).find((i) => i.id === "classwork")
+    expect(item).toMatchObject({
+      label: "班級作業",
+      status: "還有 2 份沒做",
+      to: "/classwork",
+    })
+    const done = menuItems(
+      summary({ class_count: 1, classwork_pending: 0 }),
+    ).find((i) => i.id === "classwork")
+    expect(done?.status).toBe("都做完了")
+  })
+
+  const next = "老師交代的：11/2 前完成「期中檢測」。"
+
+  it("吉祥物提醒作業，排在補考之後、練習重點之前", () => {
+    const line = mascotLine(
+      summary({ classwork_next: next, focus_label: "假交友" }),
+    )
+    expect(line.text).toBe(next)
+    expect(line.action).toEqual({ label: "看作業", to: "/classwork" })
+    const retaking = mascotLine(
+      summary({ classwork_next: next, retake: retake([0, 6], [0, 5], [0, 1]) }),
+    )
+    expect(retaking.text).not.toBe(next)
+    const examining = mascotLine(
+      summary({ classwork_next: next, exam_active_attempt_id: "a1" }),
+    )
+    expect(examining.text).toBe("檢測做完前，練習先暫停。")
+    const trial = mascotLine(
+      summary({ classwork_next: next, trial: true, survey_pending: true }),
+    )
+    expect(trial.action?.to).toBe("/exam")
+  })
+})
