@@ -8,6 +8,46 @@ export type AssetSummaryResponse = {
     owned_count: number;
 };
 
+export type AssignmentCreate = {
+    kind: string;
+    title?: (string | null);
+    params?: {
+        [key: string]: unknown;
+    };
+    due_at: string;
+};
+
+export type AssignmentPublic = {
+    id: string;
+    kind: string;
+    title: string;
+    params: {
+        [key: string]: unknown;
+    };
+    due_at: string;
+    created_at: string;
+};
+
+export type AssignmentSummary = {
+    id: string;
+    kind: string;
+    title: string;
+    params: {
+        [key: string]: unknown;
+    };
+    due_at: string;
+    created_at: string;
+    done: number;
+    late: number;
+    pending: Array<PendingStudent>;
+    late_students: Array<PendingStudent>;
+};
+
+export type AssignmentUpdate = {
+    title?: (string | null);
+    due_at?: (string | null);
+};
+
 export type Body_login_login_access_token = {
     grant_type?: (string | null);
     username: string;
@@ -33,6 +73,63 @@ export type ChoiceItem = {
     multi: boolean;
     n: number;
     options: Array<ChoiceCount>;
+};
+
+export type ClassMemberDetail = {
+    user_id: string;
+    student_number: (string | null);
+    student_name: (string | null);
+    joined_at: string;
+    last_active_at: (string | null);
+    exams: Array<ExamDetail>;
+    practice: Array<PracticeDetail>;
+    assignments: Array<MyAssignment>;
+};
+
+export type ClassMemberPublic = {
+    user_id: string;
+    student_number: (string | null);
+    student_name: (string | null);
+    joined_at: string;
+    last_active_at: (string | null);
+    latest_exam_score: (number | null);
+};
+
+/**
+ * 學號、名字；老師和學生自己都能改。空白由路由回 400 invalid_name。
+ */
+export type ClassMemberUpdate = {
+    student_number?: (string | null);
+    student_name?: (string | null);
+};
+
+export type ClassOverview = {
+    member_count: number;
+    type_accuracy: Array<TypeAccuracy>;
+    accuracy_n: number;
+    weakest: Array<(string)>;
+    assignments: Array<AssignmentSummary>;
+};
+
+export type ClassroomCreate = {
+    name: string;
+};
+
+export type ClassroomPublic = {
+    id: string;
+    name: string;
+    token: string;
+    code: string;
+    is_open: boolean;
+    created_at: string;
+    member_count: number;
+    assignment_count: number;
+    pending_count: number;
+};
+
+export type ClassroomUpdate = {
+    name?: (string | null);
+    is_open?: (boolean | null);
 };
 
 export type CohortCreate = {
@@ -394,6 +491,10 @@ export type HomeSummary = {
     survey_pending?: boolean;
     survey_ready?: boolean;
     trial?: boolean;
+    teacher_status?: string;
+    class_count?: number;
+    classwork_pending?: number;
+    classwork_next?: (string | null);
     admin_access?: boolean;
 };
 
@@ -422,6 +523,14 @@ export type ItemsPublic = {
 export type ItemUpdate = {
     title?: (string | null);
     description?: (string | null);
+};
+
+/**
+ * 掃 QR（token）或輸入代碼（code）擇一。
+ */
+export type JoinClass = {
+    token?: (string | null);
+    code?: (string | null);
 };
 
 export type LeaderboardEntry = {
@@ -495,6 +604,28 @@ export type Message = {
     message: string;
 };
 
+export type MyAssignment = {
+    id: string;
+    title: string;
+    kind: string;
+    params: {
+        [key: string]: unknown;
+    };
+    due_at: string;
+    status: string;
+    progress_text: string;
+    completed_at: (string | null);
+};
+
+export type MyClassPublic = {
+    id: string;
+    name: string;
+    teacher_name: string;
+    student_number: (string | null);
+    student_name: (string | null);
+    assignments: Array<MyAssignment>;
+};
+
 export type NewPassword = {
     token: string;
     new_password: string;
@@ -544,6 +675,14 @@ export type ParticipantDetail = {
     practice: Array<PracticeDetail>;
     scenario_sessions: number;
     survey: (SurveyDetail | null);
+};
+
+export type PendingStudent = {
+    user_id: string;
+    student_number: (string | null);
+    student_name: (string | null);
+    status: string;
+    progress_text: string;
 };
 
 export type PracticeDetail = {
@@ -908,6 +1047,26 @@ export type SwipeDeckResponse = {
     cards: Array<SwipeCardPublic>;
 };
 
+/**
+ * 申請成為老師：學校與任教科目，給管理員判斷要不要核准。
+ */
+export type TeacherApplication = {
+    school: string;
+    subject: string;
+};
+
+export type TeacherPublic = {
+    id: string;
+    email: string;
+    full_name: (string | null);
+    school: (string | null);
+    subject: (string | null);
+    status: string;
+    applied_at: (string | null);
+    class_count: number;
+    student_count: number;
+};
+
 export type TeamBank = {
     pretest: Array<TeamPretest>;
     swipe: Array<TeamSwipe>;
@@ -1101,12 +1260,14 @@ export type UserPublic = {
     is_guest?: boolean;
     participant_code?: (string | null);
     cohort_id?: (string | null);
+    teacher_status?: string;
 };
 
 export type UserRegister = {
     email: string;
     password: string;
     full_name?: (string | null);
+    teacher?: (TeacherApplication | null);
 };
 
 export type UsersPublic = {
@@ -1202,6 +1363,19 @@ export type AdminCohortsAnalyticsData = {
 
 export type AdminCohortsAnalyticsResponse = (TrialAnalytics);
 
+export type AdminTeachersListTeachersData = {
+    status: 'pending' | 'approved' | 'rejected' | 'suspended';
+};
+
+export type AdminTeachersListTeachersResponse = (Array<TeacherPublic>);
+
+export type AdminTeachersChangeTeacherData = {
+    action: 'approve' | 'reject' | 'suspend' | 'restore';
+    userId: string;
+};
+
+export type AdminTeachersChangeTeacherResponse = (TeacherPublic);
+
 export type BadgesOwnBadgesResponse = (Array<ExamBadgePublic>);
 
 export type BadgesUpdateBadgeData = {
@@ -1216,6 +1390,98 @@ export type BadgesPublicBadgeData = {
 };
 
 export type BadgesPublicBadgeResponse = (ExamBadgeVerification);
+
+export type ClassesReadMyClassesResponse = (Array<MyClassPublic>);
+
+export type ClassesJoinClassData = {
+    requestBody: JoinClass;
+};
+
+export type ClassesJoinClassResponse = (MyClassPublic);
+
+export type ClassesClaimMembershipData = {
+    classId: string;
+    requestBody: ClassMemberUpdate;
+};
+
+export type ClassesClaimMembershipResponse = (MyClassPublic);
+
+export type ClassesListClassesResponse = (Array<ClassroomPublic>);
+
+export type ClassesCreateClassData = {
+    requestBody: ClassroomCreate;
+};
+
+export type ClassesCreateClassResponse = (ClassroomPublic);
+
+export type ClassesUpdateClassData = {
+    classId: string;
+    requestBody: ClassroomUpdate;
+};
+
+export type ClassesUpdateClassResponse = (ClassroomPublic);
+
+export type ClassesListMembersData = {
+    classId: string;
+};
+
+export type ClassesListMembersResponse = (Array<ClassMemberPublic>);
+
+export type ClassesUpdateMemberData = {
+    classId: string;
+    requestBody: ClassMemberUpdate;
+    userId: string;
+};
+
+export type ClassesUpdateMemberResponse = (ClassMemberPublic);
+
+export type ClassesRemoveMemberData = {
+    classId: string;
+    userId: string;
+};
+
+export type ClassesRemoveMemberResponse = (Message);
+
+export type ClassesReadMemberData = {
+    classId: string;
+    userId: string;
+};
+
+export type ClassesReadMemberResponse = (ClassMemberDetail);
+
+export type ClassesReadOverviewData = {
+    classId: string;
+};
+
+export type ClassesReadOverviewResponse = (ClassOverview);
+
+export type ClassesExportClassData = {
+    classId: string;
+};
+
+export type ClassesExportClassResponse = (unknown);
+
+export type ClassesCreateAssignmentData = {
+    classId: string;
+    requestBody: AssignmentCreate;
+};
+
+export type ClassesCreateAssignmentResponse = (AssignmentPublic);
+
+export type ClassesUpdateAssignmentData = {
+    assignmentId: string;
+    classId: string;
+    requestBody: AssignmentUpdate;
+};
+
+export type ClassesUpdateAssignmentResponse = (AssignmentPublic);
+
+export type ClassesDeleteAssignmentData = {
+    assignmentId: string;
+    classId: string;
+};
+
+export type ClassesDeleteAssignmentResponse = (Message);
 
 export type DailyDailyTodayResponse = (DailyTodayResponse);
 
@@ -1306,6 +1572,12 @@ export type InviteRedeemInviteData = {
 };
 
 export type InviteRedeemInviteResponse = (Token);
+
+export type InviteRedeemClassInviteData = {
+    token: string;
+};
+
+export type InviteRedeemClassInviteResponse = (Token);
 
 export type ItemsReadItemsData = {
     limit?: number;
@@ -1550,6 +1822,12 @@ export type UsersUpdatePasswordMeData = {
 };
 
 export type UsersUpdatePasswordMeResponse = (Message);
+
+export type UsersApplyTeacherMeData = {
+    requestBody: TeacherApplication;
+};
+
+export type UsersApplyTeacherMeResponse = (UserPublic);
 
 export type UsersRegisterUserData = {
     requestBody: UserRegister;

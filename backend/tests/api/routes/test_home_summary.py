@@ -76,6 +76,10 @@ def test_summary_creates_no_rows_for_new_player(client, player, db):
             "survey_ready": False,
             "trial": False,
             "admin_access": False,
+            "teacher_status": "none",
+            "class_count": 0,
+            "classwork_pending": 0,
+            "classwork_next": None,
         }
     after = [db.exec(select(func.count()).select_from(t)).one() for t in tables]
     assert after == before

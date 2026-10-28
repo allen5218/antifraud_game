@@ -3,7 +3,7 @@
 import type { CancelablePromise } from './core/CancelablePromise';
 import { OpenAPI } from './core/OpenAPI';
 import { request as __request } from './core/request';
-import type { AdminCohortsListCohortsResponse, AdminCohortsCreateCohortData, AdminCohortsCreateCohortResponse, AdminCohortsUpdateCohortData, AdminCohortsUpdateCohortResponse, AdminCohortsListMembersData, AdminCohortsListMembersResponse, AdminCohortsExportCohortData, AdminCohortsExportCohortResponse, AdminCohortsCohortProgressData, AdminCohortsCohortProgressResponse, AdminCohortsExportCohortSurveyData, AdminCohortsExportCohortSurveyResponse, AdminCohortsExportCohortExamData, AdminCohortsExportCohortExamResponse, AdminCohortsMemberDetailData, AdminCohortsMemberDetailResponse, AdminCohortsAnalyticsData, AdminCohortsAnalyticsResponse, BadgesOwnBadgesResponse, BadgesUpdateBadgeData, BadgesUpdateBadgeResponse, BadgesPublicBadgeData, BadgesPublicBadgeResponse, DailyDailyTodayResponse, EconomyReadMeResponse, EconomyPostSettleResponse, EconomyClaimResponse, EconomyListPropertiesResponse, EconomyBuyPropertyData, EconomyBuyPropertyResponse, EconomyGetAssetsResponse, EconomyPostLiquidateData, EconomyPostLiquidateResponse, ExamReadStatusResponse, ExamStartData, ExamStartResponse, ExamActiveResponse, ExamHistoryResponse, ExamReadData, ExamReadResponse, ExamPretestData, ExamPretestResponse, ExamSwipeData, ExamSwipeResponse, ExamMessageData, ExamMessageResponse, ExamScenarioStartData, ExamScenarioStartResponse, ExamScenarioJudgeData, ExamScenarioJudgeResponse, ExamAbandonData, ExamAbandonResponse, HomeHomeSummaryResponse, InviteRedeemInviteData, InviteRedeemInviteResponse, ItemsReadItemsData, ItemsReadItemsResponse, ItemsCreateItemData, ItemsCreateItemResponse, ItemsReadItemData, ItemsReadItemResponse, ItemsUpdateItemData, ItemsUpdateItemResponse, ItemsDeleteItemData, ItemsDeleteItemResponse, LeaderboardReadLeaderboardData, LeaderboardReadLeaderboardResponse, LeaderboardUpdateNicknameData, LeaderboardUpdateNicknameResponse, LoginLoginAccessTokenData, LoginLoginAccessTokenResponse, LoginTestTokenResponse, LoginRecoverPasswordData, LoginRecoverPasswordResponse, LoginResetPasswordData, LoginResetPasswordResponse, LoginRecoverPasswordHtmlContentData, LoginRecoverPasswordHtmlContentResponse, LoginListProvidersResponse, LoginStartData, LoginStartResponse, LoginCallbackData, LoginCallbackResponse, MascotListMascotItemsResponse, MascotPurchaseItemData, MascotPurchaseItemResponse, MascotToggleEquipData, MascotToggleEquipResponse, MascotGetMyMascotResponse, PracticeReadProfileResponse, PretestGetPretestQuestionsResponse, PretestSubmitPretestData, PretestSubmitPretestResponse, PrivateCreateUserData, PrivateCreateUserResponse, QuickSwipeDeckData, QuickSwipeDeckResponse, QuickSwipeAnswerData, QuickSwipeAnswerResponse, QuickSwipeCompleteData, QuickSwipeCompleteResponse, QuickQuizDeckData, QuickQuizDeckResponse, QuickQuizAnswerData, QuickQuizAnswerResponse, QuickQuizCompleteData, QuickQuizCompleteResponse, ScenarioInboxResponse, ScenarioCreateScenarioData, ScenarioCreateScenarioResponse, ScenarioReadScenarioData, ScenarioReadScenarioResponse, ScenarioSendMessageData, ScenarioSendMessageResponse, ScenarioJudgeScenarioData, ScenarioJudgeScenarioResponse, ScoreGetMyScoreResponse, TeamReadBankResponse, TeamListCommentsData, TeamListCommentsResponse, TeamCreateCommentData, TeamCreateCommentResponse, TeamDeleteCommentData, TeamDeleteCommentResponse, TrialReadSurveyResponse, TrialSubmitSurveyData, TrialSubmitSurveyResponse, TrialStartSurveyResponse, UsersReadUsersData, UsersReadUsersResponse, UsersCreateUserData, UsersCreateUserResponse, UsersReadUserMeResponse, UsersDeleteUserMeResponse, UsersUpdateUserMeData, UsersUpdateUserMeResponse, UsersUpdatePasswordMeData, UsersUpdatePasswordMeResponse, UsersRegisterUserData, UsersRegisterUserResponse, UsersReadUserByIdData, UsersReadUserByIdResponse, UsersUpdateUserData, UsersUpdateUserResponse, UsersDeleteUserData, UsersDeleteUserResponse, UtilsTestEmailData, UtilsTestEmailResponse, UtilsHealthCheckResponse } from './types.gen';
+import type { AdminCohortsListCohortsResponse, AdminCohortsCreateCohortData, AdminCohortsCreateCohortResponse, AdminCohortsUpdateCohortData, AdminCohortsUpdateCohortResponse, AdminCohortsListMembersData, AdminCohortsListMembersResponse, AdminCohortsExportCohortData, AdminCohortsExportCohortResponse, AdminCohortsCohortProgressData, AdminCohortsCohortProgressResponse, AdminCohortsExportCohortSurveyData, AdminCohortsExportCohortSurveyResponse, AdminCohortsExportCohortExamData, AdminCohortsExportCohortExamResponse, AdminCohortsMemberDetailData, AdminCohortsMemberDetailResponse, AdminCohortsAnalyticsData, AdminCohortsAnalyticsResponse, AdminTeachersListTeachersData, AdminTeachersListTeachersResponse, AdminTeachersChangeTeacherData, AdminTeachersChangeTeacherResponse, BadgesOwnBadgesResponse, BadgesUpdateBadgeData, BadgesUpdateBadgeResponse, BadgesPublicBadgeData, BadgesPublicBadgeResponse, ClassesReadMyClassesResponse, ClassesJoinClassData, ClassesJoinClassResponse, ClassesClaimMembershipData, ClassesClaimMembershipResponse, ClassesListClassesResponse, ClassesCreateClassData, ClassesCreateClassResponse, ClassesUpdateClassData, ClassesUpdateClassResponse, ClassesListMembersData, ClassesListMembersResponse, ClassesUpdateMemberData, ClassesUpdateMemberResponse, ClassesRemoveMemberData, ClassesRemoveMemberResponse, ClassesReadMemberData, ClassesReadMemberResponse, ClassesReadOverviewData, ClassesReadOverviewResponse, ClassesExportClassData, ClassesExportClassResponse, ClassesCreateAssignmentData, ClassesCreateAssignmentResponse, ClassesUpdateAssignmentData, ClassesUpdateAssignmentResponse, ClassesDeleteAssignmentData, ClassesDeleteAssignmentResponse, DailyDailyTodayResponse, EconomyReadMeResponse, EconomyPostSettleResponse, EconomyClaimResponse, EconomyListPropertiesResponse, EconomyBuyPropertyData, EconomyBuyPropertyResponse, EconomyGetAssetsResponse, EconomyPostLiquidateData, EconomyPostLiquidateResponse, ExamReadStatusResponse, ExamStartData, ExamStartResponse, ExamActiveResponse, ExamHistoryResponse, ExamReadData, ExamReadResponse, ExamPretestData, ExamPretestResponse, ExamSwipeData, ExamSwipeResponse, ExamMessageData, ExamMessageResponse, ExamScenarioStartData, ExamScenarioStartResponse, ExamScenarioJudgeData, ExamScenarioJudgeResponse, ExamAbandonData, ExamAbandonResponse, HomeHomeSummaryResponse, InviteRedeemInviteData, InviteRedeemInviteResponse, InviteRedeemClassInviteData, InviteRedeemClassInviteResponse, ItemsReadItemsData, ItemsReadItemsResponse, ItemsCreateItemData, ItemsCreateItemResponse, ItemsReadItemData, ItemsReadItemResponse, ItemsUpdateItemData, ItemsUpdateItemResponse, ItemsDeleteItemData, ItemsDeleteItemResponse, LeaderboardReadLeaderboardData, LeaderboardReadLeaderboardResponse, LeaderboardUpdateNicknameData, LeaderboardUpdateNicknameResponse, LoginLoginAccessTokenData, LoginLoginAccessTokenResponse, LoginTestTokenResponse, LoginRecoverPasswordData, LoginRecoverPasswordResponse, LoginResetPasswordData, LoginResetPasswordResponse, LoginRecoverPasswordHtmlContentData, LoginRecoverPasswordHtmlContentResponse, LoginListProvidersResponse, LoginStartData, LoginStartResponse, LoginCallbackData, LoginCallbackResponse, MascotListMascotItemsResponse, MascotPurchaseItemData, MascotPurchaseItemResponse, MascotToggleEquipData, MascotToggleEquipResponse, MascotGetMyMascotResponse, PracticeReadProfileResponse, PretestGetPretestQuestionsResponse, PretestSubmitPretestData, PretestSubmitPretestResponse, PrivateCreateUserData, PrivateCreateUserResponse, QuickSwipeDeckData, QuickSwipeDeckResponse, QuickSwipeAnswerData, QuickSwipeAnswerResponse, QuickSwipeCompleteData, QuickSwipeCompleteResponse, QuickQuizDeckData, QuickQuizDeckResponse, QuickQuizAnswerData, QuickQuizAnswerResponse, QuickQuizCompleteData, QuickQuizCompleteResponse, ScenarioInboxResponse, ScenarioCreateScenarioData, ScenarioCreateScenarioResponse, ScenarioReadScenarioData, ScenarioReadScenarioResponse, ScenarioSendMessageData, ScenarioSendMessageResponse, ScenarioJudgeScenarioData, ScenarioJudgeScenarioResponse, ScoreGetMyScoreResponse, TeamReadBankResponse, TeamListCommentsData, TeamListCommentsResponse, TeamCreateCommentData, TeamCreateCommentResponse, TeamDeleteCommentData, TeamDeleteCommentResponse, TrialReadSurveyResponse, TrialSubmitSurveyData, TrialSubmitSurveyResponse, TrialStartSurveyResponse, UsersReadUsersData, UsersReadUsersResponse, UsersCreateUserData, UsersCreateUserResponse, UsersReadUserMeResponse, UsersDeleteUserMeResponse, UsersUpdateUserMeData, UsersUpdateUserMeResponse, UsersUpdatePasswordMeData, UsersUpdatePasswordMeResponse, UsersApplyTeacherMeData, UsersApplyTeacherMeResponse, UsersRegisterUserData, UsersRegisterUserResponse, UsersReadUserByIdData, UsersReadUserByIdResponse, UsersUpdateUserData, UsersUpdateUserResponse, UsersDeleteUserData, UsersDeleteUserResponse, UtilsTestEmailData, UtilsTestEmailResponse, UtilsHealthCheckResponse } from './types.gen';
 
 export class AdminCohortsService {
     /**
@@ -207,6 +207,50 @@ export class AdminCohortsService {
     }
 }
 
+export class AdminTeachersService {
+    /**
+     * List Teachers
+     * @param data The data for the request.
+     * @param data.status
+     * @returns TeacherPublic Successful Response
+     * @throws ApiError
+     */
+    public static listTeachers(data: AdminTeachersListTeachersData): CancelablePromise<AdminTeachersListTeachersResponse> {
+        return __request(OpenAPI, {
+            method: 'GET',
+            url: '/api/v1/admin/teachers',
+            query: {
+                status: data.status
+            },
+            errors: {
+                422: 'Validation Error'
+            }
+        });
+    }
+    
+    /**
+     * Change Teacher
+     * @param data The data for the request.
+     * @param data.userId
+     * @param data.action
+     * @returns TeacherPublic Successful Response
+     * @throws ApiError
+     */
+    public static changeTeacher(data: AdminTeachersChangeTeacherData): CancelablePromise<AdminTeachersChangeTeacherResponse> {
+        return __request(OpenAPI, {
+            method: 'POST',
+            url: '/api/v1/admin/teachers/{user_id}/{action}',
+            path: {
+                user_id: data.userId,
+                action: data.action
+            },
+            errors: {
+                422: 'Validation Error'
+            }
+        });
+    }
+}
+
 export class BadgesService {
     /**
      * Own Badges
@@ -256,6 +300,317 @@ export class BadgesService {
             url: '/api/v1/badges/public/{slug}',
             path: {
                 slug: data.slug
+            },
+            errors: {
+                422: 'Validation Error'
+            }
+        });
+    }
+}
+
+export class ClassesService {
+    /**
+     * Read My Classes
+     * @returns MyClassPublic Successful Response
+     * @throws ApiError
+     */
+    public static readMyClasses(): CancelablePromise<ClassesReadMyClassesResponse> {
+        return __request(OpenAPI, {
+            method: 'GET',
+            url: '/api/v1/classes/mine'
+        });
+    }
+    
+    /**
+     * Join Class
+     * @param data The data for the request.
+     * @param data.requestBody
+     * @returns MyClassPublic Successful Response
+     * @throws ApiError
+     */
+    public static joinClass(data: ClassesJoinClassData): CancelablePromise<ClassesJoinClassResponse> {
+        return __request(OpenAPI, {
+            method: 'POST',
+            url: '/api/v1/classes/join',
+            body: data.requestBody,
+            mediaType: 'application/json',
+            errors: {
+                422: 'Validation Error'
+            }
+        });
+    }
+    
+    /**
+     * Claim Membership
+     * 學生自己填學號、名字（認領）；兩個都要有，之後也可以改。
+     * @param data The data for the request.
+     * @param data.classId
+     * @param data.requestBody
+     * @returns MyClassPublic Successful Response
+     * @throws ApiError
+     */
+    public static claimMembership(data: ClassesClaimMembershipData): CancelablePromise<ClassesClaimMembershipResponse> {
+        return __request(OpenAPI, {
+            method: 'PATCH',
+            url: '/api/v1/classes/{class_id}/me',
+            path: {
+                class_id: data.classId
+            },
+            body: data.requestBody,
+            mediaType: 'application/json',
+            errors: {
+                422: 'Validation Error'
+            }
+        });
+    }
+    
+    /**
+     * List Classes
+     * @returns ClassroomPublic Successful Response
+     * @throws ApiError
+     */
+    public static listClasses(): CancelablePromise<ClassesListClassesResponse> {
+        return __request(OpenAPI, {
+            method: 'GET',
+            url: '/api/v1/classes'
+        });
+    }
+    
+    /**
+     * Create Class
+     * @param data The data for the request.
+     * @param data.requestBody
+     * @returns ClassroomPublic Successful Response
+     * @throws ApiError
+     */
+    public static createClass(data: ClassesCreateClassData): CancelablePromise<ClassesCreateClassResponse> {
+        return __request(OpenAPI, {
+            method: 'POST',
+            url: '/api/v1/classes',
+            body: data.requestBody,
+            mediaType: 'application/json',
+            errors: {
+                422: 'Validation Error'
+            }
+        });
+    }
+    
+    /**
+     * Update Class
+     * @param data The data for the request.
+     * @param data.classId
+     * @param data.requestBody
+     * @returns ClassroomPublic Successful Response
+     * @throws ApiError
+     */
+    public static updateClass(data: ClassesUpdateClassData): CancelablePromise<ClassesUpdateClassResponse> {
+        return __request(OpenAPI, {
+            method: 'PATCH',
+            url: '/api/v1/classes/{class_id}',
+            path: {
+                class_id: data.classId
+            },
+            body: data.requestBody,
+            mediaType: 'application/json',
+            errors: {
+                422: 'Validation Error'
+            }
+        });
+    }
+    
+    /**
+     * List Members
+     * @param data The data for the request.
+     * @param data.classId
+     * @returns ClassMemberPublic Successful Response
+     * @throws ApiError
+     */
+    public static listMembers(data: ClassesListMembersData): CancelablePromise<ClassesListMembersResponse> {
+        return __request(OpenAPI, {
+            method: 'GET',
+            url: '/api/v1/classes/{class_id}/members',
+            path: {
+                class_id: data.classId
+            },
+            errors: {
+                422: 'Validation Error'
+            }
+        });
+    }
+    
+    /**
+     * Update Member
+     * @param data The data for the request.
+     * @param data.classId
+     * @param data.userId
+     * @param data.requestBody
+     * @returns ClassMemberPublic Successful Response
+     * @throws ApiError
+     */
+    public static updateMember(data: ClassesUpdateMemberData): CancelablePromise<ClassesUpdateMemberResponse> {
+        return __request(OpenAPI, {
+            method: 'PATCH',
+            url: '/api/v1/classes/{class_id}/members/{user_id}',
+            path: {
+                class_id: data.classId,
+                user_id: data.userId
+            },
+            body: data.requestBody,
+            mediaType: 'application/json',
+            errors: {
+                422: 'Validation Error'
+            }
+        });
+    }
+    
+    /**
+     * Remove Member
+     * @param data The data for the request.
+     * @param data.classId
+     * @param data.userId
+     * @returns Message Successful Response
+     * @throws ApiError
+     */
+    public static removeMember(data: ClassesRemoveMemberData): CancelablePromise<ClassesRemoveMemberResponse> {
+        return __request(OpenAPI, {
+            method: 'DELETE',
+            url: '/api/v1/classes/{class_id}/members/{user_id}',
+            path: {
+                class_id: data.classId,
+                user_id: data.userId
+            },
+            errors: {
+                422: 'Validation Error'
+            }
+        });
+    }
+    
+    /**
+     * Read Member
+     * @param data The data for the request.
+     * @param data.classId
+     * @param data.userId
+     * @returns ClassMemberDetail Successful Response
+     * @throws ApiError
+     */
+    public static readMember(data: ClassesReadMemberData): CancelablePromise<ClassesReadMemberResponse> {
+        return __request(OpenAPI, {
+            method: 'GET',
+            url: '/api/v1/classes/{class_id}/members/{user_id}',
+            path: {
+                class_id: data.classId,
+                user_id: data.userId
+            },
+            errors: {
+                422: 'Validation Error'
+            }
+        });
+    }
+    
+    /**
+     * Read Overview
+     * @param data The data for the request.
+     * @param data.classId
+     * @returns ClassOverview Successful Response
+     * @throws ApiError
+     */
+    public static readOverview(data: ClassesReadOverviewData): CancelablePromise<ClassesReadOverviewResponse> {
+        return __request(OpenAPI, {
+            method: 'GET',
+            url: '/api/v1/classes/{class_id}/overview',
+            path: {
+                class_id: data.classId
+            },
+            errors: {
+                422: 'Validation Error'
+            }
+        });
+    }
+    
+    /**
+     * Export Class
+     * @param data The data for the request.
+     * @param data.classId
+     * @returns unknown Successful Response
+     * @throws ApiError
+     */
+    public static exportClass(data: ClassesExportClassData): CancelablePromise<ClassesExportClassResponse> {
+        return __request(OpenAPI, {
+            method: 'GET',
+            url: '/api/v1/classes/{class_id}/export.csv',
+            path: {
+                class_id: data.classId
+            },
+            errors: {
+                422: 'Validation Error'
+            }
+        });
+    }
+    
+    /**
+     * Create Assignment
+     * @param data The data for the request.
+     * @param data.classId
+     * @param data.requestBody
+     * @returns AssignmentPublic Successful Response
+     * @throws ApiError
+     */
+    public static createAssignment(data: ClassesCreateAssignmentData): CancelablePromise<ClassesCreateAssignmentResponse> {
+        return __request(OpenAPI, {
+            method: 'POST',
+            url: '/api/v1/classes/{class_id}/assignments',
+            path: {
+                class_id: data.classId
+            },
+            body: data.requestBody,
+            mediaType: 'application/json',
+            errors: {
+                422: 'Validation Error'
+            }
+        });
+    }
+    
+    /**
+     * Update Assignment
+     * 只能改名稱與期限；要改條件就刪掉重出，免得完成的定義中途變了。
+     * @param data The data for the request.
+     * @param data.classId
+     * @param data.assignmentId
+     * @param data.requestBody
+     * @returns AssignmentPublic Successful Response
+     * @throws ApiError
+     */
+    public static updateAssignment(data: ClassesUpdateAssignmentData): CancelablePromise<ClassesUpdateAssignmentResponse> {
+        return __request(OpenAPI, {
+            method: 'PATCH',
+            url: '/api/v1/classes/{class_id}/assignments/{assignment_id}',
+            path: {
+                class_id: data.classId,
+                assignment_id: data.assignmentId
+            },
+            body: data.requestBody,
+            mediaType: 'application/json',
+            errors: {
+                422: 'Validation Error'
+            }
+        });
+    }
+    
+    /**
+     * Delete Assignment
+     * @param data The data for the request.
+     * @param data.classId
+     * @param data.assignmentId
+     * @returns Message Successful Response
+     * @throws ApiError
+     */
+    public static deleteAssignment(data: ClassesDeleteAssignmentData): CancelablePromise<ClassesDeleteAssignmentResponse> {
+        return __request(OpenAPI, {
+            method: 'DELETE',
+            url: '/api/v1/classes/{class_id}/assignments/{assignment_id}',
+            path: {
+                class_id: data.classId,
+                assignment_id: data.assignmentId
             },
             errors: {
                 422: 'Validation Error'
@@ -622,6 +977,27 @@ export class InviteService {
         return __request(OpenAPI, {
             method: 'POST',
             url: '/api/v1/invite/{token}/redeem',
+            path: {
+                token: data.token
+            },
+            errors: {
+                422: 'Validation Error'
+            }
+        });
+    }
+    
+    /**
+     * Redeem Class Invite
+     * 沒登入的人掃班級 QR：開免註冊帳號並加入班（沒有梯次、沒有受試編號）。
+     * @param data The data for the request.
+     * @param data.token
+     * @returns Token Successful Response
+     * @throws ApiError
+     */
+    public static redeemClassInvite(data: InviteRedeemClassInviteData): CancelablePromise<InviteRedeemClassInviteResponse> {
+        return __request(OpenAPI, {
+            method: 'POST',
+            url: '/api/v1/invite/class/{token}/redeem',
             path: {
                 token: data.token
             },
@@ -1547,6 +1923,26 @@ export class UsersService {
         return __request(OpenAPI, {
             method: 'PATCH',
             url: '/api/v1/users/me/password',
+            body: data.requestBody,
+            mediaType: 'application/json',
+            errors: {
+                422: 'Validation Error'
+            }
+        });
+    }
+    
+    /**
+     * Apply Teacher Me
+     * 申請成為老師（LINE／Google 帳號沒有註冊表單，從「我」頁申請）。審核中重送只更新欄位。
+     * @param data The data for the request.
+     * @param data.requestBody
+     * @returns UserPublic Successful Response
+     * @throws ApiError
+     */
+    public static applyTeacherMe(data: UsersApplyTeacherMeData): CancelablePromise<UsersApplyTeacherMeResponse> {
+        return __request(OpenAPI, {
+            method: 'POST',
+            url: '/api/v1/users/me/teacher-application',
             body: data.requestBody,
             mediaType: 'application/json',
             errors: {

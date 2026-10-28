@@ -59,3 +59,13 @@ def get_current_active_superuser(current_user: CurrentUser) -> User:
             status_code=403, detail="The user doesn't have enough privileges"
         )
     return current_user
+
+
+def require_teacher(current_user: CurrentUser) -> User:
+    """核准的老師或管理員。權限不足用 400：前端收到 401／403 會直接登出。"""
+    if not current_user.is_superuser and current_user.teacher_status != "approved":
+        raise HTTPException(status_code=400, detail={"code": "teacher_required"})
+    return current_user
+
+
+TeacherUser = Annotated[User, Depends(require_teacher)]

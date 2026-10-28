@@ -41,7 +41,9 @@ const cohort = {
 
 const { QRCodeSVG } = await import("qrcode.react")
 
+const actualRouter = await import("@tanstack/react-router")
 mock.module("@tanstack/react-router", () => ({
+  ...actualRouter,
   createFileRoute: () => (options: any) => ({
     options,
     useParams: () => ({ token }),
@@ -77,7 +79,10 @@ mock.module("qrcode.react", () => ({
     )
   },
 }))
+// 保留其他匯出：模組替換會留到之後的測試檔（例如要用 HomeService 的元件）
+const actualClient = await import("@/client")
 mock.module("@/client", () => ({
+  ...actualClient,
   ApiError,
   InviteService: {
     redeemInvite: async () => {

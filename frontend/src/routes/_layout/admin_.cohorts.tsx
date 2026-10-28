@@ -1,6 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
 import { createFileRoute, Link, redirect } from "@tanstack/react-router"
-import { BarChart3, Download, QrCode, Users } from "lucide-react"
+import { BarChart3, Download, GraduationCap, QrCode, Users } from "lucide-react"
 import { QRCodeCanvas } from "qrcode.react"
 import { type FormEvent, useRef, useState } from "react"
 import {
@@ -9,6 +9,7 @@ import {
   type CohortPublic,
   UsersService,
 } from "@/client"
+import { TeacherAdmin } from "@/components/classroom/TeacherAdmin"
 import { CohortSettings } from "@/components/trialAdmin/CohortSettings"
 import { expiryOf, limitText } from "@/components/trialAdmin/format"
 import { MemberDetail } from "@/components/trialAdmin/MemberDetail"
@@ -16,6 +17,7 @@ import { ProgressTable } from "@/components/trialAdmin/ProgressTable"
 import { TrialAnalytics } from "@/components/trialAdmin/TrialAnalytics"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
+import { downloadCsv, downloadFile } from "@/lib/download"
 
 export const Route = createFileRoute("/_layout/admin_/cohorts")({
   component: CohortsPage,
@@ -25,23 +27,6 @@ export const Route = createFileRoute("/_layout/admin_/cohorts")({
   },
   head: () => ({ meta: [{ title: "試測梯次 - ScamGym 識詐練習場" }] }),
 })
-
-function downloadFile(href: string, filename: string) {
-  const link = document.createElement("a")
-  link.href = href
-  link.download = filename
-  link.click()
-}
-
-function downloadCsv(data: string, filename: string) {
-  const blob = new Blob(["\ufeff", data.replace(/^\ufeff/, "")], {
-    type: "text/csv;charset=utf-8",
-  })
-  const url = URL.createObjectURL(blob)
-  downloadFile(url, filename)
-  // 保留到瀏覽器開始下載後再釋放。
-  window.setTimeout(() => URL.revokeObjectURL(url), 1000)
-}
 
 function InvitationCode({ cohort }: { cohort: CohortPublic }) {
   const canvas = useRef<HTMLCanvasElement>(null)
@@ -87,7 +72,9 @@ function CohortsPage() {
   const [name, setName] = useState("")
   const [quota, setQuota] = useState("")
   const [lastDay, setLastDay] = useState("")
-  const [view, setView] = useState<"cohorts" | "analytics">("cohorts")
+  const [view, setView] = useState<"cohorts" | "analytics" | "teachers">(
+    "cohorts",
+  )
   const [member, setMember] = useState<CohortProgressMember | null>(null)
   const [selectedId, setSelectedId] = useState<string | null>(null)
   const [notice, setNotice] = useState<string | null>(null)
@@ -181,11 +168,16 @@ function CohortsPage() {
           開新的一輪梯次、發邀請網址與 QR
           code，看每個人做到哪裡、能不能領錢，以及試測數據與問卷分析。名稱、名額和期限隨時可以改。
         </p>
-        <div className="mt-3 flex gap-2" role="tablist" aria-label="管理頁">
+        <div
+          className="mt-3 flex flex-wrap gap-2"
+          role="tablist"
+          aria-label="管理頁"
+        >
           {(
             [
               ["cohorts", Users, "梯次與成員"],
               ["analytics", BarChart3, "數據分析"],
+              ["teachers", GraduationCap, "老師管理"],
             ] as const
           ).map(([key, Icon, label]) => (
             <Button
@@ -202,6 +194,7 @@ function CohortsPage() {
         </div>
       </header>
       {view === "analytics" && <TrialAnalytics cohorts={cohorts.data ?? []} />}
+      {view === "teachers" && <TeacherAdmin />}
       {view === "cohorts" && (
         <>
           <form onSubmit={submit} className="flex flex-wrap items-end gap-3">

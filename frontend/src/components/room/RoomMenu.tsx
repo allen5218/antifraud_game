@@ -4,8 +4,10 @@ import {
   BookOpen,
   CalendarDays,
   ClipboardList,
+  GraduationCap,
   Mail,
   MessageCircle,
+  NotebookPen,
   QrCode,
   Trophy,
   Tv,
@@ -23,6 +25,8 @@ const ICONS = {
   team: BookOpen,
   survey: ClipboardList,
   admin: QrCode,
+  classes: GraduationCap,
+  classwork: NotebookPen,
 } as const
 
 export function RoomMenu({

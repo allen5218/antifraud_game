@@ -271,3 +271,18 @@ test("管理員在頁首看到試測管理，一般玩家沒有", async () => {
   expect(admin.getAttribute("href")).toBe("/admin/cohorts")
   expect(admin.textContent).toBe("試測管理")
 })
+
+test("核准的老師在頁首看到班級管理，申請中與一般玩家沒有", async () => {
+  current = summary({ teacher_status: "pending" })
+  await renderScene()
+  await screen.findByTestId("room-me")
+  await waitFor(() => expect(homeApi.summary).toHaveBeenCalled())
+  expect(screen.queryByTestId("room-classes")).toBeNull()
+  cleanup()
+  qc.clear()
+  current = summary({ teacher_status: "approved" })
+  await renderScene()
+  const classes = await screen.findByTestId("room-classes")
+  expect(classes.getAttribute("href")).toBe("/classes")
+  expect(classes.textContent).toBe("班級管理")
+})

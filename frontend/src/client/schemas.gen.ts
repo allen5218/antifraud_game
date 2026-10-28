@@ -28,6 +28,168 @@ export const AssetSummaryResponseSchema = {
     title: 'AssetSummaryResponse'
 } as const;
 
+export const AssignmentCreateSchema = {
+    properties: {
+        kind: {
+            type: 'string',
+            maxLength: 16,
+            title: 'Kind'
+        },
+        title: {
+            anyOf: [
+                {
+                    type: 'string',
+                    maxLength: 100
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Title'
+        },
+        params: {
+            additionalProperties: true,
+            type: 'object',
+            title: 'Params',
+            default: {}
+        },
+        due_at: {
+            type: 'string',
+            format: 'date-time',
+            title: 'Due At'
+        }
+    },
+    type: 'object',
+    required: ['kind', 'due_at'],
+    title: 'AssignmentCreate'
+} as const;
+
+export const AssignmentPublicSchema = {
+    properties: {
+        id: {
+            type: 'string',
+            format: 'uuid',
+            title: 'Id'
+        },
+        kind: {
+            type: 'string',
+            title: 'Kind'
+        },
+        title: {
+            type: 'string',
+            title: 'Title'
+        },
+        params: {
+            additionalProperties: true,
+            type: 'object',
+            title: 'Params'
+        },
+        due_at: {
+            type: 'string',
+            format: 'date-time',
+            title: 'Due At'
+        },
+        created_at: {
+            type: 'string',
+            format: 'date-time',
+            title: 'Created At'
+        }
+    },
+    type: 'object',
+    required: ['id', 'kind', 'title', 'params', 'due_at', 'created_at'],
+    title: 'AssignmentPublic'
+} as const;
+
+export const AssignmentSummarySchema = {
+    properties: {
+        id: {
+            type: 'string',
+            format: 'uuid',
+            title: 'Id'
+        },
+        kind: {
+            type: 'string',
+            title: 'Kind'
+        },
+        title: {
+            type: 'string',
+            title: 'Title'
+        },
+        params: {
+            additionalProperties: true,
+            type: 'object',
+            title: 'Params'
+        },
+        due_at: {
+            type: 'string',
+            format: 'date-time',
+            title: 'Due At'
+        },
+        created_at: {
+            type: 'string',
+            format: 'date-time',
+            title: 'Created At'
+        },
+        done: {
+            type: 'integer',
+            title: 'Done'
+        },
+        late: {
+            type: 'integer',
+            title: 'Late'
+        },
+        pending: {
+            items: {
+                '$ref': '#/components/schemas/PendingStudent'
+            },
+            type: 'array',
+            title: 'Pending'
+        },
+        late_students: {
+            items: {
+                '$ref': '#/components/schemas/PendingStudent'
+            },
+            type: 'array',
+            title: 'Late Students'
+        }
+    },
+    type: 'object',
+    required: ['id', 'kind', 'title', 'params', 'due_at', 'created_at', 'done', 'late', 'pending', 'late_students'],
+    title: 'AssignmentSummary'
+} as const;
+
+export const AssignmentUpdateSchema = {
+    properties: {
+        title: {
+            anyOf: [
+                {
+                    type: 'string',
+                    maxLength: 100,
+                    minLength: 1
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Title'
+        },
+        due_at: {
+            anyOf: [
+                {
+                    type: 'string',
+                    format: 'date-time'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Due At'
+        }
+    },
+    type: 'object',
+    title: 'AssignmentUpdate'
+} as const;
+
 export const Body_login_login_access_tokenSchema = {
     properties: {
         grant_type: {
@@ -146,6 +308,302 @@ export const ChoiceItemSchema = {
     type: 'object',
     required: ['id', 'question', 'multi', 'n', 'options'],
     title: 'ChoiceItem'
+} as const;
+
+export const ClassMemberDetailSchema = {
+    properties: {
+        user_id: {
+            type: 'string',
+            format: 'uuid',
+            title: 'User Id'
+        },
+        student_number: {
+            anyOf: [
+                {
+                    type: 'string'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Student Number'
+        },
+        student_name: {
+            anyOf: [
+                {
+                    type: 'string'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Student Name'
+        },
+        joined_at: {
+            type: 'string',
+            format: 'date-time',
+            title: 'Joined At'
+        },
+        last_active_at: {
+            anyOf: [
+                {
+                    type: 'string',
+                    format: 'date-time'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Last Active At'
+        },
+        exams: {
+            items: {
+                '$ref': '#/components/schemas/ExamDetail'
+            },
+            type: 'array',
+            title: 'Exams'
+        },
+        practice: {
+            items: {
+                '$ref': '#/components/schemas/PracticeDetail'
+            },
+            type: 'array',
+            title: 'Practice'
+        },
+        assignments: {
+            items: {
+                '$ref': '#/components/schemas/MyAssignment'
+            },
+            type: 'array',
+            title: 'Assignments'
+        }
+    },
+    type: 'object',
+    required: ['user_id', 'student_number', 'student_name', 'joined_at', 'last_active_at', 'exams', 'practice', 'assignments'],
+    title: 'ClassMemberDetail'
+} as const;
+
+export const ClassMemberPublicSchema = {
+    properties: {
+        user_id: {
+            type: 'string',
+            format: 'uuid',
+            title: 'User Id'
+        },
+        student_number: {
+            anyOf: [
+                {
+                    type: 'string'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Student Number'
+        },
+        student_name: {
+            anyOf: [
+                {
+                    type: 'string'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Student Name'
+        },
+        joined_at: {
+            type: 'string',
+            format: 'date-time',
+            title: 'Joined At'
+        },
+        last_active_at: {
+            anyOf: [
+                {
+                    type: 'string',
+                    format: 'date-time'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Last Active At'
+        },
+        latest_exam_score: {
+            anyOf: [
+                {
+                    type: 'integer'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Latest Exam Score'
+        }
+    },
+    type: 'object',
+    required: ['user_id', 'student_number', 'student_name', 'joined_at', 'last_active_at', 'latest_exam_score'],
+    title: 'ClassMemberPublic'
+} as const;
+
+export const ClassMemberUpdateSchema = {
+    properties: {
+        student_number: {
+            anyOf: [
+                {
+                    type: 'string',
+                    maxLength: 32
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Student Number'
+        },
+        student_name: {
+            anyOf: [
+                {
+                    type: 'string',
+                    maxLength: 50
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Student Name'
+        }
+    },
+    type: 'object',
+    title: 'ClassMemberUpdate',
+    description: '學號、名字；老師和學生自己都能改。空白由路由回 400 invalid_name。'
+} as const;
+
+export const ClassOverviewSchema = {
+    properties: {
+        member_count: {
+            type: 'integer',
+            title: 'Member Count'
+        },
+        type_accuracy: {
+            items: {
+                '$ref': '#/components/schemas/TypeAccuracy'
+            },
+            type: 'array',
+            title: 'Type Accuracy'
+        },
+        accuracy_n: {
+            type: 'integer',
+            title: 'Accuracy N'
+        },
+        weakest: {
+            items: {
+                type: 'string'
+            },
+            type: 'array',
+            title: 'Weakest'
+        },
+        assignments: {
+            items: {
+                '$ref': '#/components/schemas/AssignmentSummary'
+            },
+            type: 'array',
+            title: 'Assignments'
+        }
+    },
+    type: 'object',
+    required: ['member_count', 'type_accuracy', 'accuracy_n', 'weakest', 'assignments'],
+    title: 'ClassOverview'
+} as const;
+
+export const ClassroomCreateSchema = {
+    properties: {
+        name: {
+            type: 'string',
+            maxLength: 100,
+            minLength: 1,
+            title: 'Name'
+        }
+    },
+    type: 'object',
+    required: ['name'],
+    title: 'ClassroomCreate'
+} as const;
+
+export const ClassroomPublicSchema = {
+    properties: {
+        id: {
+            type: 'string',
+            format: 'uuid',
+            title: 'Id'
+        },
+        name: {
+            type: 'string',
+            title: 'Name'
+        },
+        token: {
+            type: 'string',
+            title: 'Token'
+        },
+        code: {
+            type: 'string',
+            title: 'Code'
+        },
+        is_open: {
+            type: 'boolean',
+            title: 'Is Open'
+        },
+        created_at: {
+            type: 'string',
+            format: 'date-time',
+            title: 'Created At'
+        },
+        member_count: {
+            type: 'integer',
+            title: 'Member Count'
+        },
+        assignment_count: {
+            type: 'integer',
+            title: 'Assignment Count'
+        },
+        pending_count: {
+            type: 'integer',
+            title: 'Pending Count'
+        }
+    },
+    type: 'object',
+    required: ['id', 'name', 'token', 'code', 'is_open', 'created_at', 'member_count', 'assignment_count', 'pending_count'],
+    title: 'ClassroomPublic'
+} as const;
+
+export const ClassroomUpdateSchema = {
+    properties: {
+        name: {
+            anyOf: [
+                {
+                    type: 'string',
+                    maxLength: 100,
+                    minLength: 1
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Name'
+        },
+        is_open: {
+            anyOf: [
+                {
+                    type: 'boolean'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Is Open'
+        }
+    },
+    type: 'object',
+    title: 'ClassroomUpdate'
 } as const;
 
 export const CohortCreateSchema = {
@@ -1840,6 +2298,32 @@ export const HomeSummarySchema = {
             title: 'Trial',
             default: false
         },
+        teacher_status: {
+            type: 'string',
+            title: 'Teacher Status',
+            default: 'none'
+        },
+        class_count: {
+            type: 'integer',
+            title: 'Class Count',
+            default: 0
+        },
+        classwork_pending: {
+            type: 'integer',
+            title: 'Classwork Pending',
+            default: 0
+        },
+        classwork_next: {
+            anyOf: [
+                {
+                    type: 'string'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Classwork Next'
+        },
         admin_access: {
             type: 'boolean',
             title: 'Admin Access',
@@ -1974,6 +2458,38 @@ export const ItemsPublicSchema = {
     type: 'object',
     required: ['data', 'count'],
     title: 'ItemsPublic'
+} as const;
+
+export const JoinClassSchema = {
+    properties: {
+        token: {
+            anyOf: [
+                {
+                    type: 'string',
+                    maxLength: 64
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Token'
+        },
+        code: {
+            anyOf: [
+                {
+                    type: 'string',
+                    maxLength: 6
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Code'
+        }
+    },
+    type: 'object',
+    title: 'JoinClass',
+    description: '掃 QR（token）或輸入代碼（code）擇一。'
 } as const;
 
 export const LeaderboardEntrySchema = {
@@ -2244,6 +2760,107 @@ export const MessageSchema = {
     title: 'Message'
 } as const;
 
+export const MyAssignmentSchema = {
+    properties: {
+        id: {
+            type: 'string',
+            format: 'uuid',
+            title: 'Id'
+        },
+        title: {
+            type: 'string',
+            title: 'Title'
+        },
+        kind: {
+            type: 'string',
+            title: 'Kind'
+        },
+        params: {
+            additionalProperties: true,
+            type: 'object',
+            title: 'Params'
+        },
+        due_at: {
+            type: 'string',
+            format: 'date-time',
+            title: 'Due At'
+        },
+        status: {
+            type: 'string',
+            title: 'Status'
+        },
+        progress_text: {
+            type: 'string',
+            title: 'Progress Text'
+        },
+        completed_at: {
+            anyOf: [
+                {
+                    type: 'string',
+                    format: 'date-time'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Completed At'
+        }
+    },
+    type: 'object',
+    required: ['id', 'title', 'kind', 'params', 'due_at', 'status', 'progress_text', 'completed_at'],
+    title: 'MyAssignment'
+} as const;
+
+export const MyClassPublicSchema = {
+    properties: {
+        id: {
+            type: 'string',
+            format: 'uuid',
+            title: 'Id'
+        },
+        name: {
+            type: 'string',
+            title: 'Name'
+        },
+        teacher_name: {
+            type: 'string',
+            title: 'Teacher Name'
+        },
+        student_number: {
+            anyOf: [
+                {
+                    type: 'string'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Student Number'
+        },
+        student_name: {
+            anyOf: [
+                {
+                    type: 'string'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Student Name'
+        },
+        assignments: {
+            items: {
+                '$ref': '#/components/schemas/MyAssignment'
+            },
+            type: 'array',
+            title: 'Assignments'
+        }
+    },
+    type: 'object',
+    required: ['id', 'name', 'teacher_name', 'student_number', 'student_name', 'assignments'],
+    title: 'MyClassPublic'
+} as const;
+
 export const NewPasswordSchema = {
     properties: {
         token: {
@@ -2474,6 +3091,49 @@ export const ParticipantDetailSchema = {
     type: 'object',
     required: ['user_id', 'participant_code', 'nickname', 'created_at', 'last_active_at', 'pretests', 'exams', 'practice', 'scenario_sessions', 'survey'],
     title: 'ParticipantDetail'
+} as const;
+
+export const PendingStudentSchema = {
+    properties: {
+        user_id: {
+            type: 'string',
+            format: 'uuid',
+            title: 'User Id'
+        },
+        student_number: {
+            anyOf: [
+                {
+                    type: 'string'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Student Number'
+        },
+        student_name: {
+            anyOf: [
+                {
+                    type: 'string'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Student Name'
+        },
+        status: {
+            type: 'string',
+            title: 'Status'
+        },
+        progress_text: {
+            type: 'string',
+            title: 'Progress Text'
+        }
+    },
+    type: 'object',
+    required: ['user_id', 'student_number', 'student_name', 'status', 'progress_text'],
+    title: 'PendingStudent'
 } as const;
 
 export const PracticeDetailSchema = {
@@ -3973,6 +4633,101 @@ export const SwipeDeckResponseSchema = {
     title: 'SwipeDeckResponse'
 } as const;
 
+export const TeacherApplicationSchema = {
+    properties: {
+        school: {
+            type: 'string',
+            maxLength: 100,
+            minLength: 1,
+            title: 'School'
+        },
+        subject: {
+            type: 'string',
+            maxLength: 100,
+            minLength: 1,
+            title: 'Subject'
+        }
+    },
+    type: 'object',
+    required: ['school', 'subject'],
+    title: 'TeacherApplication',
+    description: '申請成為老師：學校與任教科目，給管理員判斷要不要核准。'
+} as const;
+
+export const TeacherPublicSchema = {
+    properties: {
+        id: {
+            type: 'string',
+            format: 'uuid',
+            title: 'Id'
+        },
+        email: {
+            type: 'string',
+            title: 'Email'
+        },
+        full_name: {
+            anyOf: [
+                {
+                    type: 'string'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Full Name'
+        },
+        school: {
+            anyOf: [
+                {
+                    type: 'string'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'School'
+        },
+        subject: {
+            anyOf: [
+                {
+                    type: 'string'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Subject'
+        },
+        status: {
+            type: 'string',
+            title: 'Status'
+        },
+        applied_at: {
+            anyOf: [
+                {
+                    type: 'string',
+                    format: 'date-time'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Applied At'
+        },
+        class_count: {
+            type: 'integer',
+            title: 'Class Count'
+        },
+        student_count: {
+            type: 'integer',
+            title: 'Student Count'
+        }
+    },
+    type: 'object',
+    required: ['id', 'email', 'full_name', 'school', 'subject', 'status', 'applied_at', 'class_count', 'student_count'],
+    title: 'TeacherPublic'
+} as const;
+
 export const TeamBankSchema = {
     properties: {
         pretest: {
@@ -4803,6 +5558,11 @@ export const UserPublicSchema = {
                 }
             ],
             title: 'Cohort Id'
+        },
+        teacher_status: {
+            type: 'string',
+            title: 'Teacher Status',
+            default: 'none'
         }
     },
     type: 'object',
@@ -4835,6 +5595,16 @@ export const UserRegisterSchema = {
                 }
             ],
             title: 'Full Name'
+        },
+        teacher: {
+            anyOf: [
+                {
+                    '$ref': '#/components/schemas/TeacherApplication'
+                },
+                {
+                    type: 'null'
+                }
+            ]
         }
     },
     type: 'object',

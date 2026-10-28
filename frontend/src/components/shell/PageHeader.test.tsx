@@ -31,3 +31,9 @@ describe("<PageHeader />", () => {
     expect(pageTitle("/")).toBe("")
   })
 })
+
+it("班級管理與班級作業有標題", () => {
+  expect(pageTitle("/classes")).toBe("班級管理")
+  expect(pageTitle("/classes/abc")).toBe("班級管理")
+  expect(pageTitle("/classwork")).toBe("班級作業")
+})

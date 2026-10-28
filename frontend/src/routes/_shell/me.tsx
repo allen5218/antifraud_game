@@ -2,6 +2,7 @@ import { createFileRoute, Link } from "@tanstack/react-router"
 import {
   ChevronRight,
   ClipboardList,
+  GraduationCap,
   LogOut,
   type LucideIcon,
   QrCode,
@@ -9,6 +10,7 @@ import {
   ShoppingBag,
   UsersRound,
 } from "lucide-react"
+import { TeacherStatusCard } from "@/components/classroom/TeacherStatusCard"
 import { PracticeFocusCard } from "@/components/practice/PracticeFocus"
 import { MascotAvatar } from "@/components/room/MascotAvatar"
 import useAuth, { currentUserQuery } from "@/hooks/useAuth"
@@ -40,12 +42,13 @@ const LINKS: {
 ]
 
 const ADMIN_LINKS: {
-  to: "/admin/cohorts" | "/admin"
+  to: "/admin/cohorts" | "/admin" | "/classes"
   icon: LucideIcon
   label: string
 }[] = [
   { to: "/admin/cohorts", icon: QrCode, label: "試測管理" },
   { to: "/admin", icon: UsersRound, label: "帳號管理" },
+  { to: "/classes", icon: GraduationCap, label: "班級管理" },
 ]
 
 const ROW =
@@ -77,6 +80,8 @@ function Me() {
       </section>
 
       <PracticeFocusCard />
+
+      {user && !user.is_superuser && <TeacherStatusCard user={user} />}
 
       {user?.is_superuser && (
         <nav className="grid gap-2" aria-label="管理">

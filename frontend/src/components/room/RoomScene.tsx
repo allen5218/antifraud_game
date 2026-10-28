@@ -1,6 +1,7 @@
 import { Link, useRouter } from "@tanstack/react-router"
 import {
   Coins,
+  GraduationCap,
   House,
   Menu,
   QrCode,
@@ -204,6 +205,16 @@ export function RoomScene() {
           >
             <QrCode aria-hidden className="size-3.5" />
             試測管理
+          </Link>
+        )}
+        {(data?.teacher_status === "approved" || data?.admin_access) && (
+          <Link
+            to="/classes"
+            data-testid="room-classes"
+            className={`flex items-center gap-1 rounded-full bg-primary px-2.5 py-1.5 text-xs font-bold text-primary-foreground shadow ${PRESS}`}
+          >
+            <GraduationCap aria-hidden className="size-3.5" />
+            班級管理
           </Link>
         )}
       </div>
