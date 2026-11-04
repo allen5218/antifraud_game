@@ -9,6 +9,7 @@ from app.core.cases import get_case_keys
 from app.exam.badges import badge_name
 from app.exam.scoring import round_score, tactics_fraction
 from app.models import ExamAttempt, ExamBadge, SwipeCard, User
+from app.trial.audience import Group, group_filter
 
 CsvRow = dict[str, str | int]
 EXAM_EXPORT_FIELDS = (
@@ -34,13 +35,13 @@ EXAM_EXPORT_FIELDS = (
 
 
 def cohort_exam_summaries(
-    session: Session, cohort_id: uuid.UUID
+    session: Session, cohort_id: Group
 ) -> dict[uuid.UUID, CsvRow]:
     summaries: dict[uuid.UUID, CsvRow] = {}
     attempts = session.exec(
         select(ExamAttempt)
         .join(User, col(User.id) == col(ExamAttempt.user_id))
-        .where(User.cohort_id == cohort_id)
+        .where(group_filter(cohort_id))
         .order_by(col(ExamAttempt.created_at), col(ExamAttempt.id))
     ).all()
     for attempt in attempts:
@@ -80,7 +81,7 @@ def cohort_exam_summaries(
     badges = session.exec(
         select(ExamBadge)
         .join(User, col(User.id) == col(ExamBadge.user_id))
-        .where(User.cohort_id == cohort_id)
+        .where(group_filter(cohort_id))
         .order_by(col(ExamBadge.first_passed_at), col(ExamBadge.id))
     ).all()
     for badge in badges:

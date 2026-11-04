@@ -1,6 +1,12 @@
-"""試測問卷：只給試測梯次的帳號，做完一次檢測後填，一人只能交一次。"""
+"""問卷：試測帳號做完一次綜合檢測後填；一般玩家帳號滿一天又玩過後填。一人只能交一次。
+
+兩種對象共用同一份題目（`app/trial/survey.py`）；沒做過綜合檢測的一般玩家不問檢測難度。
+受試編號與能不能領錢只有試測帳號有。
+"""
 
 import uuid
+from dataclasses import dataclass
+from typing import Literal
 
 from fastapi import APIRouter, HTTPException
 from sqlalchemy.dialects.postgresql import insert
@@ -10,7 +16,8 @@ from app.api.deps import CurrentUser, SessionDep
 from app.api.routes.admin_cohorts import cohort_rows
 from app.models import ExamAttempt, TrialSurvey, User, get_datetime_utc
 from app.schemas import SurveyQuestionPublic, TrialSurveyPublic, TrialSurveySubmit
-from app.trial.survey import QUESTIONS, SurveyError, attention_ok, validate_answers
+from app.trial.audience import general_survey_ready, is_general_player
+from app.trial.survey import SurveyError, attention_ok, questions_for, validate_answers
 
 router = APIRouter(prefix="/trial", tags=["trial"])
 
@@ -30,10 +37,42 @@ def exam_done(session: Session, user_id: uuid.UUID) -> bool:
     )
 
 
-def _require_trial(user: User) -> None:
+@dataclass
+class SurveyState:
+    audience: Literal["trial", "general"] | None
+    exam_done: bool
+    can_start: bool
+    started: bool
+    submitted: bool
+
+
+def survey_state(session: Session, user: User) -> SurveyState:
+    """誰能填、現在能不能開始。房間首頁與問卷頁共用這一份判定。"""
+    done = exam_done(session, user.id)
+    if user.cohort_id is not None:
+        audience: Literal["trial", "general"] | None = "trial"
+        can_start = done
+    elif is_general_player(session, user):
+        audience = "general"
+        can_start = general_survey_ready(session, user)
+    else:
+        audience, can_start = None, False
+    survey = session.get(TrialSurvey, user.id) if audience else None
+    return SurveyState(
+        audience=audience,
+        exam_done=done,
+        can_start=can_start,
+        started=survey is not None,
+        submitted=survey is not None and survey.submitted_at is not None,
+    )
+
+
+def _require_audience(session: Session, user: User) -> SurveyState:
+    state = survey_state(session, user)
     # 權限不足用 400：前端收到 401／403 會直接登出
-    if user.cohort_id is None:
-        raise HTTPException(status_code=400, detail={"code": "trial_only"})
+    if state.audience is None:
+        raise HTTPException(status_code=400, detail={"code": "survey_unavailable"})
+    return state
 
 
 def _payout(session: Session, user: User) -> tuple[bool, list[str]]:
@@ -49,9 +88,13 @@ def _payout(session: Session, user: User) -> tuple[bool, list[str]]:
 
 
 def _public(session: Session, user: User) -> TrialSurveyPublic:
-    survey = session.get(TrialSurvey, user.id)
-    submitted = survey is not None and survey.submitted_at is not None
-    eligible, reasons = _payout(session, user) if submitted else (False, [])
+    state = survey_state(session, user)
+    trial = state.audience == "trial"
+    eligible, reasons = (
+        _payout(session, user) if trial and state.submitted else (False, [])
+    )
+    # 試測帳號開始填之前一定做完檢測，題目永遠是完整版
+    questions = questions_for(exam_done=trial or state.exam_done)
     return TrialSurveyPublic(
         questions=[
             SurveyQuestionPublic(
@@ -64,12 +107,14 @@ def _public(session: Session, user: User) -> TrialSurveyPublic:
                 required=q.required,
                 other=q.other,
             )
-            for q in QUESTIONS
+            for q in questions
         ],
-        started=survey is not None,
-        submitted=submitted,
-        exam_done=exam_done(session, user.id),
-        participant_code=user.participant_code,
+        audience=state.audience or "general",
+        can_start=state.can_start,
+        started=state.started,
+        submitted=state.submitted,
+        exam_done=state.exam_done,
+        participant_code=user.participant_code if trial else None,
         payout_eligible=eligible,
         payout_reasons=reasons,
     )
@@ -77,16 +122,17 @@ def _public(session: Session, user: User) -> TrialSurveyPublic:
 
 @router.get("/survey", response_model=TrialSurveyPublic)
 def read_survey(session: SessionDep, current_user: CurrentUser) -> TrialSurveyPublic:
-    _require_trial(current_user)
+    _require_audience(session, current_user)
     return _public(session, current_user)
 
 
 @router.post("/survey/start", response_model=TrialSurveyPublic)
 def start_survey(session: SessionDep, current_user: CurrentUser) -> TrialSurveyPublic:
     """記下開始作答的時間。重開問卷頁不會重新計時。"""
-    _require_trial(current_user)
-    if not exam_done(session, current_user.id):
-        raise HTTPException(status_code=400, detail={"code": "exam_required"})
+    state = _require_audience(session, current_user)
+    if not state.can_start:
+        code = "exam_required" if state.audience == "trial" else "survey_not_ready"
+        raise HTTPException(status_code=400, detail={"code": code})
     session.execute(
         insert(TrialSurvey)
         .values(user_id=current_user.id, started_at=get_datetime_utc(), answers={})
@@ -100,7 +146,7 @@ def start_survey(session: SessionDep, current_user: CurrentUser) -> TrialSurveyP
 def submit_survey(
     body: TrialSurveySubmit, session: SessionDep, current_user: CurrentUser
 ) -> TrialSurveyPublic:
-    _require_trial(current_user)
+    state = _require_audience(session, current_user)
     survey = session.exec(
         select(TrialSurvey)
         .where(TrialSurvey.user_id == current_user.id)
@@ -111,7 +157,10 @@ def submit_survey(
     if survey.submitted_at is not None:
         raise HTTPException(status_code=400, detail={"code": "survey_submitted"})
     try:
-        answers = validate_answers(body.answers)
+        answers = validate_answers(
+            body.answers,
+            questions_for(exam_done=state.audience == "trial" or state.exam_done),
+        )
     except SurveyError as error:
         raise HTTPException(
             status_code=400,

@@ -187,9 +187,11 @@ export class AdminCohortsService {
     
     /**
      * Analytics
-     * 試測數據與問卷分析；沒給 cohort_id 是全部梯次合計。交了問卷的全部列入分析。
+     * 試測數據與問卷分析。給 cohort_id 看一個梯次、general 看一般玩家，
+     * 都不給是全部梯次加一般玩家。交了問卷的全部列入分析。
      * @param data The data for the request.
      * @param data.cohortId
+     * @param data.general
      * @returns TrialAnalytics Successful Response
      * @throws ApiError
      */
@@ -198,7 +200,8 @@ export class AdminCohortsService {
             method: 'GET',
             url: '/api/v1/admin/cohorts/analytics',
             query: {
-                cohort_id: data.cohortId
+                cohort_id: data.cohortId,
+                general: data.general
             },
             errors: {
                 422: 'Validation Error'

@@ -1051,6 +1051,7 @@ export type StageAccuracy = {
  */
 export type SurveyAnalytics = {
     responses: number;
+    tam: Array<TamConstruct>;
     likert: Array<LikertItem>;
     confidence: ConfidenceShift;
     choices: Array<ChoiceItem>;
@@ -1128,6 +1129,19 @@ export type TagShift = {
     label: string;
     first_half: number;
     second_half: number;
+};
+
+/**
+ * 科技接受模式一個構面：每人有答的題目取平均，再算全部人的平均。
+ */
+export type TamConstruct = {
+    key: string;
+    label: string;
+    items: Array<(string)>;
+    mean: (number | null);
+    n: number;
+    complete: number;
+    alpha: (number | null);
 };
 
 /**
@@ -1296,6 +1310,8 @@ export type TrialAnalytics = {
 
 export type TrialSurveyPublic = {
     questions: Array<SurveyQuestionPublic>;
+    audience: 'trial' | 'general';
+    can_start: boolean;
     started: boolean;
     submitted: boolean;
     exam_done: boolean;
@@ -1303,6 +1319,8 @@ export type TrialSurveyPublic = {
     payout_eligible?: boolean;
     payout_reasons?: Array<(string)>;
 };
+
+export type audience = 'trial' | 'general';
 
 export type TrialSurveySubmit = {
     answers: {
@@ -1450,6 +1468,7 @@ export type AdminCohortsMemberDetailResponse = (ParticipantDetail);
 
 export type AdminCohortsAnalyticsData = {
     cohortId?: (string | null);
+    general?: boolean;
 };
 
 export type AdminCohortsAnalyticsResponse = (TrialAnalytics);

@@ -4673,6 +4673,13 @@ export const SurveyAnalyticsSchema = {
             type: 'integer',
             title: 'Responses'
         },
+        tam: {
+            items: {
+                '$ref': '#/components/schemas/TamConstruct'
+            },
+            type: 'array',
+            title: 'Tam'
+        },
         likert: {
             items: {
                 '$ref': '#/components/schemas/LikertItem'
@@ -4699,7 +4706,7 @@ export const SurveyAnalyticsSchema = {
         }
     },
     type: 'object',
-    required: ['responses', 'likert', 'confidence', 'choices', 'texts'],
+    required: ['responses', 'tam', 'likert', 'confidence', 'choices', 'texts'],
     title: 'SurveyAnalytics',
     description: '交了問卷的人全部算進來（注意力題答錯、作答太快也算）；注意力題本身不列。'
 } as const;
@@ -4983,6 +4990,60 @@ export const TagShiftSchema = {
     type: 'object',
     required: ['tag', 'label', 'first_half', 'second_half'],
     title: 'TagShift'
+} as const;
+
+export const TamConstructSchema = {
+    properties: {
+        key: {
+            type: 'string',
+            title: 'Key'
+        },
+        label: {
+            type: 'string',
+            title: 'Label'
+        },
+        items: {
+            items: {
+                type: 'string'
+            },
+            type: 'array',
+            title: 'Items'
+        },
+        mean: {
+            anyOf: [
+                {
+                    type: 'number'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Mean'
+        },
+        n: {
+            type: 'integer',
+            title: 'N'
+        },
+        complete: {
+            type: 'integer',
+            title: 'Complete'
+        },
+        alpha: {
+            anyOf: [
+                {
+                    type: 'number'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Alpha'
+        }
+    },
+    type: 'object',
+    required: ['key', 'label', 'items', 'mean', 'n', 'complete', 'alpha'],
+    title: 'TamConstruct',
+    description: '科技接受模式一個構面：每人有答的題目取平均，再算全部人的平均。'
 } as const;
 
 export const TeacherApplicationSchema = {
@@ -5677,6 +5738,15 @@ export const TrialSurveyPublicSchema = {
             type: 'array',
             title: 'Questions'
         },
+        audience: {
+            type: 'string',
+            enum: ['trial', 'general'],
+            title: 'Audience'
+        },
+        can_start: {
+            type: 'boolean',
+            title: 'Can Start'
+        },
         started: {
             type: 'boolean',
             title: 'Started'
@@ -5715,7 +5785,7 @@ export const TrialSurveyPublicSchema = {
         }
     },
     type: 'object',
-    required: ['questions', 'started', 'submitted', 'exam_done'],
+    required: ['questions', 'audience', 'can_start', 'started', 'submitted', 'exam_done'],
     title: 'TrialSurveyPublic'
 } as const;
 

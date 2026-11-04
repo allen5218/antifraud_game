@@ -19,6 +19,7 @@ from app.trial.survey import (
     ATTENTION_ID,
     OTHER,
     QUESTIONS,
+    TAM_CONSTRUCTS,
     Question,
 )
 from app.trial.survey import (
@@ -111,10 +112,24 @@ class ConfidenceShift(SQLModel):
     worse: int
 
 
+class TamConstruct(SQLModel):
+    """科技接受模式一個構面：每人有答的題目取平均，再算全部人的平均。"""
+
+    key: str
+    label: str
+    items: list[str]
+    mean: float | None
+    n: int
+    # 構面題目全部答過的人數，與這些人算出的 Cronbach's α（變異為 0 或少於 2 人時是 null）
+    complete: int
+    alpha: float | None
+
+
 class SurveyAnalytics(SQLModel):
     """交了問卷的人全部算進來（注意力題答錯、作答太快也算）；注意力題本身不列。"""
 
     responses: int
+    tam: list[TamConstruct]
     likert: list[LikertItem]
     confidence: ConfidenceShift
     choices: list[ChoiceItem]
@@ -139,8 +154,8 @@ def _number(value: str | int) -> int | None:
     return None if value == "" else int(value)
 
 
-def funnel(rows: list[CsvRow]) -> list[FunnelStep]:
-    return [
+def funnel(rows: list[CsvRow], payout: bool = True) -> list[FunnelStep]:
+    steps = [
         FunnelStep(key="joined", label="加入", count=len(rows)),
         FunnelStep(
             key="exam",
@@ -158,6 +173,7 @@ def funnel(rows: list[CsvRow]) -> list[FunnelStep]:
             count=sum(r["payout_eligible"] == "true" for r in rows),
         ),
     ]
+    return steps if payout else [s for s in steps if s.key != "payout"]
 
 
 def type_accuracy(session: Session, user_ids: list[uuid.UUID]) -> list[TypeAccuracy]:
@@ -283,6 +299,44 @@ def likert_item(q: Question, answers: list[dict[str, Any]]) -> LikertItem:
     )
 
 
+def cronbach_alpha(rows: list[list[int]]) -> float | None:
+    """α = k/(k-1) × (1 − 各題變異數總和 / 總分變異數)；用樣本變異數。"""
+    if len(rows) < 2 or len(rows[0]) < 2:
+        return None
+    k = len(rows[0])
+    total_var = statistics.variance([sum(r) for r in rows])
+    if total_var == 0:
+        return None
+    item_var = sum(statistics.variance([r[i] for r in rows]) for i in range(k))
+    return round(k / (k - 1) * (1 - item_var / total_var), 2)
+
+
+def tam_constructs(answers: list[dict[str, Any]]) -> list[TamConstruct]:
+    rows: list[TamConstruct] = []
+    for key, label in TAM_CONSTRUCTS:
+        ids = [q.id for q in QUESTIONS if q.construct == key]
+        person_means: list[float] = []
+        complete: list[list[int]] = []
+        for a in answers:
+            values = [v for i in ids if isinstance(v := a.get(i), int)]
+            if values:
+                person_means.append(statistics.fmean(values))
+            if len(values) == len(ids):
+                complete.append(values)
+        rows.append(
+            TamConstruct(
+                key=key,
+                label=label,
+                items=[q.text for q in QUESTIONS if q.construct == key],
+                mean=_mean(person_means),
+                n=len(person_means),
+                complete=len(complete),
+                alpha=cronbach_alpha(complete),
+            )
+        )
+    return rows
+
+
 def survey_analytics(surveys: list[tuple[str, TrialSurvey]]) -> SurveyAnalytics:
     """`surveys` 是交過的問卷與受試編號。"""
     answers = [s.answers for _, s in surveys]
@@ -337,6 +391,7 @@ def survey_analytics(surveys: list[tuple[str, TrialSurvey]]) -> SurveyAnalytics:
     ]
     return SurveyAnalytics(
         responses=len(surveys),
+        tam=tam_constructs(answers),
         likert=likert,
         confidence=ConfidenceShift(
             n=len(shifts),
@@ -356,11 +411,12 @@ def trial_analytics(
     session: Session,
     rows: list[CsvRow],
     surveys: list[tuple[str, TrialSurvey]],
+    payout: bool = True,
 ) -> TrialAnalytics:
     user_ids = [uuid.UUID(str(r["user_id"])) for r in rows]
     return TrialAnalytics(
         member_count=len(rows),
-        funnel=funnel(rows),
+        funnel=funnel(rows, payout),
         type_accuracy=type_accuracy(session, user_ids),
         scores=score_stats(rows),
         timings=timing_stats(rows),
