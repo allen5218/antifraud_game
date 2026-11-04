@@ -198,11 +198,18 @@ function SingleRows({
   )
 }
 
+/** 「1–10」→「第 1–10 題」；「51 以後」→「第 51 題以後」 */
+function curveText(label: string): string {
+  return label.endsWith(" 以後")
+    ? `第 ${label.replace(" 以後", "")} 題以後`
+    : `第 ${label} 題`
+}
+
 function Curve({ points }: { points: CurvePoint[] }) {
   return (
     <>
       <ResponsiveContainer width="100%" height={220}>
-        <LineChart data={points} margin={{ top: 12, right: 8, left: -24 }}>
+        <LineChart data={points} margin={{ top: 12, right: 24, left: -24 }}>
           <CartesianGrid vertical={false} stroke="var(--border)" />
           <XAxis dataKey="label" tick={AXIS_TICK} interval={0} />
           <YAxis domain={[0, 100]} unit="%" tick={AXIS_TICK} />
@@ -212,7 +219,7 @@ function Curve({ points }: { points: CurvePoint[] }) {
             labelFormatter={(label, items) => {
               const p = items?.[0]?.payload as CurvePoint | undefined
               return p
-                ? `第 ${label} 題（${p.people} 人、${p.items} 題）`
+                ? `${curveText(String(label))}（${p.people} 人、${p.items} 題）`
                 : label
             }}
             formatter={(value, name) => [
@@ -243,7 +250,7 @@ function Curve({ points }: { points: CurvePoint[] }) {
       <ul className="flex flex-wrap gap-x-3 gap-y-1 text-xs text-muted-foreground">
         {points.map((p) => (
           <li key={p.label}>
-            第 {p.label} 題：{p.people} 人
+            {curveText(p.label)}：{p.people} 人
           </li>
         ))}
       </ul>
