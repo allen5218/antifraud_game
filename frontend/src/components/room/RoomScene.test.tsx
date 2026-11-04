@@ -139,6 +139,21 @@ test("房間鋪滿整個區塊，入口都在舞台上", async () => {
   expect(stage.contains(screen.getByTestId("hotspot-mascot"))).toBe(true)
 })
 
+test("每件可點的家具都有滑鼠提示，寫出是什麼與狀態", async () => {
+  current = summary({ inbox_pending: 2 })
+  await renderScene()
+  const phone = await screen.findByTestId("hotspot-phone")
+  expect(phone.querySelector("[role=tooltip]")?.textContent).toBe(
+    "手機・情境對抗：還有 2 人沒聊",
+  )
+  const mascot = screen.getByTestId("hotspot-mascot")
+  expect(mascot.querySelector("[role=tooltip]")?.textContent).toContain(
+    "吉祥物",
+  )
+  // 名稱仍是原本的短名字，不會被提示文字蓋掉
+  expect(phone.getAttribute("aria-label")).toBe("情境對抗")
+})
+
 test("點手機導到情境對抗", async () => {
   current = summary({ inbox_pending: 2 })
   await renderScene()

@@ -184,8 +184,14 @@ mock.module("@/client", () => ({
         survey: null,
       }
     },
-    analytics: async ({ cohortId }: { cohortId?: string }) => {
-      analyticsScope = cohortId
+    analytics: async ({
+      cohortId,
+      general,
+    }: {
+      cohortId?: string
+      general?: boolean
+    }) => {
+      analyticsScope = general ? "general" : cohortId
       return {
         member_count: 1,
         funnel: [
@@ -197,6 +203,7 @@ mock.module("@/client", () => ({
         timings: [],
         survey: {
           responses: 0,
+          tam: [],
           likert: [],
           confidence: {
             n: 0,
@@ -417,4 +424,9 @@ test("數據分析分頁：預設看全部梯次合計", async () => {
   expect(analyticsScope).toBeUndefined()
   expect(screen.getByText("問卷分析")).toBeTruthy()
   expect(screen.getByText("還沒有問卷可以分析。")).toBeTruthy()
+  // 可以單獨看一般玩家
+  fireEvent.change(screen.getByLabelText("看哪個梯次"), {
+    target: { value: "general" },
+  })
+  await waitFor(() => expect(analyticsScope).toBe("general"))
 })

@@ -15,7 +15,7 @@ import { useHomeSummary } from "@/hooks/useHomeSummary"
 /** 試測帳號做完檢測、還沒交問卷時，提醒去填 */
 export function SurveyPrompt() {
   const { data } = useHomeSummary()
-  if (!data?.survey_ready) return null
+  if (!data?.survey_ready || !data.trial) return null
   return (
     <Link
       to="/survey"
@@ -38,7 +38,7 @@ export function SurveyNextDialog() {
   const [dismissed, setDismissed] = useState(false)
   return (
     <Dialog
-      open={Boolean(data?.survey_ready) && !dismissed}
+      open={Boolean(data?.survey_ready && data.trial) && !dismissed}
       onOpenChange={(open) => {
         if (!open) setDismissed(true)
       }}

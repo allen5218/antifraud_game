@@ -14,7 +14,7 @@ import {
 } from "lucide-react"
 import type { MenuItem } from "./logic"
 
-const ICONS = {
+export const MENU_ICONS = {
   phone: MessageCircle,
   tv: Tv,
   letters: Mail,
@@ -40,7 +40,7 @@ export function RoomMenu({
     <div className="absolute inset-x-3 bottom-24 z-40 max-h-[46%] overflow-y-auto rounded-2xl border bg-card p-2 text-card-foreground shadow-lg">
       <ul className="flex flex-col">
         {items.map((item) => {
-          const Icon = ICONS[item.id]
+          const Icon = MENU_ICONS[item.id]
           return (
             <li key={item.id}>
               <Link
