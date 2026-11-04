@@ -14,6 +14,8 @@ afterEach(cleanup)
 function mount(data: Partial<TrialSurveyPublic>) {
   const full: TrialSurveyPublic = {
     questions: [],
+    audience: "trial",
+    can_start: true,
     started: true,
     submitted: true,
     exam_done: true,
@@ -46,4 +48,12 @@ test("不能領：顯示原因給工作人員看", async () => {
     "不能領取禮券",
   )
   expect(screen.getByText("原因：檢測太快、問卷注意力題答錯")).toBeTruthy()
+})
+
+test("一般玩家：只說謝謝，不顯示受試編號與禮券", async () => {
+  mount({ audience: "general", participant_code: null })
+  expect(await screen.findByText("問卷收到了，謝謝你！")).toBeTruthy()
+  expect(screen.queryByTestId("participant-code")).toBeNull()
+  expect(screen.queryByTestId("payout-status")).toBeNull()
+  expect(screen.queryByText(/請截圖這個畫面/)).toBeNull()
 })

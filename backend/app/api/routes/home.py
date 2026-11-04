@@ -7,7 +7,7 @@ from sqlmodel import col, select
 from app.api.deps import CurrentUser, SessionDep
 from app.api.routes.practice import read_profile
 from app.api.routes.team import has_team_access
-from app.api.routes.trial import exam_done
+from app.api.routes.trial import survey_state
 from app.classroom.mine import classwork_reminder, my_classes
 from app.core.pretest import latest_weakest_type
 from app.daily.dates import taipei_today
@@ -22,7 +22,6 @@ from app.models import (
     ExamAttempt,
     FraudType,
     ScenarioSession,
-    TrialSurvey,
     UserProperty,
 )
 from app.schemas import HomeSummary, PracticeProfilePublic
@@ -65,12 +64,12 @@ def home_summary(session: SessionDep, current_user: CurrentUser) -> HomeSummary:
         ).first()
         if latest is None or latest.status == "active":
             pending += 1
-    survey = (
-        session.get(TrialSurvey, current_user.id) if current_user.cohort_id else None
-    )
-    survey_pending = current_user.cohort_id is not None and (
-        survey is None or survey.submitted_at is None
-    )
+    # 試測帳號：一進來就待填（先檢測）；一般玩家：滿一天又玩過才出現
+    survey = survey_state(session, current_user)
+    survey_pending = (
+        survey.audience == "trial"
+        or (survey.audience == "general" and survey.can_start)
+    ) and not survey.submitted
     classes = my_classes(session, current_user.id)
     classwork_pending, classwork_next = classwork_reminder(classes)
     return HomeSummary(
@@ -98,7 +97,7 @@ def home_summary(session: SessionDep, current_user: CurrentUser) -> HomeSummary:
         admin_access=current_user.is_superuser,
         survey_pending=survey_pending,
         trial=current_user.cohort_id is not None,
-        survey_ready=survey_pending and exam_done(session, current_user.id),
+        survey_ready=survey_pending and survey.can_start,
         badges=[
             b.fraud_type if b.kind == "type" and b.fraud_type else b.kind
             for b in list_badges(session, current_user.id)

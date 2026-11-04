@@ -36,10 +36,24 @@ class Question:
     # 選了「其他」要填的說明
     other: bool = False
     section: str = ""
+    # 科技接受模式的構面（見 TAM_CONSTRUCTS）；不屬於任何構面是 None
+    construct: str | None = None
 
 
-def _agree(qid: str, text: str, section: str) -> Question:
-    return Question(qid, "scale", text, labels=AGREE_LABELS, section=section)
+TAM_CONSTRUCTS: tuple[tuple[str, str], ...] = (
+    ("peou", "好不好用"),
+    ("pu", "有沒有用"),
+    ("attitude", "喜不喜歡用"),
+    ("intention", "還會不會用"),
+)
+"""科技接受模式（TAM）的四個構面：知覺易用性、知覺有用性、使用態度、使用意圖。
+沿用原本的題目再補缺的；補的題目舊問卷沒有，分析時構面平均用每人有答的題。"""
+
+
+def _agree(qid: str, text: str, section: str, construct: str | None = None) -> Question:
+    return Question(
+        qid, "scale", text, labels=AGREE_LABELS, section=section, construct=construct
+    )
 
 
 QUESTIONS: tuple[Question, ...] = (
@@ -70,11 +84,12 @@ QUESTIONS: tuple[Question, ...] = (
         options=("是", "否", "不想回答"),
         section="基本資料",
     ),
-    _agree("ui_clear", "操作介面清楚，不需要說明就會用", "使用體驗"),
-    _agree("mobile_layout", "手機直式畫面好閱讀、好操作", "使用體驗"),
-    _agree("wording_clear", "題目與回饋的用語容易理解", "使用體驗"),
+    _agree("ui_clear", "操作介面清楚，不需要說明就會用", "使用體驗", "peou"),
+    _agree("mobile_layout", "手機直式畫面好閱讀、好操作", "使用體驗", "peou"),
+    _agree("wording_clear", "題目與回饋的用語容易理解", "使用體驗", "peou"),
+    _agree("easy_learn", "要學會怎麼玩很容易", "使用體驗", "peou"),
     _agree("smooth", "系統運作順暢，沒有明顯卡頓或錯誤", "使用體驗"),
-    _agree("keep_playing", "我願意繼續玩下去", "使用體驗"),
+    _agree("keep_playing", "我願意繼續玩下去", "使用體驗", "intention"),
     _agree("focus_reason", "系統說明「多練某一類」的原因，我覺得合理", "練習重點"),
     _agree("focus_match", "推薦我多練的類型，符合我真正的弱點", "練習重點"),
     Question(
@@ -84,9 +99,20 @@ QUESTIONS: tuple[Question, ...] = (
         options=("簡單", "適中", "困難"),
         section="檢測",
     ),
-    _agree("distinguish", "玩完後，我更能分辨詐騙與正常訊息", "學習成效"),
-    _agree("verify_channel", "我更知道遇到可疑訊息時，該向哪個管道查證", "學習成效"),
-    _agree("pause_confidence", "對方催促時，我更有信心先暫停、不急著決定", "學習成效"),
+    _agree("distinguish", "玩完後，我更能分辨詐騙與正常訊息", "學習成效", "pu"),
+    _agree(
+        "verify_channel", "我更知道遇到可疑訊息時，該向哪個管道查證", "學習成效", "pu"
+    ),
+    _agree(
+        "pause_confidence", "對方催促時，我更有信心先暫停、不急著決定", "學習成效", "pu"
+    ),
+    _agree("useful_faster", "用這個遊戲練習，讓我更快認出詐騙訊息", "學習成效", "pu"),
+    _agree(
+        "useful_vs_campaign",
+        "比起看防詐宣導，用這個遊戲練習對我更有幫助",
+        "學習成效",
+        "pu",
+    ),
     Question(
         "confidence_before",
         "scale",
@@ -110,8 +136,11 @@ QUESTIONS: tuple[Question, ...] = (
     _agree("badges", "徽章對我有吸引力", "遊戲設計"),
     _agree("ai_safe", "我覺得 AI 對話的內容是安全的，沒有教人怎麼詐騙", "遊戲設計"),
     _agree("points_reward", "如果通過檢測能兌換企業點數，我會更願意練習", "遊戲設計"),
-    _agree("satisfied", "整體來說，我對這個遊戲感到滿意", "整體"),
-    _agree("recommend", "我會推薦親友來玩", "整體"),
+    _agree("satisfied", "整體來說，我對這個遊戲感到滿意", "整體", "attitude"),
+    _agree("attitude_good", "用遊戲來練習防詐，是個好主意", "整體", "attitude"),
+    _agree("attitude_fun", "用這個遊戲練習很有趣", "整體", "attitude"),
+    _agree("recommend", "我會推薦親友來玩", "整體", "intention"),
+    _agree("intention_reuse", "之後我還會用這個遊戲練習", "整體", "intention"),
     Question(
         "occasions",
         "multi",
@@ -152,6 +181,14 @@ QUESTIONS: tuple[Question, ...] = (
 )
 
 QUESTION_IDS = tuple(q.id for q in QUESTIONS)
+EXAM_ONLY = frozenset({"exam_difficulty"})
+"""沒做過綜合檢測的一般玩家，問卷不問這幾題。"""
+
+
+def questions_for(exam_done: bool) -> tuple[Question, ...]:
+    if exam_done:
+        return QUESTIONS
+    return tuple(q for q in QUESTIONS if q.id not in EXAM_ONLY)
 
 
 class SurveyError(ValueError):
@@ -172,10 +209,12 @@ def _other_text(answers: dict[str, Any], q: Question) -> str:
     return text
 
 
-def validate_answers(answers: dict[str, Any]) -> dict[str, Any]:
+def validate_answers(
+    answers: dict[str, Any], questions: tuple[Question, ...] = QUESTIONS
+) -> dict[str, Any]:
     """檢查每一題並回傳整理過的答案；不認識的欄位一律丟掉。"""
     clean: dict[str, Any] = {}
-    for q in QUESTIONS:
+    for q in questions:
         value = answers.get(q.id)
         if q.kind == "consent":
             if value is not True:

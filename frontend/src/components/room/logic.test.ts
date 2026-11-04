@@ -8,6 +8,7 @@ import {
   pickBubbles,
   poseImage,
   roomBadges,
+  roomHints,
 } from "./logic"
 
 function summary(overrides: Partial<HomeSummary> = {}): HomeSummary {
@@ -337,7 +338,7 @@ describe("試測問卷入口", () => {
   })
 
   it("檢測還沒做完時變淡並寫做完檢測後填", () => {
-    const item = menuItems(summary({ survey_pending: true }))[0]
+    const item = menuItems(summary({ trial: true, survey_pending: true }))[0]
     expect(item).toMatchObject({
       id: "survey",
       to: "/survey",
@@ -348,9 +349,37 @@ describe("試測問卷入口", () => {
 
   it("做完檢測就可以填，放在選單最前面", () => {
     const item = menuItems(
-      summary({ survey_pending: true, survey_ready: true }),
+      summary({ trial: true, survey_pending: true, survey_ready: true }),
     )[0]
     expect(item).toMatchObject({ id: "survey", status: "還沒填", done: false })
+  })
+})
+
+describe("一般玩家的問卷", () => {
+  const general = { trial: false, survey_pending: true, survey_ready: true }
+
+  it("選單第一項是填問卷", () => {
+    expect(menuItems(summary(general))[0]).toMatchObject({
+      id: "survey",
+      label: "填問卷",
+      status: "幫我們改進",
+      done: false,
+      to: "/survey",
+    })
+  })
+
+  it("吉祥物在沒有更急的事時請他填，班級作業與補考優先", () => {
+    const line = mascotLine(summary({ ...general, focus_label: "假交友" }))
+    expect(line.text).toBe("玩了一陣子了，幫我們填個問卷好嗎？大約五分鐘。")
+    expect(line.action).toEqual({ label: "填問卷", to: "/survey" })
+    const classwork = mascotLine(
+      summary({ ...general, classwork_next: "有一份作業還沒做" }),
+    )
+    expect(classwork.text).toBe("有一份作業還沒做")
+    const retaking = mascotLine(
+      summary({ ...general, retake: retake([0, 6], [0, 5], [0, 1]) }),
+    )
+    expect(retaking.action).toBeUndefined()
   })
 })
 
@@ -443,5 +472,23 @@ describe("班級作業", () => {
       summary({ classwork_next: next, trial: true, survey_pending: true }),
     )
     expect(trial.action?.to).toBe("/exam")
+  })
+})
+
+describe("桌機滑鼠移到家具的提示", () => {
+  it("寫出物件、模式與目前狀態，和選單同一份狀態", () => {
+    const hints = roomHints(summary({ inbox_pending: 2 }))
+    expect(hints.phone).toBe("手機・情境對抗：還有 2 人沒聊")
+    expect(hints.tv).toBe("電視・滑卡訓練：可以練")
+    expect(hints.letters).toBe("信件架・訊息判讀：可以練")
+    expect(hints.calendar).toBe("月曆・每日訓練：等級五才解鎖")
+    expect(hints.bookshelf).toBe("書櫃・檢測與徽章：今天先休息")
+    expect(hints.mascot).toBe("吉祥物：點我看提醒和練習重點")
+  })
+
+  it("檢測中寫暫停", () => {
+    const hints = roomHints(summary({ exam_active_attempt_id: "a" }))
+    expect(hints.tv).toBe("電視・滑卡訓練：檢測中暫停")
+    expect(hints.bookshelf).toBe("書櫃・檢測與徽章：還沒做完")
   })
 })

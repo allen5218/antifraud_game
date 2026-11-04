@@ -20,6 +20,7 @@ import {
   poseImage,
   recommended,
   roomBadges,
+  roomHints,
   trialStep,
 } from "./logic"
 import { MascotGuide } from "./MascotGuide"
@@ -167,6 +168,7 @@ export function RoomScene() {
         paused={data ? pausedHotspots(data) : []}
         strong={data ? recommended(data) : null}
         examBadges={data?.badges ?? []}
+        hints={data ? roomHints(data) : null}
         onMascot={() => setGuideOpen(true)}
         onRoomShown={() => setRoomShown(true)}
       />

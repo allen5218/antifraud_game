@@ -5,7 +5,7 @@ from datetime import timedelta
 from typing import Any
 
 from fastapi.testclient import TestClient
-from sqlmodel import Session
+from sqlmodel import Session, select
 
 from app.core.config import settings
 from app.models import (
@@ -219,3 +219,48 @@ def test_analytics(
     everything = client.get(url, headers=superuser_token_headers)
     assert everything.status_code == 200
     assert everything.json()["member_count"] >= 3
+
+
+def test_analytics_effect(
+    client: TestClient,
+    cohort: dict,  # noqa: F811
+    db: Session,
+    superuser_token_headers: dict[str, str],
+) -> None:
+    """成效：入門前測之後考綜合檢測、考完再練習，前後都配得起來。"""
+    headers, user_id = redeem(client, cohort["token"])
+    do_pretest(client, headers, 90_000)
+    add_comprehensive_exam(
+        db,
+        user_id,
+        {"investment": 4, "fake-sale": 4, "shopping": 3, "romance": 2, "atm": 4},
+    )
+    attempt = db.exec(select(ExamAttempt).where(ExamAttempt.user_id == user_id)).one()
+    # 檢測要在入門前測之後，練習在檢測之後
+    now = get_datetime_utc()
+    attempt.created_at = now + timedelta(minutes=5)
+    attempt.completed_at = now + timedelta(minutes=15)
+    db.add(attempt)
+    db.add(
+        PracticeAnswer(
+            user_id=user_id,
+            mode="swipe",
+            fraud_type="romance",
+            correct=True,
+            created_at=now + timedelta(minutes=20),
+        )
+    )
+    db.commit()
+
+    response = client.get(
+        f"{BASE}/admin/cohorts/analytics",
+        params={"cohort_id": cohort["id"]},
+        headers=superuser_token_headers,
+    )
+    assert response.status_code == 200, response.text
+    effect = response.json()["effect"]
+    assert effect["entry"]["total"]["n"] == 1
+    assert effect["entry"]["total"]["after_mean"] == 85.0
+    assert effect["volume"]["exam_people"] == 1
+    assert effect["volume"]["practiced_people"] == 1
+    assert effect["practice"]["curve"][0]["items"] == 1
