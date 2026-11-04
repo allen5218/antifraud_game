@@ -20,59 +20,20 @@ import {
 } from "@/client"
 import { Button } from "@/components/ui/button"
 import { fraudTypeLabel } from "@/lib/fraudTypes"
+import {
+  AXIS_TICK,
+  Card,
+  num,
+  pct,
+  Tiles,
+  TOOLTIP_ITEM,
+  TOOLTIP_STYLE,
+} from "./chartParts"
+import { EffectSection } from "./EffectSection"
 
-const AXIS_TICK = { fontSize: 11, fill: "var(--muted-foreground)" }
-const TOOLTIP_STYLE = {
-  background: "var(--popover)",
-  border: "1px solid var(--border)",
-  borderRadius: 8,
-  color: "var(--popover-foreground)",
-  fontSize: 12,
-}
-// 提示框的字用文字色，不用數列的顏色
-const TOOLTIP_ITEM = { color: "var(--popover-foreground)" }
 const LIKERT_COLORS = [1, 2, 3, 4, 5].map((n) => `var(--likert-${n})`)
 // 直方圖裡「不算數」的區間（沒過關、太快）用灰色
 const BELOW_COLOR = "var(--likert-3)"
-
-function pct(part: number, whole: number): string {
-  return whole ? `${Math.round((part / whole) * 100)}%` : "–"
-}
-
-function num(value: number | null | undefined, digits = 1): string {
-  return value == null ? "–" : value.toFixed(digits).replace(/\.0+$/, "")
-}
-
-function Card({
-  title,
-  note,
-  children,
-}: {
-  title: string
-  note?: string
-  children: React.ReactNode
-}) {
-  return (
-    <section className="flex min-w-0 flex-col gap-2 rounded-xl border border-border bg-card p-4">
-      <h4 className="font-bold">{title}</h4>
-      {note && <p className="text-xs text-muted-foreground">{note}</p>}
-      {children}
-    </section>
-  )
-}
-
-function Tiles({ items }: { items: [string, string][] }) {
-  return (
-    <dl className="grid grid-cols-2 gap-2 sm:grid-cols-4">
-      {items.map(([label, value]) => (
-        <div key={label} className="rounded-lg bg-surface-2 p-2 text-center">
-          <dt className="text-[11px] text-muted-foreground">{label}</dt>
-          <dd className="text-lg font-bold">{value}</dd>
-        </div>
-      ))}
-    </dl>
-  )
-}
 
 /** 單一數列的橫條：長度就是人數，旁邊寫數字（不靠顏色） */
 function HBars({
@@ -471,6 +432,11 @@ export function TrialAnalytics({ cohorts }: { cohorts: CohortPublic[] }) {
       )}
       {analytics.data && (
         <>
+          <h3 className="text-lg font-bold">成效：前測和之後的作答</h3>
+          <EffectSection
+            effect={analytics.data.effect}
+            survey={analytics.data.survey}
+          />
           <h3 className="text-lg font-bold">
             試測數據（{analytics.data.member_count} 人）
           </h3>

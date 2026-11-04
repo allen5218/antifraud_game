@@ -42,6 +42,16 @@ const cohort = {
 const { QRCodeSVG } = await import("qrcode.react")
 
 const actualRouter = await import("@tanstack/react-router")
+const NO_CHANGE = {
+  n: 0,
+  before_mean: null,
+  after_mean: null,
+  diff_mean: null,
+  improved: 0,
+  same: 0,
+  worse: 0,
+}
+
 mock.module("@tanstack/react-router", () => ({
   ...actualRouter,
   createFileRoute: () => (options: any) => ({
@@ -199,6 +209,32 @@ mock.module("@/client", () => ({
           },
           choices: [],
           texts: [],
+        },
+        effect: {
+          exam: { stages: [], change: NO_CHANGE },
+          repeat: {
+            people: 0,
+            pretest: NO_CHANGE,
+            score: NO_CHANGE,
+            failed_first: 0,
+            retook: 0,
+            retake_passed: 0,
+          },
+          entry: { total: NO_CHANGE, by_type: [], practiced_between: 0 },
+          practice: {
+            baseline_people: 0,
+            by_type: [],
+            curve: [],
+            tags: [],
+            modes: [],
+          },
+          volume: {
+            exam_people: 0,
+            practiced_people: 0,
+            median_answers: null,
+            median_days: null,
+            scenario_rounds: 0,
+          },
         },
       }
     },
