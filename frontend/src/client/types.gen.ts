@@ -210,6 +210,14 @@ export type ConfidenceShift = {
     worse: number;
 };
 
+export type CurvePoint = {
+    label: string;
+    accuracy: (number | null);
+    missed_rate: (number | null);
+    people: number;
+    items: number;
+};
+
 export type DailyResultPublic = {
     correct: number;
     total: number;
@@ -236,6 +244,20 @@ export type EconomyMeResponse = {
     streak_days: number;
     pending_accrual: number;
     bankruptcy_pending: boolean;
+};
+
+export type EffectAnalytics = {
+    exam: ExamStageEffect;
+    repeat: RepeatEffect;
+    entry: EntryEffect;
+    practice: PracticeEffect;
+    volume: PracticeVolume;
+};
+
+export type EntryEffect = {
+    total: PairedChange;
+    by_type: Array<TypePair>;
+    practiced_between: number;
 };
 
 export type ExamBadgePublic = {
@@ -404,6 +426,11 @@ export type ExamStageDetail = {
     correct: number;
     answered: number;
     total: number;
+};
+
+export type ExamStageEffect = {
+    stages: Array<StageAccuracy>;
+    change: PairedChange;
 };
 
 export type ExamStartRequest = {
@@ -604,6 +631,12 @@ export type Message = {
     message: string;
 };
 
+export type ModeHalves = {
+    mode: string;
+    label: string;
+    change: PairedChange;
+};
+
 export type MyAssignment = {
     id: string;
     title: string;
@@ -664,6 +697,16 @@ export type OwnedPropertyPublic = {
     purchased_at: string;
 };
 
+export type PairedChange = {
+    n: number;
+    before_mean: (number | null);
+    after_mean: (number | null);
+    diff_mean: (number | null);
+    improved: number;
+    same: number;
+    worse: number;
+};
+
 export type ParticipantDetail = {
     user_id: string;
     participant_code: (string | null);
@@ -691,6 +734,14 @@ export type PracticeDetail = {
     correct: number;
 };
 
+export type PracticeEffect = {
+    baseline_people: number;
+    by_type: Array<TypePair>;
+    curve: Array<CurvePoint>;
+    tags: Array<TagShift>;
+    modes: Array<ModeHalves>;
+};
+
 /**
  * 玩家目前的練習重點。訊息判讀、滑卡、情境收件匣都照這個比例出題。
  */
@@ -707,6 +758,14 @@ export type PracticeProfilePublic = {
 };
 
 export type source = 'gemini' | 'rule' | 'pretest' | 'none';
+
+export type PracticeVolume = {
+    exam_people: number;
+    practiced_people: number;
+    median_answers: (number | null);
+    median_days: (number | null);
+    scenario_rounds: number;
+};
 
 export type PretestAnswer = {
     question_id: string;
@@ -906,6 +965,15 @@ export type QuizWeaknessDetail = {
     suggestion: string;
 };
 
+export type RepeatEffect = {
+    people: number;
+    pretest: PairedChange;
+    score: PairedChange;
+    failed_first: number;
+    retook: number;
+    retake_passed: number;
+};
+
 export type ScenarioDetail = {
     id: string;
     fraud_type: string;
@@ -968,6 +1036,14 @@ export type ScoreStats = {
     passed: number;
     mean: (number | null);
     bins: Array<HistogramBin>;
+};
+
+export type StageAccuracy = {
+    key: string;
+    label: string;
+    accuracy: (number | null);
+    people: number;
+    items: number;
 };
 
 /**
@@ -1045,6 +1121,13 @@ export type SwipeCompleteResponse = {
 export type SwipeDeckResponse = {
     session_id: string;
     cards: Array<SwipeCardPublic>;
+};
+
+export type TagShift = {
+    tag: string;
+    label: string;
+    first_half: number;
+    second_half: number;
 };
 
 /**
@@ -1208,6 +1291,7 @@ export type TrialAnalytics = {
     scores: ScoreStats;
     timings: Array<TimingStats>;
     survey: SurveyAnalytics;
+    effect: EffectAnalytics;
 };
 
 export type TrialSurveyPublic = {
@@ -1233,6 +1317,13 @@ export type TypeAccuracy = {
     fraud_type: string;
     accuracy: (number | null);
     n: number;
+};
+
+export type TypePair = {
+    fraud_type: string;
+    before: (number | null);
+    after: (number | null);
+    people: number;
 };
 
 export type UpdatePassword = {

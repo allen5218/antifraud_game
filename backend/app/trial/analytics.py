@@ -1,7 +1,7 @@
 """管理頁的試測數據與問卷分析。只讀、只統計，判定沿用成員 CSV 的那一套。
 
 輸入是成員 CSV 的列（`admin_cohorts.build_export_rows`），再補查綜合檢測前測關的分類型答對數。
-試測不做入門前測，所以沒有前後測配對；問卷的前後對照是信心題。
+前測和之後作答的比較（成效）在 `app/trial/effect.py`；問卷的前後對照是信心題。
 """
 
 import statistics
@@ -13,6 +13,7 @@ from sqlmodel import Session, SQLModel, col, select
 
 from app.exam.export import item_answer
 from app.models import ExamAttempt, TrialSurvey
+from app.trial.effect import EffectAnalytics, effect_analytics, load_effect_input
 from app.trial.payout import EXAM_MIN_SECONDS
 from app.trial.survey import (
     ATTENTION_ID,
@@ -127,6 +128,7 @@ class TrialAnalytics(SQLModel):
     scores: ScoreStats
     timings: list[TimingStats]
     survey: SurveyAnalytics
+    effect: EffectAnalytics
 
 
 def _mean(values: Sequence[float]) -> float | None:
@@ -363,4 +365,5 @@ def trial_analytics(
         scores=score_stats(rows),
         timings=timing_stats(rows),
         survey=survey_analytics(surveys),
+        effect=effect_analytics(load_effect_input(session, user_ids)),
     )
