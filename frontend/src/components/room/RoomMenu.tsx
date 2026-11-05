@@ -37,7 +37,10 @@ export function RoomMenu({
   onNavigate: () => void
 }) {
   return (
-    <div className="absolute inset-x-3 bottom-24 z-40 max-h-[46%] overflow-y-auto rounded-2xl border bg-card p-2 text-card-foreground shadow-lg">
+    <div
+      data-testid="room-menu-list"
+      className="absolute inset-x-3 bottom-24 z-40 max-h-[46%] overflow-y-auto rounded-2xl border bg-card p-2 text-card-foreground shadow-lg"
+    >
       <ul className="flex flex-col">
         {items.map((item) => {
           const Icon = MENU_ICONS[item.id]

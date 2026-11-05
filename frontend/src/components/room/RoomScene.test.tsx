@@ -23,6 +23,7 @@ import {
   render,
   screen,
   waitFor,
+  within,
 } from "@testing-library/react"
 import type { ExamStatus } from "@/client"
 import { CancelablePromise } from "@/client/core/CancelablePromise"
@@ -192,7 +193,10 @@ test("選單打開列出五項、排行榜和我的徽章", async () => {
     "排行榜",
     "我的徽章",
   ]) {
-    expect(screen.getByText(label)).toBeTruthy()
+    // 房間家具旁也有同樣的模式名稱，只在選單裡找
+    expect(
+      within(screen.getByTestId("room-menu-list")).getByText(label),
+    ).toBeTruthy()
   }
 })
 
