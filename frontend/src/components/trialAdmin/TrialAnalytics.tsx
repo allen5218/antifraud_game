@@ -31,6 +31,7 @@ import {
   TOOLTIP_STYLE,
 } from "./chartParts"
 import { EffectSection } from "./EffectSection"
+import { notAskedText } from "./format"
 
 const LIKERT_COLORS = [1, 2, 3, 4, 5].map((n) => `var(--likert-${n})`)
 // 直方圖裡「不算數」的區間（沒過關、太快）用灰色
@@ -222,6 +223,7 @@ function LikertRows({ items }: { items: LikertItem[] }) {
             <span className="flex-1">{item.question}</span>
             <span className="shrink-0 tabular-nums text-muted-foreground">
               平均 {num(item.mean, 2)}・{item.n} 人
+              {notAskedText(item.not_asked)}
             </span>
           </div>
           <div className="flex h-4 gap-[2px] overflow-hidden rounded-[4px] bg-surface-2">
@@ -385,7 +387,7 @@ function SurveySection({ data }: { data: Analytics }) {
             <Card
               key={choice.id}
               title={choice.question}
-              note={`${choice.n} 人回答${choice.multi ? "（可複選，百分比以回答人數為準）" : ""}`}
+              note={`${choice.n} 人回答${notAskedText(choice.not_asked)}${choice.multi ? "（可複選，百分比以回答人數為準）" : ""}`}
             >
               <HBars
                 rows={choice.options.map((o) => ({

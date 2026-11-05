@@ -20,7 +20,7 @@ from app.models import (
     User,
     get_datetime_utc,
 )
-from app.trial.survey import ATTENTION_ID, QUESTIONS
+from app.trial.survey import ATTENTION_ID, QUESTIONS, SurveyContext, questions_for
 
 BASE = settings.API_V1_STR
 
@@ -111,7 +111,11 @@ def test_survey_needs_a_finished_exam_then_submits_once(
 ) -> None:
     headers, user_id = redeem(client, cohort["token"])
     data = client.get(f"{BASE}/trial/survey", headers=headers).json()
-    assert [q["id"] for q in data["questions"]] == [q.id for q in QUESTIONS]
+    # 還沒做過任何事：只問每個人都有經驗的題目
+    nothing = SurveyContext(False, False, False, False, False, False)
+    assert [q["id"] for q in data["questions"]] == [
+        q.id for q in questions_for(nothing)
+    ]
     assert data["questions"][0]["kind"] == "consent"
     assert (data["started"], data["submitted"], data["exam_done"]) == (
         False,

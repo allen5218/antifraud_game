@@ -73,6 +73,7 @@ export type ChoiceItem = {
     multi: boolean;
     n: number;
     options: Array<ChoiceCount>;
+    not_asked?: number;
 };
 
 export type ClassMemberDetail = {
@@ -590,6 +591,7 @@ export type LikertItem = {
     counts: Array<(number)>;
     n: number;
     mean: (number | null);
+    not_asked?: number;
 };
 
 export type LiquidateRequest = {

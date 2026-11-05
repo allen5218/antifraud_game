@@ -14,11 +14,13 @@ from app.models import (
     ClassMember,
     Classroom,
     PracticeAnswer,
+    ScenarioSession,
+    SwipeSession,
     TrialSurvey,
     User,
     get_datetime_utc,
 )
-from app.trial.survey import QUESTIONS, questions_for
+from app.trial.survey import QUESTIONS
 from tests.utils.user import create_random_user, user_authentication_headers
 from tests.utils.utils import random_lower_string
 
@@ -58,7 +60,8 @@ def play(db: Session, user: User) -> None:
 
 def general_answers() -> dict[str, Any]:
     answers: dict[str, Any] = {}
-    for q in questions_for(exam_done=False):
+    # 問卷會丟掉沒問到的題目，所以每一題都填
+    for q in QUESTIONS:
         if q.kind == "consent":
             answers[q.id] = True
         elif q.kind == "single":
@@ -175,3 +178,49 @@ def test_general_players_never_count_as_payout(db: Session) -> None:
     from app.trial.audience import GENERAL
 
     assert all(r["payout_eligible"] == "false" for r in cohort_rows(db, GENERAL))
+
+
+def test_questions_locked_at_start(
+    client: TestClient, db: Session, player: tuple[User, dict[str, str]]
+) -> None:
+    """填到一半跑去玩情境對抗，回來送出時不會多出必填題。"""
+    user, headers = player
+    age_account(db, user, 25)
+    play(db, user)
+    db.add(SwipeSession(user_id=user.id, card_ids=[], completed=True))
+    db.commit()
+    start = client.post(f"{BASE}/trial/survey/start", headers=headers)
+    assert start.status_code == 200, start.text
+    asked = {q["id"] for q in start.json()["questions"]}
+    assert "ai_safe" not in asked and "focus_reason" in asked
+
+    db.add(
+        ScenarioSession(
+            user_id=user.id,
+            pool="practice",
+            fraud_type="atm",
+            persona_role="scam",
+            display_name="客服",
+            avatar="atm-1",
+            status="completed",
+            stake_loss=0,
+            reward_win=0,
+            reward_legit=0,
+            penalty_misreport=0,
+            completed_at=get_datetime_utc(),
+        )
+    )
+    db.commit()
+    again = client.get(f"{BASE}/trial/survey", headers=headers).json()
+    assert {q["id"] for q in again["questions"]} == asked
+
+    answers = general_answers()
+    answers.pop("ai_safe")
+    response = client.post(
+        f"{BASE}/trial/survey", headers=headers, json={"answers": answers}
+    )
+    assert response.status_code == 200, response.text
+    saved = db.get(TrialSurvey, user.id)
+    assert saved is not None and "ai_safe" not in saved.answers
+    db.execute(delete(TrialSurvey).where(TrialSurvey.user_id == user.id))  # type: ignore[arg-type]
+    db.commit()

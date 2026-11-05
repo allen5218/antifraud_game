@@ -303,6 +303,11 @@ export const ChoiceItemSchema = {
             },
             type: 'array',
             title: 'Options'
+        },
+        not_asked: {
+            type: 'integer',
+            title: 'Not Asked',
+            default: 0
         }
     },
     type: 'object',
@@ -2735,6 +2740,11 @@ export const LikertItemSchema = {
                 }
             ],
             title: 'Mean'
+        },
+        not_asked: {
+            type: 'integer',
+            title: 'Not Asked',
+            default: 0
         }
     },
     type: 'object',

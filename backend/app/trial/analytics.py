@@ -76,6 +76,8 @@ class LikertItem(SQLModel):
     counts: list[int]
     n: int
     mean: float | None
+    # 交了問卷但這題沒被問到（問卷只問做過的事；條件題都是必填）
+    not_asked: int = 0
 
 
 class ChoiceCount(SQLModel):
@@ -89,6 +91,7 @@ class ChoiceItem(SQLModel):
     multi: bool
     n: int
     options: list[ChoiceCount]
+    not_asked: int = 0
 
 
 class TextAnswer(SQLModel):
@@ -296,6 +299,7 @@ def likert_item(q: Question, answers: list[dict[str, Any]]) -> LikertItem:
         counts=[values.count(point) for point in range(1, len(q.labels) + 1)],
         n=len(values),
         mean=_mean(values),
+        not_asked=len(answers) - len(values),
     )
 
 
@@ -358,6 +362,7 @@ def survey_analytics(surveys: list[tuple[str, TrialSurvey]]) -> SurveyAnalytics:
             question=q.text,
             multi=q.kind == "multi",
             n=sum(q.id in a for a in answers),
+            not_asked=sum(q.id not in a for a in answers),
             options=[
                 ChoiceCount(
                     label=option,
