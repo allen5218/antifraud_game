@@ -201,6 +201,14 @@ export function RoomStage({
             style={box}
           >
             {badge && <RoomBadge badge={badge} testId={`badge-${id}`} />}
+            {/* 常駐的模式名稱：跨在點擊範圍下緣，點擊範圍已移進畫面，標籤也就留在畫面裡 */}
+            <span
+              aria-hidden="true"
+              data-testid={`room-label-${id}`}
+              className="pointer-events-none absolute bottom-0 left-1/2 z-20 -translate-x-1/2 translate-y-1/2 whitespace-nowrap rounded-full border bg-card/90 px-2 py-0.5 text-[11px] font-bold text-card-foreground shadow-sm"
+            >
+              {spec.label}
+            </span>
             {hints && <Hint text={hints[id]} box={box} viewW={view.width} />}
           </Link>
         )

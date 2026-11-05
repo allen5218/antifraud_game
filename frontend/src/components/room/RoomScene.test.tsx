@@ -154,6 +154,24 @@ test("每件可點的家具都有滑鼠提示，寫出是什麼與狀態", async
   expect(phone.getAttribute("aria-label")).toBe("情境對抗")
 })
 
+test("家具旁常駐模式名稱，手機也看得到", async () => {
+  await renderScene()
+  const expected = {
+    phone: "情境對抗",
+    tv: "滑卡訓練",
+    letters: "訊息判讀",
+    calendar: "每日訓練",
+    bookshelf: "檢測",
+  }
+  for (const [id, text] of Object.entries(expected)) {
+    const label = await screen.findByTestId(`room-label-${id}`)
+    expect(label.textContent).toBe(text)
+    // 標籤是看的，不是另一個按鈕；也不是只在滑鼠移過去才出現的提示
+    expect(label.getAttribute("aria-hidden")).toBe("true")
+    expect(label.className).not.toContain("opacity-0")
+  }
+})
+
 test("點手機導到情境對抗", async () => {
   current = summary({ inbox_pending: 2 })
   await renderScene()
