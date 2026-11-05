@@ -199,7 +199,10 @@ export function RoomScene() {
         onRoomShown={() => setRoomShown(true)}
       />
       {/* 購物與房子貼著畫面左下，避開手機的 Home 橫條 */}
-      <div className="absolute bottom-[calc(env(safe-area-inset-bottom)+1rem)] left-3 z-20 flex gap-2">
+      <div
+        data-testid="room-shop-row"
+        className="absolute bottom-[calc(env(safe-area-inset-bottom)+1rem)] left-3 z-20 flex gap-2"
+      >
         <Link
           to="/shop"
           data-testid="room-shop"

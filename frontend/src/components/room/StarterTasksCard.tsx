@@ -68,7 +68,7 @@ export function StarterTasksCard({ tasks }: { tasks: StarterTasks }) {
   return (
     <section
       data-testid="starter-tasks"
-      className="w-52 rounded-2xl border bg-card/95 p-2.5 text-card-foreground shadow-lg"
+      className="w-48 rounded-2xl border bg-card/95 p-2.5 text-card-foreground shadow-lg"
     >
       <div className="flex items-center gap-1">
         <p className="flex-1 text-sm font-bold tabular-nums">

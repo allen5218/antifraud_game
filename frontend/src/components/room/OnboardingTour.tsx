@@ -6,6 +6,8 @@ import { TOUR_TEST_IDS, type TourStep } from "./tour"
 type Spot = { left: number; top: number; width: number; height: number }
 
 const PAD = 6 // 亮框比物件大一點，邊緣不會切到
+// 亮框外面的遮罩用超大的 box-shadow 畫，顏色和沒有亮框時的 bg-black/55 一樣
+const DIM = "rgb(0 0 0 / 0.55)"
 
 /** 找出這一步要亮的東西在畫面上的位置；找不到（或這一步不亮東西）就整片變暗 */
 function measure(step: TourStep): Spot | null {
@@ -64,7 +66,7 @@ export function OnboardingTour({
         <div
           aria-hidden="true"
           className="pointer-events-none fixed rounded-2xl ring-2 ring-warning transition-all duration-300"
-          style={{ ...spot, boxShadow: "0 0 0 9999px rgb(0 0 0 / 0.55)" }}
+          style={{ ...spot, boxShadow: `0 0 0 9999px ${DIM}` }}
         />
       ) : (
         <div aria-hidden="true" className="fixed inset-0 bg-black/55" />

@@ -20,7 +20,7 @@ export const TOUR_TEST_IDS: Record<Exclude<TourTarget, null>, string> = {
   bookshelf: "hotspot-bookshelf",
   mascot: "hotspot-mascot",
   cash: "hdr-cash",
-  shop: "room-shop",
+  shop: "room-shop-row",
   menu: "room-menu",
 }
 
