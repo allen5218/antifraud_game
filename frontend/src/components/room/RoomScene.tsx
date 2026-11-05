@@ -29,6 +29,7 @@ import { OnboardingTour } from "./OnboardingTour"
 import { onboardingApi } from "./onboardingApi"
 import { RoomMenu } from "./RoomMenu"
 import { RoomStage } from "./RoomStage"
+import { StarterTasksCard } from "./StarterTasksCard"
 import { tourSteps } from "./tour"
 
 const GUIDE_SEEN_KEY = "room-guide-seen"
@@ -291,6 +292,12 @@ export function RoomScene() {
       )}
       {menuOpen && (
         <RoomMenu items={items} onNavigate={() => setMenuOpen(false)} />
+      )}
+      {/* 右下角沒有可點的家具，也不擋購物、房子與選單 */}
+      {data?.starter_tasks && !tourOpen && (
+        <div className="absolute right-3 bottom-[calc(env(safe-area-inset-bottom)+1rem)] z-20">
+          <StarterTasksCard tasks={data.starter_tasks} />
+        </div>
       )}
       {tourOpen && data && (
         <OnboardingTour

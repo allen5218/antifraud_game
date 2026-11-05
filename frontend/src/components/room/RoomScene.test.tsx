@@ -374,3 +374,21 @@ test("選單可以重看導覽，看完只是關掉", async () => {
   await waitFor(() => expect(screen.queryByText("導覽結束")).toBeNull())
   expect(done).toHaveBeenCalledTimes(1)
 })
+
+test("有新手任務時房間顯示任務卡，導覽開著時先不顯示", async () => {
+  current = summary({
+    starter_tasks: { swipe: true, quiz: false, scenario: false, shop: false },
+  })
+  await renderScene()
+  expect(await screen.findByTestId("starter-tasks")).toBeTruthy()
+  cleanup()
+  // 首頁資料兩秒內不重抓，換一份資料要先清快取
+  qc.clear()
+  current = summary({
+    tour_pending: true,
+    starter_tasks: { swipe: false, quiz: false, scenario: false, shop: false },
+  })
+  await renderScene()
+  await screen.findByText("這是你的房間")
+  expect(screen.queryByTestId("starter-tasks")).toBeNull()
+})

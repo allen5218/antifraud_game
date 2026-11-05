@@ -1,6 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import { PropertyCard } from "@/components/assets/PropertyCard"
+import { onboardingApi } from "@/components/room/onboardingApi"
 import { Skeleton } from "@/components/ui/skeleton"
 import {
   extractErrorCode,
@@ -16,6 +17,13 @@ export function ShopPage() {
   const [tab, setTab] = useState<"mascot" | "property">("mascot")
   const [shortId, setShortId] = useState<string | null>(null)
   const queryClient = useQueryClient()
+  // 新手任務「去購物看看」：進來就算看過；記不到也不影響購物
+  useEffect(() => {
+    onboardingApi
+      .shopVisited()
+      .then(() => queryClient.invalidateQueries({ queryKey: HOME_SUMMARY_KEY }))
+      .catch(() => {})
+  }, [queryClient])
   const list = useQuery(mascotItemsQuery)
   const purchase = useMutation({
     mutationFn: (id: string) => mascotApi.purchase(id),

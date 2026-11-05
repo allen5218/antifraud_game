@@ -5,6 +5,7 @@ import type { PropertyTierPublic } from "@/client"
 import { ApiError } from "@/client/core/ApiError"
 import { CancelablePromise } from "@/client/core/CancelablePromise"
 import { EconomyService } from "@/client/sdk.gen"
+import { onboardingApi } from "@/components/room/onboardingApi"
 import { type MascotShopItem, mascotApi } from "./mascotApi"
 import { ShopPage } from "./ShopPage"
 
@@ -124,4 +125,13 @@ test("房產分頁列出六級", async () => {
   for (const name of ["雅房", "套房", "兩房公寓", "三房公寓", "別墅", "豪宅"]) {
     expect(await screen.findByRole("heading", { name })).toBeTruthy()
   }
+})
+
+test("進商店會記下看過商店（新手任務的一項）", async () => {
+  const visited = spyOn(onboardingApi, "shopVisited").mockImplementation(() =>
+    response(undefined),
+  )
+  renderShop()
+  await screen.findByText("柴犬")
+  expect(visited).toHaveBeenCalledTimes(1)
 })
