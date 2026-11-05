@@ -30,6 +30,7 @@ import { CancelablePromise } from "@/client/core/CancelablePromise"
 import { EconomyService, ExamService } from "@/client/sdk.gen"
 import type { HomeSummary } from "@/hooks/useHomeSummary"
 import { homeApi } from "@/hooks/useHomeSummary"
+import { onboardingApi } from "./onboardingApi"
 import { RoomScene } from "./RoomScene"
 
 const response = <T,>(value: T) =>
@@ -95,7 +96,7 @@ afterEach(() => {
   mock.restore()
 })
 
-async function renderScene() {
+async function renderScene(entry = "/") {
   const rootRoute = createRootRoute({
     component: () => (
       <QueryClientProvider client={qc}>
@@ -120,7 +121,7 @@ async function renderScene() {
   })
   const router = createRouter({
     routeTree: rootRoute.addChildren([home, scenarios, pretest]),
-    history: createMemoryHistory({ initialEntries: ["/"] }),
+    history: createMemoryHistory({ initialEntries: [entry] }),
   })
   await router.load()
   await act(async () => {
@@ -322,4 +323,54 @@ test("核准的老師在頁首看到班級管理，申請中與一般玩家沒�
   const classes = await screen.findByTestId("room-classes")
   expect(classes.getAttribute("href")).toBe("/classes")
   expect(classes.textContent).toBe("班級管理")
+})
+
+test("還沒玩過的帳號一進房間先看導覽，跳過會記下來", async () => {
+  current = summary({ tour_pending: true, pretest_done: false })
+  const done = spyOn(onboardingApi, "tourDone").mockImplementation(() =>
+    response(undefined),
+  )
+  await renderScene()
+  expect(await screen.findByText("這是你的房間")).toBeTruthy()
+  // 導覽開著時不同時跳出吉祥物對話框
+  expect(screen.queryByText("收起")).toBeNull()
+  fireEvent.click(screen.getByRole("button", { name: "跳過導覽" }))
+  await waitFor(() => expect(done).toHaveBeenCalledTimes(1))
+  await waitFor(() => expect(screen.queryByText("這是你的房間")).toBeNull())
+})
+
+test("導覽一步一步走到最後，新帳號接著去做入門前測", async () => {
+  current = summary({ tour_pending: true, pretest_done: false })
+  const done = spyOn(onboardingApi, "tourDone").mockImplementation(() =>
+    response(undefined),
+  )
+  await renderScene()
+  await screen.findByText("這是你的房間")
+  expect(screen.getByText("第 1／10 步")).toBeTruthy()
+  for (let i = 0; i < 9; i++) {
+    fireEvent.click(screen.getByRole("button", { name: "下一步" }))
+  }
+  expect(screen.getByText("先做個小測驗")).toBeTruthy()
+  fireEvent.click(screen.getByRole("link", { name: "開始" }))
+  expect(await screen.findByText("進了前測")).toBeTruthy()
+  expect(done).toHaveBeenCalledTimes(1)
+})
+
+test("選單可以重看導覽，看完只是關掉", async () => {
+  const done = spyOn(onboardingApi, "tourDone").mockImplementation(() =>
+    response(undefined),
+  )
+  await renderScene()
+  await screen.findByText("本輪加強：投資詐騙。先去練練看，做完就有錢。")
+  fireEvent.click(screen.getByTestId("room-menu"))
+  fireEvent.click(
+    within(screen.getByTestId("room-menu-list")).getByText("重看導覽"),
+  )
+  expect(await screen.findByText("這是你的房間")).toBeTruthy()
+  for (let i = 0; i < 9; i++) {
+    fireEvent.click(screen.getByRole("button", { name: "下一步" }))
+  }
+  fireEvent.click(screen.getByRole("button", { name: "知道了" }))
+  await waitFor(() => expect(screen.queryByText("導覽結束")).toBeNull())
+  expect(done).toHaveBeenCalledTimes(1)
 })

@@ -1,4 +1,5 @@
-import { Link, useRouter } from "@tanstack/react-router"
+import { useQueryClient } from "@tanstack/react-query"
+import { Link, useNavigate, useRouter, useSearch } from "@tanstack/react-router"
 import {
   Coins,
   GraduationCap,
@@ -10,7 +11,7 @@ import {
 } from "lucide-react"
 import { useEffect, useState } from "react"
 import { useClaimAccrual, useEconomyMe } from "@/hooks/useEconomy"
-import { useHomeSummary } from "@/hooks/useHomeSummary"
+import { HOME_SUMMARY_KEY, useHomeSummary } from "@/hooks/useHomeSummary"
 import {
   mascotLine,
   mascotPose,
@@ -24,8 +25,11 @@ import {
   trialStep,
 } from "./logic"
 import { MascotGuide } from "./MascotGuide"
+import { OnboardingTour } from "./OnboardingTour"
+import { onboardingApi } from "./onboardingApi"
 import { RoomMenu } from "./RoomMenu"
 import { RoomStage } from "./RoomStage"
+import { tourSteps } from "./tour"
 
 const GUIDE_SEEN_KEY = "room-guide-seen"
 const LAST_ROOM_KEY = "room-last-look"
@@ -110,6 +114,27 @@ export function RoomScene() {
   const items = data ? menuItems(data) : []
   const [menuOpen, setMenuOpen] = useState(false)
   const [guideOpen, setGuideOpen] = useState(() => !guideSeenToday())
+  // 導覽：還沒玩過的帳號自動開；選單「重看導覽」帶 ?tour=1
+  const queryClient = useQueryClient()
+  const navigate = useNavigate()
+  const replay = Boolean(
+    (useSearch({ strict: false }) as { tour?: unknown }).tour,
+  )
+  const [tourClosed, setTourClosed] = useState(false)
+  const tourOpen =
+    Boolean(data) && !tourClosed && (replay || data?.tour_pending === true)
+  useEffect(() => {
+    // 重看導覽時再按一次選單，重新打開
+    if (replay) setTourClosed(false)
+  }, [replay])
+  const finishTour = () => {
+    setTourClosed(true)
+    onboardingApi
+      .tourDone()
+      .then(() => queryClient.invalidateQueries({ queryKey: HOME_SUMMARY_KEY }))
+      .catch(() => {})
+    if (replay) navigate({ to: "/", search: {}, replace: true })
+  }
   const cash = economy.data?.cash ?? 0
   const pending = economy.data?.pending_accrual ?? 0
   const streakDays = economy.data?.streak_days ?? 0
@@ -267,7 +292,14 @@ export function RoomScene() {
       {menuOpen && (
         <RoomMenu items={items} onNavigate={() => setMenuOpen(false)} />
       )}
-      {guideOpen && (
+      {tourOpen && data && (
+        <OnboardingTour
+          steps={tourSteps(data, replay)}
+          mascotSrc={poseImage(data.mascot_image_url, "point")}
+          onFinish={finishTour}
+        />
+      )}
+      {guideOpen && !tourOpen && (
         <MascotGuide
           line={line}
           streakDays={streakDays}

@@ -13,6 +13,9 @@ export const Route = createFileRoute("/_shell/")({
       propertiesQuery,
     ])
   },
+  // 選單「重看導覽」帶 ?tour=1 回房間
+  validateSearch: (search: Record<string, unknown>): { tour?: 1 } =>
+    search.tour ? { tour: 1 } : {},
   component: Home,
 })
 

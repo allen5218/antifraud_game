@@ -4,6 +4,7 @@ import {
   BookOpen,
   CalendarDays,
   ClipboardList,
+  Compass,
   GraduationCap,
   Mail,
   MessageCircle,
@@ -27,6 +28,7 @@ export const MENU_ICONS = {
   admin: QrCode,
   classes: GraduationCap,
   classwork: NotebookPen,
+  tour: Compass,
 } as const
 
 export function RoomMenu({
@@ -48,6 +50,7 @@ export function RoomMenu({
             <li key={item.id}>
               <Link
                 to={item.to}
+                search={item.search}
                 onClick={onNavigate}
                 className={`flex items-center gap-2 rounded-xl px-3 py-2.5 text-sm ${
                   item.done ? "opacity-50" : ""

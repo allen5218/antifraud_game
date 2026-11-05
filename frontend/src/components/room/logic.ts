@@ -19,6 +19,7 @@ export type MascotLine = {
 }
 
 export type MenuTo =
+  | "/"
   | "/scenarios"
   | "/quick/swipe"
   | "/quick/quiz"
@@ -41,10 +42,13 @@ export type MenuItem = {
     | "admin"
     | "classes"
     | "classwork"
+    | "tour"
   label: string
   status: string
   done: boolean
   to: MenuTo
+  /** 重看導覽：回房間並帶 `?tour=1` */
+  search?: { tour: 1 }
 }
 
 export type MascotPose = "base" | "point" | "cheer" | "think"
@@ -367,6 +371,14 @@ export function menuItems(s: HomeSummary): MenuItem[] {
       to: "/admin/cohorts",
     })
   }
+  items.push({
+    id: "tour",
+    label: "重看導覽",
+    status: "家具和功能介紹",
+    done: false,
+    to: "/",
+    search: { tour: 1 },
+  })
   if (!s.exam_active_attempt_id) return items
   const training = new Set<MenuItem["id"]>([
     "phone",

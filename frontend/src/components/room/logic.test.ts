@@ -213,6 +213,7 @@ describe("menuItems", () => {
       "bookshelf",
       "leaderboard",
       "badges",
+      "tour",
     ])
     expect(items.map((item) => item.label)).toEqual([
       "情境對抗",
@@ -222,6 +223,7 @@ describe("menuItems", () => {
       "檢測",
       "排行榜",
       "我的徽章",
+      "重看導覽",
     ])
     expect(items.find((item) => item.id === "calendar")?.done).toBe(true)
     expect(items.find((item) => item.id === "phone")?.to).toBe("/scenarios")
