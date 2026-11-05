@@ -74,6 +74,20 @@ class PracticeProfilePublic(BaseModel):
 # ── 首頁房間 ───────────────────────────────────────────────
 
 
+class StarterTasks(BaseModel):
+    """新手任務四項：各種練習完成過一輪、看過商店。"""
+
+    swipe: bool
+    quiz: bool
+    scenario: bool
+    shop: bool
+
+
+class StarterReward(BaseModel):
+    cash: int
+    xp: int
+
+
 class HomeSummary(BaseModel):
     room_stage: int
     mascot_image_url: str
@@ -103,6 +117,10 @@ class HomeSummary(BaseModel):
     classwork_next: str | None = None
     # 管理員：房間選單多一個「試測管理」
     admin_access: bool = False
+    # 還沒玩過任何東西、也沒看過導覽：進房間先看吉祥物導覽
+    tour_pending: bool = False
+    # 新手任務：看過導覽、做完入門前測（試測帳號是交完問卷）、還沒領獎才有
+    starter_tasks: StarterTasks | None = None
 
 
 # ── Economy ───────────────────────────────────────────────

@@ -73,6 +73,7 @@ export type ChoiceItem = {
     multi: boolean;
     n: number;
     options: Array<ChoiceCount>;
+    not_asked?: number;
 };
 
 export type ClassMemberDetail = {
@@ -523,6 +524,8 @@ export type HomeSummary = {
     classwork_pending?: number;
     classwork_next?: (string | null);
     admin_access?: boolean;
+    tour_pending?: boolean;
+    starter_tasks?: (StarterTasks | null);
 };
 
 export type HTTPValidationError = {
@@ -588,6 +591,7 @@ export type LikertItem = {
     counts: Array<(number)>;
     n: number;
     mean: (number | null);
+    not_asked?: number;
 };
 
 export type LiquidateRequest = {
@@ -1044,6 +1048,21 @@ export type StageAccuracy = {
     accuracy: (number | null);
     people: number;
     items: number;
+};
+
+export type StarterReward = {
+    cash: number;
+    xp: number;
+};
+
+/**
+ * 新手任務四項：各種練習完成過一輪、看過商店。
+ */
+export type StarterTasks = {
+    swipe: boolean;
+    quiz: boolean;
+    scenario: boolean;
+    shop: boolean;
 };
 
 /**
@@ -1790,6 +1809,12 @@ export type MascotToggleEquipData = {
 export type MascotToggleEquipResponse = (MascotDisplayPublic);
 
 export type MascotGetMyMascotResponse = (MascotPublic);
+
+export type OnboardingTourDoneResponse = (void);
+
+export type OnboardingShopVisitedResponse = (void);
+
+export type OnboardingClaimRewardResponse = (StarterReward);
 
 export type PracticeReadProfileResponse = (PracticeProfilePublic);
 

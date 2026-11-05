@@ -12,6 +12,9 @@ export function RailMenu({ items }: { items: MenuItem[] }) {
           <li key={item.id}>
             <Link
               to={item.to}
+              search={item.search}
+              // 「/」不精確比對的話，每一頁都會把「重看導覽」標成目前所在
+              activeOptions={{ exact: item.to === "/" }}
               className={`flex items-start gap-2.5 rounded-lg px-3 py-1.5 text-sm text-muted-foreground transition hover:bg-accent/60 hover:text-foreground ${
                 item.done ? "opacity-60" : ""
               }`}

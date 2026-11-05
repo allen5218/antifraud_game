@@ -8,6 +8,7 @@ from app.trial.analytics import tam_constructs
 from app.trial.survey import (
     QUESTIONS,
     TAM_CONSTRUCTS,
+    SurveyContext,
     SurveyError,
     questions_for,
     validate_answers,
@@ -45,9 +46,9 @@ def test_every_construct_has_at_least_three_items() -> None:
 
 
 def test_without_exam_skips_difficulty() -> None:
-    general = questions_for(exam_done=False)
+    general = questions_for(SurveyContext(False, True, True, True, True, True))
     assert "exam_difficulty" not in {q.id for q in general}
-    assert questions_for(exam_done=True) == QUESTIONS
+    assert questions_for(SurveyContext(True, True, True, True, True, True)) == QUESTIONS
     clean = validate_answers(full_answers(general), general)
     assert "exam_difficulty" not in clean
     # 試測版仍然要答檢測難度

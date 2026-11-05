@@ -14,10 +14,26 @@ from sqlmodel import Session, col, select
 
 from app.api.deps import CurrentUser, SessionDep
 from app.api.routes.admin_cohorts import cohort_rows
-from app.models import ExamAttempt, TrialSurvey, User, get_datetime_utc
+from app.models import (
+    ExamAttempt,
+    ExamBadge,
+    MascotItem,
+    TrialSurvey,
+    User,
+    UserMascotItem,
+    UserProperty,
+    get_datetime_utc,
+)
+from app.onboarding.service import completed_rounds
 from app.schemas import SurveyQuestionPublic, TrialSurveyPublic, TrialSurveySubmit
 from app.trial.audience import general_survey_ready, is_general_player
-from app.trial.survey import SurveyError, attention_ok, questions_for, validate_answers
+from app.trial.survey import (
+    SurveyContext,
+    SurveyError,
+    attention_ok,
+    questions_for,
+    validate_answers,
+)
 
 router = APIRouter(prefix="/trial", tags=["trial"])
 
@@ -35,6 +51,44 @@ def exam_done(session: Session, user_id: uuid.UUID) -> bool:
         ).first()
         is not None
     )
+
+
+def survey_context(session: Session, user_id: uuid.UUID) -> SurveyContext:
+    """作答者做過哪些事；問卷只問做過的（`questions_for`）。"""
+    swipe, quiz, scenario = completed_rounds(session, user_id)
+    purchased = (
+        session.exec(
+            select(UserProperty.id).where(UserProperty.user_id == user_id)
+        ).first()
+        is not None
+        or session.exec(
+            select(UserMascotItem.id)
+            .join(MascotItem, col(MascotItem.id) == col(UserMascotItem.item_id))
+            .where(UserMascotItem.user_id == user_id, MascotItem.cost > 0)
+        ).first()
+        is not None
+    )
+    badge = (
+        session.exec(select(ExamBadge.id).where(ExamBadge.user_id == user_id)).first()
+        is not None
+    )
+    return SurveyContext(
+        exam_done=exam_done(session, user_id),
+        swipe=swipe,
+        quiz=quiz,
+        scenario=scenario,
+        purchased=purchased,
+        badge=badge,
+    )
+
+
+def locked_context(
+    session: Session, user: User, survey: TrialSurvey | None
+) -> SurveyContext:
+    """開始作答後照開始時存的條件出題；還沒開始、或舊列沒存，就照現在算。"""
+    if survey is not None and survey.context is not None:
+        return SurveyContext.from_json(survey.context)
+    return survey_context(session, user.id)
 
 
 @dataclass
@@ -93,8 +147,8 @@ def _public(session: Session, user: User) -> TrialSurveyPublic:
     eligible, reasons = (
         _payout(session, user) if trial and state.submitted else (False, [])
     )
-    # 試測帳號開始填之前一定做完檢測，題目永遠是完整版
-    questions = questions_for(exam_done=trial or state.exam_done)
+    survey = session.get(TrialSurvey, user.id)
+    questions = questions_for(locked_context(session, user, survey))
     return TrialSurveyPublic(
         questions=[
             SurveyQuestionPublic(
@@ -135,7 +189,12 @@ def start_survey(session: SessionDep, current_user: CurrentUser) -> TrialSurveyP
         raise HTTPException(status_code=400, detail={"code": code})
     session.execute(
         insert(TrialSurvey)
-        .values(user_id=current_user.id, started_at=get_datetime_utc(), answers={})
+        .values(
+            user_id=current_user.id,
+            started_at=get_datetime_utc(),
+            answers={},
+            context=survey_context(session, current_user.id).to_json(),
+        )
         .on_conflict_do_nothing(index_elements=["user_id"])
     )
     session.commit()
@@ -146,7 +205,7 @@ def start_survey(session: SessionDep, current_user: CurrentUser) -> TrialSurveyP
 def submit_survey(
     body: TrialSurveySubmit, session: SessionDep, current_user: CurrentUser
 ) -> TrialSurveyPublic:
-    state = _require_audience(session, current_user)
+    _require_audience(session, current_user)
     survey = session.exec(
         select(TrialSurvey)
         .where(TrialSurvey.user_id == current_user.id)
@@ -159,7 +218,7 @@ def submit_survey(
     try:
         answers = validate_answers(
             body.answers,
-            questions_for(exam_done=state.audience == "trial" or state.exam_done),
+            questions_for(locked_context(session, current_user, survey)),
         )
     except SurveyError as error:
         raise HTTPException(

@@ -14,6 +14,7 @@ from app.api.routes import (
     login,
     mascot,
     oauth,
+    onboarding,
     practice,
     pretest,
     private,
@@ -38,6 +39,7 @@ api_router.include_router(practice.router)
 api_router.include_router(score.router)
 api_router.include_router(mascot.router)
 api_router.include_router(home.router)
+api_router.include_router(onboarding.router)
 api_router.include_router(economy.router)
 api_router.include_router(quick.router)
 api_router.include_router(scenario.router)

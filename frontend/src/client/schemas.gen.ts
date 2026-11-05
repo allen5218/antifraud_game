@@ -303,6 +303,11 @@ export const ChoiceItemSchema = {
             },
             type: 'array',
             title: 'Options'
+        },
+        not_asked: {
+            type: 'integer',
+            title: 'Not Asked',
+            default: 0
         }
     },
     type: 'object',
@@ -2433,6 +2438,21 @@ export const HomeSummarySchema = {
             type: 'boolean',
             title: 'Admin Access',
             default: false
+        },
+        tour_pending: {
+            type: 'boolean',
+            title: 'Tour Pending',
+            default: false
+        },
+        starter_tasks: {
+            anyOf: [
+                {
+                    '$ref': '#/components/schemas/StarterTasks'
+                },
+                {
+                    type: 'null'
+                }
+            ]
         }
     },
     type: 'object',
@@ -2720,6 +2740,11 @@ export const LikertItemSchema = {
                 }
             ],
             title: 'Mean'
+        },
+        not_asked: {
+            type: 'integer',
+            title: 'Not Asked',
+            default: 0
         }
     },
     type: 'object',
@@ -4665,6 +4690,47 @@ export const StageAccuracySchema = {
     type: 'object',
     required: ['key', 'label', 'accuracy', 'people', 'items'],
     title: 'StageAccuracy'
+} as const;
+
+export const StarterRewardSchema = {
+    properties: {
+        cash: {
+            type: 'integer',
+            title: 'Cash'
+        },
+        xp: {
+            type: 'integer',
+            title: 'Xp'
+        }
+    },
+    type: 'object',
+    required: ['cash', 'xp'],
+    title: 'StarterReward'
+} as const;
+
+export const StarterTasksSchema = {
+    properties: {
+        swipe: {
+            type: 'boolean',
+            title: 'Swipe'
+        },
+        quiz: {
+            type: 'boolean',
+            title: 'Quiz'
+        },
+        scenario: {
+            type: 'boolean',
+            title: 'Scenario'
+        },
+        shop: {
+            type: 'boolean',
+            title: 'Shop'
+        }
+    },
+    type: 'object',
+    required: ['swipe', 'quiz', 'scenario', 'shop'],
+    title: 'StarterTasks',
+    description: '新手任務四項：各種練習完成過一輪、看過商店。'
 } as const;
 
 export const SurveyAnalyticsSchema = {

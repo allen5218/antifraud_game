@@ -5,7 +5,7 @@
 選了「其他」的單選與複選，另外存 `<代號>_other` 的文字。
 """
 
-from dataclasses import dataclass
+from dataclasses import asdict, dataclass, fields, replace
 from typing import Any, Literal
 
 QuestionKind = Literal["consent", "single", "multi", "scale", "text"]
@@ -13,6 +13,7 @@ QuestionKind = Literal["consent", "single", "multi", "scale", "text"]
 AGREE_LABELS = ("非常不同意", "不同意", "普通", "同意", "非常同意")
 CONFIDENCE_LABELS = ("非常沒信心", "沒信心", "普通", "有信心", "非常有信心")
 OTHER = "其他"
+GAMIFY = "遊戲化（點數、房產、吉祥物、徽章）"
 
 MIN_SECONDS = 60
 """問卷作答少於這個秒數，視為沒有仔細看題目（試測發錢條件之一）。"""
@@ -158,7 +159,7 @@ QUESTIONS: tuple[Question, ...] = (
             "訊息判讀",
             "情境對抗",
             "檢測",
-            "遊戲化（點數、房產、吉祥物、徽章）",
+            GAMIFY,
             OTHER,
         ),
         other=True,
@@ -181,14 +182,78 @@ QUESTIONS: tuple[Question, ...] = (
 )
 
 QUESTION_IDS = tuple(q.id for q in QUESTIONS)
-EXAM_ONLY = frozenset({"exam_difficulty"})
-"""沒做過綜合檢測的一般玩家，問卷不問這幾題。"""
 
 
-def questions_for(exam_done: bool) -> tuple[Question, ...]:
-    if exam_done:
-        return QUESTIONS
-    return tuple(q for q in QUESTIONS if q.id not in EXAM_ONLY)
+@dataclass(frozen=True)
+class SurveyContext:
+    """作答者做過哪些事，決定問卷問哪幾題。開始作答時存進 `trial_survey.context`。
+
+    exam_done：正常交卷、有算次數的綜合檢測；swipe／quiz／scenario：各完成過一輪練習
+    （每日訓練不算）；purchased：買過吉祥物或房產；badge：拿過徽章。
+    """
+
+    exam_done: bool
+    swipe: bool
+    quiz: bool
+    scenario: bool
+    purchased: bool
+    badge: bool
+
+    @property
+    def practiced(self) -> bool:
+        return self.swipe or self.quiz or self.scenario
+
+    def to_json(self) -> dict[str, bool]:
+        return asdict(self)
+
+    @classmethod
+    def from_json(cls, data: dict[str, Any]) -> "SurveyContext":
+        return cls(**{f.name: bool(data.get(f.name)) for f in fields(cls)})
+
+
+def _asked(qid: str, ctx: SurveyContext) -> bool:
+    """沒做過的事不問。沒列在這裡的題目每個人都問。"""
+    if qid in ("exam_difficulty", "points_reward"):
+        return ctx.exam_done
+    if qid in ("focus_reason", "focus_match"):
+        return ctx.practiced
+    if qid == "gamification":
+        return ctx.practiced or ctx.purchased
+    if qid == "badges":
+        return ctx.badge
+    if qid == "ai_safe":
+        # 綜合檢測的第四關是情境對抗
+        return ctx.scenario or ctx.exam_done
+    return True
+
+
+def _favorite_options(ctx: SurveyContext) -> tuple[str, ...]:
+    """「最喜歡的功能」只列用過的；檢測裡有滑卡、訊息判讀、情境對抗三關，也算用過。"""
+    used = {
+        "滑卡": ctx.swipe or ctx.exam_done,
+        "訊息判讀": ctx.quiz or ctx.exam_done,
+        "情境對抗": ctx.scenario or ctx.exam_done,
+        "檢測": ctx.exam_done,
+        GAMIFY: _asked("gamification", ctx),
+        OTHER: True,
+    }
+    favorite = next(q for q in QUESTIONS if q.id == "favorite")
+    return tuple(o for o in favorite.options if used.get(o, True))
+
+
+def questions_for(ctx: SurveyContext) -> tuple[Question, ...]:
+    result: list[Question] = []
+    for q in QUESTIONS:
+        if not _asked(q.id, ctx):
+            continue
+        if q.id == "favorite":
+            options = _favorite_options(ctx)
+            # 只剩「其他」就整題不問
+            if options == (OTHER,):
+                continue
+            q = replace(q, options=options)
+        result.append(q)
+    return tuple(result)
 
 
 class SurveyError(ValueError):
