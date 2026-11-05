@@ -894,6 +894,27 @@ class TrialSurvey(SQLModel, table=True):
     submitted_at: datetime | None = Field(default=None, sa_type=DateTime(timezone=True))  # type: ignore
     duration_seconds: float | None = Field(default=None)
     attention_ok: bool | None = Field(default=None)
+    # 開始作答時的判定條件（做過檢測、練過哪幾種…），送出時照這份決定題目；舊列沒有
+    context: dict[str, Any] | None = Field(default=None, sa_column=Column(JSONB))
+
+
+class UserOnboarding(SQLModel, table=True):
+    """新手導覽與新手任務：導覽看完（或跳過）、看過商店、領過獎勵的時間。"""
+
+    __tablename__ = "user_onboarding"
+
+    user_id: uuid.UUID = Field(
+        foreign_key="user.id", primary_key=True, ondelete="CASCADE"
+    )
+    tour_done_at: datetime | None = Field(default=None, sa_type=DateTime(timezone=True))  # type: ignore
+    shop_visited_at: datetime | None = Field(
+        default=None,
+        sa_type=DateTime(timezone=True),  # type: ignore
+    )
+    reward_claimed_at: datetime | None = Field(
+        default=None,
+        sa_type=DateTime(timezone=True),  # type: ignore
+    )
 
 
 class Classroom(SQLModel, table=True):

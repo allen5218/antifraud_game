@@ -24,6 +24,7 @@ from app.models import (
     ScenarioSession,
     UserProperty,
 )
+from app.onboarding.service import starter_tasks, tour_pending
 from app.schemas import HomeSummary, PracticeProfilePublic
 
 router = APIRouter(prefix="/home", tags=["home"])
@@ -70,6 +71,7 @@ def home_summary(session: SessionDep, current_user: CurrentUser) -> HomeSummary:
         survey.audience == "trial"
         or (survey.audience == "general" and survey.can_start)
     ) and not survey.submitted
+    pretest_done = latest_weakest_type(session, current_user.id) is not None
     classes = my_classes(session, current_user.id)
     classwork_pending, classwork_next = classwork_reminder(classes)
     return HomeSummary(
@@ -79,7 +81,7 @@ def home_summary(session: SessionDep, current_user: CurrentUser) -> HomeSummary:
         classwork_next=classwork_next,
         room_stage=room_stage,
         mascot_image_url=displayed_mascot(session, current_user.id).image_url,
-        pretest_done=latest_weakest_type(session, current_user.id) is not None,
+        pretest_done=pretest_done,
         inbox_pending=pending,
         daily_unlocked=level_of(current_user.xp) >= DAILY_UNLOCK_LEVEL,
         daily_done=session.get(DailyResult, (current_user.id, taipei_today()))
@@ -95,6 +97,13 @@ def home_summary(session: SessionDep, current_user: CurrentUser) -> HomeSummary:
         focus_label=profile.focus_label,
         team_access=has_team_access(current_user),
         admin_access=current_user.is_superuser,
+        tour_pending=tour_pending(session, current_user),
+        starter_tasks=starter_tasks(
+            session,
+            current_user,
+            survey_submitted=survey.submitted,
+            pretest_done=pretest_done,
+        ),
         survey_pending=survey_pending,
         trial=current_user.cohort_id is not None,
         survey_ready=survey_pending and survey.can_start,
