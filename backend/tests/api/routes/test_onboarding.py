@@ -27,6 +27,7 @@ from tests.utils.user import create_random_user, user_authentication_headers
 from tests.utils.utils import random_lower_string
 
 BASE = settings.API_V1_STR
+REWARD = {"reward_cash": 500, "reward_xp": 100}
 
 
 @pytest.fixture
@@ -162,6 +163,7 @@ def test_tasks_wait_for_pretest(
         "quiz": False,
         "scenario": False,
         "shop": False,
+        **REWARD,
     }
 
 
@@ -187,13 +189,25 @@ def test_task_progress(
     add_quiz(db, user.id, daily=date(2026, 11, 5))
     add_scenario(db, user.id, pool="exam")
     tasks = summary(client, headers)["starter_tasks"]
-    assert tasks == {"swipe": True, "quiz": False, "scenario": False, "shop": False}
+    assert tasks == {
+        "swipe": True,
+        "quiz": False,
+        "scenario": False,
+        "shop": False,
+        **REWARD,
+    }
     add_quiz(db, user.id)
     add_scenario(db, user.id)
     response = client.post(f"{BASE}/onboarding/shop", headers=headers)
     assert response.status_code == 204, response.text
     tasks = summary(client, headers)["starter_tasks"]
-    assert tasks == {"swipe": True, "quiz": True, "scenario": True, "shop": True}
+    assert tasks == {
+        "swipe": True,
+        "quiz": True,
+        "scenario": True,
+        "shop": True,
+        **REWARD,
+    }
 
 
 def test_claim_requires_all_tasks(
@@ -238,3 +252,37 @@ def test_replay_tour_shows_tasks(
     assert summary(client, headers)["starter_tasks"] is None
     finish_tour(client, headers)
     assert summary(client, headers)["starter_tasks"] is not None
+
+
+def test_tasks_include_reward_amounts(
+    client: TestClient, db: Session, player: tuple[User, dict[str, str]]
+) -> None:
+    """領獎按鈕上的金額從後端來，不在前端寫死。"""
+    user, headers = player
+    finish_tour(client, headers)
+    add_pretest(db, user.id)
+    tasks = summary(client, headers)["starter_tasks"]
+    assert (tasks["reward_cash"], tasks["reward_xp"]) == (500, 100)
+
+
+def test_old_trial_account_sees_tasks_without_tour(
+    client: TestClient, db: Session, trial_player: tuple[uuid.UUID, dict[str, str]]
+) -> None:
+    """導覽上線前就交完問卷的試測帳號，回來也看得到新手任務，也能領獎。"""
+    user_id, headers = trial_player
+    db.add(
+        PracticeAnswer(user_id=user_id, mode="swipe", fraud_type="atm", correct=True)
+    )
+    db.add(TrialSurvey(user_id=user_id, answers={}, submitted_at=get_datetime_utc()))
+    db.commit()
+    data = summary(client, headers)
+    assert data["tour_pending"] is False
+    assert data["starter_tasks"] is not None
+    add_swipe(db, user_id)
+    add_quiz(db, user_id)
+    add_scenario(db, user_id)
+    assert client.post(f"{BASE}/onboarding/shop", headers=headers).status_code == 204
+    first = client.post(f"{BASE}/onboarding/claim", headers=headers)
+    assert first.status_code == 200, first.text
+    again = client.post(f"{BASE}/onboarding/claim", headers=headers)
+    assert again.json()["detail"]["code"] == "reward_claimed"

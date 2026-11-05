@@ -68,7 +68,7 @@ export function StarterTasksCard({ tasks }: { tasks: StarterTasks }) {
   return (
     <section
       data-testid="starter-tasks"
-      className="w-48 rounded-2xl border bg-card/95 p-2.5 text-card-foreground shadow-lg"
+      className="w-full rounded-2xl border bg-card/95 p-2.5 text-card-foreground shadow-lg"
     >
       <div className="flex items-center gap-1">
         <p className="flex-1 text-sm font-bold tabular-nums">
@@ -87,6 +87,11 @@ export function StarterTasksCard({ tasks }: { tasks: StarterTasks }) {
           )}
         </button>
       </div>
+      {!collapsed && (
+        <p className="text-[11px] text-muted-foreground">
+          獎勵：{tasks.reward_cash} 元、{tasks.reward_xp} 經驗值
+        </p>
+      )}
       {!collapsed && (
         <ul className="mt-1 flex flex-col">
           {TASKS.map((task) => {
@@ -120,7 +125,7 @@ export function StarterTasksCard({ tasks }: { tasks: StarterTasks }) {
           disabled={claim.isPending}
           onClick={() => claim.mutate()}
         >
-          領 500 元和 100 經驗值
+          領獎勵
         </Button>
       )}
     </section>

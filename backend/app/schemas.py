@@ -81,6 +81,9 @@ class StarterTasks(BaseModel):
     quiz: bool
     scenario: bool
     shop: bool
+    # 四項都完成可以領的獎勵（前端按鈕照這兩個數字寫）
+    reward_cash: int
+    reward_xp: int
 
 
 class StarterReward(BaseModel):

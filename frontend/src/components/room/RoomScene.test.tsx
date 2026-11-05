@@ -377,7 +377,14 @@ test("選單可以重看導覽，看完只是關掉", async () => {
 
 test("有新手任務時房間顯示任務卡，導覽開著時先不顯示", async () => {
   current = summary({
-    starter_tasks: { swipe: true, quiz: false, scenario: false, shop: false },
+    starter_tasks: {
+      swipe: true,
+      quiz: false,
+      scenario: false,
+      shop: false,
+      reward_cash: 500,
+      reward_xp: 100,
+    },
   })
   await renderScene()
   expect(await screen.findByTestId("starter-tasks")).toBeTruthy()
@@ -386,7 +393,14 @@ test("有新手任務時房間顯示任務卡，導覽開著時先不顯示", as
   qc.clear()
   current = summary({
     tour_pending: true,
-    starter_tasks: { swipe: false, quiz: false, scenario: false, shop: false },
+    starter_tasks: {
+      swipe: false,
+      quiz: false,
+      scenario: false,
+      shop: false,
+      reward_cash: 500,
+      reward_xp: 100,
+    },
   })
   await renderScene()
   await screen.findByText("這是你的房間")
