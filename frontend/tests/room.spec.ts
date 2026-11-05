@@ -1,7 +1,7 @@
 import { expect, test } from "@playwright/test"
 import { createUser } from "./utils/privateApi.ts"
 import { randomEmail, randomPassword } from "./utils/random"
-import { logInUser } from "./utils/user"
+import { logInUser, skipTour } from "./utils/user"
 
 // 用新帳號：共用的 superuser 會被其他測試改現金與房產，房間階段就不固定。
 // 新玩家固定 1,000 元，雅房剛好 1,000、貓 1,500，所以結果每次都一樣。
@@ -21,6 +21,9 @@ test.describe("房間首頁", () => {
       "src",
       "/assets/room/0/bg.webp",
     )
+    // 新玩家先看到新手導覽，跳過之後吉祥物帶去前測
+    await expect(page.getByText("這是你的房間")).toBeVisible()
+    await skipTour(page)
     await expect(page.getByRole("link", { name: "開始" })).toHaveAttribute(
       "href",
       "/pretest",
@@ -37,6 +40,7 @@ test.describe("房間首頁", () => {
     const password = randomPassword()
     await createUser({ email, password })
     await logInUser(page, email, password)
+    await skipTour(page)
 
     await page.getByTestId("room-shop").click()
     await expect(page).toHaveURL(/\/shop/)
