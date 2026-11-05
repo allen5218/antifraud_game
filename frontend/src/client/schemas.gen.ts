@@ -4725,10 +4725,18 @@ export const StarterTasksSchema = {
         shop: {
             type: 'boolean',
             title: 'Shop'
+        },
+        reward_cash: {
+            type: 'integer',
+            title: 'Reward Cash'
+        },
+        reward_xp: {
+            type: 'integer',
+            title: 'Reward Xp'
         }
     },
     type: 'object',
-    required: ['swipe', 'quiz', 'scenario', 'shop'],
+    required: ['swipe', 'quiz', 'scenario', 'shop', 'reward_cash', 'reward_xp'],
     title: 'StarterTasks',
     description: '新手任務四項：各種練習完成過一輪、看過商店。'
 } as const;

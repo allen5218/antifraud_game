@@ -67,12 +67,16 @@ const NONE: StarterTasks = {
   quiz: false,
   scenario: false,
   shop: false,
+  reward_cash: 500,
+  reward_xp: 100,
 }
 const ALL: StarterTasks = {
   swipe: true,
   quiz: true,
   scenario: true,
   shop: true,
+  reward_cash: 500,
+  reward_xp: 100,
 }
 
 test("列出四項任務，完成的打勾，寫出進度", async () => {
@@ -87,7 +91,7 @@ test("列出四項任務，完成的打勾，寫出進度", async () => {
       .getAttribute("data-done"),
   ).toBe("false")
   expect(screen.getByRole("link", { name: /去購物看看/ })).toBeTruthy()
-  expect(screen.queryByRole("button", { name: /領 500 元/ })).toBeNull()
+  expect(screen.queryByRole("button", { name: "領獎勵" })).toBeNull()
 })
 
 test("四項都完成才能領獎，領了會重讀房間資料", async () => {
@@ -96,7 +100,7 @@ test("四項都完成才能領獎，領了會重讀房間資料", async () => {
   )
   const invalidate = spyOn(qc, "invalidateQueries")
   await renderCard(ALL)
-  fireEvent.click(await screen.findByRole("button", { name: /領 500 元/ }))
+  fireEvent.click(await screen.findByRole("button", { name: "領獎勵" }))
   await waitFor(() => expect(claim).toHaveBeenCalledTimes(1))
   await waitFor(() =>
     expect(invalidate).toHaveBeenCalledWith({ queryKey: ["home-summary"] }),
@@ -110,4 +114,9 @@ test("可以收起，收起後只剩標題和進度", async () => {
   expect(screen.getByText("新手任務 0／4")).toBeTruthy()
   fireEvent.click(screen.getByRole("button", { name: "展開新手任務" }))
   expect(screen.getByRole("link", { name: /滑一輪卡/ })).toBeTruthy()
+})
+
+test("獎勵金額照後端給的寫，還沒做完就看得到", async () => {
+  await renderCard({ ...NONE, reward_cash: 800, reward_xp: 50 })
+  expect(await screen.findByText("獎勵：800 元、50 經驗值")).toBeTruthy()
 })

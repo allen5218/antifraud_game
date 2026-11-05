@@ -1063,6 +1063,8 @@ export type StarterTasks = {
     quiz: boolean;
     scenario: boolean;
     shop: boolean;
+    reward_cash: number;
+    reward_xp: number;
 };
 
 /**

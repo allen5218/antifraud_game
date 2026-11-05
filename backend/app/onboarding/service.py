@@ -1,7 +1,7 @@
 """新手導覽與新手任務的狀態。
 
 導覽：還沒玩過任何東西、也沒看過導覽的帳號，進房間會先看吉祥物導覽。
-新手任務：看完導覽之後（試測帳號要交完問卷，其他帳號要做完入門前測）出現，
+新手任務：試測帳號交完問卷就出現；其他帳號要看過導覽、做完入門前測才出現，
 四項是滑卡、訊息判讀、練習情境各完成一輪，加上看過商店；全部完成可以領一次獎勵。
 檢測與每日訓練的作答不算任務。
 """
@@ -86,14 +86,22 @@ def starter_tasks(
     session: Session, user: User, *, survey_submitted: bool, pretest_done: bool
 ) -> StarterTasks | None:
     row = session.get(UserOnboarding, user.id)
-    if row is None or row.tour_done_at is None or row.reward_claimed_at is not None:
+    if row is not None and row.reward_claimed_at is not None:
         return None
-    ready = survey_submitted if user.cohort_id is not None else pretest_done
-    if not ready:
+    if user.cohort_id is not None:
+        # 試測帳號交完問卷就出現；導覽上線前就交卷的人沒看過導覽，也要看得到
+        if not survey_submitted:
+            return None
+    elif row is None or row.tour_done_at is None or not pretest_done:
         return None
     swipe, quiz, scenario = completed_rounds(session, user.id)
     return StarterTasks(
-        swipe=swipe, quiz=quiz, scenario=scenario, shop=row.shop_visited_at is not None
+        swipe=swipe,
+        quiz=quiz,
+        scenario=scenario,
+        shop=row is not None and row.shop_visited_at is not None,
+        reward_cash=STARTER_REWARD_CASH,
+        reward_xp=STARTER_REWARD_XP,
     )
 
 

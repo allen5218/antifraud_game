@@ -296,9 +296,10 @@ export function RoomScene() {
       {menuOpen && (
         <RoomMenu items={items} onNavigate={() => setMenuOpen(false)} />
       )}
-      {/* 右下角沒有可點的家具，也不擋購物、房子與選單 */}
+      {/* 右下角沒有可點的家具，也不擋購物、房子與選單。電視點擊範圍的右緣在房間寬度約 47% 的地方，
+          卡片寬度抓 53% 再扣邊距，手機上就不會蓋到電視；寬的畫面最多 12rem */}
       {data?.starter_tasks && !tourOpen && (
-        <div className="absolute right-3 bottom-[calc(env(safe-area-inset-bottom)+1rem)] z-20">
+        <div className="absolute right-3 bottom-[calc(env(safe-area-inset-bottom)+1rem)] z-20 w-[min(12rem,calc(53%-1.25rem))]">
           <StarterTasksCard tasks={data.starter_tasks} />
         </div>
       )}

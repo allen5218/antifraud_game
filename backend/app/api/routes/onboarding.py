@@ -49,7 +49,10 @@ def claim_reward(session: SessionDep, current_user: CurrentUser) -> StarterRewar
         survey_submitted=survey_state(session, current_user).submitted,
         pretest_done=latest_weakest_type(session, current_user.id) is not None,
     )
-    if row is None or tasks is None or not all(tasks.model_dump().values()):
+    done = tasks is not None and all(
+        (tasks.swipe, tasks.quiz, tasks.scenario, tasks.shop)
+    )
+    if row is None or not done:
         raise HTTPException(status_code=400, detail={"code": "tasks_incomplete"})
     adjust_cash(current_user, STARTER_REWARD_CASH, reason="starter_tasks")
     add_xp(current_user, STARTER_REWARD_XP, reason="starter_tasks")
