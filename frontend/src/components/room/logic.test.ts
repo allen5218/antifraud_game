@@ -196,7 +196,7 @@ describe("mascotLine", () => {
 })
 
 describe("menuItems", () => {
-  it("五個物件再加上排行榜和我的徽章", () => {
+  it("五個物件再加上排行榜、我的徽章和裝備", () => {
     const items = menuItems(
       summary({
         inbox_pending: 2,
@@ -213,6 +213,7 @@ describe("menuItems", () => {
       "bookshelf",
       "leaderboard",
       "badges",
+      "progression",
       "tour",
     ])
     expect(items.map((item) => item.label)).toEqual([
@@ -223,8 +224,12 @@ describe("menuItems", () => {
       "檢測",
       "排行榜",
       "我的徽章",
+      "裝備",
       "重看導覽",
     ])
+    expect(items.find((item) => item.id === "progression")?.to).toBe(
+      "/progression",
+    )
     expect(items.find((item) => item.id === "calendar")?.done).toBe(true)
     expect(items.find((item) => item.id === "phone")?.to).toBe("/scenarios")
   })
@@ -492,5 +497,15 @@ describe("桌機滑鼠移到家具的提示", () => {
     const hints = roomHints(summary({ exam_active_attempt_id: "a" }))
     expect(hints.tv).toBe("電視・滑卡訓練：檢測中暫停")
     expect(hints.bookshelf).toBe("書櫃・檢測與徽章：還沒做完")
+  })
+})
+
+describe("裝備入口", () => {
+  it("檢測中也照常可以去，不寫暫停", () => {
+    const item = menuItems(summary({ exam_active_attempt_id: "a" })).find(
+      (i) => i.id === "progression",
+    )
+    expect(item?.done).toBe(false)
+    expect(item?.status).not.toBe("檢測中暫停")
   })
 })

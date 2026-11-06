@@ -96,6 +96,8 @@ test("原題組逐題作答揭曉，結算收據與錢包一致，配裝重新�
     BigInt(result.cash_earned),
   )
   await page.goto("/progression")
+  // 第一次進養成頁會先跳玩法說明
+  await page.getByRole("button", { name: "跳過說明" }).click()
   await page.getByRole("button", { name: "裝備", exact: true }).first().click()
   await expect(
     page.getByRole("button", { name: "卸下", exact: true }),

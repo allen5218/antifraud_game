@@ -31,6 +31,7 @@ export type MenuTo =
   | "/admin/cohorts"
   | "/classes"
   | "/classwork"
+  | "/progression"
 
 export type MenuItem = {
   id:
@@ -42,6 +43,7 @@ export type MenuItem = {
     | "admin"
     | "classes"
     | "classwork"
+    | "progression"
     | "tour"
   label: string
   status: string
@@ -304,6 +306,13 @@ export function menuItems(s: HomeSummary): MenuItem[] {
       status: s.badges.length > 0 ? `已有 ${s.badges.length} 個` : "還沒有",
       done: false,
       to: "/exam",
+    },
+    {
+      id: "progression",
+      label: "裝備",
+      status: "強化工具、多拿獎勵",
+      done: false,
+      to: "/progression",
     },
   ]
   if ((s.class_count ?? 0) > 0) {
