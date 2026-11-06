@@ -21,7 +21,9 @@ const SUFFIXES: [bigint, string][] = [
  * 將各種格式轉為安全的 BigInt。
  * 若含有小數點（如 "123.45"）則取整數部分；空值或無效值回傳 0n。
  */
-export function parseBigIntSafe(val: string | number | bigint | null | undefined): bigint {
+export function parseBigIntSafe(
+  val: string | number | bigint | null | undefined,
+): bigint {
   if (val === null || val === undefined) return 0n
   if (typeof val === "bigint") return val
   if (typeof val === "number") {
@@ -45,7 +47,9 @@ export function parseBigIntSafe(val: string | number | bigint | null | undefined
 /**
  * 加總所有金額項目
  */
-export function addMoney(...vals: (string | number | bigint | null | undefined)[]): bigint {
+export function addMoney(
+  ...vals: (string | number | bigint | null | undefined)[]
+): bigint {
   return vals.reduce<bigint>((sum, v) => sum + parseBigIntSafe(v), 0n)
 }
 
@@ -62,7 +66,9 @@ export function subMoney(
 /**
  * 取絕對值
  */
-export function absMoney(val: string | number | bigint | null | undefined): bigint {
+export function absMoney(
+  val: string | number | bigint | null | undefined,
+): bigint {
   const b = parseBigIntSafe(val)
   return b < 0n ? -b : b
 }
@@ -125,7 +131,10 @@ export function formatMoney(
 
         let formatted = integerPart.toString()
         if (decimals > 0 && fractionalPart > 0n) {
-          const fracStr = fractionalPart.toString().padStart(decimals, "0").replace(/0+$/, "")
+          const fracStr = fractionalPart
+            .toString()
+            .padStart(decimals, "0")
+            .replace(/0+$/, "")
           if (fracStr.length > 0) {
             formatted += `.${fracStr}`
           }

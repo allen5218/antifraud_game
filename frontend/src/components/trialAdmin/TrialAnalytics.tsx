@@ -17,62 +17,25 @@ import {
   type CohortPublic,
   type HistogramBin,
   type LikertItem,
+  type TamConstruct,
 } from "@/client"
 import { Button } from "@/components/ui/button"
 import { fraudTypeLabel } from "@/lib/fraudTypes"
+import {
+  AXIS_TICK,
+  Card,
+  num,
+  pct,
+  Tiles,
+  TOOLTIP_ITEM,
+  TOOLTIP_STYLE,
+} from "./chartParts"
+import { EffectSection } from "./EffectSection"
+import { notAskedText } from "./format"
 
-const AXIS_TICK = { fontSize: 11, fill: "var(--muted-foreground)" }
-const TOOLTIP_STYLE = {
-  background: "var(--popover)",
-  border: "1px solid var(--border)",
-  borderRadius: 8,
-  color: "var(--popover-foreground)",
-  fontSize: 12,
-}
-// 提示框的字用文字色，不用數列的顏色
-const TOOLTIP_ITEM = { color: "var(--popover-foreground)" }
 const LIKERT_COLORS = [1, 2, 3, 4, 5].map((n) => `var(--likert-${n})`)
 // 直方圖裡「不算數」的區間（沒過關、太快）用灰色
 const BELOW_COLOR = "var(--likert-3)"
-
-function pct(part: number, whole: number): string {
-  return whole ? `${Math.round((part / whole) * 100)}%` : "–"
-}
-
-function num(value: number | null | undefined, digits = 1): string {
-  return value == null ? "–" : value.toFixed(digits).replace(/\.0+$/, "")
-}
-
-function Card({
-  title,
-  note,
-  children,
-}: {
-  title: string
-  note?: string
-  children: React.ReactNode
-}) {
-  return (
-    <section className="flex min-w-0 flex-col gap-2 rounded-xl border border-border bg-card p-4">
-      <h4 className="font-bold">{title}</h4>
-      {note && <p className="text-xs text-muted-foreground">{note}</p>}
-      {children}
-    </section>
-  )
-}
-
-function Tiles({ items }: { items: [string, string][] }) {
-  return (
-    <dl className="grid grid-cols-2 gap-2 sm:grid-cols-4">
-      {items.map(([label, value]) => (
-        <div key={label} className="rounded-lg bg-surface-2 p-2 text-center">
-          <dt className="text-[11px] text-muted-foreground">{label}</dt>
-          <dd className="text-lg font-bold">{value}</dd>
-        </div>
-      ))}
-    </dl>
-  )
-}
 
 /** 單一數列的橫條：長度就是人數，旁邊寫數字（不靠顏色） */
 function HBars({
@@ -260,6 +223,7 @@ function LikertRows({ items }: { items: LikertItem[] }) {
             <span className="flex-1">{item.question}</span>
             <span className="shrink-0 tabular-nums text-muted-foreground">
               平均 {num(item.mean, 2)}・{item.n} 人
+              {notAskedText(item.not_asked)}
             </span>
           </div>
           <div className="flex h-4 gap-[2px] overflow-hidden rounded-[4px] bg-surface-2">
@@ -319,6 +283,43 @@ function LikertTable({ items }: { items: LikertItem[] }) {
   )
 }
 
+/** 科技接受模式四個構面：1～5 的平均、人數、信度 */
+function TamCard({ items }: { items: TamConstruct[] }) {
+  return (
+    <Card
+      title="科技接受模式"
+      note="好不好用、有沒有用、喜不喜歡用、還會不會用。每人把同一構面有答的題目取平均（1 非常不同意到 5 非常同意）；信度 α 只算這個構面每一題都答過的人，0.7 以上表示題目之間一致。"
+    >
+      <ul className="flex flex-col gap-2 text-sm">
+        {items.map((c) => (
+          <li
+            key={c.key}
+            className="grid grid-cols-[minmax(5.5rem,7rem)_1fr_auto] items-center gap-2"
+            title={c.items.join("\n")}
+          >
+            <span>{c.label}</span>
+            <span className="h-2.5 rounded-r-[4px] bg-surface-2">
+              <span
+                className="block h-2.5 rounded-r-[4px] bg-primary"
+                style={{ width: `${c.mean == null ? 0 : (c.mean / 5) * 100}%` }}
+              />
+            </span>
+            <span className="w-14 text-right font-bold tabular-nums">
+              {num(c.mean, 2)}
+            </span>
+            <span className="col-span-3 -mt-1 text-xs text-muted-foreground">
+              {c.n} 人・{c.items.length} 題・α{" "}
+              {c.alpha == null
+                ? `還算不出來（${c.complete} 人答完全部題目）`
+                : `${num(c.alpha, 2)}（${c.complete} 人）`}
+            </span>
+          </li>
+        ))}
+      </ul>
+    </Card>
+  )
+}
+
 function SurveySection({ data }: { data: Analytics }) {
   const survey = data.survey
   const sections = [...new Set(survey.likert.map((i) => i.section))]
@@ -335,6 +336,7 @@ function SurveySection({ data }: { data: Analytics }) {
         <p className="text-muted-foreground">還沒有問卷可以分析。</p>
       ) : (
         <div className="grid gap-3 lg:grid-cols-2">
+          <TamCard items={survey.tam} />
           <Card
             title="辨識詐騙的信心：玩之前 vs 玩完後"
             note="同一份問卷的兩題相減；1 非常沒信心、5 非常有信心。"
@@ -385,7 +387,7 @@ function SurveySection({ data }: { data: Analytics }) {
             <Card
               key={choice.id}
               title={choice.question}
-              note={`${choice.n} 人回答${choice.multi ? "（可複選，百分比以回答人數為準）" : ""}`}
+              note={`${choice.n} 人回答${notAskedText(choice.not_asked)}${choice.multi ? "（可複選，百分比以回答人數為準）" : ""}`}
             >
               <HBars
                 rows={choice.options.map((o) => ({
@@ -427,13 +429,17 @@ function SurveySection({ data }: { data: Analytics }) {
   )
 }
 
-/** 試測數據與問卷分析：可以看單一梯次或全部梯次合計 */
+const GENERAL = "general"
+
+/** 試測數據與問卷分析：可以看單一梯次、一般玩家，或全部合計 */
 export function TrialAnalytics({ cohorts }: { cohorts: CohortPublic[] }) {
   const [scope, setScope] = useState("")
   const analytics = useQuery({
     queryKey: ["admin", "cohorts", "analytics", scope],
     queryFn: () =>
-      AdminCohortsService.analytics({ cohortId: scope || undefined }),
+      scope === GENERAL
+        ? AdminCohortsService.analytics({ general: true })
+        : AdminCohortsService.analytics({ cohortId: scope || undefined }),
   })
   return (
     <div className="flex flex-col gap-4">
@@ -451,7 +457,8 @@ export function TrialAnalytics({ cohorts }: { cohorts: CohortPublic[] }) {
             onChange={(event) => setScope(event.target.value)}
             className="h-9 rounded-md border border-input bg-background px-2 text-sm"
           >
-            <option value="">全部梯次合計</option>
+            <option value="">全部合計（含一般玩家）</option>
+            <option value={GENERAL}>一般玩家（不是試測帳號）</option>
             {cohorts.map((c) => (
               <option key={c.id} value={c.id}>
                 {c.name}
@@ -471,8 +478,14 @@ export function TrialAnalytics({ cohorts }: { cohorts: CohortPublic[] }) {
       )}
       {analytics.data && (
         <>
+          <h3 className="text-lg font-bold">成效：前測和之後的作答</h3>
+          <EffectSection
+            effect={analytics.data.effect}
+            survey={analytics.data.survey}
+          />
           <h3 className="text-lg font-bold">
-            試測數據（{analytics.data.member_count} 人）
+            {scope === GENERAL ? "一般玩家" : "試測數據"}（
+            {analytics.data.member_count} 人）
           </h3>
           <TrialSection data={analytics.data} />
           <h3 className="text-lg font-bold">問卷分析</h3>

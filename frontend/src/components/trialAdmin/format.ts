@@ -78,3 +78,8 @@ export const PRACTICE_MODE_LABELS: Record<string, string> = {
   quiz: "訊息判讀",
   scenario: "情境對抗",
 }
+
+/** 問卷只問做過的事：沒被問到的人數另外寫，免得和「沒作答」混在一起 */
+export function notAskedText(count: number | null | undefined): string {
+  return count ? `・沒被問到 ${count} 人` : ""
+}

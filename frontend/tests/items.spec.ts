@@ -53,7 +53,9 @@ test.describe("Items management", () => {
     await page.getByRole("button", { name: "Add Item" }).click()
     await page.getByLabel("Title").fill(title)
     const created = page.waitForResponse(
-      (response) => response.url().endsWith("/api/v1/items/") && response.request().method() === "POST",
+      (response) =>
+        response.url().endsWith("/api/v1/items/") &&
+        response.request().method() === "POST",
     )
     await page.getByRole("button", { name: "Save" }).click()
     const response = await created

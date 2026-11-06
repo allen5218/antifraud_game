@@ -34,7 +34,9 @@ test.describe("Admin user management", () => {
 
     // 此端點會寄出帳號信。先等待真實 HTTP 結果，再檢查完成提示。
     const created = page.waitForResponse(
-      (response) => response.url().endsWith("/api/v1/users/") && response.request().method() === "POST",
+      (response) =>
+        response.url().endsWith("/api/v1/users/") &&
+        response.request().method() === "POST",
     )
     await page.getByRole("button", { name: "儲存" }).click()
     expect((await created).status()).toBe(200)

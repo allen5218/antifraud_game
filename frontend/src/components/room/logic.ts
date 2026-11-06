@@ -19,6 +19,7 @@ export type MascotLine = {
 }
 
 export type MenuTo =
+  | "/"
   | "/scenarios"
   | "/quick/swipe"
   | "/quick/quiz"
@@ -41,10 +42,13 @@ export type MenuItem = {
     | "admin"
     | "classes"
     | "classwork"
+    | "tour"
   label: string
   status: string
   done: boolean
   to: MenuTo
+  /** 重看導覽：回房間並帶 `?tour=1` */
+  search?: { tour: 1 }
 }
 
 export type MascotPose = "base" | "point" | "cheer" | "think"
@@ -218,6 +222,13 @@ export function mascotLine(s: HomeSummary): MascotLine {
       action: { label: "看作業", to: "/classwork" },
     }
   }
+  if (s.survey_pending && s.survey_ready && !s.trial) {
+    return {
+      text: "玩了一陣子了，幫我們填個問卷好嗎？大約五分鐘。",
+      highlight: null,
+      action: { label: "填問卷", to: "/survey" },
+    }
+  }
   if (s.focus_label) {
     return {
       text: `本輪加強：${s.focus_label}。先去練練看，做完就有錢。`,
@@ -305,7 +316,16 @@ export function menuItems(s: HomeSummary): MenuItem[] {
       to: "/classwork",
     })
   }
-  if (s.survey_pending) {
+  if (s.survey_pending && !s.trial) {
+    // 一般玩家：帳號滿一天又玩過，請他填使用回饋問卷
+    items.unshift({
+      id: "survey",
+      label: "填問卷",
+      status: "幫我們改進",
+      done: false,
+      to: "/survey",
+    })
+  } else if (s.survey_pending) {
     // 試測帳號：做完一次綜合檢測才能填，放在最前面
     items.unshift({
       id: "survey",
@@ -351,6 +371,14 @@ export function menuItems(s: HomeSummary): MenuItem[] {
       to: "/admin/cohorts",
     })
   }
+  items.push({
+    id: "tour",
+    label: "重看導覽",
+    status: "家具和功能介紹",
+    done: false,
+    to: "/",
+    search: { tour: 1 },
+  })
   if (!s.exam_active_attempt_id) return items
   const training = new Set<MenuItem["id"]>([
     "phone",
@@ -361,4 +389,38 @@ export function menuItems(s: HomeSummary): MenuItem[] {
   return items.map((item) =>
     training.has(item.id) ? { ...item, status: PAUSED, done: true } : item,
   )
+}
+
+const HINT_OBJECTS: Record<HotspotId, string> = {
+  phone: "手機",
+  tv: "電視",
+  letters: "信件架",
+  calendar: "月曆",
+  bookshelf: "書櫃",
+}
+const HINT_LABELS: Partial<Record<HotspotId, string>> = {
+  bookshelf: "檢測與徽章",
+}
+
+/**
+ * 桌機滑鼠移到發光家具時的提示：「電視・滑卡訓練：可以練」。
+ * 狀態取 `menuItems` 同一份，選單、側欄、房間寫的一樣。
+ */
+export function roomHints(
+  s: HomeSummary,
+): Record<HotspotId | "mascot", string> {
+  const items = menuItems(s)
+  const hint = (id: HotspotId) => {
+    const item = items.find((i) => i.id === id)
+    const label = HINT_LABELS[id] ?? item?.label ?? ""
+    return `${HINT_OBJECTS[id]}・${label}：${item?.status ?? ""}`
+  }
+  return {
+    phone: hint("phone"),
+    tv: hint("tv"),
+    letters: hint("letters"),
+    calendar: hint("calendar"),
+    bookshelf: hint("bookshelf"),
+    mascot: "吉祥物：點我看提醒和練習重點",
+  }
 }

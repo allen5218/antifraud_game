@@ -5,7 +5,7 @@
 選了「其他」的單選與複選，另外存 `<代號>_other` 的文字。
 """
 
-from dataclasses import dataclass
+from dataclasses import asdict, dataclass, fields, replace
 from typing import Any, Literal
 
 QuestionKind = Literal["consent", "single", "multi", "scale", "text"]
@@ -13,6 +13,7 @@ QuestionKind = Literal["consent", "single", "multi", "scale", "text"]
 AGREE_LABELS = ("非常不同意", "不同意", "普通", "同意", "非常同意")
 CONFIDENCE_LABELS = ("非常沒信心", "沒信心", "普通", "有信心", "非常有信心")
 OTHER = "其他"
+GAMIFY = "遊戲化（點數、房產、吉祥物、徽章）"
 
 MIN_SECONDS = 60
 """問卷作答少於這個秒數，視為沒有仔細看題目（試測發錢條件之一）。"""
@@ -36,10 +37,24 @@ class Question:
     # 選了「其他」要填的說明
     other: bool = False
     section: str = ""
+    # 科技接受模式的構面（見 TAM_CONSTRUCTS）；不屬於任何構面是 None
+    construct: str | None = None
 
 
-def _agree(qid: str, text: str, section: str) -> Question:
-    return Question(qid, "scale", text, labels=AGREE_LABELS, section=section)
+TAM_CONSTRUCTS: tuple[tuple[str, str], ...] = (
+    ("peou", "好不好用"),
+    ("pu", "有沒有用"),
+    ("attitude", "喜不喜歡用"),
+    ("intention", "還會不會用"),
+)
+"""科技接受模式（TAM）的四個構面：知覺易用性、知覺有用性、使用態度、使用意圖。
+沿用原本的題目再補缺的；補的題目舊問卷沒有，分析時構面平均用每人有答的題。"""
+
+
+def _agree(qid: str, text: str, section: str, construct: str | None = None) -> Question:
+    return Question(
+        qid, "scale", text, labels=AGREE_LABELS, section=section, construct=construct
+    )
 
 
 QUESTIONS: tuple[Question, ...] = (
@@ -70,11 +85,12 @@ QUESTIONS: tuple[Question, ...] = (
         options=("是", "否", "不想回答"),
         section="基本資料",
     ),
-    _agree("ui_clear", "操作介面清楚，不需要說明就會用", "使用體驗"),
-    _agree("mobile_layout", "手機直式畫面好閱讀、好操作", "使用體驗"),
-    _agree("wording_clear", "題目與回饋的用語容易理解", "使用體驗"),
+    _agree("ui_clear", "操作介面清楚，不需要說明就會用", "使用體驗", "peou"),
+    _agree("mobile_layout", "手機直式畫面好閱讀、好操作", "使用體驗", "peou"),
+    _agree("wording_clear", "題目與回饋的用語容易理解", "使用體驗", "peou"),
+    _agree("easy_learn", "要學會怎麼玩很容易", "使用體驗", "peou"),
     _agree("smooth", "系統運作順暢，沒有明顯卡頓或錯誤", "使用體驗"),
-    _agree("keep_playing", "我願意繼續玩下去", "使用體驗"),
+    _agree("keep_playing", "我願意繼續玩下去", "使用體驗", "intention"),
     _agree("focus_reason", "系統說明「多練某一類」的原因，我覺得合理", "練習重點"),
     _agree("focus_match", "推薦我多練的類型，符合我真正的弱點", "練習重點"),
     Question(
@@ -84,9 +100,20 @@ QUESTIONS: tuple[Question, ...] = (
         options=("簡單", "適中", "困難"),
         section="檢測",
     ),
-    _agree("distinguish", "玩完後，我更能分辨詐騙與正常訊息", "學習成效"),
-    _agree("verify_channel", "我更知道遇到可疑訊息時，該向哪個管道查證", "學習成效"),
-    _agree("pause_confidence", "對方催促時，我更有信心先暫停、不急著決定", "學習成效"),
+    _agree("distinguish", "玩完後，我更能分辨詐騙與正常訊息", "學習成效", "pu"),
+    _agree(
+        "verify_channel", "我更知道遇到可疑訊息時，該向哪個管道查證", "學習成效", "pu"
+    ),
+    _agree(
+        "pause_confidence", "對方催促時，我更有信心先暫停、不急著決定", "學習成效", "pu"
+    ),
+    _agree("useful_faster", "用這個遊戲練習，讓我更快認出詐騙訊息", "學習成效", "pu"),
+    _agree(
+        "useful_vs_campaign",
+        "比起看防詐宣導，用這個遊戲練習對我更有幫助",
+        "學習成效",
+        "pu",
+    ),
     Question(
         "confidence_before",
         "scale",
@@ -110,8 +137,11 @@ QUESTIONS: tuple[Question, ...] = (
     _agree("badges", "徽章對我有吸引力", "遊戲設計"),
     _agree("ai_safe", "我覺得 AI 對話的內容是安全的，沒有教人怎麼詐騙", "遊戲設計"),
     _agree("points_reward", "如果通過檢測能兌換企業點數，我會更願意練習", "遊戲設計"),
-    _agree("satisfied", "整體來說，我對這個遊戲感到滿意", "整體"),
-    _agree("recommend", "我會推薦親友來玩", "整體"),
+    _agree("satisfied", "整體來說，我對這個遊戲感到滿意", "整體", "attitude"),
+    _agree("attitude_good", "用遊戲來練習防詐，是個好主意", "整體", "attitude"),
+    _agree("attitude_fun", "用這個遊戲練習很有趣", "整體", "attitude"),
+    _agree("recommend", "我會推薦親友來玩", "整體", "intention"),
+    _agree("intention_reuse", "之後我還會用這個遊戲練習", "整體", "intention"),
     Question(
         "occasions",
         "multi",
@@ -129,7 +159,7 @@ QUESTIONS: tuple[Question, ...] = (
             "訊息判讀",
             "情境對抗",
             "檢測",
-            "遊戲化（點數、房產、吉祥物、徽章）",
+            GAMIFY,
             OTHER,
         ),
         other=True,
@@ -154,6 +184,78 @@ QUESTIONS: tuple[Question, ...] = (
 QUESTION_IDS = tuple(q.id for q in QUESTIONS)
 
 
+@dataclass(frozen=True)
+class SurveyContext:
+    """作答者做過哪些事，決定問卷問哪幾題。開始作答時存進 `trial_survey.context`。
+
+    exam_done：正常交卷、有算次數的綜合檢測；swipe／quiz／scenario：各完成過一輪練習
+    （每日訓練不算）；purchased：買過吉祥物或房產；badge：拿過徽章。
+    """
+
+    exam_done: bool
+    swipe: bool
+    quiz: bool
+    scenario: bool
+    purchased: bool
+    badge: bool
+
+    @property
+    def practiced(self) -> bool:
+        return self.swipe or self.quiz or self.scenario
+
+    def to_json(self) -> dict[str, bool]:
+        return asdict(self)
+
+    @classmethod
+    def from_json(cls, data: dict[str, Any]) -> "SurveyContext":
+        return cls(**{f.name: bool(data.get(f.name)) for f in fields(cls)})
+
+
+def _asked(qid: str, ctx: SurveyContext) -> bool:
+    """沒做過的事不問。沒列在這裡的題目每個人都問。"""
+    if qid in ("exam_difficulty", "points_reward"):
+        return ctx.exam_done
+    if qid in ("focus_reason", "focus_match"):
+        return ctx.practiced
+    if qid == "gamification":
+        return ctx.practiced or ctx.purchased
+    if qid == "badges":
+        return ctx.badge
+    if qid == "ai_safe":
+        # 綜合檢測的第四關是情境對抗
+        return ctx.scenario or ctx.exam_done
+    return True
+
+
+def _favorite_options(ctx: SurveyContext) -> tuple[str, ...]:
+    """「最喜歡的功能」只列用過的；檢測裡有滑卡、訊息判讀、情境對抗三關，也算用過。"""
+    used = {
+        "滑卡": ctx.swipe or ctx.exam_done,
+        "訊息判讀": ctx.quiz or ctx.exam_done,
+        "情境對抗": ctx.scenario or ctx.exam_done,
+        "檢測": ctx.exam_done,
+        GAMIFY: _asked("gamification", ctx),
+        OTHER: True,
+    }
+    favorite = next(q for q in QUESTIONS if q.id == "favorite")
+    return tuple(o for o in favorite.options if used.get(o, True))
+
+
+def questions_for(ctx: SurveyContext) -> tuple[Question, ...]:
+    result: list[Question] = []
+    for q in QUESTIONS:
+        if not _asked(q.id, ctx):
+            continue
+        if q.id == "favorite":
+            options = _favorite_options(ctx)
+            # 只剩「其他」就整題不問
+            if options == (OTHER,):
+                continue
+            q = replace(q, options=options)
+        result.append(q)
+    return tuple(result)
+
+
 class SurveyError(ValueError):
     """作答不完整或格式不對；`question_id` 給前端標出哪一題。"""
 
@@ -172,10 +274,12 @@ def _other_text(answers: dict[str, Any], q: Question) -> str:
     return text
 
 
-def validate_answers(answers: dict[str, Any]) -> dict[str, Any]:
+def validate_answers(
+    answers: dict[str, Any], questions: tuple[Question, ...] = QUESTIONS
+) -> dict[str, Any]:
     """檢查每一題並回傳整理過的答案；不認識的欄位一律丟掉。"""
     clean: dict[str, Any] = {}
-    for q in QUESTIONS:
+    for q in questions:
         value = answers.get(q.id)
         if q.kind == "consent":
             if value is not True:

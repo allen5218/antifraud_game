@@ -7,10 +7,7 @@ const port = new URL(origin).port || "80"
 export default {
   ...original,
   retries: 0,
-  reporter: [
-    ["list"],
-    ["json", { outputFile: "/artifacts/playwright.json" }],
-  ],
+  reporter: [["list"], ["json", { outputFile: "/artifacts/playwright.json" }]],
   outputDir: "/artifacts/playwright-traces",
   use: { ...original.use, baseURL: origin },
   webServer: {

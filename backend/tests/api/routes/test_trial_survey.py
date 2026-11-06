@@ -20,7 +20,7 @@ from app.models import (
     User,
     get_datetime_utc,
 )
-from app.trial.survey import ATTENTION_ID, QUESTIONS
+from app.trial.survey import ATTENTION_ID, QUESTIONS, SurveyContext, questions_for
 
 BASE = settings.API_V1_STR
 
@@ -87,20 +87,21 @@ def summary(client: TestClient, headers: dict[str, str]) -> dict[str, Any]:
     return response.json()  # type: ignore[no-any-return]
 
 
-def test_only_trial_accounts(
+def test_new_general_player_cannot_start_yet(
     client: TestClient, normal_user_token_headers: dict[str, str]
 ) -> None:
-    for method, path in [
-        ("get", "/trial/survey"),
-        ("post", "/trial/survey/start"),
-        ("post", "/trial/survey"),
-    ]:
-        kwargs = {"json": {"answers": {}}} if method == "post" else {}
-        response = getattr(client, method)(
-            f"{BASE}{path}", headers=normal_user_token_headers, **kwargs
-        )
-        assert response.status_code == 400
-        assert response.json()["detail"]["code"] == "trial_only"
+    """不是試測的帳號是一般玩家：註冊滿一天又玩過才能填（見 test_general_survey）。"""
+    data = client.get(f"{BASE}/trial/survey", headers=normal_user_token_headers)
+    assert data.status_code == 200
+    assert data.json()["audience"] == "general" and data.json()["can_start"] is False
+    start = client.post(f"{BASE}/trial/survey/start", headers=normal_user_token_headers)
+    assert start.status_code == 400
+    assert start.json()["detail"]["code"] == "survey_not_ready"
+    sent = client.post(
+        f"{BASE}/trial/survey", headers=normal_user_token_headers, json={"answers": {}}
+    )
+    assert sent.status_code == 400
+    assert sent.json()["detail"]["code"] == "survey_not_started"
     home = summary(client, normal_user_token_headers)
     assert home["survey_pending"] is False and home["survey_ready"] is False
 
@@ -110,7 +111,11 @@ def test_survey_needs_a_finished_exam_then_submits_once(
 ) -> None:
     headers, user_id = redeem(client, cohort["token"])
     data = client.get(f"{BASE}/trial/survey", headers=headers).json()
-    assert [q["id"] for q in data["questions"]] == [q.id for q in QUESTIONS]
+    # 還沒做過任何事：只問每個人都有經驗的題目
+    nothing = SurveyContext(False, False, False, False, False, False)
+    assert [q["id"] for q in data["questions"]] == [
+        q.id for q in questions_for(nothing)
+    ]
     assert data["questions"][0]["kind"] == "consent"
     assert (data["started"], data["submitted"], data["exam_done"]) == (
         False,

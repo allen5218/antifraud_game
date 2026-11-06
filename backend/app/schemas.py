@@ -99,6 +99,23 @@ class PracticeProfilePublic(BaseModel):
 # ── 首頁房間 ───────────────────────────────────────────────
 
 
+class StarterTasks(BaseModel):
+    """新手任務四項：各種練習完成過一輪、看過商店。"""
+
+    swipe: bool
+    quiz: bool
+    scenario: bool
+    shop: bool
+    # 四項都完成可以領的獎勵（前端按鈕照這兩個數字寫）
+    reward_cash: int
+    reward_xp: int
+
+
+class StarterReward(BaseModel):
+    cash: int
+    xp: int
+
+
 class HomeSummary(BaseModel):
     room_stage: int
     mascot_image_url: str
@@ -128,6 +145,10 @@ class HomeSummary(BaseModel):
     classwork_next: str | None = None
     # 管理員：房間選單多一個「試測管理」
     admin_access: bool = False
+    # 還沒玩過任何東西、也沒看過導覽：進房間先看吉祥物導覽
+    tour_pending: bool = False
+    # 新手任務：看過導覽、做完入門前測（試測帳號是交完問卷）、還沒領獎才有
+    starter_tasks: StarterTasks | None = None
 
 
 # ── Economy ───────────────────────────────────────────────
@@ -845,6 +866,9 @@ class SurveyQuestionPublic(BaseModel):
 
 class TrialSurveyPublic(BaseModel):
     questions: list[SurveyQuestionPublic]
+    # trial：試測帳號；general：一般玩家（帳號滿一天又玩過才能開始）
+    audience: Literal["trial", "general"]
+    can_start: bool
     started: bool
     submitted: bool
     # 做完一次綜合檢測才能填（問卷有問檢測的難度）

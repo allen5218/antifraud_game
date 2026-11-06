@@ -34,9 +34,9 @@ describe("money utilities", () => {
       expect(parseBigIntSafe("123456.789")).toBe(123456n)
       expect(parseBigIntSafe("-9876.54")).toBe(-9876n)
       expect(parseBigIntSafe("9007199254740993")).toBe(9007199254740993n)
-      expect(
-        parseBigIntSafe("123456789012345678901234567890"),
-      ).toBe(123456789012345678901234567890n)
+      expect(parseBigIntSafe("123456789012345678901234567890")).toBe(
+        123456789012345678901234567890n,
+      )
     })
   })
 

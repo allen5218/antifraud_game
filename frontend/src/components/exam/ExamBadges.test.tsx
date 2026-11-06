@@ -65,7 +65,9 @@ test("開啟公開才顯示查驗連結及 QR，關閉收起連結", async () =>
     badgeId: "b",
     requestBody: { is_public: true },
   })
-  const checkbox = screen.getByRole("checkbox", { name: "公開這枚徽章" }) as HTMLInputElement
+  const checkbox = screen.getByRole("checkbox", {
+    name: "公開這枚徽章",
+  }) as HTMLInputElement
   await waitFor(() => expect(checkbox.disabled).toBe(false))
   fireEvent.click(checkbox)
   await waitFor(() => expect(toggle).toHaveBeenCalledTimes(2))

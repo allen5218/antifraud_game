@@ -1,7 +1,7 @@
 """add progression and multiplier system
 
 Revision ID: a1b2c3d4e5f6
-Revises: 7f2b299a71d6
+Revises: 91b25a6c5345
 Create Date: 2026-11-04 22:20:00
 
 """
@@ -12,7 +12,7 @@ from sqlalchemy.dialects import postgresql
 
 # revision identifiers, used by Alembic.
 revision = 'a1b2c3d4e5f6'
-down_revision = '7f2b299a71d6'
+down_revision = '91b25a6c5345'
 branch_labels = None
 depends_on = None
 

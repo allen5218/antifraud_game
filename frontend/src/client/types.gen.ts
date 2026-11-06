@@ -77,6 +77,7 @@ export type ChoiceItem = {
     multi: boolean;
     n: number;
     options: Array<ChoiceCount>;
+    not_asked?: number;
 };
 
 export type ClassMemberDetail = {
@@ -241,6 +242,14 @@ export type ConfidenceShift = {
     worse: number;
 };
 
+export type CurvePoint = {
+    label: string;
+    accuracy: (number | null);
+    missed_rate: (number | null);
+    people: number;
+    items: number;
+};
+
 export type DailyResultPublic = {
     correct: number;
     total: number;
@@ -267,6 +276,20 @@ export type EconomyMeResponse = {
     streak_days: number;
     pending_accrual: string;
     bankruptcy_pending: boolean;
+};
+
+export type EffectAnalytics = {
+    exam: ExamStageEffect;
+    repeat: RepeatEffect;
+    entry: EntryEffect;
+    practice: PracticeEffect;
+    volume: PracticeVolume;
+};
+
+export type EntryEffect = {
+    total: PairedChange;
+    by_type: Array<TypePair>;
+    practiced_between: number;
 };
 
 export type EquipmentCatalogPublic = {
@@ -462,6 +485,11 @@ export type ExamStageDetail = {
     total: number;
 };
 
+export type ExamStageEffect = {
+    stages: Array<StageAccuracy>;
+    change: PairedChange;
+};
+
 export type ExamStartRequest = {
     mode: 'comprehensive' | 'specialized';
     fraud_type?: (string | null);
@@ -564,6 +592,8 @@ export type HomeSummary = {
     classwork_pending?: number;
     classwork_next?: (string | null);
     admin_access?: boolean;
+    tour_pending?: boolean;
+    starter_tasks?: (StarterTasks | null);
 };
 
 export type HTTPValidationError = {
@@ -640,6 +670,7 @@ export type LikertItem = {
     counts: Array<(number)>;
     n: number;
     mean: (number | null);
+    not_asked?: number;
 };
 
 export type LiquidateRequest = {
@@ -691,6 +722,12 @@ export type MascotShopItem = {
 
 export type Message = {
     message: string;
+};
+
+export type ModeHalves = {
+    mode: string;
+    label: string;
+    change: PairedChange;
 };
 
 export type MyAssignment = {
@@ -753,6 +790,16 @@ export type OwnedPropertyPublic = {
     purchased_at: string;
 };
 
+export type PairedChange = {
+    n: number;
+    before_mean: (number | null);
+    after_mean: (number | null);
+    diff_mean: (number | null);
+    improved: number;
+    same: number;
+    worse: number;
+};
+
 export type ParticipantDetail = {
     user_id: string;
     participant_code: (string | null);
@@ -806,6 +853,14 @@ export type PracticeDetail = {
     correct: number;
 };
 
+export type PracticeEffect = {
+    baseline_people: number;
+    by_type: Array<TypePair>;
+    curve: Array<CurvePoint>;
+    tags: Array<TagShift>;
+    modes: Array<ModeHalves>;
+};
+
 /**
  * 玩家目前的練習重點。訊息判讀、滑卡、情境收件匣都照這個比例出題。
  */
@@ -822,6 +877,14 @@ export type PracticeProfilePublic = {
 };
 
 export type source = 'gemini' | 'rule' | 'pretest' | 'none';
+
+export type PracticeVolume = {
+    exam_people: number;
+    practiced_people: number;
+    median_answers: (number | null);
+    median_days: (number | null);
+    scenario_rounds: number;
+};
 
 export type PresetPublic = {
     position: number;
@@ -1050,6 +1113,15 @@ export type QuizWeaknessDetail = {
     suggestion: string;
 };
 
+export type RepeatEffect = {
+    people: number;
+    pretest: PairedChange;
+    score: PairedChange;
+    failed_first: number;
+    retook: number;
+    retake_passed: number;
+};
+
 export type RewardReceiptPublic = {
     receipt_id: string;
     source_kind: string;
@@ -1182,11 +1254,37 @@ export type ShowcasePositionPublic = {
     collectible_id: string;
 };
 
+export type StageAccuracy = {
+    key: string;
+    label: string;
+    accuracy: (number | null);
+    people: number;
+    items: number;
+};
+
+export type StarterReward = {
+    cash: number;
+    xp: number;
+};
+
+/**
+ * 新手任務四項：各種練習完成過一輪、看過商店。
+ */
+export type StarterTasks = {
+    swipe: boolean;
+    quiz: boolean;
+    scenario: boolean;
+    shop: boolean;
+    reward_cash: number;
+    reward_xp: number;
+};
+
 /**
  * 交了問卷的人全部算進來（注意力題答錯、作答太快也算）；注意力題本身不列。
  */
 export type SurveyAnalytics = {
     responses: number;
+    tam: Array<TamConstruct>;
     likert: Array<LikertItem>;
     confidence: ConfidenceShift;
     choices: Array<ChoiceItem>;
@@ -1258,6 +1356,26 @@ export type SwipeCompleteResponse = {
 export type SwipeDeckResponse = {
     session_id: string;
     cards: Array<SwipeCardPublic>;
+};
+
+export type TagShift = {
+    tag: string;
+    label: string;
+    first_half: number;
+    second_half: number;
+};
+
+/**
+ * 科技接受模式一個構面：每人有答的題目取平均，再算全部人的平均。
+ */
+export type TamConstruct = {
+    key: string;
+    label: string;
+    items: Array<(string)>;
+    mean: (number | null);
+    n: number;
+    complete: number;
+    alpha: (number | null);
 };
 
 /**
@@ -1421,10 +1539,13 @@ export type TrialAnalytics = {
     scores: ScoreStats;
     timings: Array<TimingStats>;
     survey: SurveyAnalytics;
+    effect: EffectAnalytics;
 };
 
 export type TrialSurveyPublic = {
     questions: Array<SurveyQuestionPublic>;
+    audience: 'trial' | 'general';
+    can_start: boolean;
     started: boolean;
     submitted: boolean;
     exam_done: boolean;
@@ -1432,6 +1553,8 @@ export type TrialSurveyPublic = {
     payout_eligible?: boolean;
     payout_reasons?: Array<(string)>;
 };
+
+export type audience = 'trial' | 'general';
 
 export type TrialSurveySubmit = {
     answers: {
@@ -1446,6 +1569,13 @@ export type TypeAccuracy = {
     fraud_type: string;
     accuracy: (number | null);
     n: number;
+};
+
+export type TypePair = {
+    fraud_type: string;
+    before: (number | null);
+    after: (number | null);
+    people: number;
 };
 
 export type UpdatePassword = {
@@ -1572,6 +1702,7 @@ export type AdminCohortsMemberDetailResponse = (ParticipantDetail);
 
 export type AdminCohortsAnalyticsData = {
     cohortId?: (string | null);
+    general?: boolean;
 };
 
 export type AdminCohortsAnalyticsResponse = (TrialAnalytics);
@@ -1951,6 +2082,12 @@ export type MascotToggleEquipData = {
 export type MascotToggleEquipResponse = (MascotDisplayPublic);
 
 export type MascotGetMyMascotResponse = (MascotPublic);
+
+export type OnboardingTourDoneResponse = (void);
+
+export type OnboardingShopVisitedResponse = (void);
+
+export type OnboardingClaimRewardResponse = (StarterReward);
 
 export type PlayersGetPlayerShowcaseData = {
     playerId: string;

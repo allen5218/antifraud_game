@@ -3,7 +3,7 @@
 import type { CancelablePromise } from './core/CancelablePromise';
 import { OpenAPI } from './core/OpenAPI';
 import { request as __request } from './core/request';
-import type { AdminCohortsListCohortsResponse, AdminCohortsCreateCohortData, AdminCohortsCreateCohortResponse, AdminCohortsUpdateCohortData, AdminCohortsUpdateCohortResponse, AdminCohortsListMembersData, AdminCohortsListMembersResponse, AdminCohortsExportCohortData, AdminCohortsExportCohortResponse, AdminCohortsCohortProgressData, AdminCohortsCohortProgressResponse, AdminCohortsExportCohortSurveyData, AdminCohortsExportCohortSurveyResponse, AdminCohortsExportCohortExamData, AdminCohortsExportCohortExamResponse, AdminCohortsMemberDetailData, AdminCohortsMemberDetailResponse, AdminCohortsAnalyticsData, AdminCohortsAnalyticsResponse, AdminTeachersListTeachersData, AdminTeachersListTeachersResponse, AdminTeachersChangeTeacherData, AdminTeachersChangeTeacherResponse, BadgesOwnBadgesResponse, BadgesUpdateBadgeData, BadgesUpdateBadgeResponse, BadgesPublicBadgeData, BadgesPublicBadgeResponse, ClassesReadMyClassesResponse, ClassesJoinClassData, ClassesJoinClassResponse, ClassesClaimMembershipData, ClassesClaimMembershipResponse, ClassesListClassesResponse, ClassesCreateClassData, ClassesCreateClassResponse, ClassesUpdateClassData, ClassesUpdateClassResponse, ClassesListMembersData, ClassesListMembersResponse, ClassesUpdateMemberData, ClassesUpdateMemberResponse, ClassesRemoveMemberData, ClassesRemoveMemberResponse, ClassesReadMemberData, ClassesReadMemberResponse, ClassesReadOverviewData, ClassesReadOverviewResponse, ClassesExportClassData, ClassesExportClassResponse, ClassesCreateAssignmentData, ClassesCreateAssignmentResponse, ClassesUpdateAssignmentData, ClassesUpdateAssignmentResponse, ClassesDeleteAssignmentData, ClassesDeleteAssignmentResponse, CollectionsReadCollectionsResponse, CollectionsUpgradeCollectionData, CollectionsUpgradeCollectionResponse, CollectionsConfigureDisplayData, CollectionsConfigureDisplayResponse, CollectionsSavePresetData, CollectionsSavePresetResponse, CollectionsApplyPresetData, CollectionsApplyPresetResponse, CollectionsPermanentBoardData, CollectionsPermanentBoardResponse, DailyDailyTodayResponse, EconomyReadMeResponse, EconomyPostSettleResponse, EconomyClaimResponse, EconomyListPropertiesResponse, EconomyBuyPropertyData, EconomyBuyPropertyResponse, EconomyGetAssetsResponse, EconomyPostLiquidateData, EconomyPostLiquidateResponse, EquipmentListEquipmentResponse, EquipmentUpdateLoadoutData, EquipmentUpdateLoadoutResponse, EquipmentUpgradeItemData, EquipmentUpgradeItemResponse, EquipmentBreakthroughItemData, EquipmentBreakthroughItemResponse, ExamReadStatusResponse, ExamStartData, ExamStartResponse, ExamActiveResponse, ExamHistoryResponse, ExamReadData, ExamReadResponse, ExamPretestData, ExamPretestResponse, ExamSwipeData, ExamSwipeResponse, ExamMessageData, ExamMessageResponse, ExamScenarioStartData, ExamScenarioStartResponse, ExamScenarioJudgeData, ExamScenarioJudgeResponse, ExamAbandonData, ExamAbandonResponse, HomeHomeSummaryResponse, InviteRedeemInviteData, InviteRedeemInviteResponse, InviteRedeemClassInviteData, InviteRedeemClassInviteResponse, ItemsReadItemsData, ItemsReadItemsResponse, ItemsCreateItemData, ItemsCreateItemResponse, ItemsReadItemData, ItemsReadItemResponse, ItemsUpdateItemData, ItemsUpdateItemResponse, ItemsDeleteItemData, ItemsDeleteItemResponse, LeaderboardReadLeaderboardData, LeaderboardReadLeaderboardResponse, LeaderboardUpdateNicknameData, LeaderboardUpdateNicknameResponse, LoginLoginAccessTokenData, LoginLoginAccessTokenResponse, LoginTestTokenResponse, LoginRecoverPasswordData, LoginRecoverPasswordResponse, LoginResetPasswordData, LoginResetPasswordResponse, LoginRecoverPasswordHtmlContentData, LoginRecoverPasswordHtmlContentResponse, LoginListProvidersResponse, LoginStartData, LoginStartResponse, LoginCallbackData, LoginCallbackResponse, MascotListMascotItemsResponse, MascotPurchaseItemData, MascotPurchaseItemResponse, MascotToggleEquipData, MascotToggleEquipResponse, MascotGetMyMascotResponse, PlayersGetPlayerShowcaseData, PlayersGetPlayerShowcaseResponse, PracticeReadProfileResponse, PretestGetPretestQuestionsResponse, PretestSubmitPretestData, PretestSubmitPretestResponse, PrivateCreateUserData, PrivateCreateUserResponse, ProgressionGetMyProgressionResponse, ProgressionGetRewardReceiptData, ProgressionGetRewardReceiptResponse, ProgressionPurchaseUnlockData, ProgressionPurchaseUnlockResponse, QuickSwipeDeckData, QuickSwipeDeckResponse, QuickSwipeAnswerData, QuickSwipeAnswerResponse, QuickSwipeCompleteData, QuickSwipeCompleteResponse, QuickQuizDeckData, QuickQuizDeckResponse, QuickQuizAnswerData, QuickQuizAnswerResponse, QuickQuizCompleteData, QuickQuizCompleteResponse, ScenarioInboxResponse, ScenarioCreateScenarioData, ScenarioCreateScenarioResponse, ScenarioReadScenarioData, ScenarioReadScenarioResponse, ScenarioSendMessageData, ScenarioSendMessageResponse, ScenarioJudgeScenarioData, ScenarioJudgeScenarioResponse, ScoreGetMyScoreResponse, SeasonsClaimChampionToolData, SeasonsClaimChampionToolResponse, SeasonsGetSeasonCurrentResponse, SeasonsGetBoardData, SeasonsGetBoardResponse, SeasonsGetMySeasonAwardData, SeasonsGetMySeasonAwardResponse, SeasonsTriggerCloseExpiredResponse, TeamReadBankResponse, TeamListCommentsData, TeamListCommentsResponse, TeamCreateCommentData, TeamCreateCommentResponse, TeamDeleteCommentData, TeamDeleteCommentResponse, TrialReadSurveyResponse, TrialSubmitSurveyData, TrialSubmitSurveyResponse, TrialStartSurveyResponse, UsersReadUsersData, UsersReadUsersResponse, UsersCreateUserData, UsersCreateUserResponse, UsersReadUserMeResponse, UsersDeleteUserMeResponse, UsersUpdateUserMeData, UsersUpdateUserMeResponse, UsersUpdatePasswordMeData, UsersUpdatePasswordMeResponse, UsersApplyTeacherMeData, UsersApplyTeacherMeResponse, UsersRegisterUserData, UsersRegisterUserResponse, UsersReadUserByIdData, UsersReadUserByIdResponse, UsersUpdateUserData, UsersUpdateUserResponse, UsersDeleteUserData, UsersDeleteUserResponse, UtilsTestEmailData, UtilsTestEmailResponse, UtilsHealthCheckResponse } from './types.gen';
+import type { AdminCohortsListCohortsResponse, AdminCohortsCreateCohortData, AdminCohortsCreateCohortResponse, AdminCohortsUpdateCohortData, AdminCohortsUpdateCohortResponse, AdminCohortsListMembersData, AdminCohortsListMembersResponse, AdminCohortsExportCohortData, AdminCohortsExportCohortResponse, AdminCohortsCohortProgressData, AdminCohortsCohortProgressResponse, AdminCohortsExportCohortSurveyData, AdminCohortsExportCohortSurveyResponse, AdminCohortsExportCohortExamData, AdminCohortsExportCohortExamResponse, AdminCohortsMemberDetailData, AdminCohortsMemberDetailResponse, AdminCohortsAnalyticsData, AdminCohortsAnalyticsResponse, AdminTeachersListTeachersData, AdminTeachersListTeachersResponse, AdminTeachersChangeTeacherData, AdminTeachersChangeTeacherResponse, BadgesOwnBadgesResponse, BadgesUpdateBadgeData, BadgesUpdateBadgeResponse, BadgesPublicBadgeData, BadgesPublicBadgeResponse, ClassesReadMyClassesResponse, ClassesJoinClassData, ClassesJoinClassResponse, ClassesClaimMembershipData, ClassesClaimMembershipResponse, ClassesListClassesResponse, ClassesCreateClassData, ClassesCreateClassResponse, ClassesUpdateClassData, ClassesUpdateClassResponse, ClassesListMembersData, ClassesListMembersResponse, ClassesUpdateMemberData, ClassesUpdateMemberResponse, ClassesRemoveMemberData, ClassesRemoveMemberResponse, ClassesReadMemberData, ClassesReadMemberResponse, ClassesReadOverviewData, ClassesReadOverviewResponse, ClassesExportClassData, ClassesExportClassResponse, ClassesCreateAssignmentData, ClassesCreateAssignmentResponse, ClassesUpdateAssignmentData, ClassesUpdateAssignmentResponse, ClassesDeleteAssignmentData, ClassesDeleteAssignmentResponse, CollectionsReadCollectionsResponse, CollectionsUpgradeCollectionData, CollectionsUpgradeCollectionResponse, CollectionsConfigureDisplayData, CollectionsConfigureDisplayResponse, CollectionsSavePresetData, CollectionsSavePresetResponse, CollectionsApplyPresetData, CollectionsApplyPresetResponse, CollectionsPermanentBoardData, CollectionsPermanentBoardResponse, DailyDailyTodayResponse, EconomyReadMeResponse, EconomyPostSettleResponse, EconomyClaimResponse, EconomyListPropertiesResponse, EconomyBuyPropertyData, EconomyBuyPropertyResponse, EconomyGetAssetsResponse, EconomyPostLiquidateData, EconomyPostLiquidateResponse, EquipmentListEquipmentResponse, EquipmentUpdateLoadoutData, EquipmentUpdateLoadoutResponse, EquipmentUpgradeItemData, EquipmentUpgradeItemResponse, EquipmentBreakthroughItemData, EquipmentBreakthroughItemResponse, ExamReadStatusResponse, ExamStartData, ExamStartResponse, ExamActiveResponse, ExamHistoryResponse, ExamReadData, ExamReadResponse, ExamPretestData, ExamPretestResponse, ExamSwipeData, ExamSwipeResponse, ExamMessageData, ExamMessageResponse, ExamScenarioStartData, ExamScenarioStartResponse, ExamScenarioJudgeData, ExamScenarioJudgeResponse, ExamAbandonData, ExamAbandonResponse, HomeHomeSummaryResponse, InviteRedeemInviteData, InviteRedeemInviteResponse, InviteRedeemClassInviteData, InviteRedeemClassInviteResponse, ItemsReadItemsData, ItemsReadItemsResponse, ItemsCreateItemData, ItemsCreateItemResponse, ItemsReadItemData, ItemsReadItemResponse, ItemsUpdateItemData, ItemsUpdateItemResponse, ItemsDeleteItemData, ItemsDeleteItemResponse, LeaderboardReadLeaderboardData, LeaderboardReadLeaderboardResponse, LeaderboardUpdateNicknameData, LeaderboardUpdateNicknameResponse, LoginLoginAccessTokenData, LoginLoginAccessTokenResponse, LoginTestTokenResponse, LoginRecoverPasswordData, LoginRecoverPasswordResponse, LoginResetPasswordData, LoginResetPasswordResponse, LoginRecoverPasswordHtmlContentData, LoginRecoverPasswordHtmlContentResponse, LoginListProvidersResponse, LoginStartData, LoginStartResponse, LoginCallbackData, LoginCallbackResponse, MascotListMascotItemsResponse, MascotPurchaseItemData, MascotPurchaseItemResponse, MascotToggleEquipData, MascotToggleEquipResponse, MascotGetMyMascotResponse, OnboardingTourDoneResponse, OnboardingShopVisitedResponse, OnboardingClaimRewardResponse, PlayersGetPlayerShowcaseData, PlayersGetPlayerShowcaseResponse, PracticeReadProfileResponse, PretestGetPretestQuestionsResponse, PretestSubmitPretestData, PretestSubmitPretestResponse, PrivateCreateUserData, PrivateCreateUserResponse, ProgressionGetMyProgressionResponse, ProgressionGetRewardReceiptData, ProgressionGetRewardReceiptResponse, ProgressionPurchaseUnlockData, ProgressionPurchaseUnlockResponse, QuickSwipeDeckData, QuickSwipeDeckResponse, QuickSwipeAnswerData, QuickSwipeAnswerResponse, QuickSwipeCompleteData, QuickSwipeCompleteResponse, QuickQuizDeckData, QuickQuizDeckResponse, QuickQuizAnswerData, QuickQuizAnswerResponse, QuickQuizCompleteData, QuickQuizCompleteResponse, ScenarioInboxResponse, ScenarioCreateScenarioData, ScenarioCreateScenarioResponse, ScenarioReadScenarioData, ScenarioReadScenarioResponse, ScenarioSendMessageData, ScenarioSendMessageResponse, ScenarioJudgeScenarioData, ScenarioJudgeScenarioResponse, ScoreGetMyScoreResponse, SeasonsClaimChampionToolData, SeasonsClaimChampionToolResponse, SeasonsGetSeasonCurrentResponse, SeasonsGetBoardData, SeasonsGetBoardResponse, SeasonsGetMySeasonAwardData, SeasonsGetMySeasonAwardResponse, SeasonsTriggerCloseExpiredResponse, TeamReadBankResponse, TeamListCommentsData, TeamListCommentsResponse, TeamCreateCommentData, TeamCreateCommentResponse, TeamDeleteCommentData, TeamDeleteCommentResponse, TrialReadSurveyResponse, TrialSubmitSurveyData, TrialSubmitSurveyResponse, TrialStartSurveyResponse, UsersReadUsersData, UsersReadUsersResponse, UsersCreateUserData, UsersCreateUserResponse, UsersReadUserMeResponse, UsersDeleteUserMeResponse, UsersUpdateUserMeData, UsersUpdateUserMeResponse, UsersUpdatePasswordMeData, UsersUpdatePasswordMeResponse, UsersApplyTeacherMeData, UsersApplyTeacherMeResponse, UsersRegisterUserData, UsersRegisterUserResponse, UsersReadUserByIdData, UsersReadUserByIdResponse, UsersUpdateUserData, UsersUpdateUserResponse, UsersDeleteUserData, UsersDeleteUserResponse, UtilsTestEmailData, UtilsTestEmailResponse, UtilsHealthCheckResponse } from './types.gen';
 
 export class AdminCohortsService {
     /**
@@ -187,9 +187,11 @@ export class AdminCohortsService {
     
     /**
      * Analytics
-     * 試測數據與問卷分析；沒給 cohort_id 是全部梯次合計。交了問卷的全部列入分析。
+     * 試測數據與問卷分析。給 cohort_id 看一個梯次、general 看一般玩家，
+     * 都不給是全部梯次加一般玩家。交了問卷的全部列入分析。
      * @param data The data for the request.
      * @param data.cohortId
+     * @param data.general
      * @returns TrialAnalytics Successful Response
      * @throws ApiError
      */
@@ -198,7 +200,8 @@ export class AdminCohortsService {
             method: 'GET',
             url: '/api/v1/admin/cohorts/analytics',
             query: {
-                cohort_id: data.cohortId
+                cohort_id: data.cohortId,
+                general: data.general
             },
             errors: {
                 422: 'Validation Error'
@@ -1593,6 +1596,46 @@ export class MascotService {
         return __request(OpenAPI, {
             method: 'GET',
             url: '/api/v1/mascot/me'
+        });
+    }
+}
+
+export class OnboardingService {
+    /**
+     * Tour Done
+     * 導覽看完或跳過；重看導覽也打這支，第一次的時間不會被蓋掉。
+     * @returns void Successful Response
+     * @throws ApiError
+     */
+    public static tourDone(): CancelablePromise<OnboardingTourDoneResponse> {
+        return __request(OpenAPI, {
+            method: 'POST',
+            url: '/api/v1/onboarding/tour'
+        });
+    }
+    
+    /**
+     * Shop Visited
+     * @returns void Successful Response
+     * @throws ApiError
+     */
+    public static shopVisited(): CancelablePromise<OnboardingShopVisitedResponse> {
+        return __request(OpenAPI, {
+            method: 'POST',
+            url: '/api/v1/onboarding/shop'
+        });
+    }
+    
+    /**
+     * Claim Reward
+     * 四項新手任務都完成才能領，一人只能領一次。
+     * @returns StarterReward Successful Response
+     * @throws ApiError
+     */
+    public static claimReward(): CancelablePromise<OnboardingClaimRewardResponse> {
+        return __request(OpenAPI, {
+            method: 'POST',
+            url: '/api/v1/onboarding/claim'
         });
     }
 }

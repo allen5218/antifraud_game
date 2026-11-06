@@ -33,6 +33,7 @@ from app.models import (
     User,
 )
 from app.trial.analytics import TrialAnalytics, trial_analytics
+from app.trial.audience import GENERAL, Group, group_filter
 from app.trial.detail import ParticipantDetail, participant_detail
 from app.trial.payout import payout_reasons
 from app.trial.survey import export_columns, export_value
@@ -132,16 +133,21 @@ def update_cohort(
 @router.get("/{cohort_id}/members", response_model=list[CohortMemberPublic])
 def list_members(cohort_id: uuid.UUID, session: SessionDep) -> list[CohortMemberPublic]:
     get_cohort(session, cohort_id)
+    return group_members(session, cohort_id)
+
+
+def group_members(session: Session, group: Group) -> list[CohortMemberPublic]:
+    """梯次成員或一般玩家（`app/trial/audience.py`），含從未作答的人。"""
     users = session.exec(
         select(User)
-        .where(User.cohort_id == cohort_id)
+        .where(group_filter(group))
         .order_by(col(User.created_at), col(User.id))
     ).all()
     # 一次統計整個梯次，避免每位成員各查一次；從未作答的訪客也要列出。
     totals = session.exec(
         select(PracticeAnswer.user_id, PracticeAnswer.correct, func.count())
         .join(User, col(User.id) == col(PracticeAnswer.user_id))
-        .where(User.cohort_id == cohort_id)
+        .where(group_filter(group))
         .group_by(col(PracticeAnswer.user_id), col(PracticeAnswer.correct))
     ).all()
     stats: dict[uuid.UUID, dict[bool, int]] = {}
@@ -197,7 +203,7 @@ EXPORT_FIELDS = (
 
 
 def cohort_pretest_summaries(
-    session: Session, cohort_id: uuid.UUID
+    session: Session, cohort_id: Group
 ) -> dict[uuid.UUID, CsvRow]:
     """每人第一次入門前測的答對題數(試測的前測成績)。
 
@@ -209,7 +215,7 @@ def cohort_pretest_summaries(
     for attempt in session.exec(
         select(PretestAttempt)
         .join(User, col(User.id) == col(PretestAttempt.user_id))
-        .where(User.cohort_id == cohort_id)
+        .where(group_filter(cohort_id))
         .order_by(col(PretestAttempt.created_at), col(PretestAttempt.id))
     ).all():
         if attempt.created_at is None or attempt.user_id in firsts:
@@ -230,7 +236,7 @@ def cohort_pretest_summaries(
             PretestResult.user_id, PretestResult.created_at, PretestResult.is_correct
         )
         .join(User, col(User.id) == col(PretestResult.user_id))
-        .where(User.cohort_id == cohort_id)
+        .where(group_filter(cohort_id))
     ).all()
     for user_id, created_at, is_correct in results:
         first = firsts.get(user_id)
@@ -253,7 +259,7 @@ def empty_pretest_summary() -> CsvRow:
 
 
 def cohort_survey_summaries(
-    session: Session, cohort_id: uuid.UUID
+    session: Session, cohort_id: Group
 ) -> dict[uuid.UUID, TrialSurvey]:
     """交過的問卷；只開了問卷頁、還沒交的不算。"""
     return {
@@ -262,7 +268,7 @@ def cohort_survey_summaries(
             select(TrialSurvey)
             .join(User, col(User.id) == col(TrialSurvey.user_id))
             .where(
-                User.cohort_id == cohort_id,
+                group_filter(cohort_id),
                 col(TrialSurvey.submitted_at).is_not(None),
             )
         ).all()
@@ -320,14 +326,22 @@ def csv_cell(value: str | int) -> str | int:
     return value
 
 
-def cohort_rows(session: Session, cohort_id: uuid.UUID) -> list[CsvRow]:
-    """成員 CSV 的每一列；進度表、數據分析都用這一份。"""
-    return build_export_rows(
-        list_members(cohort_id, session),
+def cohort_rows(session: Session, cohort_id: Group) -> list[CsvRow]:
+    """成員 CSV 的每一列；進度表、數據分析都用這一份。一般玩家也能用（數據分析）。"""
+    if isinstance(cohort_id, uuid.UUID):
+        get_cohort(session, cohort_id)
+    rows = build_export_rows(
+        group_members(session, cohort_id),
         cohort_exam_summaries(session, cohort_id),
         cohort_pretest_summaries(session, cohort_id),
         cohort_survey_summaries(session, cohort_id),
     )
+    if cohort_id == GENERAL:
+        # 一般玩家沒有試測禮券，不能算進「可以領錢」
+        for row in rows:
+            row["payout_eligible"] = "false"
+            row["payout_reasons"] = "一般玩家"
+    return rows
 
 
 @router.get(
@@ -469,25 +483,30 @@ def member_detail(
 
 @router.get("/analytics", response_model=TrialAnalytics)
 def analytics(
-    session: SessionDep, cohort_id: uuid.UUID | None = None
+    session: SessionDep, cohort_id: uuid.UUID | None = None, general: bool = False
 ) -> TrialAnalytics:
-    """試測數據與問卷分析；沒給 cohort_id 是全部梯次合計。交了問卷的全部列入分析。"""
-    if cohort_id is not None:
+    """試測數據與問卷分析。給 cohort_id 看一個梯次、general 看一般玩家，
+    都不給是全部梯次加一般玩家。交了問卷的全部列入分析。"""
+    groups: list[Group]
+    if general:
+        groups = [GENERAL]
+    elif cohort_id is not None:
         get_cohort(session, cohort_id)
-        cohort_ids = [cohort_id]
+        groups = [cohort_id]
     else:
-        cohort_ids = list(session.exec(select(Cohort.id)).all())
+        groups = [*session.exec(select(Cohort.id)).all(), GENERAL]
     rows: list[CsvRow] = []
     surveys: list[tuple[str, TrialSurvey]] = []
-    for cid in cohort_ids:
-        rows.extend(cohort_rows(session, cid))
-        submitted = cohort_survey_summaries(session, cid)
+    for group in groups:
+        rows.extend(cohort_rows(session, group))
+        submitted = cohort_survey_summaries(session, group)
         codes = {
-            user.id: user.participant_code or ""
+            user.id: user.participant_code or "一般玩家"
             for user in session.exec(
                 select(User).where(col(User.id).in_(list(submitted)))
             ).all()
         }
         surveys.extend((codes.get(uid, ""), s) for uid, s in submitted.items())
     surveys.sort(key=lambda item: item[0])
-    return trial_analytics(session, rows, surveys)
+    # 一般玩家沒有領錢這回事，只看一般玩家時漏斗不列「可以領錢」
+    return trial_analytics(session, rows, surveys, payout=not general)

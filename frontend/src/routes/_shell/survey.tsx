@@ -38,7 +38,7 @@ function SurveyPage() {
   const start = useStartTrialSurvey()
   const submit = useSubmitTrialSurvey()
   const [startFailed, setStartFailed] = useState(false)
-  const canStart = data?.exam_done === true && data.submitted === false
+  const canStart = data?.can_start === true && data.submitted === false
   const { mutate: startSurvey } = start
 
   // 打開問卷頁才開始計時；重開不會重新計時（後端只記第一次）
@@ -50,15 +50,15 @@ function SurveyPage() {
   if (error) {
     return (
       <Message>
-        {extractErrorCode(error) === "trial_only"
-          ? "這份問卷只給參加試測的人填。"
+        {extractErrorCode(error) === "survey_unavailable"
+          ? "這份問卷目前沒有開放給你的帳號。"
           : "問卷載入失敗，請稍後再試。"}
       </Message>
     )
   }
   if (isPending) return <Message>載入中…</Message>
   if (data.submitted) return <TrialDone data={data} />
-  if (!data.exam_done) {
+  if (!data.can_start && data.audience === "trial") {
     return (
       <Message>
         <p>問卷會問到檢測的感想，請先完成一次檢測再來填。</p>
@@ -68,13 +68,18 @@ function SurveyPage() {
       </Message>
     )
   }
+  if (!data.can_start) {
+    return <Message>先玩一天看看，之後房間裡會請你填問卷。</Message>
+  }
   if (startFailed) return <Message>問卷開不起來，請重新整理再試一次。</Message>
   if (!data.started) return <Message>載入中…</Message>
 
   return (
     <div className="flex flex-col gap-4 pb-8">
       <div>
-        <h2 className="text-lg font-bold">試測問卷</h2>
+        <h2 className="text-lg font-bold">
+          {data.audience === "trial" ? "試測問卷" : "使用回饋問卷"}
+        </h2>
         <p className="text-xs text-muted-foreground">
           照你玩過的感覺回答就好，大約五分鐘。每題都要仔細看，送出後就不能改。
         </p>

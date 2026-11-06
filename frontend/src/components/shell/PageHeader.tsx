@@ -12,7 +12,7 @@ const TITLES: { prefix: string; title: string }[] = [
   { prefix: "/shop", title: "商店" },
   { prefix: "/me", title: "我的" },
   { prefix: "/team", title: "團隊題庫" },
-  { prefix: "/survey", title: "試測問卷" },
+  { prefix: "/survey", title: "問卷" },
   { prefix: "/classes", title: "班級管理" },
   { prefix: "/classwork", title: "班級作業" },
 ]

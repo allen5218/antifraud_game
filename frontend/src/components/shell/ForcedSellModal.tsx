@@ -21,7 +21,8 @@ export function ForcedSellModal() {
       owned
         .filter((p) => selected.has(p.id))
         .reduce(
-          (sum, p) => sum + BigInt(Math.floor(p.tier.price * LIQUIDATION_RATIO)),
+          (sum, p) =>
+            sum + BigInt(Math.floor(p.tier.price * LIQUIDATION_RATIO)),
           0n,
         ),
     [owned, selected],

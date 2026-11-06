@@ -134,7 +134,10 @@ export function ResultSheet({
             </span>
           </div>
           {result.reward_receipt && (
-            <RewardBreakdown receipt={result.reward_receipt} className="mt-2.5" />
+            <RewardBreakdown
+              receipt={result.reward_receipt}
+              className="mt-2.5"
+            />
           )}
           {result.triggers_forced_sell && (
             <p className="mt-2 flex gap-1.5 rounded-lg border border-warning/40 bg-warning/15 px-3 py-2 text-[11px]">

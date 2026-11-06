@@ -4,6 +4,7 @@ import {
   BookOpen,
   CalendarDays,
   ClipboardList,
+  Compass,
   GraduationCap,
   Mail,
   MessageCircle,
@@ -14,7 +15,7 @@ import {
 } from "lucide-react"
 import type { MenuItem } from "./logic"
 
-const ICONS = {
+export const MENU_ICONS = {
   phone: MessageCircle,
   tv: Tv,
   letters: Mail,
@@ -27,6 +28,7 @@ const ICONS = {
   admin: QrCode,
   classes: GraduationCap,
   classwork: NotebookPen,
+  tour: Compass,
 } as const
 
 export function RoomMenu({
@@ -37,14 +39,18 @@ export function RoomMenu({
   onNavigate: () => void
 }) {
   return (
-    <div className="absolute inset-x-3 bottom-24 z-40 max-h-[46%] overflow-y-auto rounded-2xl border bg-card p-2 text-card-foreground shadow-lg">
+    <div
+      data-testid="room-menu-list"
+      className="absolute inset-x-3 bottom-24 z-40 max-h-[46%] overflow-y-auto rounded-2xl border bg-card p-2 text-card-foreground shadow-lg"
+    >
       <ul className="flex flex-col">
         {items.map((item) => {
-          const Icon = ICONS[item.id]
+          const Icon = MENU_ICONS[item.id]
           return (
             <li key={item.id}>
               <Link
                 to={item.to}
+                search={item.search}
                 onClick={onNavigate}
                 className={`flex items-center gap-2 rounded-xl px-3 py-2.5 text-sm ${
                   item.done ? "opacity-50" : ""

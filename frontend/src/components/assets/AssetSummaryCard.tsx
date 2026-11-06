@@ -41,9 +41,7 @@ export function AssetSummaryCard() {
       </div>
       <div className="flex justify-between text-[11px]">
         <span>每日被動收入</span>
-        <span className="text-legit">
-          + $ {formatMoney(dailyIncome)} / 天
-        </span>
+        <span className="text-legit">+ $ {formatMoney(dailyIncome)} / 天</span>
       </div>
     </div>
   )

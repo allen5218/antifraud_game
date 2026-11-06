@@ -25,6 +25,8 @@ type Props = {
   paused: HotspotId[]
   strong: HotspotId | null
   examBadges: string[]
+  /** 桌機滑鼠移過去的提示（觸控裝置不會出現） */
+  hints: Record<HotspotId | "mascot", string> | null
   onMascot: () => void
   onRoomShown: () => void
 }
@@ -48,6 +50,37 @@ function tapBox(rect: Rect, viewW: number, viewH: number) {
 }
 
 /**
+ * 滑鼠移到家具上才出現的提示。Tailwind 的 hover 只在有滑鼠的裝置生效，手機點下去不會卡著一個提示；
+ * 鍵盤移到上面（focus-visible）也看得到。靠上或靠左右邊的物件把提示放到看得到的一側。
+ */
+function Hint({
+  text,
+  box,
+  viewW,
+}: {
+  text: string
+  box: { left: number; top: number; width: number }
+  viewW: number
+}) {
+  const center = box.left + box.width / 2
+  const vertical = box.top < 48 ? "top-full mt-1.5" : "bottom-full mb-1.5"
+  const horizontal =
+    center < 120
+      ? "left-0"
+      : viewW > 0 && center > viewW - 120
+        ? "right-0"
+        : "left-1/2 -translate-x-1/2"
+  return (
+    <span
+      role="tooltip"
+      className={`pointer-events-none absolute ${vertical} ${horizontal} z-30 whitespace-nowrap rounded-lg border bg-popover px-2.5 py-1 text-xs font-medium text-popover-foreground opacity-0 shadow-md transition-opacity group-hover:opacity-100 group-focus-visible:opacity-100`}
+    >
+      {text}
+    </span>
+  )
+}
+
+/**
  * 房間舞台：整張房間圖與剪下來的家具圖層在固定大小的世界裡、整個一起縮放（stage.ts），
  * 點擊範圍與紅色標記放在舞台外的一層，用換算後的位置擺，紅點才不會跟著縮小。
  * 物件上不放圖示泡泡（使用者 10-18：「泡泡都拿掉」），要去哪裡靠呼吸光（推薦的那件比較快）、紅點與選單。
@@ -60,6 +93,7 @@ export function RoomStage({
   paused,
   strong,
   examBadges,
+  hints,
   onMascot,
   onRoomShown,
 }: Props) {
@@ -145,6 +179,7 @@ export function RoomStage({
       </div>
       {layers.map((layer) => {
         const screen = toScreen(layer.box, layout)
+        const box = tapBox(screen, view.width, view.height)
         if (layer.target === "mascot") {
           return (
             <button
@@ -153,9 +188,13 @@ export function RoomStage({
               data-testid="hotspot-mascot"
               aria-label="吉祥物"
               onClick={onMascot}
-              className="absolute z-10 rounded-3xl transition-transform active:scale-95"
-              style={tapBox(screen, view.width, view.height)}
-            />
+              className="group absolute z-10 rounded-3xl transition-transform active:scale-95"
+              style={box}
+            >
+              {hints && (
+                <Hint text={hints.mascot} box={box} viewW={view.width} />
+              )}
+            </button>
           )
         }
         const id = layer.target
@@ -167,10 +206,19 @@ export function RoomStage({
             to={spec.to}
             data-testid={`hotspot-${id}`}
             aria-label={spec.label}
-            className="absolute z-10 rounded-xl transition-transform active:scale-95"
-            style={tapBox(screen, view.width, view.height)}
+            className="group absolute z-10 rounded-xl transition-transform active:scale-95"
+            style={box}
           >
             {badge && <RoomBadge badge={badge} testId={`badge-${id}`} />}
+            {/* 常駐的模式名稱：跨在點擊範圍下緣，點擊範圍已移進畫面，標籤也就留在畫面裡 */}
+            <span
+              aria-hidden="true"
+              data-testid={`room-label-${id}`}
+              className="pointer-events-none absolute bottom-0 left-1/2 z-20 -translate-x-1/2 translate-y-1/2 whitespace-nowrap rounded-full border bg-card/90 px-2 py-0.5 text-[11px] font-bold text-card-foreground shadow-sm"
+            >
+              {spec.label}
+            </span>
+            {hints && <Hint text={hints[id]} box={box} viewW={view.width} />}
           </Link>
         )
       })}

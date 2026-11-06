@@ -20,6 +20,7 @@ from app.models import (
     QuizSession,
     ScenarioSession,
     UserMascotItem,
+    UserOnboarding,
     UserProperty,
 )
 from tests.utils.user import create_random_user
@@ -54,6 +55,7 @@ def test_summary_creates_no_rows_for_new_player(client, player, db):
         ExamAttempt,
         PracticeAnswer,
         PretestAttempt,
+        UserOnboarding,
     )
     before = [db.exec(select(func.count()).select_from(t)).one() for t in tables]
     for _ in range(2):
@@ -80,6 +82,8 @@ def test_summary_creates_no_rows_for_new_player(client, player, db):
             "class_count": 0,
             "classwork_pending": 0,
             "classwork_next": None,
+            "tour_pending": True,
+            "starter_tasks": None,
         }
     after = [db.exec(select(func.count()).select_from(t)).one() for t in tables]
     assert after == before

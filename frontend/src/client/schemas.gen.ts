@@ -318,6 +318,11 @@ export const ChoiceItemSchema = {
             },
             type: 'array',
             title: 'Options'
+        },
+        not_asked: {
+            type: 'integer',
+            title: 'Not Asked',
+            default: 0
         }
     },
     type: 'object',
@@ -1207,6 +1212,48 @@ export const ConfidenceShiftSchema = {
     title: 'ConfidenceShift'
 } as const;
 
+export const CurvePointSchema = {
+    properties: {
+        label: {
+            type: 'string',
+            title: 'Label'
+        },
+        accuracy: {
+            anyOf: [
+                {
+                    type: 'number'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Accuracy'
+        },
+        missed_rate: {
+            anyOf: [
+                {
+                    type: 'number'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Missed Rate'
+        },
+        people: {
+            type: 'integer',
+            title: 'People'
+        },
+        items: {
+            type: 'integer',
+            title: 'Items'
+        }
+    },
+    type: 'object',
+    required: ['label', 'accuracy', 'missed_rate', 'people', 'items'],
+    title: 'CurvePoint'
+} as const;
+
 export const DailyResultPublicSchema = {
     properties: {
         correct: {
@@ -1335,6 +1382,51 @@ export const EconomyMeResponseSchema = {
     type: 'object',
     required: ['cash', 'xp', 'level', 'streak_days', 'pending_accrual', 'bankruptcy_pending'],
     title: 'EconomyMeResponse'
+} as const;
+
+export const EffectAnalyticsSchema = {
+    properties: {
+        exam: {
+            '$ref': '#/components/schemas/ExamStageEffect'
+        },
+        repeat: {
+            '$ref': '#/components/schemas/RepeatEffect'
+        },
+        entry: {
+            '$ref': '#/components/schemas/EntryEffect'
+        },
+        practice: {
+            '$ref': '#/components/schemas/PracticeEffect'
+        },
+        volume: {
+            '$ref': '#/components/schemas/PracticeVolume'
+        }
+    },
+    type: 'object',
+    required: ['exam', 'repeat', 'entry', 'practice', 'volume'],
+    title: 'EffectAnalytics'
+} as const;
+
+export const EntryEffectSchema = {
+    properties: {
+        total: {
+            '$ref': '#/components/schemas/PairedChange'
+        },
+        by_type: {
+            items: {
+                '$ref': '#/components/schemas/TypePair'
+            },
+            type: 'array',
+            title: 'By Type'
+        },
+        practiced_between: {
+            type: 'integer',
+            title: 'Practiced Between'
+        }
+    },
+    type: 'object',
+    required: ['total', 'by_type', 'practiced_between'],
+    title: 'EntryEffect'
 } as const;
 
 export const EquipmentCatalogPublicSchema = {
@@ -2153,6 +2245,24 @@ export const ExamStageDetailSchema = {
     title: 'ExamStageDetail'
 } as const;
 
+export const ExamStageEffectSchema = {
+    properties: {
+        stages: {
+            items: {
+                '$ref': '#/components/schemas/StageAccuracy'
+            },
+            type: 'array',
+            title: 'Stages'
+        },
+        change: {
+            '$ref': '#/components/schemas/PairedChange'
+        }
+    },
+    type: 'object',
+    required: ['stages', 'change'],
+    title: 'ExamStageEffect'
+} as const;
+
 export const ExamStartRequestSchema = {
     properties: {
         mode: {
@@ -2640,6 +2750,21 @@ export const HomeSummarySchema = {
             type: 'boolean',
             title: 'Admin Access',
             default: false
+        },
+        tour_pending: {
+            type: 'boolean',
+            title: 'Tour Pending',
+            default: false
+        },
+        starter_tasks: {
+            anyOf: [
+                {
+                    '$ref': '#/components/schemas/StarterTasks'
+                },
+                {
+                    type: 'null'
+                }
+            ]
         }
     },
     type: 'object',
@@ -2962,6 +3087,11 @@ export const LikertItemSchema = {
                 }
             ],
             title: 'Mean'
+        },
+        not_asked: {
+            type: 'integer',
+            title: 'Not Asked',
+            default: 0
         }
     },
     type: 'object',
@@ -3151,6 +3281,25 @@ export const MessageSchema = {
     type: 'object',
     required: ['message'],
     title: 'Message'
+} as const;
+
+export const ModeHalvesSchema = {
+    properties: {
+        mode: {
+            type: 'string',
+            title: 'Mode'
+        },
+        label: {
+            type: 'string',
+            title: 'Label'
+        },
+        change: {
+            '$ref': '#/components/schemas/PairedChange'
+        }
+    },
+    type: 'object',
+    required: ['mode', 'label', 'change'],
+    title: 'ModeHalves'
 } as const;
 
 export const MyAssignmentSchema = {
@@ -3390,6 +3539,63 @@ export const OwnedPropertyPublicSchema = {
     type: 'object',
     required: ['id', 'tier', 'purchased_at'],
     title: 'OwnedPropertyPublic'
+} as const;
+
+export const PairedChangeSchema = {
+    properties: {
+        n: {
+            type: 'integer',
+            title: 'N'
+        },
+        before_mean: {
+            anyOf: [
+                {
+                    type: 'number'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Before Mean'
+        },
+        after_mean: {
+            anyOf: [
+                {
+                    type: 'number'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'After Mean'
+        },
+        diff_mean: {
+            anyOf: [
+                {
+                    type: 'number'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Diff Mean'
+        },
+        improved: {
+            type: 'integer',
+            title: 'Improved'
+        },
+        same: {
+            type: 'integer',
+            title: 'Same'
+        },
+        worse: {
+            type: 'integer',
+            title: 'Worse'
+        }
+    },
+    type: 'object',
+    required: ['n', 'before_mean', 'after_mean', 'diff_mean', 'improved', 'same', 'worse'],
+    title: 'PairedChange'
 } as const;
 
 export const ParticipantDetailSchema = {
@@ -3670,6 +3876,46 @@ export const PracticeDetailSchema = {
     title: 'PracticeDetail'
 } as const;
 
+export const PracticeEffectSchema = {
+    properties: {
+        baseline_people: {
+            type: 'integer',
+            title: 'Baseline People'
+        },
+        by_type: {
+            items: {
+                '$ref': '#/components/schemas/TypePair'
+            },
+            type: 'array',
+            title: 'By Type'
+        },
+        curve: {
+            items: {
+                '$ref': '#/components/schemas/CurvePoint'
+            },
+            type: 'array',
+            title: 'Curve'
+        },
+        tags: {
+            items: {
+                '$ref': '#/components/schemas/TagShift'
+            },
+            type: 'array',
+            title: 'Tags'
+        },
+        modes: {
+            items: {
+                '$ref': '#/components/schemas/ModeHalves'
+            },
+            type: 'array',
+            title: 'Modes'
+        }
+    },
+    type: 'object',
+    required: ['baseline_people', 'by_type', 'curve', 'tags', 'modes'],
+    title: 'PracticeEffect'
+} as const;
+
 export const PracticeProfilePublicSchema = {
     properties: {
         focus_type: {
@@ -3729,6 +3975,48 @@ export const PracticeProfilePublicSchema = {
     required: ['focus_type', 'focus_label', 'note', 'weights', 'source', 'answers_seen'],
     title: 'PracticeProfilePublic',
     description: '玩家目前的練習重點。訊息判讀、滑卡、情境收件匣都照這個比例出題。'
+} as const;
+
+export const PracticeVolumeSchema = {
+    properties: {
+        exam_people: {
+            type: 'integer',
+            title: 'Exam People'
+        },
+        practiced_people: {
+            type: 'integer',
+            title: 'Practiced People'
+        },
+        median_answers: {
+            anyOf: [
+                {
+                    type: 'number'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Median Answers'
+        },
+        median_days: {
+            anyOf: [
+                {
+                    type: 'number'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Median Days'
+        },
+        scenario_rounds: {
+            type: 'integer',
+            title: 'Scenario Rounds'
+        }
+    },
+    type: 'object',
+    required: ['exam_people', 'practiced_people', 'median_answers', 'median_days', 'scenario_rounds'],
+    title: 'PracticeVolume'
 } as const;
 
 export const PresetPublicSchema = {
@@ -4696,6 +4984,36 @@ export const QuizWeaknessDetailSchema = {
     title: 'QuizWeaknessDetail'
 } as const;
 
+export const RepeatEffectSchema = {
+    properties: {
+        people: {
+            type: 'integer',
+            title: 'People'
+        },
+        pretest: {
+            '$ref': '#/components/schemas/PairedChange'
+        },
+        score: {
+            '$ref': '#/components/schemas/PairedChange'
+        },
+        failed_first: {
+            type: 'integer',
+            title: 'Failed First'
+        },
+        retook: {
+            type: 'integer',
+            title: 'Retook'
+        },
+        retake_passed: {
+            type: 'integer',
+            title: 'Retake Passed'
+        }
+    },
+    type: 'object',
+    required: ['people', 'pretest', 'score', 'failed_first', 'retook', 'retake_passed'],
+    title: 'RepeatEffect'
+} as const;
+
 export const RewardReceiptPublicSchema = {
     properties: {
         receipt_id: {
@@ -5205,11 +5523,102 @@ export const ShowcasePositionPublicSchema = {
     title: 'ShowcasePositionPublic'
 } as const;
 
+export const StageAccuracySchema = {
+    properties: {
+        key: {
+            type: 'string',
+            title: 'Key'
+        },
+        label: {
+            type: 'string',
+            title: 'Label'
+        },
+        accuracy: {
+            anyOf: [
+                {
+                    type: 'number'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Accuracy'
+        },
+        people: {
+            type: 'integer',
+            title: 'People'
+        },
+        items: {
+            type: 'integer',
+            title: 'Items'
+        }
+    },
+    type: 'object',
+    required: ['key', 'label', 'accuracy', 'people', 'items'],
+    title: 'StageAccuracy'
+} as const;
+
+export const StarterRewardSchema = {
+    properties: {
+        cash: {
+            type: 'integer',
+            title: 'Cash'
+        },
+        xp: {
+            type: 'integer',
+            title: 'Xp'
+        }
+    },
+    type: 'object',
+    required: ['cash', 'xp'],
+    title: 'StarterReward'
+} as const;
+
+export const StarterTasksSchema = {
+    properties: {
+        swipe: {
+            type: 'boolean',
+            title: 'Swipe'
+        },
+        quiz: {
+            type: 'boolean',
+            title: 'Quiz'
+        },
+        scenario: {
+            type: 'boolean',
+            title: 'Scenario'
+        },
+        shop: {
+            type: 'boolean',
+            title: 'Shop'
+        },
+        reward_cash: {
+            type: 'integer',
+            title: 'Reward Cash'
+        },
+        reward_xp: {
+            type: 'integer',
+            title: 'Reward Xp'
+        }
+    },
+    type: 'object',
+    required: ['swipe', 'quiz', 'scenario', 'shop', 'reward_cash', 'reward_xp'],
+    title: 'StarterTasks',
+    description: '新手任務四項：各種練習完成過一輪、看過商店。'
+} as const;
+
 export const SurveyAnalyticsSchema = {
     properties: {
         responses: {
             type: 'integer',
             title: 'Responses'
+        },
+        tam: {
+            items: {
+                '$ref': '#/components/schemas/TamConstruct'
+            },
+            type: 'array',
+            title: 'Tam'
         },
         likert: {
             items: {
@@ -5237,7 +5646,7 @@ export const SurveyAnalyticsSchema = {
         }
     },
     type: 'object',
-    required: ['responses', 'likert', 'confidence', 'choices', 'texts'],
+    required: ['responses', 'tam', 'likert', 'confidence', 'choices', 'texts'],
     title: 'SurveyAnalytics',
     description: '交了問卷的人全部算進來（注意力題答錯、作答太快也算）；注意力題本身不列。'
 } as const;
@@ -5508,6 +5917,84 @@ export const SwipeDeckResponseSchema = {
     type: 'object',
     required: ['session_id', 'cards'],
     title: 'SwipeDeckResponse'
+} as const;
+
+export const TagShiftSchema = {
+    properties: {
+        tag: {
+            type: 'string',
+            title: 'Tag'
+        },
+        label: {
+            type: 'string',
+            title: 'Label'
+        },
+        first_half: {
+            type: 'integer',
+            title: 'First Half'
+        },
+        second_half: {
+            type: 'integer',
+            title: 'Second Half'
+        }
+    },
+    type: 'object',
+    required: ['tag', 'label', 'first_half', 'second_half'],
+    title: 'TagShift'
+} as const;
+
+export const TamConstructSchema = {
+    properties: {
+        key: {
+            type: 'string',
+            title: 'Key'
+        },
+        label: {
+            type: 'string',
+            title: 'Label'
+        },
+        items: {
+            items: {
+                type: 'string'
+            },
+            type: 'array',
+            title: 'Items'
+        },
+        mean: {
+            anyOf: [
+                {
+                    type: 'number'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Mean'
+        },
+        n: {
+            type: 'integer',
+            title: 'N'
+        },
+        complete: {
+            type: 'integer',
+            title: 'Complete'
+        },
+        alpha: {
+            anyOf: [
+                {
+                    type: 'number'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Alpha'
+        }
+    },
+    type: 'object',
+    required: ['key', 'label', 'items', 'mean', 'n', 'complete', 'alpha'],
+    title: 'TamConstruct',
+    description: '科技接受模式一個構面：每人有答的題目取平均，再算全部人的平均。'
 } as const;
 
 export const TeacherApplicationSchema = {
@@ -6183,10 +6670,13 @@ export const TrialAnalyticsSchema = {
         },
         survey: {
             '$ref': '#/components/schemas/SurveyAnalytics'
+        },
+        effect: {
+            '$ref': '#/components/schemas/EffectAnalytics'
         }
     },
     type: 'object',
-    required: ['member_count', 'funnel', 'type_accuracy', 'scores', 'timings', 'survey'],
+    required: ['member_count', 'funnel', 'type_accuracy', 'scores', 'timings', 'survey', 'effect'],
     title: 'TrialAnalytics'
 } as const;
 
@@ -6198,6 +6688,15 @@ export const TrialSurveyPublicSchema = {
             },
             type: 'array',
             title: 'Questions'
+        },
+        audience: {
+            type: 'string',
+            enum: ['trial', 'general'],
+            title: 'Audience'
+        },
+        can_start: {
+            type: 'boolean',
+            title: 'Can Start'
         },
         started: {
             type: 'boolean',
@@ -6237,7 +6736,7 @@ export const TrialSurveyPublicSchema = {
         }
     },
     type: 'object',
-    required: ['questions', 'started', 'submitted', 'exam_done'],
+    required: ['questions', 'audience', 'can_start', 'started', 'submitted', 'exam_done'],
     title: 'TrialSurveyPublic'
 } as const;
 
@@ -6280,6 +6779,44 @@ export const TypeAccuracySchema = {
     required: ['fraud_type', 'accuracy', 'n'],
     title: 'TypeAccuracy',
     description: '第一次考完的綜合檢測，前測關這一類的答對率與題數。'
+} as const;
+
+export const TypePairSchema = {
+    properties: {
+        fraud_type: {
+            type: 'string',
+            title: 'Fraud Type'
+        },
+        before: {
+            anyOf: [
+                {
+                    type: 'number'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Before'
+        },
+        after: {
+            anyOf: [
+                {
+                    type: 'number'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'After'
+        },
+        people: {
+            type: 'integer',
+            title: 'People'
+        }
+    },
+    type: 'object',
+    required: ['fraud_type', 'before', 'after', 'people'],
+    title: 'TypePair'
 } as const;
 
 export const UpdatePasswordSchema = {
