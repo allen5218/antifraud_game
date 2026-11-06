@@ -37,6 +37,10 @@ export function useQuizComplete() {
       }),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["economy"] })
+      qc.invalidateQueries({ queryKey: ["progression"] })
+      qc.invalidateQueries({ queryKey: ["collections"] })
+      qc.invalidateQueries({ queryKey: ["seasons"] })
+      qc.invalidateQueries({ queryKey: ["collection-board"] })
       refreshPracticeProfileSoon(qc)
     },
   })

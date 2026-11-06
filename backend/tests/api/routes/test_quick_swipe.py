@@ -129,10 +129,10 @@ def test_complete_grants_reward_for_stored_answers(
     assert r.status_code == 200
     data = r.json()
     assert data["correct_count"] == data["total"] == len(deck["cards"])
-    assert data["cash_earned"] > 0
+    assert int(data["cash_earned"]) > 0
     assert data["xp_earned"] == 10 * len(deck["cards"])
     db.refresh(user)
-    assert user.cash == cash_before + data["cash_earned"]
+    assert user.cash == cash_before + int(data["cash_earned"])
     assert user.xp == xp_before + data["xp_earned"]
 
 

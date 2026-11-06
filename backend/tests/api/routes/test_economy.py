@@ -67,7 +67,7 @@ def test_me_returns_economy_state(
     assert "bankruptcy_pending" in body
     assert isinstance(body["level"], int)
     assert body["level"] >= 1
-    assert body["cash"] >= 0
+    assert int(body["cash"]) >= 0
 
 
 def test_properties_list_returns_tiers_and_owned(

@@ -16,6 +16,7 @@ import { shouldRetryQuery } from "./lib/queryRetry"
 import { routeTree } from "./routeTree.gen"
 
 OpenAPI.BASE = import.meta.env.VITE_API_URL
+OpenAPI.HEADERS = { "X-ScamGym-Client-Version": "2" }
 OpenAPI.TOKEN = async () => {
   return localStorage.getItem("access_token") || ""
 }

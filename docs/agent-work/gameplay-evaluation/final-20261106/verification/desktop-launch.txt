@@ -1,0 +1,384 @@
+{"project":"scamgym-gameplay-v1","state":"C:\\Users\\kun\\AppData\\Local\\ScamGym\\scamgym-gameplay-v1","website":"http://localhost:17173","keyConfigured":true}
+linux
+ Image scamgym-gameplay-v1-backend:gameplay-v1.1 Building
+ Image scamgym-gameplay-v1-frontend:gameplay-v1.1 Building
+#1 [internal] load local bake definitions
+#1 reading from stdin 1.27kB 0.3s done
+#1 DONE 0.3s
+
+#2 [frontend internal] load build definition from Dockerfile
+#2 transferring dockerfile:
+#2 transferring dockerfile: 741B 0.1s done
+#2 DONE 0.3s
+
+#3 [prestart internal] load build definition from Dockerfile
+#3 transferring dockerfile: 1.56kB 0.1s done
+#3 DONE 0.3s
+
+#4 [prestart internal] load metadata for ghcr.io/astral-sh/uv:0.12.13
+#4 DONE 3.1s
+
+#5 [frontend internal] load metadata for docker.io/library/nginx:1
+#5 ...
+
+#6 [frontend internal] load metadata for docker.io/oven/bun:1
+#6 DONE 3.2s
+
+#7 [prestart internal] load metadata for docker.io/library/python:3.10
+#7 DONE 3.2s
+
+#8 [prestart internal] load .dockerignore
+#8 transferring context:
+#8 ...
+
+#5 [frontend internal] load metadata for docker.io/library/nginx:1
+#5 DONE 3.8s
+
+#8 [frontend internal] load .dockerignore
+#8 transferring context: 254B 0.4s done
+#8 transferring context: 254B 0.4s done
+#8 DONE 0.9s
+
+#9 [prestart internal] load build context
+#9 DONE 0.0s
+
+#10 [frontend internal] load build context
+#10 ...
+
+#11 [frontend stage-2 1/4] FROM docker.io/library/nginx:1@sha256:165ddde8751e75a1c907d24ef10d9f6deb08b57e0fe56caf67512486aff76d82
+#11 resolve docker.io/library/nginx:1@sha256:165ddde8751e75a1c907d24ef10d9f6deb08b57e0fe56caf67512486aff76d82 0.4s done
+#11 DONE 0.5s
+
+#10 [frontend internal] load build context
+#10 ...
+
+#12 [prestart stage-0 1/9] FROM docker.io/library/python:3.10@sha256:c10791e6f69086d5216f7b5d3b839929c454e24305867ed9bc5152f0355b5423
+#12 resolve docker.io/library/python:3.10@sha256:c10791e6f69086d5216f7b5d3b839929c454e24305867ed9bc5152f0355b5423 0.4s done
+#12 DONE 0.6s
+
+#13 [frontend test-stage 1/7] FROM docker.io/oven/bun:1@sha256:1d22548f177f4ff38e0c15baa3c2c46c6c2060ba2d1bc573bb4720b407548f1d
+#13 resolve docker.io/oven/bun:1@sha256:1d22548f177f4ff38e0c15baa3c2c46c6c2060ba2d1bc573bb4720b407548f1d 0.4s done
+#13 DONE 0.5s
+
+#14 [prestart] FROM ghcr.io/astral-sh/uv:0.12.13@sha256:b485bd65cc2cf1c9a93b3554012c9c3778cf7b1b5fd3d3096ce9e1226c97e1e6
+#14 resolve ghcr.io/astral-sh/uv:0.12.13@sha256:b485bd65cc2cf1c9a93b3554012c9c3778cf7b1b5fd3d3096ce9e1226c97e1e6 0.4s done
+#14 DONE 0.6s
+
+#10 [frontend internal] load build context
+#10 transferring context: 1.98MB 2.5s
+#10 ...
+
+#9 [prestart internal] load build context
+#9 transferring context: 1.81MB 3.6s done
+#9 DONE 3.8s
+
+#10 [frontend internal] load build context
+#10 ...
+
+#15 [prestart stage-0 3/9] WORKDIR /app/
+#15 CACHED
+
+#16 [prestart stage-0 4/9] RUN --mount=type=cache,target=/root/.cache/uv     --mount=type=bind,source=uv.lock,target=uv.lock     --mount=type=bind,source=pyproject.toml,target=pyproject.toml     uv sync --frozen --no-install-workspace --package app
+#16 CACHED
+
+#17 [prestart stage-0 5/9] COPY ./backend/scripts /app/backend/scripts
+#17 CACHED
+
+#18 [prestart stage-0 2/9] COPY --from=ghcr.io/astral-sh/uv:0.12.13 /uv /uvx /bin/
+#18 CACHED
+
+#19 [prestart stage-0 6/9] COPY ./backend/pyproject.toml ./backend/alembic.ini /app/backend/
+#19 CACHED
+
+#10 [frontend internal] load build context
+#10 ...
+
+#20 [prestart stage-0 7/9] COPY ./backend/app /app/backend/app
+#20 DONE 0.9s
+
+#10 [frontend internal] load build context
+#10 transferring context: 4.36MB 9.1s
+#10 transferring context: 4.65MB 11.7s done
+#10 DONE 12.1s
+
+#21 [frontend test-stage 2/7] WORKDIR /app
+#21 CACHED
+
+#22 [frontend test-stage 3/7] COPY package.json bun.lock /app/
+#22 CACHED
+
+#23 [frontend test-stage 4/7] COPY frontend/package.json /app/frontend/
+#23 CACHED
+
+#24 [frontend test-stage 5/7] WORKDIR /app/frontend
+#24 CACHED
+
+#25 [frontend test-stage 6/7] RUN bun install --frozen-lockfile
+#25 CACHED
+
+#26 [frontend test-stage 7/7] COPY ./frontend /app/frontend
+#26 DONE 1.0s
+
+#27 [prestart stage-0 8/9] RUN --mount=type=cache,target=/root/.cache/uv     --mount=type=bind,source=uv.lock,target=uv.lock     --mount=type=bind,source=pyproject.toml,target=pyproject.toml     uv sync --frozen --package app
+#27 6.843 Installed 1 package in 51ms
+#27 ...
+
+#28 [frontend build-stage 1/1] RUN bun run build
+#28 0.748 $ tsc -p tsconfig.build.json && vite build
+#28 ...
+
+#27 [prestart stage-0 8/9] RUN --mount=type=cache,target=/root/.cache/uv     --mount=type=bind,source=uv.lock,target=uv.lock     --mount=type=bind,source=pyproject.toml,target=pyproject.toml     uv sync --frozen --package app
+#27 26.74 Bytecode compiled 10603 files in 19.55s
+#27 26.74  + app==0.1.0 (from file:///app/backend)
+#27 DONE 27.3s
+
+#28 [frontend build-stage 1/1] RUN bun run build
+#28 ...
+
+#29 [prestart stage-0 9/9] WORKDIR /app/backend/
+#29 DONE 0.3s
+
+#28 [frontend build-stage 1/1] RUN bun run build
+#28 ...
+
+#30 [prestart] exporting to image
+#30 exporting layers
+#30 exporting layers 0.9s done
+#30 exporting manifest sha256:398538da0183652c183cbc4974179154f6ef5589bcbb409e88f2eae18a83000d 0.1s done
+#30 exporting config sha256:c74e6f408a05f3f17979dcb5f9dd37dbe9b5731131496244ffbe44f469efb2a4
+#30 exporting config sha256:c74e6f408a05f3f17979dcb5f9dd37dbe9b5731131496244ffbe44f469efb2a4 0.1s done
+#30 exporting attestation manifest sha256:e3f60681be06b9a35ec4b7cfb6e1db7f65e48dd4184153e978fa98cc34db352e
+#30 exporting attestation manifest sha256:e3f60681be06b9a35ec4b7cfb6e1db7f65e48dd4184153e978fa98cc34db352e 0.1s done
+#30 exporting manifest list sha256:7ac2accd0c6f1d0e72e892ab553dfc429898a4e7af87abe4000729134358ccdf
+#30 exporting manifest list sha256:7ac2accd0c6f1d0e72e892ab553dfc429898a4e7af87abe4000729134358ccdf 0.1s done
+#30 naming to docker.io/library/scamgym-gameplay-v1-backend:gameplay-v1.1 0.1s done
+#30 unpacking to docker.io/library/scamgym-gameplay-v1-backend:gameplay-v1.1
+#30 unpacking to docker.io/library/scamgym-gameplay-v1-backend:gameplay-v1.1 0.5s done
+#30 DONE 2.3s
+
+#28 [frontend build-stage 1/1] RUN bun run build
+#28 ...
+
+#31 [prestart] resolving provenance for metadata file
+#31 DONE 0.6s
+
+#28 [frontend build-stage 1/1] RUN bun run build
+#28 65.23 vite v7.3.1 building client environment for production...
+#28 65.93 transforming...
+#28 88.04 ✓ 3426 modules transformed.
+#28 89.36 rendering chunks...
+#28 90.03 computing gzip size...
+#28 90.16 dist/manifest.webmanifest                           0.50 kB
+#28 90.16 dist/index.html                                     1.02 kB │ gzip:   0.55 kB
+#28 90.16 dist/assets/index-CHsyTgMP.css                     85.58 kB │ gzip:  14.81 kB
+#28 90.17 dist/assets/chevron-down-Dr8Pp27k.js                0.13 kB │ gzip:   0.14 kB
+#28 90.17 dist/assets/chevron-left-DOZfLA0p.js                0.13 kB │ gzip:   0.14 kB
+#28 90.17 dist/assets/classes-C2Zms09J.js                     0.14 kB │ gzip:   0.14 kB
+#28 90.17 dist/assets/search-D8eD0wRL.js                      0.18 kB │ gzip:   0.17 kB
+#28 90.17 dist/assets/skeleton-BfP-VfR5.js                    0.20 kB │ gzip:   0.17 kB
+#28 90.17 dist/assets/shield-BRGAJu2r.js                      0.27 kB │ gzip:   0.23 kB
+#28 90.17 dist/assets/pencil-D6Xh-NFS.js                      0.28 kB │ gzip:   0.22 kB
+#28 90.17 dist/assets/trash-2-DyGzRcha.js                     0.33 kB │ gzip:   0.21 kB
+#28 90.17 dist/assets/download-Bmu02G2T.js                    0.51 kB │ gzip:   0.38 kB
+#28 90.17 dist/assets/format-BEUot4Ej.js                      0.65 kB │ gzip:   0.51 kB
+#28 90.17 dist/assets/classroomApi-DfD6o545.js                1.05 kB │ gzip:   0.42 kB
+#28 90.17 dist/assets/format-Ba95Apyy.js                      1.24 kB │ gzip:   0.76 kB
+#28 90.17 dist/assets/recover-password-DXHGXBrU.js            1.39 kB │ gzip:   0.82 kB
+#28 90.17 dist/assets/SwipeCard-CxQLBPF2.js                   1.43 kB │ gzip:   0.74 kB
+#28 90.17 dist/assets/oauth._provider.callback-DS4Az9xM.js    1.72 kB │ gzip:   1.02 kB
+#28 90.17 dist/assets/PropertyCard-CdohdRwW.js                1.80 kB │ gzip:   0.92 kB
+#28 90.17 dist/assets/badge._slug-yZaNLE-q.js                 1.84 kB │ gzip:   0.88 kB
+#28 90.17 dist/assets/useScenario-B2D4XOPd.js                 1.86 kB │ gzip:   0.95 kB
+#28 90.17 dist/assets/login-Bulomxz2.js                       1.91 kB │ gzip:   0.91 kB
+#28 90.17 dist/assets/reset-password-tFgHXcRF.js              1.97 kB │ gzip:   0.95 kB
+#28 90.17 dist/assets/invite._token-DPGyP-p-.js               2.02 kB │ gzip:   1.15 kB
+#28 90.17 dist/assets/ClassList-5kVic9sR.js                   2.28 kB │ gzip:   1.18 kB
+#28 90.17 dist/assets/assets-DBd9dtNY.js                      2.41 kB │ gzip:   1.02 kB
+#28 90.17 dist/assets/ExamBadges-B-qgm0sR.js                  2.53 kB │ gzip:   1.34 kB
+#28 90.17 dist/assets/privacy-CMSQ9Xc2.js                     2.54 kB │ gzip:   1.37 kB
+#28 90.17 dist/assets/class._token-7LqVcLA4.js                2.60 kB │ gzip:   1.42 kB
+#28 90.17 dist/assets/pretest.result-Bb1Z8_FE.js              2.85 kB │ gzip:   1.38 kB
+#28 90.17 dist/assets/shop-BGXzT3dt.js                        3.15 kB │ gzip:   1.36 kB
+#28 90.17 dist/assets/JudgeSheet-BgQj4yj5.js                  3.33 kB │ gzip:   1.46 kB
+#28 90.17 dist/assets/index-mGJ02FZ_.js                       3.42 kB │ gzip:   1.53 kB
+#28 90.17 dist/assets/pretest-Bf4oQGSy.js                     3.54 kB │ gzip:   1.59 kB
+#28 90.17 dist/assets/MessageList-B7-kCniJ.js                 3.88 kB │ gzip:   1.73 kB
+#28 90.17 dist/assets/classwork-CBniYG7d.js                   4.97 kB │ gzip:   2.06 kB
+#28 90.17 dist/assets/PretestQuestion-Bp6Tdb24.js             5.00 kB │ gzip:   2.36 kB
+#28 90.17 dist/assets/me-Ahsrk0cC.js                          5.08 kB │ gzip:   2.11 kB
+#28 90.17 dist/assets/exam-Do1NgcgS.js                        5.13 kB │ gzip:   2.08 kB
+#28 90.17 dist/assets/workbox-window.prod.es5-BBnX5xw4.js     5.75 kB │ gzip:   2.36 kB
+#28 90.17 dist/assets/_shell-BoF2bkd7.js                      6.80 kB │ gzip:   3.01 kB
+#28 90.17 dist/assets/survey-7uxMpG9Z.js                      7.30 kB │ gzip:   3.13 kB
+#28 90.17 dist/assets/swipe-ffIQ8QAo.js                       7.57 kB │ gzip:   2.86 kB
+#28 90.17 dist/assets/items-CWWgBOGw.js                       8.34 kB │ gzip:   2.69 kB
+#28 90.17 dist/assets/_scenarioId-DIfbcjU0.js                 8.66 kB │ gzip:   3.71 kB
+#28 90.17 dist/assets/settings-BguAlas2.js                   12.10 kB │ gzip:   4.56 kB
+#28 90.17 dist/assets/team-6cwE_yNq.js                       12.10 kB │ gzip:   4.13 kB
+#28 90.17 dist/assets/admin-1s_cLU1b.js                      12.52 kB │ gzip:   3.49 kB
+#28 90.17 dist/assets/exam_._attemptId-Cl2I8KEB.js           14.80 kB │ gzip:   5.67 kB
+#28 90.17 dist/assets/index-Bb9XCwDj.js                      16.44 kB │ gzip:   6.18 kB
+#28 90.17 dist/assets/classes_._classId-odtcIBeX.js          17.42 kB │ gzip:   5.22 kB
+#28 90.17 dist/assets/leaderboard-D4FRJ6ls.js                19.97 kB │ gzip:   6.31 kB
+#28 90.17 dist/assets/progression-CrN6DI8f.js                22.30 kB │ gzip:   6.79 kB
+#28 90.17 dist/assets/RadarChart-1HxsG6Qq.js                 36.17 kB │ gzip:   9.14 kB
+#28 90.17 dist/assets/DataTable-CyVNAxsk.js                  78.78 kB │ gzip:  22.90 kB
+#28 90.17 dist/assets/proxy-DlJAZ06B.js                     121.46 kB │ gzip:  40.11 kB
+#28 90.17 dist/assets/admin_.cohorts-_-P9Lu6b.js            128.66 kB │ gzip:  34.19 kB
+#28 90.17 dist/assets/CategoricalChart-K-aGc6zS.js          257.25 kB │ gzip:  83.24 kB
+#28 90.17 dist/assets/index-q97k2ey0.js                     784.06 kB │ gzip: 241.26 kB
+#28 90.17
+#28 90.17 (!) Some chunks are larger than 500 kB after minification. Consider:
+#28 90.17 - Using dynamic import() to code-split the application
+#28 90.17 - Use build.rollupOptions.output.manualChunks to improve chunking: https://rollupjs.org/configuration-options/#output-manualchunks
+#28 90.17 - Adjust chunk size limit for this warning via build.chunkSizeWarningLimit.
+#28 90.17 ✓ built in 24.68s
+#28 98.17
+#28 98.17 PWA v2.0.0
+#28 98.17 mode      generateSW
+#28 98.17 precache  66 entries (1717.49 KiB)
+#28 98.17 files generated
+#28 98.17   dist/sw.js
+#28 98.17   dist/workbox-1320db52.js
+#28 DONE 102.2s
+
+#11 [frontend stage-2 1/4] FROM docker.io/library/nginx:1@sha256:165ddde8751e75a1c907d24ef10d9f6deb08b57e0fe56caf67512486aff76d82
+#11 CACHED
+
+#32 [frontend stage-2 2/4] COPY --from=build-stage /app/frontend/dist/ /usr/share/nginx/html
+#32 DONE 0.1s
+
+#33 [frontend stage-2 3/4] COPY ./frontend/nginx.conf /etc/nginx/conf.d/default.conf
+#33 DONE 0.1s
+
+#34 [frontend stage-2 4/4] COPY ./frontend/nginx-backend-not-found.conf /etc/nginx/extra-conf.d/backend-not-found.conf
+#34 DONE 0.1s
+
+#35 [frontend] exporting to image
+#35 exporting layers
+#35 exporting layers 0.7s done
+#35 exporting manifest sha256:aa974ae6984b0859f9cf0bdd05fbe02a7e9b410faa70c5610e1654dafb622a4a 0.0s done
+#35 exporting config sha256:9a219228093b19956c8d8d727c1bb4f091c2fd44b038621b2d5977ac6f06611c 0.0s done
+#35 exporting attestation manifest sha256:5aa277712b6642ac13d06e08bf8fb7f781905abacc94cf17de2eb144e3c40d79
+#35 exporting attestation manifest sha256:5aa277712b6642ac13d06e08bf8fb7f781905abacc94cf17de2eb144e3c40d79 0.3s done
+#35 exporting manifest list sha256:b753ca334bb4d2d6b8cb11c6b0299a9e6edda3b3e698f2605e748d1c7767b2cc
+#35 exporting manifest list sha256:b753ca334bb4d2d6b8cb11c6b0299a9e6edda3b3e698f2605e748d1c7767b2cc 0.0s done
+#35 naming to docker.io/library/scamgym-gameplay-v1-frontend:gameplay-v1.1 done
+#35 unpacking to docker.io/library/scamgym-gameplay-v1-frontend:gameplay-v1.1
+#35 unpacking to docker.io/library/scamgym-gameplay-v1-frontend:gameplay-v1.1 0.2s done
+#35 DONE 1.4s
+
+#36 [frontend] resolving provenance for metadata file
+#36 DONE 0.0s
+ Image scamgym-gameplay-v1-backend:gameplay-v1.1 Built
+ Image scamgym-gameplay-v1-frontend:gameplay-v1.1 Built
+Local image IDs and source fingerprint recorded.
+ Container scamgym-gameplay-v1-imgproxy-1 Running
+ Container scamgym-gameplay-v1-mailcatcher-1 Running
+ Container scamgym-gameplay-v1-studio-1 Running
+ Container scamgym-gameplay-v1-db-1 Running
+ Container scamgym-gameplay-v1-realtime-1 Running
+ Container scamgym-gameplay-v1-auth-1 Running
+ Container scamgym-gameplay-v1-meta-1 Running
+ Container scamgym-gameplay-v1-rest-1 Running
+ Container scamgym-gameplay-v1-kong-1 Running
+ Container scamgym-gameplay-v1-supavisor-1 Running
+ Container scamgym-gameplay-v1-storage-1 Running
+ Container scamgym-gameplay-v1-functions-1 Running
+ Container scamgym-gameplay-v1-prestart-1 Recreate
+ Container scamgym-gameplay-v1-prestart-1 Recreated
+ Container scamgym-gameplay-v1-backend-1 Recreate
+ Container scamgym-gameplay-v1-season-worker-1 Recreate
+ Container scamgym-gameplay-v1-season-worker-1 Recreated
+ Container scamgym-gameplay-v1-backend-1 Recreated
+ Container scamgym-gameplay-v1-frontend-1 Recreate
+ Container scamgym-gameplay-v1-frontend-1 Recreated
+ Container scamgym-gameplay-v1-db-1 Waiting
+ Container scamgym-gameplay-v1-db-1 Waiting
+ Container scamgym-gameplay-v1-db-1 Waiting
+ Container scamgym-gameplay-v1-db-1 Waiting
+ Container scamgym-gameplay-v1-studio-1 Waiting
+ Container scamgym-gameplay-v1-db-1 Waiting
+ Container scamgym-gameplay-v1-studio-1 Healthy
+ Container scamgym-gameplay-v1-kong-1 Waiting
+ Container scamgym-gameplay-v1-db-1 Healthy
+ Container scamgym-gameplay-v1-db-1 Waiting
+ Container scamgym-gameplay-v1-db-1 Healthy
+ Container scamgym-gameplay-v1-db-1 Healthy
+ Container scamgym-gameplay-v1-db-1 Healthy
+ Container scamgym-gameplay-v1-supavisor-1 Waiting
+ Container scamgym-gameplay-v1-db-1 Healthy
+ Container scamgym-gameplay-v1-kong-1 Healthy
+ Container scamgym-gameplay-v1-db-1 Healthy
+ Container scamgym-gameplay-v1-supavisor-1 Healthy
+ Container scamgym-gameplay-v1-prestart-1 Starting
+ Container scamgym-gameplay-v1-prestart-1 Started
+ Container scamgym-gameplay-v1-prestart-1 Waiting
+ Container scamgym-gameplay-v1-prestart-1 Waiting
+ Container scamgym-gameplay-v1-prestart-1 Exited
+ Container scamgym-gameplay-v1-backend-1 Starting
+ Container scamgym-gameplay-v1-prestart-1 Exited
+ Container scamgym-gameplay-v1-season-worker-1 Starting
+ Container scamgym-gameplay-v1-season-worker-1 Started
+ Container scamgym-gameplay-v1-backend-1 Started
+ Container scamgym-gameplay-v1-backend-1 Waiting
+ Container scamgym-gameplay-v1-backend-1 Healthy
+ Container scamgym-gameplay-v1-frontend-1 Starting
+ Container scamgym-gameplay-v1-frontend-1 Started
+ Container scamgym-gameplay-v1-frontend-1 Waiting
+ Container scamgym-gameplay-v1-meta-1 Waiting
+ Container scamgym-gameplay-v1-season-worker-1 Waiting
+ Container scamgym-gameplay-v1-backend-1 Waiting
+ Container scamgym-gameplay-v1-storage-1 Waiting
+ Container scamgym-gameplay-v1-rest-1 Waiting
+ Container scamgym-gameplay-v1-supavisor-1 Waiting
+ Container scamgym-gameplay-v1-realtime-1 Waiting
+ Container scamgym-gameplay-v1-imgproxy-1 Waiting
+ Container scamgym-gameplay-v1-prestart-1 Waiting
+ Container scamgym-gameplay-v1-functions-1 Waiting
+ Container scamgym-gameplay-v1-mailcatcher-1 Waiting
+ Container scamgym-gameplay-v1-auth-1 Waiting
+ Container scamgym-gameplay-v1-db-1 Waiting
+ Container scamgym-gameplay-v1-kong-1 Waiting
+ Container scamgym-gameplay-v1-studio-1 Waiting
+ Container scamgym-gameplay-v1-prestart-1 Exited
+ Container scamgym-gameplay-v1-supavisor-1 Healthy
+ Container scamgym-gameplay-v1-studio-1 Healthy
+ Container scamgym-gameplay-v1-kong-1 Healthy
+ Container scamgym-gameplay-v1-auth-1 Healthy
+ Container scamgym-gameplay-v1-db-1 Healthy
+ Container scamgym-gameplay-v1-rest-1 Healthy
+ Container scamgym-gameplay-v1-functions-1 Healthy
+ Container scamgym-gameplay-v1-backend-1 Healthy
+ Container scamgym-gameplay-v1-storage-1 Healthy
+ Container scamgym-gameplay-v1-imgproxy-1 Healthy
+ Container scamgym-gameplay-v1-season-worker-1 Healthy
+ Container scamgym-gameplay-v1-realtime-1 Healthy
+ Container scamgym-gameplay-v1-mailcatcher-1 Healthy
+ Container scamgym-gameplay-v1-meta-1 Healthy
+ Container scamgym-gameplay-v1-frontend-1 Healthy
+NOTICE:  relation "scamgym_local_bootstrap" already exists, skipping
+ Container scamgym-gameplay-v1-db-1 Running
+ Container scamgym-gameplay-v1-supavisor-1 Running
+ Container scamgym-gameplay-v1-db-1 Waiting
+ Container scamgym-gameplay-v1-db-1 Healthy
+ Container scamgym-gameplay-v1-supavisor-1 Waiting
+ Container scamgym-gameplay-v1-supavisor-1 Healthy
+ Container scamgym-gameplay-v1-backend-tests-run-23ac0408a8d3 Creating
+ Container scamgym-gameplay-v1-backend-tests-run-23ac0408a8d3 Created
++ python app/backend_pre_start.py
+INFO:__main__:Initializing service
+INFO:__main__:Starting call to '__main__.init', this is the 1st time calling it.
+INFO:__main__:Service finished initializing
++ alembic upgrade head
+INFO  [alembic.runtime.migration] Context impl PostgresqlImpl.
+INFO  [alembic.runtime.migration] Will assume transactional DDL.
++ python app/initial_data.py
+INFO:__main__:Creating initial data
+INFO:__main__:Initial data created
+exam_message|80
+exam_scenario|20
+exam_tactics|10
+practice|120
+遊戲已啟動：http://localhost:17173
+私密環境與資料庫設定保存在：C:\Users\kun\AppData\Local\ScamGym\scamgym-gameplay-v1

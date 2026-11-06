@@ -15,10 +15,14 @@ from dataclasses import dataclass, replace
 from typing import Any
 
 from google.genai.types import ThinkingLevel
+from httpx import TimeoutException
 from pydantic_ai import Agent, RunContext
+from pydantic_ai.exceptions import ModelAPIError
+from pydantic_ai.models.fallback import FallbackModel
 from pydantic_ai.models.google import GoogleModelSettings
 
 from app.core.cases import GameCaseRow
+from app.core.config import settings
 from app.core.weakness import WEAKNESS_TAGS
 from app.models import ScenarioSession
 from app.scenario.input_guard import contains_blocked_term
@@ -241,8 +245,21 @@ class ScenarioDeps:
 
 
 def create_scenario_agent() -> Agent[ScenarioDeps, ScenarioReply]:
+    model: str | FallbackModel = settings.SCENARIO_MODEL
+    if os.environ.get("GOOGLE_API_KEY"):
+        fallbacks = [
+            name.strip()
+            for name in settings.SCENARIO_FALLBACK_MODELS.split(",")
+            if name.strip() and name.strip() != settings.SCENARIO_MODEL
+        ]
+        if fallbacks:
+            model = FallbackModel(
+                settings.SCENARIO_MODEL,
+                *fallbacks,
+                fallback_on=(ModelAPIError, TimeoutException, TimeoutError),
+            )
     agent: Agent[ScenarioDeps, ScenarioReply] = Agent(
-        "google:gemini-3.8-flash",
+        model,
         deps_type=ScenarioDeps,
         output_type=ScenarioReply,
         defer_model_check=True,

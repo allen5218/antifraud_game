@@ -32,7 +32,14 @@ test.describe("Admin user management", () => {
     await page.getByPlaceholder("密碼", { exact: true }).first().fill(password)
     await page.getByPlaceholder("密碼", { exact: true }).last().fill(password)
 
+    // 此端點會寄出帳號信。先等待真實 HTTP 結果，再檢查完成提示。
+    const created = page.waitForResponse(
+      (response) =>
+        response.url().endsWith("/api/v1/users/") &&
+        response.request().method() === "POST",
+    )
     await page.getByRole("button", { name: "儲存" }).click()
+    expect((await created).status()).toBe(200)
 
     await expect(page.getByText("已新增使用者")).toBeVisible()
 
@@ -93,7 +100,7 @@ test.describe("Admin user management", () => {
     await page.getByRole("button", { name: "儲存" }).click()
 
     await expect(page.getByText("已更新使用者")).toBeVisible()
-    await expect(page.getByText(updatedName)).toBeVisible()
+    await expect(userRow.getByText(updatedName, { exact: true })).toBeVisible()
   })
 
   test("Delete a user successfully", async ({ page }) => {

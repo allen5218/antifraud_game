@@ -1,6 +1,7 @@
 import type { PropertyTierPublic } from "@/client"
 import { Skeleton } from "@/components/ui/skeleton"
 import { useBuyProperty, useEconomyMe, useProperties } from "@/hooks/useEconomy"
+import { parseBigIntSafe } from "@/utils/money"
 import { PropertyCard } from "./PropertyCard"
 
 export function OwnedAndAvailableList() {
@@ -8,7 +9,7 @@ export function OwnedAndAvailableList() {
   const { data: propData } = useProperties()
   const { mutate: buyProperty } = useBuyProperty()
 
-  const cash = me?.cash ?? 0
+  const cash = parseBigIntSafe(me?.cash)
   const level = me?.level ?? 1
   const tiers = propData?.tiers ?? []
   const owned = propData?.owned ?? []
@@ -53,7 +54,7 @@ export function OwnedAndAvailableList() {
             key={tier.id}
             tier={tier}
             locked={level < tier.unlock_level}
-            affordable={cash >= tier.price}
+            affordable={cash >= BigInt(tier.price)}
             onBuy={() => buyProperty(tier.id)}
           />
         ))}

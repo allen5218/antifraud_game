@@ -1,0 +1,55 @@
+{
+  "passed": true,
+  "source": "C:\\Users\\kun\\Desktop\\scamgym-gameplay-verified-20261106",
+  "sourceFingerprint": "84f97fc85da57931869d28d887cdd4e305ae346f2b20963f1d9b659fdf402f87",
+  "normalDockerfileBuild": true,
+  "images": [
+    {
+      "name": "scamgym-gameplay-v1-backend:gameplay-v1.1",
+      "id": "sha256:7ac2accd0c6f1d0e72e892ab553dfc429898a4e7af87abe4000729134358ccdf"
+    },
+    {
+      "name": "scamgym-gameplay-v1-frontend:gameplay-v1.1",
+      "id": "sha256:b753ca334bb4d2d6b8cb11c6b0299a9e6edda3b3e698f2605e748d1c7767b2cc"
+    },
+    {
+      "name": "scamgym-gameplay-v1-playwright:gameplay-v1.1",
+      "id": "sha256:5a46299912c674abc3e30f157f9d78537d6ac1f0441bcc131c08d8306ac4128d"
+    },
+    {
+      "name": "scamgym-gameplay-v1-frontend-tests:gameplay-v1.1",
+      "id": "sha256:b00c8d9c1b8ef5265f665d355723fd16086b2bb948cd85a315fd09ccdf055f17"
+    }
+  ],
+  "browser": {
+    "passed": true,
+    "website": "http://localhost:17173",
+    "nginxProductionBuild": true,
+    "mockedResponses": false,
+    "checks": [
+      "real login",
+      "mobile room",
+      "equip persisted after reload",
+      "season and permanent boards",
+      "loaded public showcase"
+    ],
+    "browserErrors": [],
+    "at": "2026-11-06T05:31:48.938Z"
+  },
+  "persistence": {
+    "passed": true,
+    "fullStackRestart": true,
+    "accounts": 2,
+    "checks": [
+      "cash",
+      "core and resources",
+      "equipment and ranks",
+      "presets",
+      "pet bond",
+      "collectibles and display",
+      "active appearance"
+    ],
+    "at": "2026-11-06T05:31:43.685Z"
+  },
+  "checkedAt": "2026-11-06T05:32:26.881Z"
+}

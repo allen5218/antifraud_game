@@ -95,6 +95,9 @@ class Settings(BaseSettings):
     FIRST_SUPERUSER_PASSWORD: str
 
     GOOGLE_API_KEY: str = ""
+    # 情境對抗的模型；備援模型預設不開（逗號分隔，主模型失敗或逾時才換下一個）
+    SCENARIO_MODEL: str = "google:gemini-3.8-flash"
+    SCENARIO_FALLBACK_MODELS: str = ""
 
     # 第三方登入；沒填就不開放那一家(登入頁也不顯示按鈕)。
     # 回呼網址是 {FRONTEND_HOST}/oauth/<google|line>/callback,要在兩家的後台登記。

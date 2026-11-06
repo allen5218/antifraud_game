@@ -2,6 +2,7 @@ import { TriangleAlert } from "lucide-react"
 import { useMemo, useState } from "react"
 import { useEconomyMe, useLiquidate, useProperties } from "@/hooks/useEconomy"
 import { LIQUIDATION_RATIO } from "@/lib/economy"
+import { formatMoney, parseBigIntSafe } from "@/utils/money"
 
 export function ForcedSellModal() {
   const { data: me } = useEconomyMe()
@@ -10,18 +11,19 @@ export function ForcedSellModal() {
   const [selected, setSelected] = useState<Set<string>>(new Set())
   const [dismissed, setDismissed] = useState(false)
 
-  const cash = me?.cash ?? 0
+  const cash = parseBigIntSafe(me?.cash)
   const pending = me?.bankruptcy_pending ?? false
   const owned = propData?.owned ?? []
 
-  const deficit = Math.abs(Math.min(0, cash))
+  const deficit = cash < 0n ? -cash : 0n
   const recovered = useMemo(
     () =>
       owned
         .filter((p) => selected.has(p.id))
         .reduce(
-          (sum, p) => sum + Math.floor(p.tier.price * LIQUIDATION_RATIO),
-          0,
+          (sum, p) =>
+            sum + BigInt(Math.floor(p.tier.price * LIQUIDATION_RATIO)),
+          0n,
         ),
     [owned, selected],
   )
@@ -29,8 +31,8 @@ export function ForcedSellModal() {
   const maxRecoverable = useMemo(
     () =>
       owned.reduce(
-        (sum, p) => sum + Math.floor(p.tier.price * LIQUIDATION_RATIO),
-        0,
+        (sum, p) => sum + BigInt(Math.floor(p.tier.price * LIQUIDATION_RATIO)),
+        0n,
       ),
     [owned],
   )
@@ -41,7 +43,7 @@ export function ForcedSellModal() {
 
   // 只有「真的破產」（flag 且現金為負）才顯示；避免 DB 手動改現金後
   // 殘留的 bankruptcy_pending 造成 $0 缺口的空視窗
-  const isActuallyBankrupt = pending && cash < 0
+  const isActuallyBankrupt = pending && cash < 0n
   if (!isActuallyBankrupt || dismissed) return null
 
   const toggle = (id: string) =>
@@ -77,7 +79,7 @@ export function ForcedSellModal() {
           你在情境對抗裡照對方的要求匯了款。
         </p>
         <div className="mb-3 rounded-lg border border-scam/40 bg-scam/15 px-2 py-1.5 text-[11px]">
-          <b>現金不足 ${deficit.toLocaleString()}</b>
+          <b>現金不足 ${formatMoney(deficit)}</b>
           <div className="text-muted-foreground">
             要賣掉房產補上，賣價是原價的六成。
           </div>
@@ -145,8 +147,8 @@ export function ForcedSellModal() {
         </div>
         <div className="mt-3 flex items-center justify-between text-[11px]">
           <span>
-            已選回收 <b>${recovered.toLocaleString()}</b> / 缺口 $
-            {deficit.toLocaleString()}
+            已選回收 <b>${formatMoney(recovered)}</b> / 缺口 $
+            {formatMoney(deficit)}
           </span>
           <div className="flex items-center gap-2">
             {insufficientAssets && (

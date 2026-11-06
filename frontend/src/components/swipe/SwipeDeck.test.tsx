@@ -1,4 +1,12 @@
-import { afterEach, describe, expect, it, mock, spyOn } from "bun:test"
+import {
+  afterEach,
+  beforeEach,
+  describe,
+  expect,
+  it,
+  mock,
+  spyOn,
+} from "bun:test"
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query"
 import {
   act,
@@ -89,8 +97,14 @@ mock.module("@/hooks/useSwipe", () => ({
 
 import { SwipeDeck } from "./SwipeDeck"
 
+beforeEach(() => {
+  cleanup()
+  document.body.innerHTML = ""
+})
+
 afterEach(() => {
   cleanup()
+  document.body.innerHTML = ""
   sent.length = 0
   failNext = true
   hold = false

@@ -1,5 +1,6 @@
 import { Skeleton } from "@/components/ui/skeleton"
 import { useAssets } from "@/hooks/useEconomy"
+import { formatMoney } from "@/utils/money"
 
 export function AssetSummaryCard() {
   const { data } = useAssets()
@@ -28,21 +29,19 @@ export function AssetSummaryCard() {
     <div className="mb-3 rounded-2xl border bg-surface-3 p-3 text-card-foreground">
       <div className="text-[10px] opacity-70">總身家</div>
       <div className="text-xl font-extrabold">
-        $ {totalNetWorth.toLocaleString()}
+        $ {formatMoney(totalNetWorth)}
       </div>
       <div className="mt-1 flex justify-between text-[11px]">
         <span>現金</span>
-        <span>$ {cash.toLocaleString()}</span>
+        <span>$ {formatMoney(cash)}</span>
       </div>
       <div className="flex justify-between text-[11px]">
         <span>房產（{ownedCount} 間）</span>
-        <span>$ {propertyValue.toLocaleString()}</span>
+        <span>$ {formatMoney(propertyValue)}</span>
       </div>
       <div className="flex justify-between text-[11px]">
         <span>每日被動收入</span>
-        <span className="text-legit">
-          + $ {dailyIncome.toLocaleString()} / 天
-        </span>
+        <span className="text-legit">+ $ {formatMoney(dailyIncome)} / 天</span>
       </div>
     </div>
   )

@@ -3,7 +3,15 @@
 export const AssetSummaryResponseSchema = {
     properties: {
         cash: {
-            type: 'integer',
+            anyOf: [
+                {
+                    type: 'integer'
+                },
+                {
+                    type: 'string',
+                    pattern: '^-?[0-9]+$'
+                }
+            ],
             title: 'Cash'
         },
         property_value: {
@@ -15,7 +23,15 @@ export const AssetSummaryResponseSchema = {
             title: 'Daily Income'
         },
         total_net_worth: {
-            type: 'integer',
+            anyOf: [
+                {
+                    type: 'integer'
+                },
+                {
+                    type: 'string',
+                    pattern: '^-?[0-9]+$'
+                }
+            ],
             title: 'Total Net Worth'
         },
         owned_count: {
@@ -254,13 +270,33 @@ export const BuyPropertyResponseSchema = {
             title: 'Property Id'
         },
         new_cash: {
-            type: 'integer',
+            anyOf: [
+                {
+                    type: 'integer'
+                },
+                {
+                    type: 'string',
+                    pattern: '^-?[0-9]+$'
+                }
+            ],
             title: 'New Cash'
         }
     },
     type: 'object',
     required: ['property_id', 'new_cash'],
     title: 'BuyPropertyResponse'
+} as const;
+
+export const ChampionToolChoiceSchema = {
+    properties: {
+        family: {
+            type: 'string',
+            title: 'Family'
+        }
+    },
+    type: 'object',
+    required: ['family'],
+    title: 'ChampionToolChoice'
 } as const;
 
 export const ChoiceCountSchema = {
@@ -1010,6 +1046,136 @@ export const CohortUpdateSchema = {
     description: '只改有送的欄位；max_members、expires_at 送 null 是不限。'
 } as const;
 
+export const CollectiblePublicSchema = {
+    properties: {
+        item_key: {
+            type: 'string',
+            title: 'Item Key'
+        },
+        kind: {
+            type: 'string',
+            title: 'Kind'
+        },
+        name: {
+            type: 'string',
+            title: 'Name'
+        },
+        displayed: {
+            type: 'boolean',
+            title: 'Displayed'
+        }
+    },
+    type: 'object',
+    required: ['item_key', 'kind', 'name', 'displayed'],
+    title: 'CollectiblePublic'
+} as const;
+
+export const CollectionActionSchema = {
+    properties: {
+        key: {
+            type: 'string',
+            maxLength: 64,
+            minLength: 1,
+            title: 'Key'
+        },
+        expected_level: {
+            anyOf: [
+                {
+                    type: 'integer',
+                    minimum: 0
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Expected Level'
+        }
+    },
+    type: 'object',
+    required: ['key'],
+    title: 'CollectionAction'
+} as const;
+
+export const CollectionsPublicSchema = {
+    properties: {
+        assets: {
+            items: {
+                '$ref': '#/components/schemas/GrowthAsset'
+            },
+            type: 'array',
+            title: 'Assets'
+        },
+        collectibles: {
+            items: {
+                '$ref': '#/components/schemas/CollectiblePublic'
+            },
+            type: 'array',
+            title: 'Collectibles'
+        },
+        titles: {
+            items: {
+                additionalProperties: {
+                    type: 'string'
+                },
+                type: 'object'
+            },
+            type: 'array',
+            title: 'Titles'
+        },
+        active_title: {
+            anyOf: [
+                {
+                    type: 'string'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Active Title'
+        },
+        active_appearance: {
+            anyOf: [
+                {
+                    type: 'string'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Active Appearance'
+        },
+        showcase_capacity: {
+            type: 'integer',
+            title: 'Showcase Capacity'
+        },
+        presets: {
+            items: {
+                '$ref': '#/components/schemas/PresetPublic'
+            },
+            type: 'array',
+            title: 'Presets'
+        },
+        preset_capacity: {
+            type: 'integer',
+            title: 'Preset Capacity'
+        },
+        lifetime_cash: {
+            type: 'string',
+            title: 'Lifetime Cash'
+        },
+        tool_choices: {
+            items: {
+                type: 'string'
+            },
+            type: 'array',
+            title: 'Tool Choices'
+        }
+    },
+    type: 'object',
+    required: ['assets', 'collectibles', 'titles', 'active_title', 'active_appearance', 'showcase_capacity', 'presets', 'preset_capacity', 'lifetime_cash'],
+    title: 'CollectionsPublic'
+} as const;
+
 export const ConfidenceShiftSchema = {
     properties: {
         n: {
@@ -1208,7 +1374,15 @@ export const DailyTodayResponseSchema = {
 export const EconomyMeResponseSchema = {
     properties: {
         cash: {
-            type: 'integer',
+            anyOf: [
+                {
+                    type: 'integer'
+                },
+                {
+                    type: 'string',
+                    pattern: '^-?[0-9]+$'
+                }
+            ],
             title: 'Cash'
         },
         xp: {
@@ -1224,7 +1398,15 @@ export const EconomyMeResponseSchema = {
             title: 'Streak Days'
         },
         pending_accrual: {
-            type: 'integer',
+            anyOf: [
+                {
+                    type: 'integer'
+                },
+                {
+                    type: 'string',
+                    pattern: '^-?[0-9]+$'
+                }
+            ],
             title: 'Pending Accrual'
         },
         bankruptcy_pending: {
@@ -1280,6 +1462,133 @@ export const EntryEffectSchema = {
     type: 'object',
     required: ['total', 'by_type', 'practiced_between'],
     title: 'EntryEffect'
+} as const;
+
+export const EquipmentCatalogPublicSchema = {
+    properties: {
+        items: {
+            items: {
+                '$ref': '#/components/schemas/EquipmentItemPublic'
+            },
+            type: 'array',
+            title: 'Items'
+        },
+        active_slots: {
+            type: 'integer',
+            title: 'Active Slots'
+        },
+        equipped_count: {
+            type: 'integer',
+            title: 'Equipped Count'
+        },
+        revision: {
+            type: 'integer',
+            title: 'Revision'
+        }
+    },
+    type: 'object',
+    required: ['items', 'active_slots', 'equipped_count', 'revision'],
+    title: 'EquipmentCatalogPublic'
+} as const;
+
+export const EquipmentItemPublicSchema = {
+    properties: {
+        id: {
+            type: 'string',
+            format: 'uuid',
+            title: 'Id'
+        },
+        definition_id: {
+            type: 'string',
+            title: 'Definition Id'
+        },
+        family: {
+            type: 'string',
+            title: 'Family'
+        },
+        name: {
+            type: 'string',
+            title: 'Name'
+        },
+        description: {
+            type: 'string',
+            title: 'Description'
+        },
+        rank: {
+            type: 'integer',
+            title: 'Rank'
+        },
+        rank_cap: {
+            type: 'integer',
+            title: 'Rank Cap'
+        },
+        is_equipped: {
+            type: 'boolean',
+            title: 'Is Equipped'
+        },
+        slot_index: {
+            anyOf: [
+                {
+                    type: 'integer'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Slot Index'
+        },
+        upgrade_cost_cash: {
+            anyOf: [
+                {
+                    type: 'string'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Upgrade Cost Cash'
+        },
+        breakthrough_cost_energy: {
+            anyOf: [
+                {
+                    type: 'string'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Breakthrough Cost Energy'
+        },
+        breakthrough_cost_blueprints: {
+            anyOf: [
+                {
+                    type: 'integer'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Breakthrough Cost Blueprints'
+        },
+        can_upgrade: {
+            type: 'boolean',
+            title: 'Can Upgrade',
+            default: false
+        },
+        can_breakthrough: {
+            type: 'boolean',
+            title: 'Can Breakthrough',
+            default: false
+        },
+        breakthrough_ticket_cost: {
+            type: 'integer',
+            title: 'Breakthrough Ticket Cost',
+            default: 0
+        }
+    },
+    type: 'object',
+    required: ['id', 'definition_id', 'family', 'name', 'description', 'rank', 'rank_cap', 'is_equipped'],
+    title: 'EquipmentItemPublic'
 } as const;
 
 export const ExamBadgePublicSchema = {
@@ -1878,7 +2187,15 @@ export const ExamRetakeSchema = {
 export const ExamRewardSchema = {
     properties: {
         cash: {
-            type: 'integer',
+            anyOf: [
+                {
+                    type: 'integer'
+                },
+                {
+                    type: 'string',
+                    pattern: '^-?[0-9]+$'
+                }
+            ],
             title: 'Cash',
             default: 0
         },
@@ -2273,6 +2590,43 @@ export const FunnelStepSchema = {
     title: 'FunnelStep'
 } as const;
 
+export const GrowthAssetSchema = {
+    properties: {
+        kind: {
+            type: 'string',
+            enum: ['house', 'pet'],
+            title: 'Kind'
+        },
+        target_id: {
+            type: 'string',
+            title: 'Target Id'
+        },
+        name: {
+            type: 'string',
+            title: 'Name'
+        },
+        image_url: {
+            type: 'string',
+            title: 'Image Url'
+        },
+        level: {
+            type: 'integer',
+            title: 'Level'
+        },
+        cash_cost: {
+            type: 'string',
+            title: 'Cash Cost'
+        },
+        energy_cost: {
+            type: 'string',
+            title: 'Energy Cost'
+        }
+    },
+    type: 'object',
+    required: ['kind', 'target_id', 'name', 'image_url', 'level', 'cash_cost', 'energy_cost'],
+    title: 'GrowthAsset'
+} as const;
+
 export const HTTPValidationErrorSchema = {
     properties: {
         detail: {
@@ -2653,6 +3007,41 @@ export const LeaderboardEntrySchema = {
     title: 'LeaderboardEntry'
 } as const;
 
+export const LeaderboardEntryPublicSchema = {
+    properties: {
+        rank: {
+            type: 'integer',
+            title: 'Rank'
+        },
+        user_id: {
+            type: 'string',
+            format: 'uuid',
+            title: 'User Id'
+        },
+        nickname: {
+            type: 'string',
+            title: 'Nickname'
+        },
+        metrics: {
+            additionalProperties: true,
+            type: 'object',
+            title: 'Metrics'
+        },
+        is_qualified: {
+            type: 'boolean',
+            title: 'Is Qualified'
+        },
+        is_me: {
+            type: 'boolean',
+            title: 'Is Me',
+            default: false
+        }
+    },
+    type: 'object',
+    required: ['rank', 'user_id', 'nickname', 'metrics', 'is_qualified'],
+    title: 'LeaderboardEntryPublic'
+} as const;
+
 export const LeaderboardResponseSchema = {
     properties: {
         period: {
@@ -2770,11 +3159,27 @@ export const LiquidateRequestSchema = {
 export const LiquidateResponseSchema = {
     properties: {
         recovered: {
-            type: 'integer',
+            anyOf: [
+                {
+                    type: 'integer'
+                },
+                {
+                    type: 'string',
+                    pattern: '^-?[0-9]+$'
+                }
+            ],
             title: 'Recovered'
         },
         new_cash: {
-            type: 'integer',
+            anyOf: [
+                {
+                    type: 'integer'
+                },
+                {
+                    type: 'string',
+                    pattern: '^-?[0-9]+$'
+                }
+            ],
             title: 'New Cash'
         },
         bankruptcy_pending: {
@@ -2785,6 +3190,49 @@ export const LiquidateResponseSchema = {
     type: 'object',
     required: ['recovered', 'new_cash', 'bankruptcy_pending'],
     title: 'LiquidateResponse'
+} as const;
+
+export const LoadoutUpdateItemSchema = {
+    properties: {
+        slot_index: {
+            type: 'integer',
+            title: 'Slot Index'
+        },
+        item_id: {
+            type: 'string',
+            format: 'uuid',
+            title: 'Item Id'
+        }
+    },
+    type: 'object',
+    required: ['slot_index', 'item_id'],
+    title: 'LoadoutUpdateItem'
+} as const;
+
+export const LoadoutUpdateRequestSchema = {
+    properties: {
+        items: {
+            items: {
+                '$ref': '#/components/schemas/LoadoutUpdateItem'
+            },
+            type: 'array',
+            title: 'Items'
+        },
+        expected_revision: {
+            anyOf: [
+                {
+                    type: 'integer'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Expected Revision'
+        }
+    },
+    type: 'object',
+    required: ['items'],
+    title: 'LoadoutUpdateRequest'
 } as const;
 
 export const MascotDisplayPublicSchema = {
@@ -2833,7 +3281,15 @@ export const MascotPublicSchema = {
 export const MascotPurchasePublicSchema = {
     properties: {
         new_cash: {
-            type: 'integer',
+            anyOf: [
+                {
+                    type: 'integer'
+                },
+                {
+                    type: 'string',
+                    pattern: '^-?[0-9]+$'
+                }
+            ],
             title: 'New Cash'
         }
     },
@@ -3342,6 +3798,127 @@ export const PendingStudentSchema = {
     title: 'PendingStudent'
 } as const;
 
+export const PermanentBoardEntrySchema = {
+    properties: {
+        rank: {
+            type: 'integer',
+            title: 'Rank'
+        },
+        user_id: {
+            type: 'string',
+            format: 'uuid',
+            title: 'User Id'
+        },
+        nickname: {
+            type: 'string',
+            title: 'Nickname'
+        },
+        score: {
+            type: 'string',
+            title: 'Score'
+        }
+    },
+    type: 'object',
+    required: ['rank', 'user_id', 'nickname', 'score'],
+    title: 'PermanentBoardEntry'
+} as const;
+
+export const PermanentBoardPublicSchema = {
+    properties: {
+        kind: {
+            type: 'string',
+            title: 'Kind'
+        },
+        entries: {
+            items: {
+                '$ref': '#/components/schemas/PermanentBoardEntry'
+            },
+            type: 'array',
+            title: 'Entries'
+        },
+        my_entry: {
+            anyOf: [
+                {
+                    '$ref': '#/components/schemas/PermanentBoardEntry'
+                },
+                {
+                    type: 'null'
+                }
+            ]
+        }
+    },
+    type: 'object',
+    required: ['kind', 'entries', 'my_entry'],
+    title: 'PermanentBoardPublic'
+} as const;
+
+export const PlayerShowcasePublicSchema = {
+    properties: {
+        player_id: {
+            type: 'string',
+            format: 'uuid',
+            title: 'Player Id'
+        },
+        nickname: {
+            type: 'string',
+            title: 'Nickname'
+        },
+        core_level: {
+            type: 'integer',
+            title: 'Core Level'
+        },
+        active_loadout: {
+            items: {
+                '$ref': '#/components/schemas/ShowcaseEquipmentPublic'
+            },
+            type: 'array',
+            title: 'Active Loadout'
+        },
+        showcases: {
+            items: {
+                '$ref': '#/components/schemas/ShowcasePositionPublic'
+            },
+            type: 'array',
+            title: 'Showcases'
+        },
+        title: {
+            anyOf: [
+                {
+                    type: 'string'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Title'
+        },
+        collectibles: {
+            items: {
+                additionalProperties: {
+                    type: 'string'
+                },
+                type: 'object'
+            },
+            type: 'array',
+            title: 'Collectibles'
+        },
+        pet_appearance: {
+            anyOf: [
+                {
+                    type: 'string'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Pet Appearance'
+        }
+    },
+    type: 'object',
+    required: ['player_id', 'nickname', 'core_level', 'active_loadout', 'showcases'],
+    title: 'PlayerShowcasePublic'
+} as const;
+
 export const PracticeDetailSchema = {
     properties: {
         mode: {
@@ -3503,6 +4080,52 @@ export const PracticeVolumeSchema = {
     type: 'object',
     required: ['exam_people', 'practiced_people', 'median_answers', 'median_days', 'scenario_rounds'],
     title: 'PracticeVolume'
+} as const;
+
+export const PresetPublicSchema = {
+    properties: {
+        position: {
+            type: 'integer',
+            title: 'Position'
+        },
+        name: {
+            type: 'string',
+            title: 'Name'
+        },
+        item_ids: {
+            items: {
+                type: 'string'
+            },
+            type: 'array',
+            title: 'Item Ids'
+        }
+    },
+    type: 'object',
+    required: ['position', 'name', 'item_ids'],
+    title: 'PresetPublic'
+} as const;
+
+export const PresetRequestSchema = {
+    properties: {
+        name: {
+            type: 'string',
+            maxLength: 40,
+            minLength: 1,
+            title: 'Name'
+        },
+        item_ids: {
+            items: {
+                type: 'string',
+                format: 'uuid'
+            },
+            type: 'array',
+            maxItems: 6,
+            title: 'Item Ids'
+        }
+    },
+    type: 'object',
+    required: ['name', 'item_ids'],
+    title: 'PresetRequest'
 } as const;
 
 export const PretestAnswerSchema = {
@@ -3675,6 +4298,66 @@ export const PrivateUserCreateSchema = {
     title: 'PrivateUserCreate'
 } as const;
 
+export const ProgressionSummaryPublicSchema = {
+    properties: {
+        core_level: {
+            type: 'integer',
+            title: 'Core Level'
+        },
+        growth_xp: {
+            type: 'string',
+            title: 'Growth Xp'
+        },
+        next_level_xp: {
+            type: 'string',
+            title: 'Next Level Xp'
+        },
+        growth_progress_percent: {
+            type: 'number',
+            title: 'Growth Progress Percent'
+        },
+        forge_energy: {
+            type: 'string',
+            title: 'Forge Energy'
+        },
+        active_slots: {
+            type: 'integer',
+            title: 'Active Slots'
+        },
+        max_active_slots: {
+            type: 'integer',
+            title: 'Max Active Slots'
+        },
+        has_sixth_slot_license: {
+            type: 'boolean',
+            title: 'Has Sixth Slot License'
+        },
+        blueprint_fragments: {
+            type: 'integer',
+            title: 'Blueprint Fragments'
+        },
+        breakthrough_blueprints: {
+            type: 'integer',
+            title: 'Breakthrough Blueprints',
+            default: 0
+        },
+        factors: {
+            additionalProperties: {
+                type: 'string'
+            },
+            type: 'object',
+            title: 'Factors'
+        },
+        next_objective: {
+            type: 'string',
+            title: 'Next Objective'
+        }
+    },
+    type: 'object',
+    required: ['core_level', 'growth_xp', 'next_level_xp', 'growth_progress_percent', 'forge_energy', 'active_slots', 'max_active_slots', 'has_sixth_slot_license', 'blueprint_fragments', 'factors', 'next_objective'],
+    title: 'ProgressionSummaryPublic'
+} as const;
+
 export const PropertiesListResponseSchema = {
     properties: {
         tiers: {
@@ -3831,7 +4514,15 @@ export const QuizCompleteResponseSchema = {
             title: 'Best Streak'
         },
         cash_earned: {
-            type: 'integer',
+            anyOf: [
+                {
+                    type: 'integer'
+                },
+                {
+                    type: 'string',
+                    pattern: '^-?[0-9]+$'
+                }
+            ],
             title: 'Cash Earned'
         },
         xp_earned: {
@@ -3844,6 +4535,16 @@ export const QuizCompleteResponseSchema = {
             },
             type: 'array',
             title: 'Weakness Summary'
+        },
+        reward_receipt: {
+            anyOf: [
+                {
+                    '$ref': '#/components/schemas/RewardReceiptSchema'
+                },
+                {
+                    type: 'null'
+                }
+            ]
         }
     },
     type: 'object',
@@ -4383,6 +5084,102 @@ export const RepeatEffectSchema = {
     title: 'RepeatEffect'
 } as const;
 
+export const RewardReceiptPublicSchema = {
+    properties: {
+        receipt_id: {
+            type: 'string',
+            format: 'uuid',
+            title: 'Receipt Id'
+        },
+        source_kind: {
+            type: 'string',
+            title: 'Source Kind'
+        },
+        config_version: {
+            type: 'string',
+            title: 'Config Version'
+        },
+        base: {
+            additionalProperties: true,
+            type: 'object',
+            title: 'Base'
+        },
+        factors: {
+            additionalProperties: {
+                type: 'string'
+            },
+            type: 'object',
+            title: 'Factors'
+        },
+        final: {
+            additionalProperties: {
+                type: 'string'
+            },
+            type: 'object',
+            title: 'Final'
+        },
+        core_level_before: {
+            type: 'integer',
+            title: 'Core Level Before'
+        },
+        core_level_after: {
+            type: 'integer',
+            title: 'Core Level After'
+        }
+    },
+    type: 'object',
+    required: ['receipt_id', 'source_kind', 'config_version', 'base', 'factors', 'final', 'core_level_before', 'core_level_after'],
+    title: 'RewardReceiptPublic'
+} as const;
+
+export const RewardReceiptSchemaSchema = {
+    properties: {
+        receipt_id: {
+            type: 'string',
+            format: 'uuid',
+            title: 'Receipt Id'
+        },
+        source_kind: {
+            type: 'string',
+            title: 'Source Kind'
+        },
+        config_version: {
+            type: 'string',
+            title: 'Config Version'
+        },
+        base: {
+            additionalProperties: true,
+            type: 'object',
+            title: 'Base'
+        },
+        factors: {
+            additionalProperties: {
+                type: 'string'
+            },
+            type: 'object',
+            title: 'Factors'
+        },
+        final: {
+            additionalProperties: {
+                type: 'string'
+            },
+            type: 'object',
+            title: 'Final'
+        },
+        core_level_before: {
+            type: 'integer',
+            title: 'Core Level Before'
+        },
+        core_level_after: {
+            type: 'integer',
+            title: 'Core Level After'
+        }
+    },
+    type: 'object',
+    required: ['receipt_id', 'source_kind', 'config_version', 'base', 'factors', 'final', 'core_level_before', 'core_level_after'],
+    title: 'RewardReceiptSchema'
+} as const;
+
 export const ScenarioDetailSchema = {
     properties: {
         id: {
@@ -4536,7 +5333,15 @@ export const ScenarioJudgeResponseSchema = {
             title: 'Flags'
         },
         cash_delta: {
-            type: 'integer',
+            anyOf: [
+                {
+                    type: 'integer'
+                },
+                {
+                    type: 'string',
+                    pattern: '^-?[0-9]+$'
+                }
+            ],
             title: 'Cash Delta'
         },
         xp_delta: {
@@ -4544,7 +5349,15 @@ export const ScenarioJudgeResponseSchema = {
             title: 'Xp Delta'
         },
         new_cash: {
-            type: 'integer',
+            anyOf: [
+                {
+                    type: 'integer'
+                },
+                {
+                    type: 'string',
+                    pattern: '^-?[0-9]+$'
+                }
+            ],
             title: 'New Cash'
         },
         triggers_forced_sell: {
@@ -4561,6 +5374,16 @@ export const ScenarioJudgeResponseSchema = {
                 }
             ],
             title: 'Case Provenance'
+        },
+        reward_receipt: {
+            anyOf: [
+                {
+                    '$ref': '#/components/schemas/RewardReceiptSchema'
+                },
+                {
+                    type: 'null'
+                }
+            ]
         }
     },
     type: 'object',
@@ -4655,6 +5478,133 @@ export const ScoreStatsSchema = {
     type: 'object',
     required: ['n', 'passed', 'mean', 'bins'],
     title: 'ScoreStats'
+} as const;
+
+export const SeasonBoardPublicSchema = {
+    properties: {
+        season_id: {
+            type: 'string',
+            format: 'uuid',
+            title: 'Season Id'
+        },
+        board: {
+            type: 'string',
+            title: 'Board'
+        },
+        entries: {
+            items: {
+                '$ref': '#/components/schemas/LeaderboardEntryPublic'
+            },
+            type: 'array',
+            title: 'Entries'
+        },
+        my_entry: {
+            anyOf: [
+                {
+                    '$ref': '#/components/schemas/LeaderboardEntryPublic'
+                },
+                {
+                    type: 'null'
+                }
+            ]
+        }
+    },
+    type: 'object',
+    required: ['season_id', 'board', 'entries'],
+    title: 'SeasonBoardPublic'
+} as const;
+
+export const SeasonPublicSchema = {
+    properties: {
+        id: {
+            type: 'string',
+            format: 'uuid',
+            title: 'Id'
+        },
+        name: {
+            type: 'string',
+            title: 'Name'
+        },
+        starts_at: {
+            type: 'string',
+            format: 'date-time',
+            title: 'Starts At'
+        },
+        ends_at: {
+            type: 'string',
+            format: 'date-time',
+            title: 'Ends At'
+        },
+        state: {
+            type: 'string',
+            title: 'State'
+        },
+        days_remaining: {
+            type: 'integer',
+            title: 'Days Remaining'
+        },
+        my_qualified_days: {
+            type: 'integer',
+            title: 'My Qualified Days',
+            default: 0
+        },
+        my_total_questions: {
+            type: 'integer',
+            title: 'My Total Questions',
+            default: 0
+        }
+    },
+    type: 'object',
+    required: ['id', 'name', 'starts_at', 'ends_at', 'state', 'days_remaining'],
+    title: 'SeasonPublic'
+} as const;
+
+export const ShowcaseEquipmentPublicSchema = {
+    properties: {
+        item_id: {
+            type: 'string',
+            format: 'uuid',
+            title: 'Item Id'
+        },
+        name: {
+            type: 'string',
+            title: 'Name'
+        },
+        family: {
+            type: 'string',
+            title: 'Family'
+        },
+        rank: {
+            type: 'integer',
+            title: 'Rank'
+        },
+        factors: {
+            additionalProperties: {
+                type: 'string'
+            },
+            type: 'object',
+            title: 'Factors'
+        }
+    },
+    type: 'object',
+    required: ['item_id', 'name', 'family', 'rank', 'factors'],
+    title: 'ShowcaseEquipmentPublic'
+} as const;
+
+export const ShowcasePositionPublicSchema = {
+    properties: {
+        position: {
+            type: 'integer',
+            title: 'Position'
+        },
+        collectible_id: {
+            type: 'string',
+            title: 'Collectible Id'
+        }
+    },
+    type: 'object',
+    required: ['position', 'collectible_id'],
+    title: 'ShowcasePositionPublic'
 } as const;
 
 export const StageAccuracySchema = {
@@ -5003,7 +5953,15 @@ export const SwipeCompleteResponseSchema = {
             title: 'Best Streak'
         },
         cash_earned: {
-            type: 'integer',
+            anyOf: [
+                {
+                    type: 'integer'
+                },
+                {
+                    type: 'string',
+                    pattern: '^-?[0-9]+$'
+                }
+            ],
             title: 'Cash Earned'
         },
         xp_earned: {
@@ -5016,6 +5974,16 @@ export const SwipeCompleteResponseSchema = {
             },
             type: 'array',
             title: 'Weakness Summary'
+        },
+        reward_receipt: {
+            anyOf: [
+                {
+                    '$ref': '#/components/schemas/RewardReceiptSchema'
+                },
+                {
+                    type: 'null'
+                }
+            ]
         }
     },
     type: 'object',

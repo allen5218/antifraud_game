@@ -8,6 +8,7 @@ from app.api.deps import CurrentUser, SessionDep
 from app.economy.service import adjust_cash, lock_user
 from app.game.mascots import displayed_mascot
 from app.models import MascotItem, UserMascotItem
+from app.schemas import DecimalStr
 
 router = APIRouter(prefix="/mascot", tags=["mascot"])
 
@@ -30,7 +31,7 @@ class MascotItemsPublic(BaseModel):
 
 
 class MascotPurchasePublic(BaseModel):
-    new_cash: int
+    new_cash: DecimalStr
 
 
 class MascotDisplayPublic(BaseModel):

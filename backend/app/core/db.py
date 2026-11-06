@@ -1063,3 +1063,9 @@ def init_db(session: Session) -> None:
     seed_mascot_items(session)
     seed_property_tiers(session)
     seed_swipe_cards(session)
+    # 工具目錄是所有玩家共用的列，啟動時先建好；請求路徑若第一次才插入，
+    # 兩個取鎖順序不同的請求同時進來會互等（死鎖）
+    from app.progression.equipment import ensure_default_equipment_catalog
+
+    ensure_default_equipment_catalog(session)
+    session.commit()

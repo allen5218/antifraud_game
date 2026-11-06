@@ -1,0 +1,412 @@
+ Container scamgym-play-eval-frontend-tests-run-87f78c0a7093 Creating
+ Container scamgym-play-eval-frontend-tests-run-87f78c0a7093 Created
+bun test v1.4.4 (38afee6c8)
+
+src/hooks/useEconomy.test.ts:
+(pass) refreshAfterPropertyChange > also refreshes the room, whose look follows the best property [13.12ms]
+
+src/hooks/useScenario.test.ts:
+(pass) newScenarioError > names the type and the daily limit [0.32ms]
+(pass) newScenarioError > points to the unfinished conversation [0.07ms]
+(pass) newScenarioError > falls back to a generic message [1.00ms]
+
+src/utils/money.test.ts:
+(pass) money utilities > parseBigIntSafe > handles null, undefined, empty string [37.14ms]
+(pass) money utilities > parseBigIntSafe > handles numbers and floats [0.38ms]
+(pass) money utilities > parseBigIntSafe > handles decimal strings and large numbers [5.62ms]
+(pass) money utilities > arithmetic > adds correctly [0.37ms]
+(pass) money utilities > arithmetic > subtracts correctly [0.10ms]
+(pass) money utilities > arithmetic > computes absolute values [0.10ms]
+(pass) money utilities > comparisons > compares correctly [0.27ms]
+(pass) money utilities > formatMoney > formats standard numbers with commas [0.80ms]
+(pass) money utilities > formatMoney > formats abbreviated scales [0.31ms]
+
+src/lib/oauth.test.ts:
+(pass) code_challenge 是 verifier 的 SHA-256、base64url 不留等號 [27.15ms]
+(pass) verifier 是 64 字的 base64url，每次都不同 [7.27ms]
+(pass) 待完成的登入只能取一次 [5.40ms]
+
+src/lib/inviteSession.test.ts:
+(pass) 登出時清掉所有邀請憑證，其他資料不動 [1.42ms]
+
+src/lib/duration.test.ts:
+(pass) formatDuration > formats seconds and minutes in plain Chinese [0.36ms]
+
+src/lib/queryRetry.test.ts:
+(pass) 伺服器明確拒絕（4xx）不重試，檢測中的鎖定提示要馬上出現 [0.85ms]
+(pass) 斷線與 5xx 照舊最多重試三次 [0.20ms]
+
+src/routes/_shell/-daily.test.tsx:
+(pass) 每日訓練作答被檢測鎖擋下時整頁換成繼續檢測 [1250.95ms]
+
+src/components/practice/PracticeFocus.test.tsx:
+(pass) <PracticeFocusCard /> > 還沒有紀錄時引導去做前測,不畫比例 [131.09ms]
+(pass) <PracticeFocusCard /> > 有重點時顯示是哪一類、說明與五類比例 [138.74ms]
+(pass) <PracticeFocusBadge /> > 沒有重點時不顯示 [65.15ms]
+(pass) <PracticeFocusBadge /> > 有重點時標出本輪加強的類型 [52.61ms]
+(pass) <PracticeFocusBadge /> > 這一輪中途重點重算了，小標仍維持一開始那一類 [29.62ms]
+(pass) 補考進度優先於一般練習重點與比例 [102.09ms]
+
+src/components/Common/Logo.test.tsx:
+(pass) 側欄的商標連回房間首頁，不是前測 [156.44ms]
+
+src/components/shell/PageHeader.test.tsx:
+(pass) <PageHeader /> > 顯示頁名，回房間連到首頁 [62.11ms]
+(pass) <PageHeader /> > 各頁頁名 [1.26ms]
+(pass) 班級管理與班級作業有標題 [0.31ms]
+
+src/components/shell/ForcedSellModal.test.tsx:
+(pass) <ForcedSellModal /> > renders null when bankruptcy_pending is false [4.38ms]
+(pass) <ForcedSellModal /> > renders modal with deficit when bankruptcy_pending is true [141.60ms]
+(pass) <ForcedSellModal /> > confirm disabled with no selection, enabled after enough selected [86.80ms]
+(pass) <ForcedSellModal /> > renders null when bankruptcy_pending is true but cash >= 0 (stale flag) [4.20ms]
+(pass) <ForcedSellModal /> > no assets: shows recovery notice and dismiss button, never a confirm button [30.58ms]
+(pass) <ForcedSellModal /> > insufficient assets: allows partial liquidation but not empty submit [73.44ms]
+(pass) <ForcedSellModal /> > confirm calls liquidate with correct ids [78.42ms]
+
+src/components/assets/AssetSummaryCard.test.tsx:
+(pass) <AssetSummaryCard /> > shows total net worth from useAssets [6.33ms]
+(pass) <AssetSummaryCard /> > shows daily passive income from useAssets [8.24ms]
+
+src/components/ui/sonner.test.tsx:
+(pass) 手機上的提示離底部留出按鈕的高度 [46.69ms]
+
+src/components/team/TeamBank.test.tsx:
+(pass) 詐騙題後面緊接它的對照正常題 [10.47ms]
+(pass) 前測標出正解 [33.68ms]
+(pass) 訊息判讀只列練習題，類型與搜尋會篩選 [144.39ms]
+(pass) 檢測的話術題列出要勾的話術 [14.49ms]
+(pass) 打開討論看得到留言，送出新留言 [189.30ms]
+
+src/components/swipe/SwipeCard.test.tsx:
+(pass) <SwipeCard /> > calls onJudge(true) for 詐騙 and onJudge(false) for 正常 [55.66ms]
+
+src/components/swipe/SwipeRoundSummary.test.tsx:
+(pass) <SwipeRoundSummary /> > shows reward and weakness summary [16.32ms]
+
+src/components/swipe/SwipeFeedback.test.tsx:
+(pass) <SwipeFeedback /> > shows backend-provided weakness labels and suggestions without raw tags [6.53ms]
+
+src/components/swipe/SwipeStatsBar.test.tsx:
+(pass) <SwipeStatsBar /> > shows alertness, streak and progress [10.96ms]
+
+src/components/swipe/SwipeDeck.test.tsx:
+(pass) <SwipeDeck /> > 警覺值用完時先給看最後一張的解說，按了才結算 [309.23ms]
+(pass) <SwipeDeck /> > resends the original answer after a lost response [113.99ms]
+(pass) <SwipeDeck /> > ignores a second, different answer while the first is still sending [40.36ms]
+(pass) <SwipeDeck /> > 作答被檢測鎖擋下時整頁換成繼續檢測，不當成這一局失效 [102.88ms]
+(pass) <SwipeDeck /> > offers a new deal when the round can no longer be answered [42.48ms]
+
+src/components/progression/RewardBreakdown.test.tsx:
+(pass) 收據顯示後端實際金額與鍛造能量，保留大整數 [29.57ms]
+
+src/components/survey/TrialDone.test.tsx:
+(pass) 可以領：顯示編號與可以領取 [25.07ms]
+(pass) 不能領：顯示原因給工作人員看 [19.61ms]
+
+src/components/survey/TrialSurveyForm.test.tsx:
+(pass) firstMissing 照題目順序找第一個沒答的必填題 [0.41ms]
+(pass) toggle 與 sections [0.76ms]
+(pass) 沒答完不能送，答完送出整理好的答案 [193.65ms]
+(pass) 後端退回時標出那一題 [42.88ms]
+
+src/components/scenario/ResultSheet.test.tsx:
+(pass) <ResultSheet /> > renders win reveal with reward [22.67ms]
+(pass) <ResultSheet /> > renders lose reveal with forced-sell warning [17.96ms]
+(pass) <ResultSheet /> > shows case provenance when present [9.06ms]
+(pass) <ResultSheet /> > offers one more round of the practice focus [27.26ms]
+(pass) <ResultSheet /> > hides the next round while assets must be sold [20.19ms]
+
+src/components/scenario/ActionCard.test.tsx:
+(pass) <ActionCard /> > shows demand text and fires callbacks [14.46ms]
+(pass) <ActionCard /> > 回合用盡(refuseDisabled)時拒絕鈕鎖住、照做鈕仍可點 [8.67ms]
+
+src/components/scenario/InboxList.test.tsx:
+(pass) <InboxList /> > renders contact rows with type label, preview and unread dot [32.05ms]
+(pass) <InboxList /> > 頭貼用插圖;改版前存的 emoji 不直接印出來 [19.68ms]
+(pass) <InboxList /> > 每一列的按鈕念得出聯絡人、類型、狀態與最新訊息 [45.18ms]
+(pass) <InboxList /> > shows outcome badge for completed scenario [10.07ms]
+(pass) <InboxList /> > 搜尋名字、訊息或類型 [70.09ms]
+(pass) <InboxList /> > 時間：今天寫幾點、昨天寫昨天、更早寫日期 [1.14ms]
+
+src/components/scenario/MessageList.test.tsx:
+(pass) chatDay 寫今天、昨天，更早寫日期與星期 [0.37ms]
+(pass) 對方訊息有頭貼和名字，玩家訊息對方回過才標已讀 [34.67ms]
+(pass) 被擋下的訊息有對應提示，其他錯誤回 null [0.28ms]
+
+src/components/room/stage.test.ts:
+(pass) layoutStage > 9:16 手機：核心完整看得到 [0.51ms]
+(pass) layoutStage > 19.5:9 手機：核心完整看得到 [0.03ms]
+(pass) layoutStage > 9:21 長手機：核心完整看得到
+(pass) layoutStage > 瀏覽器網址列擠掉高度的手機：核心完整看得到
+(pass) layoutStage > iPad 直放：核心完整看得到
+(pass) layoutStage > 平板橫放：核心完整看得到
+(pass) layoutStage > 桌機：核心完整看得到
+(pass) layoutStage > 9:16 手機：直式範圍內鋪滿，不留邊 [0.11ms]
+(pass) layoutStage > 19.5:9 手機：直式範圍內鋪滿，不留邊 [0.05ms]
+(pass) layoutStage > 9:21 長手機：直式範圍內鋪滿，不留邊 [0.02ms]
+(pass) layoutStage > 瀏覽器網址列擠掉高度的手機：直式範圍內鋪滿，不留邊 [0.02ms]
+(pass) layoutStage > iPad 直放：直式範圍內鋪滿，不留邊
+(pass) layoutStage > 比 3:4 寬的畫面：房間置中，兩側留底色 [0.11ms]
+(pass) layoutStage > 還沒量到大小時不縮放 [0.32ms]
+(pass) toScreen 把世界座標換成畫面位置 [0.86ms]
+(pass) clampToView 把跑出畫面的方框夾回來，留邊 [0.57ms]
+(pass) shiftIntoView 大小不變、整塊移進畫面 [0.58ms]
+
+src/components/room/roomArt.test.ts:
+(pass) roomArt > 房間階段夾在 0 到 6 [0.26ms]
+(pass) roomArt > 七間都畫好了 [0.19ms]
+(pass) roomArt > 第 0 間：手機在最細長的手機上也完整看得到 [0.18ms]
+(pass) roomArt > 第 0 間：其他可以點的東西中心在核心裡、大部分看得到 [0.51ms]
+(pass) roomArt > 第 1 間：手機在最細長的手機上也完整看得到 [0.03ms]
+(pass) roomArt > 第 1 間：其他可以點的東西中心在核心裡、大部分看得到 [0.19ms]
+(pass) roomArt > 第 2 間：手機在最細長的手機上也完整看得到 [0.01ms]
+(pass) roomArt > 第 2 間：其他可以點的東西中心在核心裡、大部分看得到 [0.07ms]
+(pass) roomArt > 第 3 間：手機在最細長的手機上也完整看得到
+(pass) roomArt > 第 3 間：其他可以點的東西中心在核心裡、大部分看得到 [0.03ms]
+(pass) roomArt > 第 4 間：手機在最細長的手機上也完整看得到
+(pass) roomArt > 第 4 間：其他可以點的東西中心在核心裡、大部分看得到 [0.04ms]
+(pass) roomArt > 第 5 間：手機在最細長的手機上也完整看得到 [0.01ms]
+(pass) roomArt > 第 5 間：其他可以點的東西中心在核心裡、大部分看得到 [0.13ms]
+(pass) roomArt > 第 6 間：手機在最細長的手機上也完整看得到 [0.01ms]
+(pass) roomArt > 第 6 間：其他可以點的東西中心在核心裡、大部分看得到 [0.06ms]
+(pass) roomArt > 剪下來的家具圖在各自的資料夾，吉祥物用傳進來的圖 [0.62ms]
+(pass) roomArt > 徽章最多六個，擺在書櫃的兩層上 [0.35ms]
+
+src/components/room/RoomScene.test.tsx:
+(pass) 房間鋪滿整個區塊，入口都在舞台上 [135.74ms]
+(pass) 點手機導到情境對抗 [115.78ms]
+(pass) 選單打開列出五項、排行榜和我的徽章 [110.35ms]
+(pass) 新玩家看到開始按鈕 [338.29ms]
+(pass) 試測帳號今天看過對話框，回房間仍打開並帶去檢測 [175.36ms]
+(pass) 待領收益顯示可領，點了就領 [200.33ms]
+(pass) 離開房間再回來會重讀首頁資料，不沿用舊的台詞 [146.17ms]
+(pass) 資料還沒回來時先用上次的房間與吉祥物，不閃破舊房間和柴犬 [91.99ms]
+(pass) 資料回來後記住這次的房間與吉祥物 [111.16ms]
+(pass) 管理員在頁首看到試測管理，一般玩家沒有 [150.39ms]
+(pass) 核准的老師在頁首看到班級管理，申請中與一般玩家沒有 [132.56ms]
+
+src/components/room/logic.test.ts:
+(pass) pickBubbles > 新玩家先亮電視，再顯示沒收完的手機 [0.35ms]
+(pass) pickBubbles > 全部條件成立時只回 3 個且順序正確 [1.37ms]
+(pass) pickBubbles > 同物件不重複 [0.47ms]
+(pass) pickBubbles 檢測中 > 只亮書櫃，練習的泡泡都收起來 [0.19ms]
+(pass) mascotLine > new player sees pretest prompt [0.16ms]
+(pass) mascotLine > mascotLine active exam [0.15ms]
+(pass) mascotLine > 補考還沒練夠，零的那段不寫 [1.01ms]
+(pass) mascotLine > 三項都夠但最近十題不夠，補上還要答對幾題 [0.17ms]
+(pass) mascotLine > 補考練夠可以再檢測 [0.09ms]
+(pass) mascotLine > 平常有練習重點就先帶去滑卡 [0.07ms]
+(pass) mascotLine > 沒有練習重點只催去練 [0.04ms]
+(pass) menuItems > 五個物件再加上排行榜和我的徽章 [0.66ms]
+(pass) menuItems 檢測中 > 四種練習都寫暫停並變淡，檢測寫還沒做完 [0.48ms]
+(pass) mascotPose > 平常招手，說話時指著 [0.07ms]
+(pass) mascotPose > 還沒做前測指著開始 [0.03ms]
+(pass) mascotPose > 檢測中、補考還沒練夠在想 [0.05ms]
+(pass) mascotPose > 補考練夠、今天的每日訓練做完歡呼 [0.06ms]
+(pass) poseImage > 把招手圖換成同一隻的其他姿勢 [0.04ms]
+(pass) roomBadges > 情境收件匣顯示未讀數，每日訓練沒做顯示圓點 [0.06ms]
+(pass) roomBadges > 補考期顯示各項還差多少 [0.04ms]
+(pass) roomBadges > 檢測中只標書櫃，訓練物件暫停 [0.25ms]
+(pass) 團隊題庫入口 > 只有團隊成員或管理員的選單才有 [0.37ms]
+(pass) 團隊題庫入口 > 檢測中也不會變成暫停 [0.25ms]
+(pass) 試測問卷入口 > 一般帳號和交過問卷的人沒有 [0.16ms]
+(pass) 試測問卷入口 > 檢測還沒做完時變淡並寫做完檢測後填 [0.27ms]
+(pass) 試測問卷入口 > 做完檢測就可以填，放在選單最前面 [0.17ms]
+(pass) 試測管理入口 > 只有管理員的選單才有，檢測中也不暫停 [0.29ms]
+(pass) 試測帳號：不做入門前測，先綜合檢測再填問卷 > 剛掃完 QR code：帶去檢測，不帶去前測 [1.11ms]
+(pass) 試測帳號：不做入門前測，先綜合檢測再填問卷 > 檢測交卷後：帶去填問卷 [1.43ms]
+(pass) 試測帳號：不做入門前測，先綜合檢測再填問卷 > 檢測進行中：照一般的檢測提示 [1.28ms]
+(pass) 試測帳號：不做入門前測，先綜合檢測再填問卷 > 問卷交完：不再要求前測，選單可以再打開編號頁 [1.18ms]
+(pass) 試測帳號：不做入門前測，先綜合檢測再填問卷 > 一般帳號沒做前測：照舊帶去前測 [0.23ms]
+(pass) 班級作業 > 有加入班級才出現在選單，寫還有幾份沒做 [0.76ms]
+(pass) 班級作業 > 吉祥物提醒作業，排在補考之後、練習重點之前 [0.72ms]
+
+src/components/room/MascotAvatar.test.tsx:
+(pass) 顯示玩家正在展示的吉祥物，不是寫死的柴犬 [11.47ms]
+
+src/components/Admin/InviteCohort.test.tsx:
+(pass) StrictMode 只兌換一次，切換帳號清除舊資料，重開邀請保留受試者 [175.57ms]
+(pass) 無效邀請顯示白話錯誤，重試會重新兌換 [82.12ms]
+(pass) 兌換達上限時顯示等待一分鐘 [30.55ms]
+(pass) 建立梯次、顯示成員、產生邀請網址、下載圖片與 CSV、停用邀請 [745.35ms]
+(pass) 數據分析分頁：預設看全部梯次合計 [111.32ms]
+
+src/components/classroom/StudentDetail.test.tsx:
+Warning: Missing `Description` or `aria-describedby={undefined}` for {DialogContent}.
+(pass) 作業狀態不重複寫「還沒做」，有進度才補在後面 [43.43ms]
+
+src/components/classroom/classRedeem.test.ts:
+(pass) 第一次兌換開新帳號並記下，同一個瀏覽器再掃沿用 [0.98ms]
+(pass) 記下的憑證過期就重新兌換 [0.37ms]
+
+src/components/classroom/Classwork.test.tsx:
+(pass) 還沒填學號名字的班只看到認領表單 [53.16ms]
+(pass) 作業的四種狀態與去做的連結 [37.27ms]
+(pass) 代碼找不到時的訊息 [45.99ms]
+
+src/components/classroom/ClassPage.test.tsx:
+(pass) 最弱一類寫成一句話，並寫用了幾位學生 [5.40ms]
+(pass) 沒有人做過前測時說明 [1.73ms]
+(pass) 作業卡寫完成人數，展開看還沒完成與遲交名單 [17.51ms]
+(pass) 新增練習量作業送出的內容 [40.09ms]
+(pass) 新增要過關的專項檢測 [24.80ms]
+(pass) 移出學生要再按一次確定 [106.38ms]
+
+src/components/classroom/TeacherAdmin.test.tsx:
+(pass) 審核中列出申請，按核准後從列表消失 [31.27ms]
+(pass) 切到已核准看班級數，可以停權 [38.81ms]
+
+src/components/classroom/TeacherStatusCard.test.tsx:
+(pass) 還不是老師：可以申請，送出學校與科目 [30.77ms]
+(pass) 審核中、沒通過、已核准、停權各自的文字 [37.70ms]
+An update to Transitioner inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act
+An update to Transitioner inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act
+An update to MatchesInner inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act
+An update to MatchesInner inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act
+An update to Transitioner inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act
+(pass) 免註冊帳號不顯示申請 [31.96ms]
+
+src/components/classroom/signupForm.test.ts:
+(pass) 沒勾老師不用填學校科目，送出也不帶 teacher [3.42ms]
+(pass) 勾了老師，學校與任教科目必填 [2.16ms]
+(pass) 勾了老師，送出帶 teacher 並去掉頭尾空白 [0.38ms]
+
+src/components/exam/ExamAttempt.test.tsx:
+(pass) 重新整理先讀伺服器關卡，提交失敗重送原 payload，成功才進下一關 [147.20ms]
+(pass) 放棄確認把繼續作答放在主要按鈕，確定放棄是次要按鈕 [111.17ms]
+(pass) 放棄需要確認，確認後顯示保存的結果 [208.45ms]
+(pass) 到期重新讀伺服器結果，voided 不顯示零分沒過 [40.35ms]
+(pass) 倒數歸零仍可交卷，伺服器仍進行中時改約每十秒再讀 [80.44ms]
+(pass) 重新讀取檢測失敗時保留錯誤提示，且不往外拋 [191.04ms]
+(pass) 結算後立刻重抓畫面上的金額與等級 [204.55ms]
+(pass) 判斷已記錄時改讀伺服器狀態並進下一場 [146.77ms]
+
+src/components/exam/ExamBadges.test.tsx:
+(pass) 開啟公開才顯示查驗連結及 QR，關閉收起連結 [67.75ms]
+(pass) 公開查驗只顯示允許欄位與複測提示，不顯示分數或私有類型 [13.99ms]
+(pass) 公開頁 404 顯示徽章未公開或連結無效 [19.96ms]
+(pass) 歷史結果的徽章快照仍使用目前公開設定，可直接關閉 [32.39ms]
+
+src/components/exam/ExamScenario.test.tsx:
+(pass) 讀原本場次對話，用 API 回合數，502 保留訊息且不扣回合 [50.46ms]
+(pass) 回合用完仍可判斷，走檢測 judge 且不揭曉身分，重送鎖住原判斷 [65.48ms]
+(pass) 開始情境沿用檢測 scenario start [10.32ms]
+(pass) 回應遺失且對話恢復失敗時，鎖住行動卡與判斷直到重讀成功 [74.29ms]
+(pass) 成功讀到較多回合就清掉草稿，手動重讀與拒絕也一樣 [194.17ms]
+(pass) 判斷說明會看還有沒有下一場 [59.59ms]
+(pass) 重讀失敗時留在錯誤提示，不往外拋 [83.19ms]
+
+src/components/exam/exam.test.ts:
+(pass) 檢測草稿與狀態 > 綜合檢測前測還沒定類型時只寫綜合檢測，專項帶上類型名稱 [0.32ms]
+(pass) 檢測草稿與狀態 > 重新整理保留已作答與整關重送的原答案 [0.48ms]
+(pass) 檢測草稿與狀態 > 拒絕題序不符或損壞的草稿 [0.19ms]
+(pass) 檢測草稿與狀態 > 草稿不接受真假字串或前測不存在的選項 [0.34ms]
+(pass) 檢測草稿與狀態 > 剩餘時間以到期時間計算且不低於零 [0.10ms]
+(pass) 檢測草稿與狀態 > 補考只列還差的數量，包含最近十題答對門檻 [0.13ms]
+(pass) 檢測草稿與狀態 > 從 SDK 錯誤讀取檢測鎖，不將一般錯誤視為鎖 [0.11ms]
+
+src/components/exam/ExamHome.test.tsx:
+(pass) 每日剩餘次數與空徽章狀態，專項傳玩家選的類型 [46.80ms]
+(pass) 進行中的檢測可繼續，兩種新檢測都鎖住 [37.04ms]
+(pass) 每日用完以白話說明，不開新檢測 [20.01ms]
+
+src/components/exam/ExamActiveNotice.test.tsx:
+(pass) 有進行中的專項檢測時，卡在大卡之前，繼續直接進那份卷 [96.12ms]
+(pass) 綜合檢測還在前測時只寫綜合檢測 [45.73ms]
+(pass) 放棄先確認，繼續作答是主要按鈕，成功後重新讀取檢測與練習 [272.17ms]
+(pass) 沒有進行中的檢測時不顯示卡，也不讀每日訓練 [36.19ms]
+
+src/components/exam/ExamStage.test.tsx:
+(pass) 滑卡整關才送出、不顯示回饋，重掛保留原答案 [39.76ms]
+(pass) 真假與話術複選整關提交，空選項仍可作答 [40.15ms]
+(pass) 送出期間不能再次交卷 [7.70ms]
+(pass) 綜合前測沿用選項外觀，二十題都作答後一次提交 [6741.85ms]
+
+src/components/exam/ExamInProgress.test.tsx:
+(pass) 練習被檢測鎖擋下時直接連到進行中的卷 [24.33ms]
+(pass) 讀不到進行中的卷時退回檢測入口 [15.66ms]
+(pass) 一般網路錯誤不冒充檢測鎖 [9.67ms]
+
+src/components/shop/ShopPage.test.tsx:
+(pass) 買貓錢不夠顯示錢不夠 [34.58ms]
+(pass) 展示中的按鈕停用 [25.21ms]
+(pass) 房產分頁列出六級 [80.23ms]
+
+src/components/quiz/QuizSummary.test.tsx:
+(pass) <QuizSummary /> > shows reward and weakness [18.73ms]
+(pass) <QuizSummary /> > keeps the growth entry without offering another daily round [13.62ms]
+
+src/components/quiz/QuizReveal.test.tsx:
+(pass) <QuizReveal /> > shows verdict and localized flags without raw tags [9.69ms]
+(pass) <QuizReveal /> > 答對時每條可疑之處仍標出話術名稱 [4.68ms]
+(pass) <QuizReveal /> > shows wrong verdict for incorrect [5.77ms]
+(pass) <QuizReveal /> > shows tactics missed and extra choices with teaching suggestions [5.36ms]
+(pass) <QuizReveal /> > shows each match result and suggestions for incorrect pairs [5.98ms]
+(pass) <QuizReveal /> 查證題 > 顯示正解選項、解說與素材來源 [4.76ms]
+(pass) <QuizReveal /> 查證題 > 不把其他選項當成正解顯示 [5.40ms]
+
+src/components/quiz/QuizQuestions.test.tsx:
+(pass) quiz 題型元件 > verdict 送出玩家選擇 [10.98ms]
+(pass) quiz 題型元件 > tactics 可改複選並回報已選數量 [35.05ms]
+(pass) quiz 題型元件 > match 點選配對、可取消，且全部完成才能送出 [65.34ms]
+(pass) <VerificationQuestion /> > 沒選之前不能送出，選完才送出所選的 key [58.39ms]
+(pass) <VerificationQuestion /> > 題面不洩漏哪個是正解 [21.73ms]
+
+src/routes/_shell/quick/-quiz.test.tsx:
+(pass) 訊息判讀作答被檢測鎖擋下時整頁換成繼續檢測 [33.86ms]
+(pass) 訊息判讀一般送出失敗仍留在題目上 [30.10ms]
+
+src/routes/_shell/scenarios/-scenarioChat.test.tsx:
+(pass) 練習情境送訊息被檢測鎖擋下時整頁換成繼續檢測 [64.76ms]
+(pass) 練習情境下判斷被檢測鎖擋下時整頁換成繼續檢測 [91.68ms]
+
+ 245 pass
+ 0 fail
+ 1010 expect() calls
+Ran 245 tests across 54 files. [27.17s]

@@ -6,6 +6,7 @@ from app.api.routes import (
     classes,
     daily,
     economy,
+    equipment,
     exam,
     home,
     invite,
@@ -15,20 +16,25 @@ from app.api.routes import (
     mascot,
     oauth,
     onboarding,
+    players,
     practice,
     pretest,
     private,
+    progression,
     quick,
     scenario,
     score,
+    seasons,
     team,
     trial,
     users,
     utils,
 )
 from app.core.config import settings
+from app.progression import collections
 
 api_router = APIRouter()
+api_router.include_router(collections.router)
 api_router.include_router(login.router)
 api_router.include_router(oauth.router)
 api_router.include_router(users.router)
@@ -53,6 +59,10 @@ api_router.include_router(invite.router)
 api_router.include_router(admin_cohorts.router)
 api_router.include_router(admin_teachers.router)
 api_router.include_router(classes.router)
+api_router.include_router(progression.router)
+api_router.include_router(equipment.router)
+api_router.include_router(seasons.router)
+api_router.include_router(players.router)
 
 
 if settings.ENVIRONMENT == "local":

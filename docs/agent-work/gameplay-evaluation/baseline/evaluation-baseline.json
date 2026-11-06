@@ -1,0 +1,3847 @@
+{
+  "phase": "baseline",
+  "evaluatedAt": "2026-11-06T01:47:47.175Z",
+  "environment": {
+    "frontendUrl": "http://localhost:18173",
+    "apiUrl": "http://host.docker.internal:21000"
+  },
+  "partA": {
+    "user": {
+      "id": "0e990db5-5ed8-4ff2-b2e4-66bf1fcdca6c",
+      "email": "eval-baseline-trace-60ee4553@example.com"
+    },
+    "consoleErrors": [
+      {
+        "text": "Failed to load resource: the server responded with a status of 400 (Bad Request)",
+        "location": {
+          "url": "http://localhost:21000/api/v1/leaderboard?period=today",
+          "line": 0,
+          "column": 0,
+          "lineNumber": 0,
+          "columnNumber": 0
+        }
+      }
+    ],
+    "pageErrors": [],
+    "steps": [
+      {
+        "step": "1_room_initial",
+        "ui": {
+          "url": "http://localhost:18173/",
+          "roomCashText": "1,000",
+          "hasProgressionBtn": true
+        },
+        "db": {
+          "user": {
+            "id": "0e990db5-5ed8-4ff2-b2e4-66bf1fcdca6c",
+            "email": "eval-baseline-trace-60ee4553@example.com",
+            "cash": "1000",
+            "xp": 0,
+            "streak_days": 0
+          },
+          "growth": {
+            "user_id": "0e990db5-5ed8-4ff2-b2e4-66bf1fcdca6c",
+            "core_level": 0,
+            "growth_xp": "0",
+            "forge_energy": "0",
+            "lifetime_cash": "0",
+            "revision": 0,
+            "config_version": "growth-v1.1"
+          },
+          "equipment": [
+            {
+              "id": "42e295b7-c418-43b1-a652-8e0409164698",
+              "definition_id": "save_vault",
+              "rank": 1,
+              "rank_cap": 5
+            }
+          ],
+          "loadout": [],
+          "unlocks": [],
+          "collections": [],
+          "recent_receipts": [],
+          "recent_ledgers": [],
+          "practice_profile": null,
+          "practice_answer_count": 0
+        }
+      },
+      {
+        "step": "2_progression_initial",
+        "ui": {
+          "url": "http://localhost:18173/progression",
+          "equipBtnEnabled": true,
+          "pageTextExcerpt": "繼續訓練，賺取養成資源\n核心養成階級\nLv.0\n能量: 0\n圖紙: 0 片\n本級進度 0%\n本級所需：318\n\n累積養成經驗 0 · 突破圖紙 0 張\n\n金錢產出\n1x\n養成經驗\n1x\n鍛造能量\n1x\n當前目標：核心達到 10 級：解鎖第 3 生效槽並獲得 5 片圖紙碎片\n生效配裝\n\n容量 0 / 2 槽（同家族工具不可重複）\n\n下個槽位於 Lv.10\n空槽位 #1\n可從下方背包選擇工具裝備\n空槽位 #2\n可從下方背包選擇工具裝備\n解鎖新工具家族\n消耗鍛造能量解鎖\n經驗透鏡\n提升養成經驗獲取倍率，每階提高 10%\n解鎖 (100 能量)\n鍛造神錘\n提升鍛造能量獲取倍率，每階提高 10%\n解鎖 (300 能量)\n平衡核心\n三通道共同加成，金錢/經驗/能量每階各提高 5%\n解鎖 (800 能量)\n連勝擴大器\n當輪最佳連勝達 3 題以上時，三通道各額外提高 6%/階\n解鎖 (2000 能量)\n競賽紋章\n提升每日訓練的當期養成競技積分，每階提高 10%\n解鎖 (5000 能量)\n工具背包\n共 1 件\n全部\n防禦金庫\n經驗透鏡\n鍛造神錘\n平衡核心\n連勝擴大器\n競賽紋章\n防禦金庫\n階級 1 / 5\n裝備\n提升金錢獲取倍率，每階提高 10%\n強化 ($200)\n長期養成與榮譽\n\n換期保留房屋建設、寵物羈絆、收藏與稱號。花錢不會降低累積所得。\n\n累積訓練所得 $0\n\n柴犬\n0 級\n\n展示中的寵物每級提高養成產出 1%，最高兩倍。\n\n培養羈絆 · $500 與 10 能量\n房間展示櫃\n\n0／1 個展示位置。展示與生效裝備分開計算。\n\n參與當期賽季，將成果永久帶回房間。\n\n10 片圖紙增加展示位置\n配裝保存\n\n儲存不會額外產生倍率。每次套用仍只生效一套，已開局的獎勵不變。\n\n配裝 1\n保存目前配裝\n配裝 2\n保存目前配裝\n10 片圖紙增加配裝欄"
+        },
+        "db": {
+          "user": {
+            "id": "0e990db5-5ed8-4ff2-b2e4-66bf1fcdca6c",
+            "email": "eval-baseline-trace-60ee4553@example.com",
+            "cash": "1000",
+            "xp": 0,
+            "streak_days": 0
+          },
+          "growth": {
+            "user_id": "0e990db5-5ed8-4ff2-b2e4-66bf1fcdca6c",
+            "core_level": 0,
+            "growth_xp": "0",
+            "forge_energy": "0",
+            "lifetime_cash": "0",
+            "revision": 0,
+            "config_version": "growth-v1.1"
+          },
+          "equipment": [
+            {
+              "id": "42e295b7-c418-43b1-a652-8e0409164698",
+              "definition_id": "save_vault",
+              "rank": 1,
+              "rank_cap": 5
+            }
+          ],
+          "loadout": [],
+          "unlocks": [],
+          "collections": [],
+          "recent_receipts": [],
+          "recent_ledgers": [],
+          "practice_profile": null,
+          "practice_answer_count": 0
+        }
+      },
+      {
+        "step": "3_equip_and_upgrade_starter_tool",
+        "ui": {
+          "upgradeBtnTextBefore": "強化 ($200)",
+          "upgradeBtnEnabledBefore": true,
+          "unequipCountAfterReload": 1,
+          "pageTextExcerpt": "繼續訓練，賺取養成資源\n核心養成階級\nLv.0\n能量: 0\n圖紙: 0 片\n本級進度 0%\n本級所需：318\n\n累積養成經驗 0 · 突破圖紙 0 張\n\n金錢產出\n1.2x\n養成經驗\n1x\n鍛造能量\n1x\n當前目標：核心達到 10 級：解鎖第 3 生效槽並獲得 5 片圖紙碎片\n生效配裝\n\n容量 1 / 2 槽（同家族工具不可重複）\n\n下個槽位於 Lv.10\n防禦金庫\n階級 2\n提升金錢獲取倍率，每階提高 10%\n卸下\n空槽位 #2\n可從下方背包選擇工具裝備\n解鎖新工具家族\n消耗鍛造能量解鎖\n經驗透鏡\n提升養成經驗獲取倍率，每階提高 10%\n解鎖 (100 能量)\n鍛造神錘\n提升鍛造能量獲取倍率，每階提高 10%\n解鎖 (300 能量)\n平衡核心\n三通道共同加成，金錢/經驗/能量每階各提高 5%\n解鎖 (800 能量)\n連勝擴大器\n當輪最佳連勝達 3 題以上時，三通道各額外提高 6%/階\n解鎖 (2000 能量)\n競賽紋章\n提升每日訓練的當期養成競技積分，每階提高 10%\n解鎖 (5000 能量)\n工具背包\n共 1 件\n全部\n防禦金庫\n經驗透鏡\n鍛造神錘\n平衡核心\n連勝擴大器\n競賽紋章\n防禦金庫\n階級 2 / 5\n生效中\n提升金錢獲取倍率，每階提高 10%\n強化 ($1,200)\n\n載入長期養成…"
+        },
+        "afterEquipDb": {
+          "user": {
+            "id": "0e990db5-5ed8-4ff2-b2e4-66bf1fcdca6c",
+            "email": "eval-baseline-trace-60ee4553@example.com",
+            "cash": "1000",
+            "xp": 0,
+            "streak_days": 0
+          },
+          "growth": {
+            "user_id": "0e990db5-5ed8-4ff2-b2e4-66bf1fcdca6c",
+            "core_level": 0,
+            "growth_xp": "0",
+            "forge_energy": "0",
+            "lifetime_cash": "0",
+            "revision": 1,
+            "config_version": "growth-v1.1"
+          },
+          "equipment": [
+            {
+              "id": "42e295b7-c418-43b1-a652-8e0409164698",
+              "definition_id": "save_vault",
+              "rank": 1,
+              "rank_cap": 5
+            }
+          ],
+          "loadout": [
+            {
+              "slot_index": 0,
+              "item_id": "42e295b7-c418-43b1-a652-8e0409164698",
+              "family": "save_vault"
+            }
+          ],
+          "unlocks": [],
+          "collections": [],
+          "recent_receipts": [],
+          "recent_ledgers": [],
+          "practice_profile": null,
+          "practice_answer_count": 0
+        },
+        "afterUpgradeAndReloadDb": {
+          "user": {
+            "id": "0e990db5-5ed8-4ff2-b2e4-66bf1fcdca6c",
+            "email": "eval-baseline-trace-60ee4553@example.com",
+            "cash": "800",
+            "xp": 0,
+            "streak_days": 0
+          },
+          "growth": {
+            "user_id": "0e990db5-5ed8-4ff2-b2e4-66bf1fcdca6c",
+            "core_level": 0,
+            "growth_xp": "0",
+            "forge_energy": "0",
+            "lifetime_cash": "0",
+            "revision": 1,
+            "config_version": "growth-v1.1"
+          },
+          "equipment": [
+            {
+              "id": "42e295b7-c418-43b1-a652-8e0409164698",
+              "definition_id": "save_vault",
+              "rank": 2,
+              "rank_cap": 5
+            }
+          ],
+          "loadout": [
+            {
+              "slot_index": 0,
+              "item_id": "42e295b7-c418-43b1-a652-8e0409164698",
+              "family": "save_vault"
+            }
+          ],
+          "unlocks": [],
+          "collections": [],
+          "recent_receipts": [],
+          "recent_ledgers": [
+            {
+              "id": "365d5453-5a7a-4b8c-b60c-f0dbc1b7e643",
+              "event_key": "upgrade:42e295b7-c418-43b1-a652-8e0409164698:0f0bb087-c0b8-4941-9ba1-dffd4db8015c",
+              "kind": "tool_upgrade",
+              "amounts": {
+                "cash": "-200",
+                "rank": "+1"
+              },
+              "balance_after": {
+                "cash": "800",
+                "item_rank": 2
+              },
+              "receipt_id": null,
+              "created_at": "2026-11-06T01:44:41.797Z"
+            }
+          ],
+          "practice_profile": null,
+          "practice_answer_count": 0
+        }
+      },
+      {
+        "step": "4_and_5_quiz_round_and_settlement",
+        "sessionId": "2934fb0e-1feb-4205-8e4b-07cad91eb343",
+        "quizDbBefore": {
+          "quiz_session": {
+            "id": "2934fb0e-1feb-4205-8e4b-07cad91eb343",
+            "user_id": "0e990db5-5ed8-4ff2-b2e4-66bf1fcdca6c",
+            "completed": false,
+            "items": [
+              {
+                "type": "verdict",
+                "case_id": 367,
+                "is_scam": true,
+                "item_id": "0d1dfa3e9e84410ca101b0aba7e6904a",
+                "correct_tags": [
+                  "authority",
+                  "time_pressure"
+                ]
+              },
+              {
+                "type": "tactics",
+                "case_id": 327,
+                "item_id": "ea5e2762ea6843d5a63a83f65874e729",
+                "correct_tags": [
+                  "authority",
+                  "time_pressure",
+                  "trust_building"
+                ]
+              },
+              {
+                "type": "verdict",
+                "case_id": 427,
+                "is_scam": false,
+                "item_id": "71c9cbd5d98b4b5c9d63178b15065a05",
+                "correct_tags": []
+              },
+              {
+                "type": "match",
+                "pairs": [
+                  {
+                    "tag": "trust_building",
+                    "text": "連聊幾天攻略，像認識很久的朋友",
+                    "case_id": 314,
+                    "pair_id": "e8e6317a6a8b42189f6cc59dc2470f9e",
+                    "flag_index": 0,
+                    "provenance": "改編自：165 反詐騙宣導案例「誤認完成交易任務 其實觸發詐騙副本」（虛擬遊戲詐騙）"
+                  },
+                  {
+                    "tag": "social_proof",
+                    "text": "留言接連喊編號，還有人貼收貨照片",
+                    "case_id": 356,
+                    "pair_id": "7c73d104259c4bac82249a757d9980ca",
+                    "flag_index": 0,
+                    "provenance": "改編自：165 全民防騙網「網路購物遇到詐騙了？社群買賣詐騙手法詳解」與數位發展部網路詐騙通報查詢網"
+                  },
+                  {
+                    "tag": "greed",
+                    "text": "說行情難得，他願意幫我出一半",
+                    "case_id": 364,
+                    "pair_id": "b42235da3ef940b388838751745f429d",
+                    "flag_index": 0,
+                    "provenance": "改編自：165 打詐儀錶板「網友想見的不是你 是你荷包的錢」與165 全民防騙網假投資通報"
+                  },
+                  {
+                    "tag": "authority",
+                    "text": "客服說依稅務規定要先另匯稅金才撥款",
+                    "case_id": 313,
+                    "pair_id": "e6afe2abcdd847ffb2b7d272e4bc3d50",
+                    "flag_index": 1,
+                    "provenance": "改編自：165 打詐儀錶板「假投資詐騙」常見手法清單"
+                  },
+                  {
+                    "tag": "time_pressure",
+                    "text": "說掛斷就要重新排隊，錢可能先被領走",
+                    "case_id": 368,
+                    "pair_id": "2f3f11b200144928b16b6e586cf78369",
+                    "flag_index": 1,
+                    "provenance": "改編自：金管會新聞稿「提醒民眾防範信用卡遭詐騙盜刷」"
+                  }
+                ],
+                "item_id": "f609266178794e828d33538aa5abcc29"
+              },
+              {
+                "type": "verification",
+                "case_id": 419,
+                "item_id": "0e387e40207247da95955bb66bd719f7",
+                "provenance": "依據：關務署實名委任與進口郵包稅費查詢繳納流程",
+                "correct_key": "A",
+                "explanation": "包裹的申報品名與稅額算得對不對，是報關主管機關的資料。購物平台的訂單頁只看得到商品多少錢，打電話給業者也問不到這筆運單的申報內容。",
+                "question_id": 1147,
+                "weakness_tag": "time_pressure"
+              }
+            ],
+            "answers": {}
+          },
+          "reward_context": {
+            "id": "bb2b7654-4be0-4493-b574-102a7909e522",
+            "source_kind": "quiz",
+            "source_id": "2934fb0e-1feb-4205-8e4b-07cad91eb343",
+            "core_level": 0,
+            "equipment_snapshot": [
+              {
+                "rank": 2,
+                "family": "save_vault",
+                "item_id": "42e295b7-c418-43b1-a652-8e0409164698",
+                "slot_index": 0,
+                "definition_id": "save_vault"
+              }
+            ],
+            "factor_snapshot": {
+              "cash": "1.2",
+              "energy": "1",
+              "growth_xp": "1",
+              "competition": "1",
+              "streak_factor": "1.00"
+            },
+            "config_version": "growth-v1.1"
+          }
+        },
+        "completeResponse": {
+          "correct_count": 5,
+          "total": 5,
+          "best_streak": 5,
+          "cash_earned": "264",
+          "xp_earned": 100,
+          "weakness_summary": [],
+          "reward_receipt": {
+            "receipt_id": "1954617d-f055-4c37-bfc6-7912bb29bdba",
+            "source_kind": "quiz",
+            "config_version": "growth-v1.1",
+            "base": {
+              "cash": "220",
+              "training_xp": 100,
+              "fixed_cash": "0",
+              "fixed_training_xp": 0
+            },
+            "factors": {
+              "cash": "1.2",
+              "growth_xp": "1",
+              "energy": "1",
+              "competition": "1"
+            },
+            "final": {
+              "cash_total": "264",
+              "fixed_cash": "0",
+              "cash_bonus": "44",
+              "growth_xp": "100",
+              "forge_energy": "100"
+            },
+            "core_level_before": 0,
+            "core_level_after": 0
+          }
+        },
+        "midRoundSnapshotPreserved": true,
+        "replayProtectionProbe": {
+          "status": 400,
+          "body": {
+            "detail": {
+              "code": "quiz_already_completed"
+            }
+          }
+        },
+        "ui": {
+          "settlementText": "5 / 5\n\n最多連續答對 5 題\n\n+$264 · +100 XP\n\n倍率加成結算\n隱藏收據\n金錢 (1.2x)\n+$264\n含加成 +$44\n養成經驗 (1 倍)\n+100\n核心階級經驗\n鍛造能量 (1x)\n+100\n工具突破素材\n收據編號\n1954617d-f055-4c37-bfc6-7912bb29bdba\n數值模型版本\ngrowth-v1.1\n固定完成獎勵\n$0，不套用倍率\n核心等級\nLv.0 → Lv.0\n\n接下來的題目會依照這輪的結果調整。\n\n再來一輪\n回房間",
+          "settlementLinks": [
+            "隱藏收據",
+            "再來一輪",
+            "回房間"
+          ]
+        },
+        "dbAfterSettlement": {
+          "user": {
+            "id": "0e990db5-5ed8-4ff2-b2e4-66bf1fcdca6c",
+            "email": "eval-baseline-trace-60ee4553@example.com",
+            "cash": "1064",
+            "xp": 100,
+            "streak_days": 1
+          },
+          "growth": {
+            "user_id": "0e990db5-5ed8-4ff2-b2e4-66bf1fcdca6c",
+            "core_level": 0,
+            "growth_xp": "100",
+            "forge_energy": "100",
+            "lifetime_cash": "264",
+            "revision": 3,
+            "config_version": "growth-v1.1"
+          },
+          "equipment": [
+            {
+              "id": "42e295b7-c418-43b1-a652-8e0409164698",
+              "definition_id": "save_vault",
+              "rank": 2,
+              "rank_cap": 5
+            }
+          ],
+          "loadout": [
+            {
+              "slot_index": 0,
+              "item_id": "42e295b7-c418-43b1-a652-8e0409164698",
+              "family": "save_vault"
+            }
+          ],
+          "unlocks": [],
+          "collections": [],
+          "recent_receipts": [
+            {
+              "id": "1954617d-f055-4c37-bfc6-7912bb29bdba",
+              "source_key": "quiz:2934fb0e-1feb-4205-8e4b-07cad91eb343",
+              "base_rewards": {
+                "cash": "220",
+                "fixed_cash": "0",
+                "training_xp": 100,
+                "fixed_training_xp": 0
+              },
+              "factors": {
+                "cash": "1.2",
+                "energy": "1",
+                "growth_xp": "1",
+                "competition": "1"
+              },
+              "final_rewards": {
+                "growth_xp": "100",
+                "cash_bonus": "44",
+                "cash_total": "264",
+                "fixed_cash": "0",
+                "forge_energy": "100"
+              },
+              "core_level_before": 0,
+              "core_level_after": 0,
+              "state": "finalized",
+              "created_at": "2026-11-06T01:44:58.767Z"
+            }
+          ],
+          "recent_ledgers": [
+            {
+              "id": "d2e36889-d036-44c0-9eec-42fb991f54b3",
+              "event_key": "settle:quiz:2934fb0e-1feb-4205-8e4b-07cad91eb343",
+              "kind": "quiz_settle",
+              "amounts": {
+                "growth_xp": "100",
+                "cash_bonus": "44",
+                "forge_energy": "100"
+              },
+              "balance_after": {
+                "cash": "1064",
+                "growth_xp": "100",
+                "core_level": 0,
+                "forge_energy": "100"
+              },
+              "receipt_id": "1954617d-f055-4c37-bfc6-7912bb29bdba",
+              "created_at": "2026-11-06T01:44:58.772Z"
+            },
+            {
+              "id": "365d5453-5a7a-4b8c-b60c-f0dbc1b7e643",
+              "event_key": "upgrade:42e295b7-c418-43b1-a652-8e0409164698:0f0bb087-c0b8-4941-9ba1-dffd4db8015c",
+              "kind": "tool_upgrade",
+              "amounts": {
+                "cash": "-200",
+                "rank": "+1"
+              },
+              "balance_after": {
+                "cash": "800",
+                "item_rank": 2
+              },
+              "receipt_id": null,
+              "created_at": "2026-11-06T01:44:41.797Z"
+            }
+          ],
+          "practice_profile": null,
+          "practice_answer_count": 9
+        }
+      },
+      {
+        "step": "6_play_again_new_session",
+        "previousSessionId": "2934fb0e-1feb-4205-8e4b-07cad91eb343",
+        "newSessionId": "2d6c0a3e-068e-40ca-8712-4f43e3c245c6",
+        "isDifferentSession": true
+      },
+      {
+        "step": "7_leaderboard_views",
+        "ui": {
+          "dailyTabText": "競技排行榜\n\n查看每日訓練成績與當期 14 天賽季榮譽。\n\n每日訓練榜\n14天競技賽季\n永久養成榜\n\n每日訓練在 Lv.5 解鎖。你也可以先看看賽季與永久養成榜。",
+          "seasonTabText": "競技排行榜\n\n查看每日訓練成績與當期 14 天賽季榮譽。\n\n每日訓練榜\n14天競技賽季\n永久養成榜\n識詐競技第 20261102 期\n剩餘 9 天\n參賽進度：0／5 天 · 0／50 題\n暫列\n\n每期須完成至少 5 天、50 題每日訓練。速度榜另須達到九成正確率。\n\n正確率榜\n速度榜\n養成競技榜\n依真實答對率排名，不計裝備倍率。同率先比有效題數，再比每題平均用時。\n本期賽季此榜單尚無參賽紀錄，完成今日訓練即可率先上榜！",
+          "permanentTabText": "競技排行榜\n\n查看每日訓練成績與當期 14 天賽季榮譽。\n\n每日訓練榜\n14天競技賽季\n永久養成榜\n累積所得\n房屋建設\n寵物收藏\n\n自養成版本啟用起累積的訓練收入，消費不扣分，退款與變賣不加分。\n\n我的位置：第 1 名 · 264 分\n\n1玩家 #3372\n264"
+        }
+      }
+    ],
+    "networkLogCount": 43,
+    "networkSample": [
+      {
+        "timestamp": "2026-11-06T01:44:32.900Z",
+        "method": "POST",
+        "url": "/api/v1/login/access-token",
+        "status": 200,
+        "body": {
+          "access_token": "[REDACTED]",
+          "token_type": "bearer"
+        }
+      },
+      {
+        "timestamp": "2026-11-06T01:44:33.998Z",
+        "method": "GET",
+        "url": "/api/v1/login/oauth/providers",
+        "status": 200,
+        "body": {
+          "providers": []
+        }
+      },
+      {
+        "timestamp": "2026-11-06T01:44:33.998Z",
+        "method": "GET",
+        "url": "/api/v1/users/me",
+        "status": 200,
+        "body": {
+          "email": "eval-baseline-trace-60ee4553@example.com",
+          "is_active": true,
+          "is_superuser": false,
+          "is_team": false,
+          "full_name": "Eval_trace",
+          "id": "0e990db5-5ed8-4ff2-b2e4-66bf1fcdca6c",
+          "created_at": "2026-11-06T01:44:28.160611Z",
+          "is_guest": false,
+          "participant_code": null,
+          "cohort_id": null,
+          "teacher_status": "none"
+        }
+      },
+      {
+        "timestamp": "2026-11-06T01:44:33.998Z",
+        "method": "GET",
+        "url": "/api/v1/economy/me",
+        "status": 200,
+        "body": {
+          "cash": "1000",
+          "xp": 0,
+          "level": 1,
+          "streak_days": 0,
+          "pending_accrual": "0",
+          "bankruptcy_pending": false
+        }
+      },
+      {
+        "timestamp": "2026-11-06T01:44:34.323Z",
+        "method": "GET",
+        "url": "/api/v1/collections/me",
+        "status": 200,
+        "body": {
+          "assets": [
+            {
+              "kind": "pet",
+              "target_id": "4fdf68f5-23fb-4912-81bb-7765cb13b0a2",
+              "name": "柴犬",
+              "image_url": "/assets/mascot/shiba/base.webp",
+              "level": 0,
+              "cash_cost": "500",
+              "energy_cost": "10"
+            }
+          ],
+          "collectibles": [],
+          "titles": [],
+          "active_title": null,
+          "active_appearance": null,
+          "showcase_capacity": 1,
+          "presets": [],
+          "preset_capacity": 2,
+          "lifetime_cash": "0",
+          "tool_choices": []
+        }
+      },
+      {
+        "timestamp": "2026-11-06T01:44:34.830Z",
+        "method": "GET",
+        "url": "/api/v1/mascot/items",
+        "status": 200,
+        "body": {
+          "items": [
+            {
+              "name": "柴犬",
+              "image_url": "/assets/mascot/shiba/base.webp",
+              "id": "4fdf68f5-23fb-4912-81bb-7765cb13b0a2",
+              "category": "mascot",
+              "cost": 0,
+              "owned": true,
+              "displayed": true
+            },
+            {
+              "name": "倉鼠",
+              "image_url": "/assets/mascot/hamster/base.webp",
+              "id": "595ae4ef-90b9-4792-8cb3-d08042c17e82",
+              "category": "mascot",
+              "cost": 750,
+              "owned": false,
+              "displayed": false
+            },
+            {
+              "name": "兔子",
+              "image_url": "/assets/mascot/rabbit/base.webp",
+              "id": "406d8956-e902-4e8c-b880-fddc974cb40f",
+              "category": "mascot",
+              "cost": 1000,
+              "owned": false,
+              "displayed": false
+            },
+            {
+              "name": "貓",
+              "image_url": "/assets/mascot/cat/base.webp",
+              "id": "efd52a8e-a2f3-4ea7-89dd-f306fdf2b6aa",
+              "category": "mascot",
+              "cost": 1500,
+              "owned": false,
+              "displayed": false
+            },
+            {
+              "name": "柯基",
+              "image_url": "/assets/mascot/corgi/base.webp",
+              "id": "c140993a-4ac6-48a5-bb77-5c3ad51ede15",
+              "category": "mascot",
+              "cost": 2000,
+              "owned": false,
+              "displayed": false
+            },
+            {
+              "name": "企鵝",
+              "image_url": "/assets/mascot/penguin/base.webp",
+              "id": "c6ef787a-c2f6-449e-9abf-4352be0a723d",
+              "category": "mascot",
+              "cost": 3000,
+              "owned": false,
+              "displayed": false
+            },
+            {
+              "name": "水獺",
+              "image_url": "/assets/mascot/otter/base.webp",
+              "id": "527b6286-ceee-4039-aa02-2120545b68c6",
+              "category": "mascot",
+              "cost": 4000,
+              "owned": false,
+              "displayed": false
+            },
+            {
+              "name": "狐狸",
+              "image_url": "/assets/mascot/fox/base.webp",
+              "id": "6adab302-7c60-4a12-b7a0-13fd112cae40",
+              "category": "mascot",
+              "cost": 5000,
+              "owned": false,
+              "displayed": false
+            },
+            {
+              "name": "小熊貓",
+              "image_url": "/assets/mascot/red_panda/base.webp",
+              "id": "22d2ee91-905b-4a20-b49d-b17634b08c4e",
+              "category": "mascot",
+              "cost": 7500,
+              "owned": false,
+              "displayed": false
+            },
+            {
+              "name": "無尾熊",
+              "image_url": "/assets/mascot/koala/base.webp",
+              "id": "5cbf4aa4-ef08-4ab8-a745-e2757e08b945",
+              "category": "mascot",
+              "cost": 10000,
+              "owned": false,
+              "displayed": false
+            }
+          ]
+        }
+      },
+      {
+        "timestamp": "2026-11-06T01:44:34.830Z",
+        "method": "GET",
+        "url": "/api/v1/practice/profile",
+        "status": 200,
+        "body": {
+          "focus_type": null,
+          "focus_label": null,
+          "note": "還沒有作答紀錄。先做前測，系統會找出你最需要加強的類型。",
+          "weights": {
+            "investment": 0.2,
+            "shopping": 0.2,
+            "fake-sale": 0.2,
+            "romance": 0.2,
+            "atm": 0.2
+          },
+          "source": "none",
+          "answers_seen": 0,
+          "retake": null
+        }
+      },
+      {
+        "timestamp": "2026-11-06T01:44:34.831Z",
+        "method": "GET",
+        "url": "/api/v1/economy/assets",
+        "status": 200,
+        "body": {
+          "cash": "1000",
+          "property_value": 0,
+          "daily_income": 0,
+          "total_net_worth": "1000",
+          "owned_count": 0
+        }
+      },
+      {
+        "timestamp": "2026-11-06T01:44:36.947Z",
+        "method": "GET",
+        "url": "/api/v1/progression/me",
+        "status": 200,
+        "body": {
+          "core_level": 0,
+          "growth_xp": "0",
+          "next_level_xp": "318",
+          "growth_progress_percent": 0,
+          "forge_energy": "0",
+          "active_slots": 0,
+          "max_active_slots": 2,
+          "has_sixth_slot_license": false,
+          "blueprint_fragments": 0,
+          "breakthrough_blueprints": 0,
+          "factors": {
+            "cash": "1",
+            "growth_xp": "1",
+            "energy": "1",
+            "competition": "1",
+            "streak_factor": "1.00"
+          },
+          "next_objective": "核心達到 10 級：解鎖第 3 生效槽並獲得 5 片圖紙碎片"
+        }
+      },
+      {
+        "timestamp": "2026-11-06T01:44:37.111Z",
+        "method": "GET",
+        "url": "/api/v1/equipment",
+        "status": 200,
+        "body": {
+          "items": [
+            {
+              "id": "42e295b7-c418-43b1-a652-8e0409164698",
+              "definition_id": "save_vault",
+              "family": "save_vault",
+              "name": "儲金保險箱",
+              "description": "提升金錢獲取倍率，每階提高 10%",
+              "rank": 1,
+              "rank_cap": 5,
+              "is_equipped": false,
+              "slot_index": null,
+              "upgrade_cost_cash": "200",
+              "breakthrough_cost_energy": null,
+              "breakthrough_cost_blueprints": null,
+              "can_upgrade": true,
+              "can_breakthrough": false,
+              "breakthrough_ticket_cost": 0
+            }
+          ],
+          "active_slots": 2,
+          "equipped_count": 0,
+          "revision": 0
+        }
+      },
+      {
+        "timestamp": "2026-11-06T01:44:37.951Z",
+        "method": "GET",
+        "url": "/api/v1/exam/status",
+        "status": 200,
+        "body": {
+          "active_attempt_id": null,
+          "can_start": true,
+          "block_reason": null,
+          "gate": null,
+          "daily_used": 0,
+          "daily_limit": 3,
+          "badges": []
+        }
+      },
+      {
+        "timestamp": "2026-11-06T01:44:39.972Z",
+        "method": "GET",
+        "url": "/api/v1/economy/properties",
+        "status": 200,
+        "body": {
+          "tiers": [
+            {
+              "id": 1,
+              "name": "雅房",
+              "svg_key": "tier-1",
+              "price": 1000,
+              "daily_income": 5,
+              "unlock_level": 1
+            },
+            {
+              "id": 2,
+              "name": "套房",
+              "svg_key": "tier-2",
+              "price": 5000,
+              "daily_income": 35,
+              "unlock_level": 1
+            },
+            {
+              "id": 3,
+              "name": "兩房公寓",
+              "svg_key": "tier-3",
+              "price": 25000,
+              "daily_income": 250,
+              "unlock_level": 2
+            },
+            {
+              "id": 4,
+              "name": "三房公寓",
+              "svg_key": "tier-4",
+              "price": 100000,
+              "daily_income": 1200,
+              "unlock_level": 3
+            },
+            {
+              "id": 5,
+              "name": "別墅",
+              "svg_key": "tier-5",
+              "price": 300000,
+              "daily_income": 4200,
+              "unlock_level": 5
+            },
+            {
+              "id": 6,
+              "name": "豪宅",
+              "svg_key": "tier-6",
+              "price": 1000000,
+              "daily_income": 15000,
+              "unlock_level": 10
+            }
+          ],
+          "owned": []
+        }
+      },
+      {
+        "timestamp": "2026-11-06T01:44:40.445Z",
+        "method": "PUT",
+        "url": "/api/v1/equipment/loadout",
+        "status": 200,
+        "body": {
+          "items": [
+            {
+              "id": "42e295b7-c418-43b1-a652-8e0409164698",
+              "definition_id": "save_vault",
+              "family": "save_vault",
+              "name": "儲金保險箱",
+              "description": "提升金錢獲取倍率，每階提高 10%",
+              "rank": 1,
+              "rank_cap": 5,
+              "is_equipped": true,
+              "slot_index": 0,
+              "upgrade_cost_cash": "200",
+              "breakthrough_cost_energy": null,
+              "breakthrough_cost_blueprints": null,
+              "can_upgrade": true,
+              "can_breakthrough": false,
+              "breakthrough_ticket_cost": 0
+            }
+          ],
+          "active_slots": 2,
+          "equipped_count": 1,
+          "revision": 1
+        }
+      },
+      {
+        "timestamp": "2026-11-06T01:44:40.889Z",
+        "method": "GET",
+        "url": "/api/v1/equipment",
+        "status": 200,
+        "body": {
+          "items": [
+            {
+              "id": "42e295b7-c418-43b1-a652-8e0409164698",
+              "definition_id": "save_vault",
+              "family": "save_vault",
+              "name": "儲金保險箱",
+              "description": "提升金錢獲取倍率，每階提高 10%",
+              "rank": 1,
+              "rank_cap": 5,
+              "is_equipped": true,
+              "slot_index": 0,
+              "upgrade_cost_cash": "200",
+              "breakthrough_cost_energy": null,
+              "breakthrough_cost_blueprints": null,
+              "can_upgrade": true,
+              "can_breakthrough": false,
+              "breakthrough_ticket_cost": 0
+            }
+          ],
+          "active_slots": 2,
+          "equipped_count": 1,
+          "revision": 1
+        }
+      },
+      {
+        "timestamp": "2026-11-06T01:44:41.318Z",
+        "method": "GET",
+        "url": "/api/v1/progression/me",
+        "status": 200,
+        "body": {
+          "core_level": 0,
+          "growth_xp": "0",
+          "next_level_xp": "318",
+          "growth_progress_percent": 0,
+          "forge_energy": "0",
+          "active_slots": 1,
+          "max_active_slots": 2,
+          "has_sixth_slot_license": false,
+          "blueprint_fragments": 0,
+          "breakthrough_blueprints": 0,
+          "factors": {
+            "cash": "1.1",
+            "growth_xp": "1",
+            "energy": "1",
+            "competition": "1",
+            "streak_factor": "1.00"
+          },
+          "next_objective": "核心達到 10 級：解鎖第 3 生效槽並獲得 5 片圖紙碎片"
+        }
+      },
+      {
+        "timestamp": "2026-11-06T01:44:42.024Z",
+        "method": "POST",
+        "url": "/api/v1/equipment/42e295b7-c418-43b1-a652-8e0409164698/upgrade",
+        "status": 200,
+        "body": {
+          "id": "42e295b7-c418-43b1-a652-8e0409164698",
+          "definition_id": "save_vault",
+          "family": "save_vault",
+          "name": "儲金保險箱",
+          "description": "提升金錢獲取倍率，每階提高 10%",
+          "rank": 2,
+          "rank_cap": 5,
+          "is_equipped": true,
+          "slot_index": 0,
+          "upgrade_cost_cash": "1200",
+          "breakthrough_cost_energy": null,
+          "breakthrough_cost_blueprints": null,
+          "can_upgrade": true,
+          "can_breakthrough": false,
+          "breakthrough_ticket_cost": 0
+        }
+      },
+      {
+        "timestamp": "2026-11-06T01:44:42.331Z",
+        "method": "GET",
+        "url": "/api/v1/progression/me",
+        "status": 200,
+        "body": {
+          "core_level": 0,
+          "growth_xp": "0",
+          "next_level_xp": "318",
+          "growth_progress_percent": 0,
+          "forge_energy": "0",
+          "active_slots": 1,
+          "max_active_slots": 2,
+          "has_sixth_slot_license": false,
+          "blueprint_fragments": 0,
+          "breakthrough_blueprints": 0,
+          "factors": {
+            "cash": "1.2",
+            "growth_xp": "1",
+            "energy": "1",
+            "competition": "1",
+            "streak_factor": "1.00"
+          },
+          "next_objective": "核心達到 10 級：解鎖第 3 生效槽並獲得 5 片圖紙碎片"
+        }
+      },
+      {
+        "timestamp": "2026-11-06T01:44:42.414Z",
+        "method": "GET",
+        "url": "/api/v1/economy/properties",
+        "status": 200,
+        "body": {
+          "tiers": [
+            {
+              "id": 1,
+              "name": "雅房",
+              "svg_key": "tier-1",
+              "price": 1000,
+              "daily_income": 5,
+              "unlock_level": 1
+            },
+            {
+              "id": 2,
+              "name": "套房",
+              "svg_key": "tier-2",
+              "price": 5000,
+              "daily_income": 35,
+              "unlock_level": 1
+            },
+            {
+              "id": 3,
+              "name": "兩房公寓",
+              "svg_key": "tier-3",
+              "price": 25000,
+              "daily_income": 250,
+              "unlock_level": 2
+            },
+            {
+              "id": 4,
+              "name": "三房公寓",
+              "svg_key": "tier-4",
+              "price": 100000,
+              "daily_income": 1200,
+              "unlock_level": 3
+            },
+            {
+              "id": 5,
+              "name": "別墅",
+              "svg_key": "tier-5",
+              "price": 300000,
+              "daily_income": 4200,
+              "unlock_level": 5
+            },
+            {
+              "id": 6,
+              "name": "豪宅",
+              "svg_key": "tier-6",
+              "price": 1000000,
+              "daily_income": 15000,
+              "unlock_level": 10
+            }
+          ],
+          "owned": []
+        }
+      },
+      {
+        "timestamp": "2026-11-06T01:44:42.475Z",
+        "method": "GET",
+        "url": "/api/v1/equipment",
+        "status": 200,
+        "body": {
+          "items": [
+            {
+              "id": "42e295b7-c418-43b1-a652-8e0409164698",
+              "definition_id": "save_vault",
+              "family": "save_vault",
+              "name": "儲金保險箱",
+              "description": "提升金錢獲取倍率，每階提高 10%",
+              "rank": 2,
+              "rank_cap": 5,
+              "is_equipped": true,
+              "slot_index": 0,
+              "upgrade_cost_cash": "1200",
+              "breakthrough_cost_energy": null,
+              "breakthrough_cost_blueprints": null,
+              "can_upgrade": true,
+              "can_breakthrough": false,
+              "breakthrough_ticket_cost": 0
+            }
+          ],
+          "active_slots": 2,
+          "equipped_count": 1,
+          "revision": 1
+        }
+      },
+      {
+        "timestamp": "2026-11-06T01:44:42.751Z",
+        "method": "GET",
+        "url": "/api/v1/economy/me",
+        "status": 200,
+        "body": {
+          "cash": "800",
+          "xp": 0,
+          "level": 1,
+          "streak_days": 0,
+          "pending_accrual": "0",
+          "bankruptcy_pending": false
+        }
+      },
+      {
+        "timestamp": "2026-11-06T01:44:44.029Z",
+        "method": "GET",
+        "url": "/api/v1/economy/me",
+        "status": 200,
+        "body": {
+          "cash": "800",
+          "xp": 0,
+          "level": 1,
+          "streak_days": 0,
+          "pending_accrual": "0",
+          "bankruptcy_pending": false
+        }
+      },
+      {
+        "timestamp": "2026-11-06T01:44:44.040Z",
+        "method": "GET",
+        "url": "/api/v1/economy/properties",
+        "status": 200,
+        "body": {
+          "tiers": [
+            {
+              "id": 1,
+              "name": "雅房",
+              "svg_key": "tier-1",
+              "price": 1000,
+              "daily_income": 5,
+              "unlock_level": 1
+            },
+            {
+              "id": 2,
+              "name": "套房",
+              "svg_key": "tier-2",
+              "price": 5000,
+              "daily_income": 35,
+              "unlock_level": 1
+            },
+            {
+              "id": 3,
+              "name": "兩房公寓",
+              "svg_key": "tier-3",
+              "price": 25000,
+              "daily_income": 250,
+              "unlock_level": 2
+            },
+            {
+              "id": 4,
+              "name": "三房公寓",
+              "svg_key": "tier-4",
+              "price": 100000,
+              "daily_income": 1200,
+              "unlock_level": 3
+            },
+            {
+              "id": 5,
+              "name": "別墅",
+              "svg_key": "tier-5",
+              "price": 300000,
+              "daily_income": 4200,
+              "unlock_level": 5
+            },
+            {
+              "id": 6,
+              "name": "豪宅",
+              "svg_key": "tier-6",
+              "price": 1000000,
+              "daily_income": 15000,
+              "unlock_level": 10
+            }
+          ],
+          "owned": []
+        }
+      },
+      {
+        "timestamp": "2026-11-06T01:44:44.112Z",
+        "method": "GET",
+        "url": "/api/v1/equipment",
+        "status": 200,
+        "body": {
+          "items": [
+            {
+              "id": "42e295b7-c418-43b1-a652-8e0409164698",
+              "definition_id": "save_vault",
+              "family": "save_vault",
+              "name": "儲金保險箱",
+              "description": "提升金錢獲取倍率，每階提高 10%",
+              "rank": 2,
+              "rank_cap": 5,
+              "is_equipped": true,
+              "slot_index": 0,
+              "upgrade_cost_cash": "1200",
+              "breakthrough_cost_energy": null,
+              "breakthrough_cost_blueprints": null,
+              "can_upgrade": true,
+              "can_breakthrough": false,
+              "breakthrough_ticket_cost": 0
+            }
+          ],
+          "active_slots": 2,
+          "equipped_count": 1,
+          "revision": 1
+        }
+      },
+      {
+        "timestamp": "2026-11-06T01:44:44.627Z",
+        "method": "GET",
+        "url": "/api/v1/progression/me",
+        "status": 200,
+        "body": {
+          "core_level": 0,
+          "growth_xp": "0",
+          "next_level_xp": "318",
+          "growth_progress_percent": 0,
+          "forge_energy": "0",
+          "active_slots": 1,
+          "max_active_slots": 2,
+          "has_sixth_slot_license": false,
+          "blueprint_fragments": 0,
+          "breakthrough_blueprints": 0,
+          "factors": {
+            "cash": "1.2",
+            "growth_xp": "1",
+            "energy": "1",
+            "competition": "1",
+            "streak_factor": "1.00"
+          },
+          "next_objective": "核心達到 10 級：解鎖第 3 生效槽並獲得 5 片圖紙碎片"
+        }
+      },
+      {
+        "timestamp": "2026-11-06T01:44:44.894Z",
+        "method": "GET",
+        "url": "/api/v1/collections/me",
+        "status": 200,
+        "body": {
+          "assets": [
+            {
+              "kind": "pet",
+              "target_id": "4fdf68f5-23fb-4912-81bb-7765cb13b0a2",
+              "name": "柴犬",
+              "image_url": "/assets/mascot/shiba/base.webp",
+              "level": 0,
+              "cash_cost": "500",
+              "energy_cost": "10"
+            }
+          ],
+          "collectibles": [],
+          "titles": [],
+          "active_title": null,
+          "active_appearance": null,
+          "showcase_capacity": 1,
+          "presets": [],
+          "preset_capacity": 2,
+          "lifetime_cash": "0",
+          "tool_choices": []
+        }
+      },
+      {
+        "timestamp": "2026-11-06T01:44:45.794Z",
+        "method": "GET",
+        "url": "/api/v1/quick/quiz/deck?size=5",
+        "status": 200,
+        "body": {
+          "session_id": "2934fb0e-1feb-4205-8e4b-07cad91eb343",
+          "items": [
+            {
+              "item_id": "0d1dfa3e9e84410ca101b0aba7e6904a",
+              "type": "verdict",
+              "fraud_type": "atm",
+              "title": "訂單重複扣款的處理通知",
+              "narrative": "晚上接到一通電話，對方說是購物平台的客服，說我上個月的網購訂單被重複設定成十二期，下個結帳日會再扣一次。他報出商品和大概的金額，接著把電話轉給一位自稱銀行帳務人員的人。那人說我的金融卡沒有開啟接收退款的功能，要我到提款機插卡，輸入一組交易代碼。我說明天去分行辦，他說批次作業今晚就截止，電話不能掛。我已經站在提款機前面。",
+              "difficulty": 1
+            },
+            {
+              "item_id": "ea5e2762ea6843d5a63a83f65874e729",
+              "type": "tactics",
+              "fraud_type": "fake-sale",
+              "title": "拍賣平台上的相機交易",
+              "narrative": "我在社群平台的賣場掛賣一台相機，有位買家透過聊天系統聯繫，談得很順，還指定要用某個物流平台寄送，說他常用、比較放心。談好價錢後他說下單一直失敗，款項好像被凍結住了，傳來一個客服連結要我加進去一起處理。那位客服說問題出在我這邊，因為我是賣家，卻還沒完成認證、也沒簽金流協定，所以錢卡在系統裡放不出來。他要我提供銀行帳戶資訊，再引導我打開網路銀行，說照著步驟做一次簽署就能把買家的錢放行給我。他說款項凍結超過時限會自動退回買家，要我盡快。我第一次用這個物流服務，網銀已經打開了。",
+              "difficulty": 2,
+              "question": "這則訊息用了哪些話術？（複選）",
+              "options": [
+                {
+                  "tag": "greed",
+                  "label": "用好處引誘你"
+                },
+                {
+                  "tag": "social_proof",
+                  "label": "說大家都在做"
+                },
+                {
+                  "tag": "authority",
+                  "label": "冒充官方或專家"
+                },
+                {
+                  "tag": "trust_building",
+                  "label": "先跟你套交情"
+                },
+                {
+                  "tag": "time_pressure",
+                  "label": "催你快點決定"
+                }
+              ]
+            },
+            {
+              "item_id": "71c9cbd5d98b4b5c9d63178b15065a05",
+              "type": "verdict",
+              "fraud_type": "atm",
+              "title": "健保卡的停用提醒",
+              "narrative": "我正在讀健保快易通應用程式裡的通知：「您的健保卡即將停止使用，請核對補發案件。」看到停用兩個字我嚇了一跳。我前幾天弄丟健保卡，在這個程式申請了遺失補發。我從主選單點進補換發頁，案件的申請時間和我那天操作的一樣，寄送地址和規費也都列在上面，規費照頁面上的方式繳。我正在核對新卡的寄送地址，還沒按下完成。",
+              "difficulty": 1
+            },
+            {
+              "item_id": "f609266178794e828d33538aa5abcc29",
+              "type": "match",
+              "question": "把話術和例句配對起來",
+              "match_prompts": [
+                {
+                  "pair_id": "7c73d104259c4bac82249a757d9980ca",
+                  "text": "留言接連喊編號，還有人貼收貨照片"
+                },
+                {
+                  "pair_id": "2f3f11b200144928b16b6e586cf78369",
+                  "text": "說掛斷就要重新排隊，錢可能先被領走"
+                },
+                {
+                  "pair_id": "e6afe2abcdd847ffb2b7d272e4bc3d50",
+                  "text": "客服說依稅務規定要先另匯稅金才撥款"
+                },
+                {
+                  "pair_id": "e8e6317a6a8b42189f6cc59dc2470f9e",
+                  "text": "連聊幾天攻略，像認識很久的朋友"
+                },
+                {
+                  "pair_id": "b42235da3ef940b388838751745f429d",
+                  "text": "說行情難得，他願意幫我出一半"
+                }
+              ],
+              "match_targets": [
+                {
+                  "tag": "social_proof",
+                  "label": "說大家都在做"
+                },
+                {
+                  "tag": "authority",
+                  "label": "冒充官方或專家"
+                },
+                {
+                  "tag": "time_pressure",
+                  "label": "催你快點決定"
+                },
+                {
+                  "tag": "trust_building",
+                  "label": "先跟你套交情"
+                },
+                {
+                  "tag": "greed",
+                  "label": "用好處引誘你"
+                }
+              ]
+            },
+            {
+              "item_id": "0e387e40207247da95955bb66bd719f7",
+              "type": "verification",
+              "fraud_type": "shopping",
+              "title": "包裹暫扣的繳費通知",
+              "narrative": "我正在讀手機簡訊：「您的包裹因關稅未繳而暫扣，請支付約一百六十元。」最近我確實有一件海外商品在路上。我打開手機上原本就有的實名委任報關程式，裡面真的有同一張運單，寫著申報的品名和稅費約一百六十元，繳費期限到這週五，繳費也在程式裡完成，只付這一筆。購物平台上的物流狀態還寫運送中。我正在核對申報的商品價格對不對。",
+              "difficulty": 1,
+              "question": "依這段情境，哪個管道最適合核對這件事？",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "從主管機關入口核對申報資料"
+                },
+                {
+                  "key": "B",
+                  "text": "從服務自己的訂單頁核對條件"
+                },
+                {
+                  "key": "C",
+                  "text": "自行查公開電話向業者確認"
+                }
+              ]
+            }
+          ]
+        }
+      },
+      {
+        "timestamp": "2026-11-06T01:44:45.863Z",
+        "method": "GET",
+        "url": "/api/v1/practice/profile",
+        "status": 200,
+        "body": {
+          "focus_type": null,
+          "focus_label": null,
+          "note": "還沒有作答紀錄。先做前測，系統會找出你最需要加強的類型。",
+          "weights": {
+            "investment": 0.2,
+            "shopping": 0.2,
+            "fake-sale": 0.2,
+            "romance": 0.2,
+            "atm": 0.2
+          },
+          "source": "none",
+          "answers_seen": 0,
+          "retake": null
+        }
+      },
+      {
+        "timestamp": "2026-11-06T01:44:46.743Z",
+        "method": "GET",
+        "url": "/api/v1/home/summary",
+        "status": 200,
+        "body": {
+          "room_stage": 0,
+          "mascot_image_url": "/assets/mascot/shiba/base.webp",
+          "pretest_done": false,
+          "inbox_pending": 5,
+          "daily_unlocked": false,
+          "daily_done": false,
+          "exam_active_attempt_id": null,
+          "exam_can_start": true,
+          "retake": null,
+          "focus_type": null,
+          "focus_label": null,
+          "badges": [],
+          "team_access": false,
+          "survey_pending": false,
+          "survey_ready": false,
+          "trial": false,
+          "teacher_status": "none",
+          "class_count": 0,
+          "classwork_pending": 0,
+          "classwork_next": null,
+          "admin_access": false
+        }
+      },
+      {
+        "timestamp": "2026-11-06T01:44:49.076Z",
+        "method": "POST",
+        "url": "/api/v1/quick/quiz/answer",
+        "status": 200,
+        "body": {
+          "type": "verdict",
+          "correct": true,
+          "is_scam": true,
+          "red_flags": [
+            {
+              "tag": "authority",
+              "label": "冒充官方或專家",
+              "text": "購物客服和銀行帳務人員接力打來"
+            },
+            {
+              "tag": "time_pressure",
+              "label": "催你快點決定",
+              "text": "說批次作業今晚截止，不能等明天"
+            }
+          ],
+          "provenance": "改編自：金管會新聞稿「提醒民眾防範信用卡遭詐騙盜刷」與刑事警察局高風險業者解除分期宣導",
+          "tag_details": []
+        }
+      },
+      {
+        "timestamp": "2026-11-06T01:44:50.403Z",
+        "method": "POST",
+        "url": "/api/v1/quick/quiz/answer",
+        "status": 200,
+        "body": {
+          "type": "tactics",
+          "correct": true,
+          "correct_tags": [
+            "authority",
+            "time_pressure",
+            "trust_building"
+          ],
+          "missed_tags": [],
+          "extra_tags": [],
+          "provenance": "改編自：165 全民防騙網「民眾通報高風險業者」（假網路拍賣）與刑事局宣導之假買家假物流手法",
+          "tag_details": [
+            {
+              "tag": "authority",
+              "label": "冒充官方或專家",
+              "suggestion": "自稱警察、檢察官、銀行人員或專家，都先掛斷，自己查官方電話打回去問。"
+            },
+            {
+              "tag": "time_pressure",
+              "label": "催你快點決定",
+              "suggestion": "對方越催，越要停下來。銀行、政府和正規商家都不會要你幾分鐘內做決定。"
+            },
+            {
+              "tag": "trust_building",
+              "label": "先跟你套交情",
+              "suggestion": "聊得再久、對你再好，只要開口借錢、要你匯款或下載 App，就先停下來查證。"
+            }
+          ]
+        }
+      },
+      {
+        "timestamp": "2026-11-06T01:44:50.918Z",
+        "method": "POST",
+        "url": "/api/v1/quick/quiz/answer",
+        "status": 200,
+        "body": {
+          "type": "verdict",
+          "correct": true,
+          "is_scam": false,
+          "red_flags": [
+            {
+              "tag": null,
+              "label": null,
+              "text": "補換發頁的申請時間和我那天操作的一樣"
+            },
+            {
+              "tag": null,
+              "label": null,
+              "text": "規費照補換發頁上列的方式繳"
+            }
+          ],
+          "provenance": "依據：健保署健保卡遺失補換發、規費繳納及進度查詢流程",
+          "tag_details": []
+        }
+      },
+      {
+        "timestamp": "2026-11-06T01:44:57.744Z",
+        "method": "POST",
+        "url": "/api/v1/quick/quiz/answer",
+        "status": 200,
+        "body": {
+          "type": "match",
+          "correct": true,
+          "results": [
+            {
+              "pair_id": "e8e6317a6a8b42189f6cc59dc2470f9e",
+              "correct_tag": "trust_building",
+              "correct": true,
+              "provenance": "改編自：165 反詐騙宣導案例「誤認完成交易任務 其實觸發詐騙副本」（虛擬遊戲詐騙）"
+            },
+            {
+              "pair_id": "7c73d104259c4bac82249a757d9980ca",
+              "correct_tag": "social_proof",
+              "correct": true,
+              "provenance": "改編自：165 全民防騙網「網路購物遇到詐騙了？社群買賣詐騙手法詳解」與數位發展部網路詐騙通報查詢網"
+            },
+            {
+              "pair_id": "b42235da3ef940b388838751745f429d",
+              "correct_tag": "greed",
+              "correct": true,
+              "provenance": "改編自：165 打詐儀錶板「網友想見的不是你 是你荷包的錢」與165 全民防騙網假投資通報"
+            },
+            {
+              "pair_id": "e6afe2abcdd847ffb2b7d272e4bc3d50",
+              "correct_tag": "authority",
+              "correct": true,
+              "provenance": "改編自：165 打詐儀錶板「假投資詐騙」常見手法清單"
+            },
+            {
+              "pair_id": "2f3f11b200144928b16b6e586cf78369",
+              "correct_tag": "time_pressure",
+              "correct": true,
+              "provenance": "改編自：金管會新聞稿「提醒民眾防範信用卡遭詐騙盜刷」"
+            }
+          ],
+          "tag_details": []
+        }
+      },
+      {
+        "timestamp": "2026-11-06T01:44:58.453Z",
+        "method": "POST",
+        "url": "/api/v1/quick/quiz/answer",
+        "status": 200,
+        "body": {
+          "type": "verification",
+          "correct": true,
+          "correct_key": "A",
+          "explanation": "包裹的申報品名與稅額算得對不對，是報關主管機關的資料。購物平台的訂單頁只看得到商品多少錢，打電話給業者也問不到這筆運單的申報內容。",
+          "provenance": "依據：關務署實名委任與進口郵包稅費查詢繳納流程",
+          "tag_details": []
+        }
+      },
+      {
+        "timestamp": "2026-11-06T01:44:58.953Z",
+        "method": "POST",
+        "url": "/api/v1/quick/quiz/complete",
+        "status": 200,
+        "body": {
+          "correct_count": 5,
+          "total": 5,
+          "best_streak": 5,
+          "cash_earned": "264",
+          "xp_earned": 100,
+          "weakness_summary": [],
+          "reward_receipt": {
+            "receipt_id": "1954617d-f055-4c37-bfc6-7912bb29bdba",
+            "source_kind": "quiz",
+            "config_version": "growth-v1.1",
+            "base": {
+              "cash": "220",
+              "training_xp": 100,
+              "fixed_cash": "0",
+              "fixed_training_xp": 0
+            },
+            "factors": {
+              "cash": "1.2",
+              "growth_xp": "1",
+              "energy": "1",
+              "competition": "1"
+            },
+            "final": {
+              "cash_total": "264",
+              "fixed_cash": "0",
+              "cash_bonus": "44",
+              "growth_xp": "100",
+              "forge_energy": "100"
+            },
+            "core_level_before": 0,
+            "core_level_after": 0
+          }
+        }
+      },
+      {
+        "timestamp": "2026-11-06T01:44:59.434Z",
+        "method": "GET",
+        "url": "/api/v1/economy/properties",
+        "status": 200,
+        "body": {
+          "tiers": [
+            {
+              "id": 1,
+              "name": "雅房",
+              "svg_key": "tier-1",
+              "price": 1000,
+              "daily_income": 5,
+              "unlock_level": 1
+            },
+            {
+              "id": 2,
+              "name": "套房",
+              "svg_key": "tier-2",
+              "price": 5000,
+              "daily_income": 35,
+              "unlock_level": 1
+            },
+            {
+              "id": 3,
+              "name": "兩房公寓",
+              "svg_key": "tier-3",
+              "price": 25000,
+              "daily_income": 250,
+              "unlock_level": 2
+            },
+            {
+              "id": 4,
+              "name": "三房公寓",
+              "svg_key": "tier-4",
+              "price": 100000,
+              "daily_income": 1200,
+              "unlock_level": 3
+            },
+            {
+              "id": 5,
+              "name": "別墅",
+              "svg_key": "tier-5",
+              "price": 300000,
+              "daily_income": 4200,
+              "unlock_level": 5
+            },
+            {
+              "id": 6,
+              "name": "豪宅",
+              "svg_key": "tier-6",
+              "price": 1000000,
+              "daily_income": 15000,
+              "unlock_level": 10
+            }
+          ],
+          "owned": []
+        }
+      },
+      {
+        "timestamp": "2026-11-06T01:45:00.249Z",
+        "method": "GET",
+        "url": "/api/v1/economy/me",
+        "status": 200,
+        "body": {
+          "cash": "1064",
+          "xp": 100,
+          "level": 2,
+          "streak_days": 1,
+          "pending_accrual": "0",
+          "bankruptcy_pending": false
+        }
+      },
+      {
+        "timestamp": "2026-11-06T01:45:02.062Z",
+        "method": "GET",
+        "url": "/api/v1/quick/quiz/deck?size=5",
+        "status": 200,
+        "body": {
+          "session_id": "2d6c0a3e-068e-40ca-8712-4f43e3c245c6",
+          "items": [
+            {
+              "item_id": "bf87aeb9911945eead88d7ad4de8ab20",
+              "type": "tactics",
+              "fraud_type": "shopping",
+              "title": "社團裡那台便宜的遊戲主機",
+              "narrative": "我在社群的買賣社團看到有人賣一台遊戲主機，價格比行情便宜快三成，貼文寫著急需用錢才割愛，附了幾張機器的照片。我留言詢問，賣家很快私訊我，說社團最近查得嚴，怕交易被檢舉下架，叫我加他的通訊軟體到外面談比較安全。加了之後他說已經有好幾個人在問，誰先付款就先保留，要我趕快決定。我問能不能面交或走平台的購物車，他說他人在外縣市、又怕平台抽成，直接轉帳最快，轉完他今天就寄出。他傳來一組帳號，說再等下去就要賣給別人了。我把轉帳頁面打開了。",
+              "difficulty": 1,
+              "question": "這則訊息用了哪些話術？（複選）",
+              "options": [
+                {
+                  "tag": "authority",
+                  "label": "冒充官方或專家"
+                },
+                {
+                  "tag": "social_proof",
+                  "label": "說大家都在做"
+                },
+                {
+                  "tag": "trust_building",
+                  "label": "先跟你套交情"
+                },
+                {
+                  "tag": "greed",
+                  "label": "用好處引誘你"
+                },
+                {
+                  "tag": "time_pressure",
+                  "label": "催你快點決定"
+                }
+              ]
+            },
+            {
+              "item_id": "b76e6c7e223741718412cf2b83bd4f6d",
+              "type": "verification",
+              "fraud_type": "fake-sale",
+              "title": "二手賣場的實名程序",
+              "narrative": "我在二手平台刊登桌遊後，買家傳來已付款畫面，但我的賣場沒有訂單。接著我正在讀一則自稱平台通知的訊息：「買家已提告反饋，請聯絡買家完成實名程序；無法辦理時，將凍結年金與銀行帳戶賠付。」買家說其他賣家照指示都能拿到貨款，要我加入訊息中的客服帳號。客服要求我在二十分鐘內把金融卡畫面和簡訊驗證碼傳過去，否則案件會送交金融中心。我仍停在平台原本的訂單頁，裡面沒有這筆交易。",
+              "difficulty": 1,
+              "question": "依這段情境，哪個管道最適合核對這件事？",
+              "options": [
+                {
+                  "key": "A",
+                  "text": "到公開的登記名單查對方"
+                },
+                {
+                  "key": "B",
+                  "text": "從原本的程式查這件事"
+                },
+                {
+                  "key": "C",
+                  "text": "打165問這種說法"
+                }
+              ]
+            },
+            {
+              "item_id": "5387a8cc0c4c4d1fa23546f89d3e3110",
+              "type": "verdict",
+              "fraud_type": "investment",
+              "title": "盤前收到的三檔觀察名單",
+              "narrative": "我正在讀券商程式推來的盤前通知：「今天整理三檔產業觀察名單，本月前可以免費看完整報告。」底下有不少人留言，說上次那份名單很準。我點進去看，每一檔都寫了看好的理由，也寫了可能下跌的情況和資料日期，最下面註明只供研究參考。想買的話要自己在證券帳戶下單，錢從原本的交割戶扣。我正在比較報告裡的營收數字，還沒決定要不要買。",
+              "difficulty": 1
+            },
+            {
+              "item_id": "ab2d03dfad344b49b30a5742fc135726",
+              "type": "match",
+              "question": "把話術和例句配對起來",
+              "match_prompts": [
+                {
+                  "pair_id": "cc5230f4aef64b8d8fe663a51db9354e",
+                  "text": "自稱物流承辦人，要先收查驗保管費"
+                },
+                {
+                  "pair_id": "3c7346b28b88432cb6da72e2ea0e39c8",
+                  "text": "群裡說能用比市價低的價格搶新股"
+                },
+                {
+                  "pair_id": "07fa13b00e38484ca9bcb0e0312c6276",
+                  "text": "以系統維護為由只留一小時處理"
+                },
+                {
+                  "pair_id": "a396555c84b4485db9e0f72a49a6ad5a",
+                  "text": "以曾用過類似服務的熟悉感降低戒心，一步步引導照指示操作"
+                },
+                {
+                  "pair_id": "b3f5f92df1814269984d4e45260046df",
+                  "text": "留言接連喊編號，還有人貼收貨照片"
+                }
+              ],
+              "match_targets": [
+                {
+                  "tag": "trust_building",
+                  "label": "先跟你套交情"
+                },
+                {
+                  "tag": "time_pressure",
+                  "label": "催你快點決定"
+                },
+                {
+                  "tag": "greed",
+                  "label": "用好處引誘你"
+                },
+                {
+                  "tag": "authority",
+                  "label": "冒充官方或專家"
+                },
+                {
+                  "tag": "social_proof",
+                  "label": "說大家都在做"
+                }
+              ]
+            },
+            {
+              "item_id": "22360d0c52f84005af51e15e5b94bd5c",
+              "type": "verdict",
+              "fraud_type": "romance",
+              "title": "遠距交往中的創業資助",
+              "narrative": "網路交往三個月的對象說她在海外開舞蹈教室，準備來台灣跟我一起生活，也說願意出一筆錢幫我開店。最近她說自己的跨境帳戶不能直接撥款，請我把提款卡寄給一位金融服務人員，再傳訊息告訴他密碼，先測試我的帳戶能不能收約三十萬元。服務人員說卡片今天寄出，才排得進這週的作業。我拿著還沒封口的寄件袋，提款卡就放在裡面。",
+              "difficulty": 1
+            }
+          ]
+        }
+      },
+      {
+        "timestamp": "2026-11-06T01:45:02.445Z",
+        "method": "GET",
+        "url": "/api/v1/economy/me",
+        "status": 200,
+        "body": {
+          "cash": "1064",
+          "xp": 100,
+          "level": 2,
+          "streak_days": 1,
+          "pending_accrual": "0",
+          "bankruptcy_pending": false
+        }
+      },
+      {
+        "timestamp": "2026-11-06T01:45:02.473Z",
+        "method": "GET",
+        "url": "/api/v1/economy/properties",
+        "status": 200,
+        "body": {
+          "tiers": [
+            {
+              "id": 1,
+              "name": "雅房",
+              "svg_key": "tier-1",
+              "price": 1000,
+              "daily_income": 5,
+              "unlock_level": 1
+            },
+            {
+              "id": 2,
+              "name": "套房",
+              "svg_key": "tier-2",
+              "price": 5000,
+              "daily_income": 35,
+              "unlock_level": 1
+            },
+            {
+              "id": 3,
+              "name": "兩房公寓",
+              "svg_key": "tier-3",
+              "price": 25000,
+              "daily_income": 250,
+              "unlock_level": 2
+            },
+            {
+              "id": 4,
+              "name": "三房公寓",
+              "svg_key": "tier-4",
+              "price": 100000,
+              "daily_income": 1200,
+              "unlock_level": 3
+            },
+            {
+              "id": 5,
+              "name": "別墅",
+              "svg_key": "tier-5",
+              "price": 300000,
+              "daily_income": 4200,
+              "unlock_level": 5
+            },
+            {
+              "id": 6,
+              "name": "豪宅",
+              "svg_key": "tier-6",
+              "price": 1000000,
+              "daily_income": 15000,
+              "unlock_level": 10
+            }
+          ],
+          "owned": []
+        }
+      },
+      {
+        "timestamp": "2026-11-06T01:45:02.525Z",
+        "method": "GET",
+        "url": "/api/v1/leaderboard?period=today",
+        "status": 400,
+        "body": {
+          "detail": {
+            "code": "level_required",
+            "unlock_level": 5
+          }
+        }
+      }
+    ]
+  },
+  "partB": {
+    "all_correct": {
+      "profile": "全對玩家 (100%)",
+      "user": {
+        "id": "d9484fca-a2fe-4888-8239-114c473d00bb",
+        "email": "eval-baseline-all_correct-e9216d27@example.com"
+      },
+      "milestones": {
+        "first_equip_round": 0,
+        "first_tool_upgrade_round": 1,
+        "first_core_level_up_round": 3,
+        "second_tool_unlock_round": 1,
+        "first_pet_upgrade_round": 2
+      },
+      "consoleErrors": [],
+      "pageErrors": [],
+      "rounds": [
+        {
+          "round": 1,
+          "session_id": "9815f629-3700-4400-9417-8dc1e492ad7d",
+          "correct_count": 5,
+          "total": 5,
+          "best_streak": 5,
+          "base_cash": "220",
+          "cash_bonus": "22",
+          "cash_earned": "242",
+          "training_xp_earned": 100,
+          "growth_xp_earned": "100",
+          "forge_energy_earned": "100",
+          "factors_used": {
+            "cash": "1.1",
+            "growth_xp": "1",
+            "energy": "1",
+            "competition": "1"
+          },
+          "core_level_before": 0,
+          "core_level_after": 0,
+          "cumulative_cash": "1042",
+          "cumulative_lifetime_cash": "242",
+          "cumulative_training_xp": 100,
+          "cumulative_growth_xp": "100",
+          "cumulative_forge_energy": "0",
+          "equipped_items": [
+            {
+              "slot_index": 0,
+              "item_id": "e503151d-a46d-40e4-917f-7db931b83dce",
+              "family": "save_vault"
+            },
+            {
+              "slot_index": 1,
+              "item_id": "5dabb0b1-189c-413c-8e02-441dadaae2ac",
+              "family": "growth_lens"
+            }
+          ],
+          "equipment_ranks": [
+            {
+              "id": "5dabb0b1-189c-413c-8e02-441dadaae2ac",
+              "definition_id": "growth_lens",
+              "rank": 1,
+              "rank_cap": 5
+            },
+            {
+              "id": "e503151d-a46d-40e4-917f-7db931b83dce",
+              "definition_id": "save_vault",
+              "rank": 2,
+              "rank_cap": 5
+            }
+          ],
+          "collections": [],
+          "actions_taken": [
+            "upgrade_save_vault_rank_2",
+            "unlock_growth_lens",
+            "equip_growth_lens_slot_2"
+          ],
+          "question_chars": 905,
+          "estimated_human_read_sec": 95,
+          "script_round_ms": 2808,
+          "api_wait_ms": 2230
+        },
+        {
+          "round": 2,
+          "session_id": "54824cd7-b2ce-4de9-bfa3-3977a9fbf486",
+          "correct_count": 5,
+          "total": 5,
+          "best_streak": 5,
+          "base_cash": "220",
+          "cash_bonus": "44",
+          "cash_earned": "264",
+          "training_xp_earned": 100,
+          "growth_xp_earned": "110",
+          "forge_energy_earned": "100",
+          "factors_used": {
+            "cash": "1.2",
+            "growth_xp": "1.1",
+            "energy": "1",
+            "competition": "1"
+          },
+          "core_level_before": 0,
+          "core_level_after": 0,
+          "cumulative_cash": "806",
+          "cumulative_lifetime_cash": "506",
+          "cumulative_training_xp": 200,
+          "cumulative_growth_xp": "210",
+          "cumulative_forge_energy": "90",
+          "equipped_items": [
+            {
+              "slot_index": 0,
+              "item_id": "e503151d-a46d-40e4-917f-7db931b83dce",
+              "family": "save_vault"
+            },
+            {
+              "slot_index": 1,
+              "item_id": "5dabb0b1-189c-413c-8e02-441dadaae2ac",
+              "family": "growth_lens"
+            }
+          ],
+          "equipment_ranks": [
+            {
+              "id": "5dabb0b1-189c-413c-8e02-441dadaae2ac",
+              "definition_id": "growth_lens",
+              "rank": 1,
+              "rank_cap": 5
+            },
+            {
+              "id": "e503151d-a46d-40e4-917f-7db931b83dce",
+              "definition_id": "save_vault",
+              "rank": 2,
+              "rank_cap": 5
+            }
+          ],
+          "collections": [
+            {
+              "kind": "pet",
+              "target_id": "4fdf68f5-23fb-4912-81bb-7765cb13b0a2",
+              "level": 1
+            }
+          ],
+          "actions_taken": [
+            "upgrade_shiba_pet_level_1"
+          ],
+          "question_chars": 1036,
+          "estimated_human_read_sec": 106,
+          "script_round_ms": 2870,
+          "api_wait_ms": 2460
+        },
+        {
+          "round": 3,
+          "session_id": "907ae25b-2853-465f-abe7-52137c3c3446",
+          "correct_count": 5,
+          "total": 5,
+          "best_streak": 5,
+          "base_cash": "220",
+          "cash_bonus": "46",
+          "cash_earned": "266",
+          "training_xp_earned": 100,
+          "growth_xp_earned": "111",
+          "forge_energy_earned": "101",
+          "factors_used": {
+            "cash": "1.212",
+            "growth_xp": "1.111",
+            "energy": "1.01",
+            "competition": "1"
+          },
+          "core_level_before": 0,
+          "core_level_after": 1,
+          "cumulative_cash": "1072",
+          "cumulative_lifetime_cash": "772",
+          "cumulative_training_xp": 300,
+          "cumulative_growth_xp": "321",
+          "cumulative_forge_energy": "191",
+          "equipped_items": [
+            {
+              "slot_index": 0,
+              "item_id": "e503151d-a46d-40e4-917f-7db931b83dce",
+              "family": "save_vault"
+            },
+            {
+              "slot_index": 1,
+              "item_id": "5dabb0b1-189c-413c-8e02-441dadaae2ac",
+              "family": "growth_lens"
+            }
+          ],
+          "equipment_ranks": [
+            {
+              "id": "5dabb0b1-189c-413c-8e02-441dadaae2ac",
+              "definition_id": "growth_lens",
+              "rank": 1,
+              "rank_cap": 5
+            },
+            {
+              "id": "e503151d-a46d-40e4-917f-7db931b83dce",
+              "definition_id": "save_vault",
+              "rank": 2,
+              "rank_cap": 5
+            }
+          ],
+          "collections": [
+            {
+              "kind": "pet",
+              "target_id": "4fdf68f5-23fb-4912-81bb-7765cb13b0a2",
+              "level": 1
+            }
+          ],
+          "actions_taken": [],
+          "question_chars": 931,
+          "estimated_human_read_sec": 98,
+          "script_round_ms": 9231,
+          "api_wait_ms": 8063
+        },
+        {
+          "round": 4,
+          "session_id": "4711a980-97f3-44ac-9d5b-f9127b8d9452",
+          "correct_count": 5,
+          "total": 5,
+          "best_streak": 5,
+          "base_cash": "220",
+          "cash_bonus": "99",
+          "cash_earned": "319",
+          "training_xp_earned": 100,
+          "growth_xp_earned": "133",
+          "forge_energy_earned": "121",
+          "factors_used": {
+            "cash": "1.4544",
+            "growth_xp": "1.3332",
+            "energy": "1.212",
+            "competition": "1"
+          },
+          "core_level_before": 1,
+          "core_level_after": 1,
+          "cumulative_cash": "1391",
+          "cumulative_lifetime_cash": "1091",
+          "cumulative_training_xp": 400,
+          "cumulative_growth_xp": "454",
+          "cumulative_forge_energy": "312",
+          "equipped_items": [
+            {
+              "slot_index": 0,
+              "item_id": "e503151d-a46d-40e4-917f-7db931b83dce",
+              "family": "save_vault"
+            },
+            {
+              "slot_index": 1,
+              "item_id": "5dabb0b1-189c-413c-8e02-441dadaae2ac",
+              "family": "growth_lens"
+            }
+          ],
+          "equipment_ranks": [
+            {
+              "id": "5dabb0b1-189c-413c-8e02-441dadaae2ac",
+              "definition_id": "growth_lens",
+              "rank": 1,
+              "rank_cap": 5
+            },
+            {
+              "id": "e503151d-a46d-40e4-917f-7db931b83dce",
+              "definition_id": "save_vault",
+              "rank": 2,
+              "rank_cap": 5
+            }
+          ],
+          "collections": [
+            {
+              "kind": "pet",
+              "target_id": "4fdf68f5-23fb-4912-81bb-7765cb13b0a2",
+              "level": 1
+            }
+          ],
+          "actions_taken": [],
+          "question_chars": 911,
+          "estimated_human_read_sec": 96,
+          "script_round_ms": 5105,
+          "api_wait_ms": 4466
+        },
+        {
+          "round": 5,
+          "session_id": "327bfeba-cf70-44a8-ac6c-3d4a58fee530",
+          "correct_count": 5,
+          "total": 5,
+          "best_streak": 5,
+          "base_cash": "220",
+          "cash_bonus": "99",
+          "cash_earned": "319",
+          "training_xp_earned": 100,
+          "growth_xp_earned": "133",
+          "forge_energy_earned": "121",
+          "factors_used": {
+            "cash": "1.4544",
+            "growth_xp": "1.3332",
+            "energy": "1.212",
+            "competition": "1"
+          },
+          "core_level_before": 1,
+          "core_level_after": 1,
+          "cumulative_cash": "1710",
+          "cumulative_lifetime_cash": "1410",
+          "cumulative_training_xp": 500,
+          "cumulative_growth_xp": "587",
+          "cumulative_forge_energy": "433",
+          "equipped_items": [
+            {
+              "slot_index": 0,
+              "item_id": "e503151d-a46d-40e4-917f-7db931b83dce",
+              "family": "save_vault"
+            },
+            {
+              "slot_index": 1,
+              "item_id": "5dabb0b1-189c-413c-8e02-441dadaae2ac",
+              "family": "growth_lens"
+            }
+          ],
+          "equipment_ranks": [
+            {
+              "id": "5dabb0b1-189c-413c-8e02-441dadaae2ac",
+              "definition_id": "growth_lens",
+              "rank": 1,
+              "rank_cap": 5
+            },
+            {
+              "id": "e503151d-a46d-40e4-917f-7db931b83dce",
+              "definition_id": "save_vault",
+              "rank": 2,
+              "rank_cap": 5
+            }
+          ],
+          "collections": [
+            {
+              "kind": "pet",
+              "target_id": "4fdf68f5-23fb-4912-81bb-7765cb13b0a2",
+              "level": 1
+            }
+          ],
+          "actions_taken": [],
+          "question_chars": 963,
+          "estimated_human_read_sec": 100,
+          "script_round_ms": 5619,
+          "api_wait_ms": 5034
+        },
+        {
+          "round": 6,
+          "session_id": "8d764b42-57ad-4c8e-81cc-53fd0eb7535f",
+          "correct_count": 5,
+          "total": 5,
+          "best_streak": 5,
+          "base_cash": "220",
+          "cash_bonus": "99",
+          "cash_earned": "319",
+          "training_xp_earned": 100,
+          "growth_xp_earned": "133",
+          "forge_energy_earned": "121",
+          "factors_used": {
+            "cash": "1.4544",
+            "growth_xp": "1.3332",
+            "energy": "1.212",
+            "competition": "1"
+          },
+          "core_level_before": 1,
+          "core_level_after": 1,
+          "cumulative_cash": "2029",
+          "cumulative_lifetime_cash": "1729",
+          "cumulative_training_xp": 600,
+          "cumulative_growth_xp": "720",
+          "cumulative_forge_energy": "554",
+          "equipped_items": [
+            {
+              "slot_index": 0,
+              "item_id": "e503151d-a46d-40e4-917f-7db931b83dce",
+              "family": "save_vault"
+            },
+            {
+              "slot_index": 1,
+              "item_id": "5dabb0b1-189c-413c-8e02-441dadaae2ac",
+              "family": "growth_lens"
+            }
+          ],
+          "equipment_ranks": [
+            {
+              "id": "5dabb0b1-189c-413c-8e02-441dadaae2ac",
+              "definition_id": "growth_lens",
+              "rank": 1,
+              "rank_cap": 5
+            },
+            {
+              "id": "e503151d-a46d-40e4-917f-7db931b83dce",
+              "definition_id": "save_vault",
+              "rank": 2,
+              "rank_cap": 5
+            }
+          ],
+          "collections": [
+            {
+              "kind": "pet",
+              "target_id": "4fdf68f5-23fb-4912-81bb-7765cb13b0a2",
+              "level": 1
+            }
+          ],
+          "actions_taken": [],
+          "question_chars": 973,
+          "estimated_human_read_sec": 101,
+          "script_round_ms": 32103,
+          "api_wait_ms": 31112
+        },
+        {
+          "round": 7,
+          "session_id": "d764f5ed-8b3f-46db-846b-bd8ab3a5def6",
+          "correct_count": 5,
+          "total": 5,
+          "best_streak": 5,
+          "base_cash": "220",
+          "cash_bonus": "99",
+          "cash_earned": "319",
+          "training_xp_earned": 100,
+          "growth_xp_earned": "133",
+          "forge_energy_earned": "121",
+          "factors_used": {
+            "cash": "1.4544",
+            "growth_xp": "1.3332",
+            "energy": "1.212",
+            "competition": "1"
+          },
+          "core_level_before": 1,
+          "core_level_after": 2,
+          "cumulative_cash": "2348",
+          "cumulative_lifetime_cash": "2048",
+          "cumulative_training_xp": 700,
+          "cumulative_growth_xp": "853",
+          "cumulative_forge_energy": "675",
+          "equipped_items": [
+            {
+              "slot_index": 0,
+              "item_id": "e503151d-a46d-40e4-917f-7db931b83dce",
+              "family": "save_vault"
+            },
+            {
+              "slot_index": 1,
+              "item_id": "5dabb0b1-189c-413c-8e02-441dadaae2ac",
+              "family": "growth_lens"
+            }
+          ],
+          "equipment_ranks": [
+            {
+              "id": "5dabb0b1-189c-413c-8e02-441dadaae2ac",
+              "definition_id": "growth_lens",
+              "rank": 1,
+              "rank_cap": 5
+            },
+            {
+              "id": "e503151d-a46d-40e4-917f-7db931b83dce",
+              "definition_id": "save_vault",
+              "rank": 2,
+              "rank_cap": 5
+            }
+          ],
+          "collections": [
+            {
+              "kind": "pet",
+              "target_id": "4fdf68f5-23fb-4912-81bb-7765cb13b0a2",
+              "level": 1
+            }
+          ],
+          "actions_taken": [],
+          "question_chars": 921,
+          "estimated_human_read_sec": 97,
+          "script_round_ms": 3833,
+          "api_wait_ms": 3262
+        },
+        {
+          "round": 8,
+          "session_id": "4997e9a6-3092-4a79-9ce3-46243a1dc505",
+          "correct_count": 5,
+          "total": 5,
+          "best_streak": 5,
+          "base_cash": "220",
+          "cash_bonus": "163",
+          "cash_earned": "383",
+          "training_xp_earned": 100,
+          "growth_xp_earned": "159",
+          "forge_energy_earned": "145",
+          "factors_used": {
+            "cash": "1.74528",
+            "growth_xp": "1.59984",
+            "energy": "1.4544",
+            "competition": "1"
+          },
+          "core_level_before": 2,
+          "core_level_after": 2,
+          "cumulative_cash": "2731",
+          "cumulative_lifetime_cash": "2431",
+          "cumulative_training_xp": 800,
+          "cumulative_growth_xp": "1012",
+          "cumulative_forge_energy": "820",
+          "equipped_items": [
+            {
+              "slot_index": 0,
+              "item_id": "e503151d-a46d-40e4-917f-7db931b83dce",
+              "family": "save_vault"
+            },
+            {
+              "slot_index": 1,
+              "item_id": "5dabb0b1-189c-413c-8e02-441dadaae2ac",
+              "family": "growth_lens"
+            }
+          ],
+          "equipment_ranks": [
+            {
+              "id": "5dabb0b1-189c-413c-8e02-441dadaae2ac",
+              "definition_id": "growth_lens",
+              "rank": 1,
+              "rank_cap": 5
+            },
+            {
+              "id": "e503151d-a46d-40e4-917f-7db931b83dce",
+              "definition_id": "save_vault",
+              "rank": 2,
+              "rank_cap": 5
+            }
+          ],
+          "collections": [
+            {
+              "kind": "pet",
+              "target_id": "4fdf68f5-23fb-4912-81bb-7765cb13b0a2",
+              "level": 1
+            }
+          ],
+          "actions_taken": [],
+          "question_chars": 1038,
+          "estimated_human_read_sec": 107,
+          "script_round_ms": 5534,
+          "api_wait_ms": 4724
+        },
+        {
+          "round": 9,
+          "session_id": "5242f55a-7b45-4b96-8485-aa465ce3fd33",
+          "correct_count": 5,
+          "total": 5,
+          "best_streak": 5,
+          "base_cash": "220",
+          "cash_bonus": "163",
+          "cash_earned": "383",
+          "training_xp_earned": 100,
+          "growth_xp_earned": "159",
+          "forge_energy_earned": "145",
+          "factors_used": {
+            "cash": "1.74528",
+            "growth_xp": "1.59984",
+            "energy": "1.4544",
+            "competition": "1"
+          },
+          "core_level_before": 2,
+          "core_level_after": 2,
+          "cumulative_cash": "3114",
+          "cumulative_lifetime_cash": "2814",
+          "cumulative_training_xp": 900,
+          "cumulative_growth_xp": "1171",
+          "cumulative_forge_energy": "965",
+          "equipped_items": [
+            {
+              "slot_index": 0,
+              "item_id": "e503151d-a46d-40e4-917f-7db931b83dce",
+              "family": "save_vault"
+            },
+            {
+              "slot_index": 1,
+              "item_id": "5dabb0b1-189c-413c-8e02-441dadaae2ac",
+              "family": "growth_lens"
+            }
+          ],
+          "equipment_ranks": [
+            {
+              "id": "5dabb0b1-189c-413c-8e02-441dadaae2ac",
+              "definition_id": "growth_lens",
+              "rank": 1,
+              "rank_cap": 5
+            },
+            {
+              "id": "e503151d-a46d-40e4-917f-7db931b83dce",
+              "definition_id": "save_vault",
+              "rank": 2,
+              "rank_cap": 5
+            }
+          ],
+          "collections": [
+            {
+              "kind": "pet",
+              "target_id": "4fdf68f5-23fb-4912-81bb-7765cb13b0a2",
+              "level": 1
+            }
+          ],
+          "actions_taken": [],
+          "question_chars": 996,
+          "estimated_human_read_sec": 103,
+          "script_round_ms": 4422,
+          "api_wait_ms": 3615
+        },
+        {
+          "round": 10,
+          "session_id": "b26a2d43-07fb-4241-b98d-e7bceae450b6",
+          "correct_count": 5,
+          "total": 5,
+          "best_streak": 5,
+          "base_cash": "220",
+          "cash_bonus": "163",
+          "cash_earned": "383",
+          "training_xp_earned": 100,
+          "growth_xp_earned": "159",
+          "forge_energy_earned": "145",
+          "factors_used": {
+            "cash": "1.74528",
+            "growth_xp": "1.59984",
+            "energy": "1.4544",
+            "competition": "1"
+          },
+          "core_level_before": 2,
+          "core_level_after": 2,
+          "cumulative_cash": "3497",
+          "cumulative_lifetime_cash": "3197",
+          "cumulative_training_xp": 1000,
+          "cumulative_growth_xp": "1330",
+          "cumulative_forge_energy": "1110",
+          "equipped_items": [
+            {
+              "slot_index": 0,
+              "item_id": "e503151d-a46d-40e4-917f-7db931b83dce",
+              "family": "save_vault"
+            },
+            {
+              "slot_index": 1,
+              "item_id": "5dabb0b1-189c-413c-8e02-441dadaae2ac",
+              "family": "growth_lens"
+            }
+          ],
+          "equipment_ranks": [
+            {
+              "id": "5dabb0b1-189c-413c-8e02-441dadaae2ac",
+              "definition_id": "growth_lens",
+              "rank": 1,
+              "rank_cap": 5
+            },
+            {
+              "id": "e503151d-a46d-40e4-917f-7db931b83dce",
+              "definition_id": "save_vault",
+              "rank": 2,
+              "rank_cap": 5
+            }
+          ],
+          "collections": [
+            {
+              "kind": "pet",
+              "target_id": "4fdf68f5-23fb-4912-81bb-7765cb13b0a2",
+              "level": 1
+            }
+          ],
+          "actions_taken": [],
+          "question_chars": 951,
+          "estimated_human_read_sec": 99,
+          "script_round_ms": 7206,
+          "api_wait_ms": 4149
+        }
+      ]
+    },
+    "acc_70": {
+      "profile": "七成正確玩家 (70%)",
+      "user": {
+        "id": "1e75b084-aab9-40d5-86cb-ef260fbafcf5",
+        "email": "eval-baseline-acc_70-2e4acdcb@example.com"
+      },
+      "milestones": {
+        "first_equip_round": 0,
+        "first_tool_upgrade_round": 1,
+        "first_core_level_up_round": 5,
+        "second_tool_unlock_round": 2,
+        "first_pet_upgrade_round": 1
+      },
+      "consoleErrors": [],
+      "pageErrors": [],
+      "rounds": [
+        {
+          "round": 1,
+          "session_id": "18cbd619-678d-4ca7-8ba0-e715a1deccb5",
+          "correct_count": 4,
+          "total": 5,
+          "best_streak": 4,
+          "base_cash": "176",
+          "cash_bonus": "17",
+          "cash_earned": "193",
+          "training_xp_earned": 80,
+          "growth_xp_earned": "80",
+          "forge_energy_earned": "80",
+          "factors_used": {
+            "cash": "1.1",
+            "growth_xp": "1",
+            "energy": "1",
+            "competition": "1"
+          },
+          "core_level_before": 0,
+          "core_level_after": 0,
+          "cumulative_cash": "493",
+          "cumulative_lifetime_cash": "193",
+          "cumulative_training_xp": 80,
+          "cumulative_growth_xp": "80",
+          "cumulative_forge_energy": "70",
+          "equipped_items": [
+            {
+              "slot_index": 0,
+              "item_id": "fe8ed361-7155-4b68-baa5-4a407f0578ca",
+              "family": "save_vault"
+            }
+          ],
+          "equipment_ranks": [
+            {
+              "id": "fe8ed361-7155-4b68-baa5-4a407f0578ca",
+              "definition_id": "save_vault",
+              "rank": 2,
+              "rank_cap": 5
+            }
+          ],
+          "collections": [
+            {
+              "kind": "pet",
+              "target_id": "4fdf68f5-23fb-4912-81bb-7765cb13b0a2",
+              "level": 1
+            }
+          ],
+          "actions_taken": [
+            "upgrade_save_vault_rank_2",
+            "upgrade_shiba_pet_level_1"
+          ],
+          "question_chars": 982,
+          "estimated_human_read_sec": 102,
+          "script_round_ms": 3332,
+          "api_wait_ms": 2856
+        },
+        {
+          "round": 2,
+          "session_id": "3b4ef89a-873e-403d-b331-60fdc01b6435",
+          "correct_count": 3,
+          "total": 5,
+          "best_streak": 3,
+          "base_cash": "132",
+          "cash_bonus": "27",
+          "cash_earned": "159",
+          "training_xp_earned": 60,
+          "growth_xp_earned": "60",
+          "forge_energy_earned": "60",
+          "factors_used": {
+            "cash": "1.212",
+            "growth_xp": "1.01",
+            "energy": "1.01",
+            "competition": "1"
+          },
+          "core_level_before": 0,
+          "core_level_after": 0,
+          "cumulative_cash": "652",
+          "cumulative_lifetime_cash": "352",
+          "cumulative_training_xp": 140,
+          "cumulative_growth_xp": "140",
+          "cumulative_forge_energy": "30",
+          "equipped_items": [
+            {
+              "slot_index": 0,
+              "item_id": "fe8ed361-7155-4b68-baa5-4a407f0578ca",
+              "family": "save_vault"
+            },
+            {
+              "slot_index": 1,
+              "item_id": "f2735935-3697-4b18-9f9b-dd62c06e9307",
+              "family": "growth_lens"
+            }
+          ],
+          "equipment_ranks": [
+            {
+              "id": "f2735935-3697-4b18-9f9b-dd62c06e9307",
+              "definition_id": "growth_lens",
+              "rank": 1,
+              "rank_cap": 5
+            },
+            {
+              "id": "fe8ed361-7155-4b68-baa5-4a407f0578ca",
+              "definition_id": "save_vault",
+              "rank": 2,
+              "rank_cap": 5
+            }
+          ],
+          "collections": [
+            {
+              "kind": "pet",
+              "target_id": "4fdf68f5-23fb-4912-81bb-7765cb13b0a2",
+              "level": 1
+            }
+          ],
+          "actions_taken": [
+            "unlock_growth_lens",
+            "equip_growth_lens_slot_2"
+          ],
+          "question_chars": 931,
+          "estimated_human_read_sec": 98,
+          "script_round_ms": 2774,
+          "api_wait_ms": 2196
+        },
+        {
+          "round": 3,
+          "session_id": "321b537d-1299-4dca-a5d4-113c89da87b0",
+          "correct_count": 4,
+          "total": 5,
+          "best_streak": 4,
+          "base_cash": "176",
+          "cash_bonus": "37",
+          "cash_earned": "213",
+          "training_xp_earned": 80,
+          "growth_xp_earned": "88",
+          "forge_energy_earned": "80",
+          "factors_used": {
+            "cash": "1.212",
+            "growth_xp": "1.111",
+            "energy": "1.01",
+            "competition": "1"
+          },
+          "core_level_before": 0,
+          "core_level_after": 0,
+          "cumulative_cash": "865",
+          "cumulative_lifetime_cash": "565",
+          "cumulative_training_xp": 220,
+          "cumulative_growth_xp": "228",
+          "cumulative_forge_energy": "110",
+          "equipped_items": [
+            {
+              "slot_index": 0,
+              "item_id": "fe8ed361-7155-4b68-baa5-4a407f0578ca",
+              "family": "save_vault"
+            },
+            {
+              "slot_index": 1,
+              "item_id": "f2735935-3697-4b18-9f9b-dd62c06e9307",
+              "family": "growth_lens"
+            }
+          ],
+          "equipment_ranks": [
+            {
+              "id": "f2735935-3697-4b18-9f9b-dd62c06e9307",
+              "definition_id": "growth_lens",
+              "rank": 1,
+              "rank_cap": 5
+            },
+            {
+              "id": "fe8ed361-7155-4b68-baa5-4a407f0578ca",
+              "definition_id": "save_vault",
+              "rank": 2,
+              "rank_cap": 5
+            }
+          ],
+          "collections": [
+            {
+              "kind": "pet",
+              "target_id": "4fdf68f5-23fb-4912-81bb-7765cb13b0a2",
+              "level": 1
+            }
+          ],
+          "actions_taken": [],
+          "question_chars": 906,
+          "estimated_human_read_sec": 96,
+          "script_round_ms": 4334,
+          "api_wait_ms": 3208
+        },
+        {
+          "round": 4,
+          "session_id": "487b79ea-5189-4d4d-ac24-943f9bb3d2c5",
+          "correct_count": 3,
+          "total": 5,
+          "best_streak": 3,
+          "base_cash": "132",
+          "cash_bonus": "27",
+          "cash_earned": "159",
+          "training_xp_earned": 60,
+          "growth_xp_earned": "66",
+          "forge_energy_earned": "60",
+          "factors_used": {
+            "cash": "1.212",
+            "growth_xp": "1.111",
+            "energy": "1.01",
+            "competition": "1"
+          },
+          "core_level_before": 0,
+          "core_level_after": 0,
+          "cumulative_cash": "1024",
+          "cumulative_lifetime_cash": "724",
+          "cumulative_training_xp": 280,
+          "cumulative_growth_xp": "294",
+          "cumulative_forge_energy": "170",
+          "equipped_items": [
+            {
+              "slot_index": 0,
+              "item_id": "fe8ed361-7155-4b68-baa5-4a407f0578ca",
+              "family": "save_vault"
+            },
+            {
+              "slot_index": 1,
+              "item_id": "f2735935-3697-4b18-9f9b-dd62c06e9307",
+              "family": "growth_lens"
+            }
+          ],
+          "equipment_ranks": [
+            {
+              "id": "f2735935-3697-4b18-9f9b-dd62c06e9307",
+              "definition_id": "growth_lens",
+              "rank": 1,
+              "rank_cap": 5
+            },
+            {
+              "id": "fe8ed361-7155-4b68-baa5-4a407f0578ca",
+              "definition_id": "save_vault",
+              "rank": 2,
+              "rank_cap": 5
+            }
+          ],
+          "collections": [
+            {
+              "kind": "pet",
+              "target_id": "4fdf68f5-23fb-4912-81bb-7765cb13b0a2",
+              "level": 1
+            }
+          ],
+          "actions_taken": [],
+          "question_chars": 918,
+          "estimated_human_read_sec": 97,
+          "script_round_ms": 2768,
+          "api_wait_ms": 2304
+        },
+        {
+          "round": 5,
+          "session_id": "cc61bd50-2ada-47de-873f-f69d16688fe0",
+          "correct_count": 4,
+          "total": 5,
+          "best_streak": 4,
+          "base_cash": "176",
+          "cash_bonus": "37",
+          "cash_earned": "213",
+          "training_xp_earned": 80,
+          "growth_xp_earned": "88",
+          "forge_energy_earned": "80",
+          "factors_used": {
+            "cash": "1.212",
+            "growth_xp": "1.111",
+            "energy": "1.01",
+            "competition": "1"
+          },
+          "core_level_before": 0,
+          "core_level_after": 1,
+          "cumulative_cash": "1237",
+          "cumulative_lifetime_cash": "937",
+          "cumulative_training_xp": 360,
+          "cumulative_growth_xp": "382",
+          "cumulative_forge_energy": "250",
+          "equipped_items": [
+            {
+              "slot_index": 0,
+              "item_id": "fe8ed361-7155-4b68-baa5-4a407f0578ca",
+              "family": "save_vault"
+            },
+            {
+              "slot_index": 1,
+              "item_id": "f2735935-3697-4b18-9f9b-dd62c06e9307",
+              "family": "growth_lens"
+            }
+          ],
+          "equipment_ranks": [
+            {
+              "id": "f2735935-3697-4b18-9f9b-dd62c06e9307",
+              "definition_id": "growth_lens",
+              "rank": 1,
+              "rank_cap": 5
+            },
+            {
+              "id": "fe8ed361-7155-4b68-baa5-4a407f0578ca",
+              "definition_id": "save_vault",
+              "rank": 2,
+              "rank_cap": 5
+            }
+          ],
+          "collections": [
+            {
+              "kind": "pet",
+              "target_id": "4fdf68f5-23fb-4912-81bb-7765cb13b0a2",
+              "level": 1
+            }
+          ],
+          "actions_taken": [],
+          "question_chars": 935,
+          "estimated_human_read_sec": 98,
+          "script_round_ms": 2029,
+          "api_wait_ms": 1698
+        },
+        {
+          "round": 6,
+          "session_id": "0c7c4469-9741-4532-9664-d54c6776324d",
+          "correct_count": 3,
+          "total": 5,
+          "best_streak": 3,
+          "base_cash": "132",
+          "cash_bonus": "59",
+          "cash_earned": "191",
+          "training_xp_earned": 60,
+          "growth_xp_earned": "79",
+          "forge_energy_earned": "72",
+          "factors_used": {
+            "cash": "1.4544",
+            "growth_xp": "1.3332",
+            "energy": "1.212",
+            "competition": "1"
+          },
+          "core_level_before": 1,
+          "core_level_after": 1,
+          "cumulative_cash": "1428",
+          "cumulative_lifetime_cash": "1128",
+          "cumulative_training_xp": 420,
+          "cumulative_growth_xp": "461",
+          "cumulative_forge_energy": "322",
+          "equipped_items": [
+            {
+              "slot_index": 0,
+              "item_id": "fe8ed361-7155-4b68-baa5-4a407f0578ca",
+              "family": "save_vault"
+            },
+            {
+              "slot_index": 1,
+              "item_id": "f2735935-3697-4b18-9f9b-dd62c06e9307",
+              "family": "growth_lens"
+            }
+          ],
+          "equipment_ranks": [
+            {
+              "id": "f2735935-3697-4b18-9f9b-dd62c06e9307",
+              "definition_id": "growth_lens",
+              "rank": 1,
+              "rank_cap": 5
+            },
+            {
+              "id": "fe8ed361-7155-4b68-baa5-4a407f0578ca",
+              "definition_id": "save_vault",
+              "rank": 2,
+              "rank_cap": 5
+            }
+          ],
+          "collections": [
+            {
+              "kind": "pet",
+              "target_id": "4fdf68f5-23fb-4912-81bb-7765cb13b0a2",
+              "level": 1
+            }
+          ],
+          "actions_taken": [],
+          "question_chars": 869,
+          "estimated_human_read_sec": 92,
+          "script_round_ms": 2187,
+          "api_wait_ms": 1745
+        },
+        {
+          "round": 7,
+          "session_id": "25b479d3-cc0c-4a95-9442-30f6da43eafb",
+          "correct_count": 4,
+          "total": 5,
+          "best_streak": 4,
+          "base_cash": "176",
+          "cash_bonus": "79",
+          "cash_earned": "255",
+          "training_xp_earned": 80,
+          "growth_xp_earned": "106",
+          "forge_energy_earned": "96",
+          "factors_used": {
+            "cash": "1.4544",
+            "growth_xp": "1.3332",
+            "energy": "1.212",
+            "competition": "1"
+          },
+          "core_level_before": 1,
+          "core_level_after": 1,
+          "cumulative_cash": "1683",
+          "cumulative_lifetime_cash": "1383",
+          "cumulative_training_xp": 500,
+          "cumulative_growth_xp": "567",
+          "cumulative_forge_energy": "418",
+          "equipped_items": [
+            {
+              "slot_index": 0,
+              "item_id": "fe8ed361-7155-4b68-baa5-4a407f0578ca",
+              "family": "save_vault"
+            },
+            {
+              "slot_index": 1,
+              "item_id": "f2735935-3697-4b18-9f9b-dd62c06e9307",
+              "family": "growth_lens"
+            }
+          ],
+          "equipment_ranks": [
+            {
+              "id": "f2735935-3697-4b18-9f9b-dd62c06e9307",
+              "definition_id": "growth_lens",
+              "rank": 1,
+              "rank_cap": 5
+            },
+            {
+              "id": "fe8ed361-7155-4b68-baa5-4a407f0578ca",
+              "definition_id": "save_vault",
+              "rank": 2,
+              "rank_cap": 5
+            }
+          ],
+          "collections": [
+            {
+              "kind": "pet",
+              "target_id": "4fdf68f5-23fb-4912-81bb-7765cb13b0a2",
+              "level": 1
+            }
+          ],
+          "actions_taken": [],
+          "question_chars": 937,
+          "estimated_human_read_sec": 98,
+          "script_round_ms": 2154,
+          "api_wait_ms": 1763
+        },
+        {
+          "round": 8,
+          "session_id": "3e2ef4b9-a3a1-4afc-aaba-42304dc942ec",
+          "correct_count": 3,
+          "total": 5,
+          "best_streak": 3,
+          "base_cash": "132",
+          "cash_bonus": "59",
+          "cash_earned": "191",
+          "training_xp_earned": 60,
+          "growth_xp_earned": "79",
+          "forge_energy_earned": "72",
+          "factors_used": {
+            "cash": "1.4544",
+            "growth_xp": "1.3332",
+            "energy": "1.212",
+            "competition": "1"
+          },
+          "core_level_before": 1,
+          "core_level_after": 1,
+          "cumulative_cash": "1874",
+          "cumulative_lifetime_cash": "1574",
+          "cumulative_training_xp": 560,
+          "cumulative_growth_xp": "646",
+          "cumulative_forge_energy": "490",
+          "equipped_items": [
+            {
+              "slot_index": 0,
+              "item_id": "fe8ed361-7155-4b68-baa5-4a407f0578ca",
+              "family": "save_vault"
+            },
+            {
+              "slot_index": 1,
+              "item_id": "f2735935-3697-4b18-9f9b-dd62c06e9307",
+              "family": "growth_lens"
+            }
+          ],
+          "equipment_ranks": [
+            {
+              "id": "f2735935-3697-4b18-9f9b-dd62c06e9307",
+              "definition_id": "growth_lens",
+              "rank": 1,
+              "rank_cap": 5
+            },
+            {
+              "id": "fe8ed361-7155-4b68-baa5-4a407f0578ca",
+              "definition_id": "save_vault",
+              "rank": 2,
+              "rank_cap": 5
+            }
+          ],
+          "collections": [
+            {
+              "kind": "pet",
+              "target_id": "4fdf68f5-23fb-4912-81bb-7765cb13b0a2",
+              "level": 1
+            }
+          ],
+          "actions_taken": [],
+          "question_chars": 926,
+          "estimated_human_read_sec": 97,
+          "script_round_ms": 2544,
+          "api_wait_ms": 2136
+        },
+        {
+          "round": 9,
+          "session_id": "1eaa31de-5649-4989-a2be-cb296b153ef1",
+          "correct_count": 4,
+          "total": 5,
+          "best_streak": 4,
+          "base_cash": "176",
+          "cash_bonus": "79",
+          "cash_earned": "255",
+          "training_xp_earned": 80,
+          "growth_xp_earned": "106",
+          "forge_energy_earned": "96",
+          "factors_used": {
+            "cash": "1.4544",
+            "growth_xp": "1.3332",
+            "energy": "1.212",
+            "competition": "1"
+          },
+          "core_level_before": 1,
+          "core_level_after": 1,
+          "cumulative_cash": "2129",
+          "cumulative_lifetime_cash": "1829",
+          "cumulative_training_xp": 640,
+          "cumulative_growth_xp": "752",
+          "cumulative_forge_energy": "586",
+          "equipped_items": [
+            {
+              "slot_index": 0,
+              "item_id": "fe8ed361-7155-4b68-baa5-4a407f0578ca",
+              "family": "save_vault"
+            },
+            {
+              "slot_index": 1,
+              "item_id": "f2735935-3697-4b18-9f9b-dd62c06e9307",
+              "family": "growth_lens"
+            }
+          ],
+          "equipment_ranks": [
+            {
+              "id": "f2735935-3697-4b18-9f9b-dd62c06e9307",
+              "definition_id": "growth_lens",
+              "rank": 1,
+              "rank_cap": 5
+            },
+            {
+              "id": "fe8ed361-7155-4b68-baa5-4a407f0578ca",
+              "definition_id": "save_vault",
+              "rank": 2,
+              "rank_cap": 5
+            }
+          ],
+          "collections": [
+            {
+              "kind": "pet",
+              "target_id": "4fdf68f5-23fb-4912-81bb-7765cb13b0a2",
+              "level": 1
+            }
+          ],
+          "actions_taken": [],
+          "question_chars": 924,
+          "estimated_human_read_sec": 97,
+          "script_round_ms": 2250,
+          "api_wait_ms": 1919
+        },
+        {
+          "round": 10,
+          "session_id": "f6058f6a-0da3-40fe-80a6-e24b86a005cc",
+          "correct_count": 3,
+          "total": 5,
+          "best_streak": 3,
+          "base_cash": "132",
+          "cash_bonus": "59",
+          "cash_earned": "191",
+          "training_xp_earned": 60,
+          "growth_xp_earned": "79",
+          "forge_energy_earned": "72",
+          "factors_used": {
+            "cash": "1.4544",
+            "growth_xp": "1.3332",
+            "energy": "1.212",
+            "competition": "1"
+          },
+          "core_level_before": 1,
+          "core_level_after": 2,
+          "cumulative_cash": "2320",
+          "cumulative_lifetime_cash": "2020",
+          "cumulative_training_xp": 700,
+          "cumulative_growth_xp": "831",
+          "cumulative_forge_energy": "658",
+          "equipped_items": [
+            {
+              "slot_index": 0,
+              "item_id": "fe8ed361-7155-4b68-baa5-4a407f0578ca",
+              "family": "save_vault"
+            },
+            {
+              "slot_index": 1,
+              "item_id": "f2735935-3697-4b18-9f9b-dd62c06e9307",
+              "family": "growth_lens"
+            }
+          ],
+          "equipment_ranks": [
+            {
+              "id": "f2735935-3697-4b18-9f9b-dd62c06e9307",
+              "definition_id": "growth_lens",
+              "rank": 1,
+              "rank_cap": 5
+            },
+            {
+              "id": "fe8ed361-7155-4b68-baa5-4a407f0578ca",
+              "definition_id": "save_vault",
+              "rank": 2,
+              "rank_cap": 5
+            }
+          ],
+          "collections": [
+            {
+              "kind": "pet",
+              "target_id": "4fdf68f5-23fb-4912-81bb-7765cb13b0a2",
+              "level": 1
+            }
+          ],
+          "actions_taken": [],
+          "question_chars": 1132,
+          "estimated_human_read_sec": 114,
+          "script_round_ms": 2283,
+          "api_wait_ms": 1837
+        }
+      ]
+    },
+    "acc_40": {
+      "profile": "四成正確玩家 (40%)",
+      "user": {
+        "id": "0e37237b-e499-4a89-85dd-bc6166bea564",
+        "email": "eval-baseline-acc_40-594e48f4@example.com"
+      },
+      "milestones": {
+        "first_equip_round": 0,
+        "first_tool_upgrade_round": 1,
+        "first_core_level_up_round": 8,
+        "second_tool_unlock_round": 3,
+        "first_pet_upgrade_round": 1
+      },
+      "consoleErrors": [],
+      "pageErrors": [],
+      "rounds": [
+        {
+          "round": 1,
+          "session_id": "e2146844-862e-41e7-beb6-1172601f024f",
+          "correct_count": 2,
+          "total": 5,
+          "best_streak": 2,
+          "base_cash": "80",
+          "cash_bonus": "8",
+          "cash_earned": "88",
+          "training_xp_earned": 40,
+          "growth_xp_earned": "40",
+          "forge_energy_earned": "40",
+          "factors_used": {
+            "cash": "1.1",
+            "growth_xp": "1",
+            "energy": "1",
+            "competition": "1"
+          },
+          "core_level_before": 0,
+          "core_level_after": 0,
+          "cumulative_cash": "388",
+          "cumulative_lifetime_cash": "88",
+          "cumulative_training_xp": 40,
+          "cumulative_growth_xp": "40",
+          "cumulative_forge_energy": "30",
+          "equipped_items": [
+            {
+              "slot_index": 0,
+              "item_id": "b0e6e3c7-8fd9-4bd1-b805-463095d70177",
+              "family": "save_vault"
+            }
+          ],
+          "equipment_ranks": [
+            {
+              "id": "b0e6e3c7-8fd9-4bd1-b805-463095d70177",
+              "definition_id": "save_vault",
+              "rank": 2,
+              "rank_cap": 5
+            }
+          ],
+          "collections": [
+            {
+              "kind": "pet",
+              "target_id": "4fdf68f5-23fb-4912-81bb-7765cb13b0a2",
+              "level": 1
+            }
+          ],
+          "actions_taken": [
+            "upgrade_save_vault_rank_2",
+            "upgrade_shiba_pet_level_1"
+          ],
+          "question_chars": 1020,
+          "estimated_human_read_sec": 105,
+          "script_round_ms": 2300,
+          "api_wait_ms": 1889
+        },
+        {
+          "round": 2,
+          "session_id": "c8bef093-9a7b-4d71-bd5c-82a990b95ef8",
+          "correct_count": 2,
+          "total": 5,
+          "best_streak": 2,
+          "base_cash": "80",
+          "cash_bonus": "16",
+          "cash_earned": "96",
+          "training_xp_earned": 40,
+          "growth_xp_earned": "40",
+          "forge_energy_earned": "40",
+          "factors_used": {
+            "cash": "1.212",
+            "growth_xp": "1.01",
+            "energy": "1.01",
+            "competition": "1"
+          },
+          "core_level_before": 0,
+          "core_level_after": 0,
+          "cumulative_cash": "484",
+          "cumulative_lifetime_cash": "184",
+          "cumulative_training_xp": 80,
+          "cumulative_growth_xp": "80",
+          "cumulative_forge_energy": "70",
+          "equipped_items": [
+            {
+              "slot_index": 0,
+              "item_id": "b0e6e3c7-8fd9-4bd1-b805-463095d70177",
+              "family": "save_vault"
+            }
+          ],
+          "equipment_ranks": [
+            {
+              "id": "b0e6e3c7-8fd9-4bd1-b805-463095d70177",
+              "definition_id": "save_vault",
+              "rank": 2,
+              "rank_cap": 5
+            }
+          ],
+          "collections": [
+            {
+              "kind": "pet",
+              "target_id": "4fdf68f5-23fb-4912-81bb-7765cb13b0a2",
+              "level": 1
+            }
+          ],
+          "actions_taken": [],
+          "question_chars": 899,
+          "estimated_human_read_sec": 95,
+          "script_round_ms": 2528,
+          "api_wait_ms": 2125
+        },
+        {
+          "round": 3,
+          "session_id": "00d80134-533d-4b9d-817e-8c86107c26eb",
+          "correct_count": 2,
+          "total": 5,
+          "best_streak": 2,
+          "base_cash": "80",
+          "cash_bonus": "16",
+          "cash_earned": "96",
+          "training_xp_earned": 40,
+          "growth_xp_earned": "40",
+          "forge_energy_earned": "40",
+          "factors_used": {
+            "cash": "1.212",
+            "growth_xp": "1.01",
+            "energy": "1.01",
+            "competition": "1"
+          },
+          "core_level_before": 0,
+          "core_level_after": 0,
+          "cumulative_cash": "580",
+          "cumulative_lifetime_cash": "280",
+          "cumulative_training_xp": 120,
+          "cumulative_growth_xp": "120",
+          "cumulative_forge_energy": "10",
+          "equipped_items": [
+            {
+              "slot_index": 0,
+              "item_id": "b0e6e3c7-8fd9-4bd1-b805-463095d70177",
+              "family": "save_vault"
+            },
+            {
+              "slot_index": 1,
+              "item_id": "b3fa3a26-87ad-49e9-b5e7-bbbee957b64a",
+              "family": "growth_lens"
+            }
+          ],
+          "equipment_ranks": [
+            {
+              "id": "b3fa3a26-87ad-49e9-b5e7-bbbee957b64a",
+              "definition_id": "growth_lens",
+              "rank": 1,
+              "rank_cap": 5
+            },
+            {
+              "id": "b0e6e3c7-8fd9-4bd1-b805-463095d70177",
+              "definition_id": "save_vault",
+              "rank": 2,
+              "rank_cap": 5
+            }
+          ],
+          "collections": [
+            {
+              "kind": "pet",
+              "target_id": "4fdf68f5-23fb-4912-81bb-7765cb13b0a2",
+              "level": 1
+            }
+          ],
+          "actions_taken": [
+            "unlock_growth_lens",
+            "equip_growth_lens_slot_2"
+          ],
+          "question_chars": 926,
+          "estimated_human_read_sec": 97,
+          "script_round_ms": 1948,
+          "api_wait_ms": 1614
+        },
+        {
+          "round": 4,
+          "session_id": "36755a2b-a20d-4105-9780-5ec13256a365",
+          "correct_count": 2,
+          "total": 5,
+          "best_streak": 2,
+          "base_cash": "80",
+          "cash_bonus": "16",
+          "cash_earned": "96",
+          "training_xp_earned": 40,
+          "growth_xp_earned": "44",
+          "forge_energy_earned": "40",
+          "factors_used": {
+            "cash": "1.212",
+            "growth_xp": "1.111",
+            "energy": "1.01",
+            "competition": "1"
+          },
+          "core_level_before": 0,
+          "core_level_after": 0,
+          "cumulative_cash": "676",
+          "cumulative_lifetime_cash": "376",
+          "cumulative_training_xp": 160,
+          "cumulative_growth_xp": "164",
+          "cumulative_forge_energy": "50",
+          "equipped_items": [
+            {
+              "slot_index": 0,
+              "item_id": "b0e6e3c7-8fd9-4bd1-b805-463095d70177",
+              "family": "save_vault"
+            },
+            {
+              "slot_index": 1,
+              "item_id": "b3fa3a26-87ad-49e9-b5e7-bbbee957b64a",
+              "family": "growth_lens"
+            }
+          ],
+          "equipment_ranks": [
+            {
+              "id": "b3fa3a26-87ad-49e9-b5e7-bbbee957b64a",
+              "definition_id": "growth_lens",
+              "rank": 1,
+              "rank_cap": 5
+            },
+            {
+              "id": "b0e6e3c7-8fd9-4bd1-b805-463095d70177",
+              "definition_id": "save_vault",
+              "rank": 2,
+              "rank_cap": 5
+            }
+          ],
+          "collections": [
+            {
+              "kind": "pet",
+              "target_id": "4fdf68f5-23fb-4912-81bb-7765cb13b0a2",
+              "level": 1
+            }
+          ],
+          "actions_taken": [],
+          "question_chars": 952,
+          "estimated_human_read_sec": 99,
+          "script_round_ms": 1805,
+          "api_wait_ms": 1548
+        },
+        {
+          "round": 5,
+          "session_id": "def97aa1-3f8d-4950-ae99-5abb939b32ef",
+          "correct_count": 2,
+          "total": 5,
+          "best_streak": 2,
+          "base_cash": "80",
+          "cash_bonus": "16",
+          "cash_earned": "96",
+          "training_xp_earned": 40,
+          "growth_xp_earned": "44",
+          "forge_energy_earned": "40",
+          "factors_used": {
+            "cash": "1.212",
+            "growth_xp": "1.111",
+            "energy": "1.01",
+            "competition": "1"
+          },
+          "core_level_before": 0,
+          "core_level_after": 0,
+          "cumulative_cash": "772",
+          "cumulative_lifetime_cash": "472",
+          "cumulative_training_xp": 200,
+          "cumulative_growth_xp": "208",
+          "cumulative_forge_energy": "90",
+          "equipped_items": [
+            {
+              "slot_index": 0,
+              "item_id": "b0e6e3c7-8fd9-4bd1-b805-463095d70177",
+              "family": "save_vault"
+            },
+            {
+              "slot_index": 1,
+              "item_id": "b3fa3a26-87ad-49e9-b5e7-bbbee957b64a",
+              "family": "growth_lens"
+            }
+          ],
+          "equipment_ranks": [
+            {
+              "id": "b3fa3a26-87ad-49e9-b5e7-bbbee957b64a",
+              "definition_id": "growth_lens",
+              "rank": 1,
+              "rank_cap": 5
+            },
+            {
+              "id": "b0e6e3c7-8fd9-4bd1-b805-463095d70177",
+              "definition_id": "save_vault",
+              "rank": 2,
+              "rank_cap": 5
+            }
+          ],
+          "collections": [
+            {
+              "kind": "pet",
+              "target_id": "4fdf68f5-23fb-4912-81bb-7765cb13b0a2",
+              "level": 1
+            }
+          ],
+          "actions_taken": [],
+          "question_chars": 959,
+          "estimated_human_read_sec": 100,
+          "script_round_ms": 1651,
+          "api_wait_ms": 1361
+        },
+        {
+          "round": 6,
+          "session_id": "1298e073-3252-46c6-8d41-25851637641c",
+          "correct_count": 2,
+          "total": 5,
+          "best_streak": 2,
+          "base_cash": "80",
+          "cash_bonus": "16",
+          "cash_earned": "96",
+          "training_xp_earned": 40,
+          "growth_xp_earned": "44",
+          "forge_energy_earned": "40",
+          "factors_used": {
+            "cash": "1.212",
+            "growth_xp": "1.111",
+            "energy": "1.01",
+            "competition": "1"
+          },
+          "core_level_before": 0,
+          "core_level_after": 0,
+          "cumulative_cash": "868",
+          "cumulative_lifetime_cash": "568",
+          "cumulative_training_xp": 240,
+          "cumulative_growth_xp": "252",
+          "cumulative_forge_energy": "130",
+          "equipped_items": [
+            {
+              "slot_index": 0,
+              "item_id": "b0e6e3c7-8fd9-4bd1-b805-463095d70177",
+              "family": "save_vault"
+            },
+            {
+              "slot_index": 1,
+              "item_id": "b3fa3a26-87ad-49e9-b5e7-bbbee957b64a",
+              "family": "growth_lens"
+            }
+          ],
+          "equipment_ranks": [
+            {
+              "id": "b3fa3a26-87ad-49e9-b5e7-bbbee957b64a",
+              "definition_id": "growth_lens",
+              "rank": 1,
+              "rank_cap": 5
+            },
+            {
+              "id": "b0e6e3c7-8fd9-4bd1-b805-463095d70177",
+              "definition_id": "save_vault",
+              "rank": 2,
+              "rank_cap": 5
+            }
+          ],
+          "collections": [
+            {
+              "kind": "pet",
+              "target_id": "4fdf68f5-23fb-4912-81bb-7765cb13b0a2",
+              "level": 1
+            }
+          ],
+          "actions_taken": [],
+          "question_chars": 957,
+          "estimated_human_read_sec": 100,
+          "script_round_ms": 2429,
+          "api_wait_ms": 2006
+        },
+        {
+          "round": 7,
+          "session_id": "67e912c4-dc42-4506-bc74-4613779fa485",
+          "correct_count": 2,
+          "total": 5,
+          "best_streak": 2,
+          "base_cash": "80",
+          "cash_bonus": "16",
+          "cash_earned": "96",
+          "training_xp_earned": 40,
+          "growth_xp_earned": "44",
+          "forge_energy_earned": "40",
+          "factors_used": {
+            "cash": "1.212",
+            "growth_xp": "1.111",
+            "energy": "1.01",
+            "competition": "1"
+          },
+          "core_level_before": 0,
+          "core_level_after": 0,
+          "cumulative_cash": "964",
+          "cumulative_lifetime_cash": "664",
+          "cumulative_training_xp": 280,
+          "cumulative_growth_xp": "296",
+          "cumulative_forge_energy": "170",
+          "equipped_items": [
+            {
+              "slot_index": 0,
+              "item_id": "b0e6e3c7-8fd9-4bd1-b805-463095d70177",
+              "family": "save_vault"
+            },
+            {
+              "slot_index": 1,
+              "item_id": "b3fa3a26-87ad-49e9-b5e7-bbbee957b64a",
+              "family": "growth_lens"
+            }
+          ],
+          "equipment_ranks": [
+            {
+              "id": "b3fa3a26-87ad-49e9-b5e7-bbbee957b64a",
+              "definition_id": "growth_lens",
+              "rank": 1,
+              "rank_cap": 5
+            },
+            {
+              "id": "b0e6e3c7-8fd9-4bd1-b805-463095d70177",
+              "definition_id": "save_vault",
+              "rank": 2,
+              "rank_cap": 5
+            }
+          ],
+          "collections": [
+            {
+              "kind": "pet",
+              "target_id": "4fdf68f5-23fb-4912-81bb-7765cb13b0a2",
+              "level": 1
+            }
+          ],
+          "actions_taken": [],
+          "question_chars": 935,
+          "estimated_human_read_sec": 98,
+          "script_round_ms": 1954,
+          "api_wait_ms": 1622
+        },
+        {
+          "round": 8,
+          "session_id": "70846160-60a0-461f-95e3-2b4afc7b6fba",
+          "correct_count": 2,
+          "total": 5,
+          "best_streak": 2,
+          "base_cash": "80",
+          "cash_bonus": "16",
+          "cash_earned": "96",
+          "training_xp_earned": 40,
+          "growth_xp_earned": "44",
+          "forge_energy_earned": "40",
+          "factors_used": {
+            "cash": "1.212",
+            "growth_xp": "1.111",
+            "energy": "1.01",
+            "competition": "1"
+          },
+          "core_level_before": 0,
+          "core_level_after": 1,
+          "cumulative_cash": "1060",
+          "cumulative_lifetime_cash": "760",
+          "cumulative_training_xp": 320,
+          "cumulative_growth_xp": "340",
+          "cumulative_forge_energy": "210",
+          "equipped_items": [
+            {
+              "slot_index": 0,
+              "item_id": "b0e6e3c7-8fd9-4bd1-b805-463095d70177",
+              "family": "save_vault"
+            },
+            {
+              "slot_index": 1,
+              "item_id": "b3fa3a26-87ad-49e9-b5e7-bbbee957b64a",
+              "family": "growth_lens"
+            }
+          ],
+          "equipment_ranks": [
+            {
+              "id": "b3fa3a26-87ad-49e9-b5e7-bbbee957b64a",
+              "definition_id": "growth_lens",
+              "rank": 1,
+              "rank_cap": 5
+            },
+            {
+              "id": "b0e6e3c7-8fd9-4bd1-b805-463095d70177",
+              "definition_id": "save_vault",
+              "rank": 2,
+              "rank_cap": 5
+            }
+          ],
+          "collections": [
+            {
+              "kind": "pet",
+              "target_id": "4fdf68f5-23fb-4912-81bb-7765cb13b0a2",
+              "level": 1
+            }
+          ],
+          "actions_taken": [],
+          "question_chars": 962,
+          "estimated_human_read_sec": 100,
+          "script_round_ms": 1920,
+          "api_wait_ms": 1542
+        },
+        {
+          "round": 9,
+          "session_id": "94fa2d7e-78e1-437a-b1fc-f78cd4741b76",
+          "correct_count": 2,
+          "total": 5,
+          "best_streak": 2,
+          "base_cash": "80",
+          "cash_bonus": "36",
+          "cash_earned": "116",
+          "training_xp_earned": 40,
+          "growth_xp_earned": "53",
+          "forge_energy_earned": "48",
+          "factors_used": {
+            "cash": "1.4544",
+            "growth_xp": "1.3332",
+            "energy": "1.212",
+            "competition": "1"
+          },
+          "core_level_before": 1,
+          "core_level_after": 1,
+          "cumulative_cash": "1176",
+          "cumulative_lifetime_cash": "876",
+          "cumulative_training_xp": 360,
+          "cumulative_growth_xp": "393",
+          "cumulative_forge_energy": "258",
+          "equipped_items": [
+            {
+              "slot_index": 0,
+              "item_id": "b0e6e3c7-8fd9-4bd1-b805-463095d70177",
+              "family": "save_vault"
+            },
+            {
+              "slot_index": 1,
+              "item_id": "b3fa3a26-87ad-49e9-b5e7-bbbee957b64a",
+              "family": "growth_lens"
+            }
+          ],
+          "equipment_ranks": [
+            {
+              "id": "b3fa3a26-87ad-49e9-b5e7-bbbee957b64a",
+              "definition_id": "growth_lens",
+              "rank": 1,
+              "rank_cap": 5
+            },
+            {
+              "id": "b0e6e3c7-8fd9-4bd1-b805-463095d70177",
+              "definition_id": "save_vault",
+              "rank": 2,
+              "rank_cap": 5
+            }
+          ],
+          "collections": [
+            {
+              "kind": "pet",
+              "target_id": "4fdf68f5-23fb-4912-81bb-7765cb13b0a2",
+              "level": 1
+            }
+          ],
+          "actions_taken": [],
+          "question_chars": 1012,
+          "estimated_human_read_sec": 104,
+          "script_round_ms": 2630,
+          "api_wait_ms": 2227
+        },
+        {
+          "round": 10,
+          "session_id": "2a2f6098-d27e-48d1-bf34-4b9f8ead1006",
+          "correct_count": 2,
+          "total": 5,
+          "best_streak": 2,
+          "base_cash": "80",
+          "cash_bonus": "36",
+          "cash_earned": "116",
+          "training_xp_earned": 40,
+          "growth_xp_earned": "53",
+          "forge_energy_earned": "48",
+          "factors_used": {
+            "cash": "1.4544",
+            "growth_xp": "1.3332",
+            "energy": "1.212",
+            "competition": "1"
+          },
+          "core_level_before": 1,
+          "core_level_after": 1,
+          "cumulative_cash": "1292",
+          "cumulative_lifetime_cash": "992",
+          "cumulative_training_xp": 400,
+          "cumulative_growth_xp": "446",
+          "cumulative_forge_energy": "306",
+          "equipped_items": [
+            {
+              "slot_index": 0,
+              "item_id": "b0e6e3c7-8fd9-4bd1-b805-463095d70177",
+              "family": "save_vault"
+            },
+            {
+              "slot_index": 1,
+              "item_id": "b3fa3a26-87ad-49e9-b5e7-bbbee957b64a",
+              "family": "growth_lens"
+            }
+          ],
+          "equipment_ranks": [
+            {
+              "id": "b3fa3a26-87ad-49e9-b5e7-bbbee957b64a",
+              "definition_id": "growth_lens",
+              "rank": 1,
+              "rank_cap": 5
+            },
+            {
+              "id": "b0e6e3c7-8fd9-4bd1-b805-463095d70177",
+              "definition_id": "save_vault",
+              "rank": 2,
+              "rank_cap": 5
+            }
+          ],
+          "collections": [
+            {
+              "kind": "pet",
+              "target_id": "4fdf68f5-23fb-4912-81bb-7765cb13b0a2",
+              "level": 1
+            }
+          ],
+          "actions_taken": [],
+          "question_chars": 909,
+          "estimated_human_read_sec": 96,
+          "script_round_ms": 3020,
+          "api_wait_ms": 2605
+        }
+      ]
+    }
+  }
+}

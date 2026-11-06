@@ -3,7 +3,7 @@
 import type { CancelablePromise } from './core/CancelablePromise';
 import { OpenAPI } from './core/OpenAPI';
 import { request as __request } from './core/request';
-import type { AdminCohortsListCohortsResponse, AdminCohortsCreateCohortData, AdminCohortsCreateCohortResponse, AdminCohortsUpdateCohortData, AdminCohortsUpdateCohortResponse, AdminCohortsListMembersData, AdminCohortsListMembersResponse, AdminCohortsExportCohortData, AdminCohortsExportCohortResponse, AdminCohortsCohortProgressData, AdminCohortsCohortProgressResponse, AdminCohortsExportCohortSurveyData, AdminCohortsExportCohortSurveyResponse, AdminCohortsExportCohortExamData, AdminCohortsExportCohortExamResponse, AdminCohortsMemberDetailData, AdminCohortsMemberDetailResponse, AdminCohortsAnalyticsData, AdminCohortsAnalyticsResponse, AdminTeachersListTeachersData, AdminTeachersListTeachersResponse, AdminTeachersChangeTeacherData, AdminTeachersChangeTeacherResponse, BadgesOwnBadgesResponse, BadgesUpdateBadgeData, BadgesUpdateBadgeResponse, BadgesPublicBadgeData, BadgesPublicBadgeResponse, ClassesReadMyClassesResponse, ClassesJoinClassData, ClassesJoinClassResponse, ClassesClaimMembershipData, ClassesClaimMembershipResponse, ClassesListClassesResponse, ClassesCreateClassData, ClassesCreateClassResponse, ClassesUpdateClassData, ClassesUpdateClassResponse, ClassesListMembersData, ClassesListMembersResponse, ClassesUpdateMemberData, ClassesUpdateMemberResponse, ClassesRemoveMemberData, ClassesRemoveMemberResponse, ClassesReadMemberData, ClassesReadMemberResponse, ClassesReadOverviewData, ClassesReadOverviewResponse, ClassesExportClassData, ClassesExportClassResponse, ClassesCreateAssignmentData, ClassesCreateAssignmentResponse, ClassesUpdateAssignmentData, ClassesUpdateAssignmentResponse, ClassesDeleteAssignmentData, ClassesDeleteAssignmentResponse, DailyDailyTodayResponse, EconomyReadMeResponse, EconomyPostSettleResponse, EconomyClaimResponse, EconomyListPropertiesResponse, EconomyBuyPropertyData, EconomyBuyPropertyResponse, EconomyGetAssetsResponse, EconomyPostLiquidateData, EconomyPostLiquidateResponse, ExamReadStatusResponse, ExamStartData, ExamStartResponse, ExamActiveResponse, ExamHistoryResponse, ExamReadData, ExamReadResponse, ExamPretestData, ExamPretestResponse, ExamSwipeData, ExamSwipeResponse, ExamMessageData, ExamMessageResponse, ExamScenarioStartData, ExamScenarioStartResponse, ExamScenarioJudgeData, ExamScenarioJudgeResponse, ExamAbandonData, ExamAbandonResponse, HomeHomeSummaryResponse, InviteRedeemInviteData, InviteRedeemInviteResponse, InviteRedeemClassInviteData, InviteRedeemClassInviteResponse, ItemsReadItemsData, ItemsReadItemsResponse, ItemsCreateItemData, ItemsCreateItemResponse, ItemsReadItemData, ItemsReadItemResponse, ItemsUpdateItemData, ItemsUpdateItemResponse, ItemsDeleteItemData, ItemsDeleteItemResponse, LeaderboardReadLeaderboardData, LeaderboardReadLeaderboardResponse, LeaderboardUpdateNicknameData, LeaderboardUpdateNicknameResponse, LoginLoginAccessTokenData, LoginLoginAccessTokenResponse, LoginTestTokenResponse, LoginRecoverPasswordData, LoginRecoverPasswordResponse, LoginResetPasswordData, LoginResetPasswordResponse, LoginRecoverPasswordHtmlContentData, LoginRecoverPasswordHtmlContentResponse, LoginListProvidersResponse, LoginStartData, LoginStartResponse, LoginCallbackData, LoginCallbackResponse, MascotListMascotItemsResponse, MascotPurchaseItemData, MascotPurchaseItemResponse, MascotToggleEquipData, MascotToggleEquipResponse, MascotGetMyMascotResponse, OnboardingTourDoneResponse, OnboardingShopVisitedResponse, OnboardingClaimRewardResponse, PracticeReadProfileResponse, PretestGetPretestQuestionsResponse, PretestSubmitPretestData, PretestSubmitPretestResponse, PrivateCreateUserData, PrivateCreateUserResponse, QuickSwipeDeckData, QuickSwipeDeckResponse, QuickSwipeAnswerData, QuickSwipeAnswerResponse, QuickSwipeCompleteData, QuickSwipeCompleteResponse, QuickQuizDeckData, QuickQuizDeckResponse, QuickQuizAnswerData, QuickQuizAnswerResponse, QuickQuizCompleteData, QuickQuizCompleteResponse, ScenarioInboxResponse, ScenarioCreateScenarioData, ScenarioCreateScenarioResponse, ScenarioReadScenarioData, ScenarioReadScenarioResponse, ScenarioSendMessageData, ScenarioSendMessageResponse, ScenarioJudgeScenarioData, ScenarioJudgeScenarioResponse, ScoreGetMyScoreResponse, TeamReadBankResponse, TeamListCommentsData, TeamListCommentsResponse, TeamCreateCommentData, TeamCreateCommentResponse, TeamDeleteCommentData, TeamDeleteCommentResponse, TrialReadSurveyResponse, TrialSubmitSurveyData, TrialSubmitSurveyResponse, TrialStartSurveyResponse, UsersReadUsersData, UsersReadUsersResponse, UsersCreateUserData, UsersCreateUserResponse, UsersReadUserMeResponse, UsersDeleteUserMeResponse, UsersUpdateUserMeData, UsersUpdateUserMeResponse, UsersUpdatePasswordMeData, UsersUpdatePasswordMeResponse, UsersApplyTeacherMeData, UsersApplyTeacherMeResponse, UsersRegisterUserData, UsersRegisterUserResponse, UsersReadUserByIdData, UsersReadUserByIdResponse, UsersUpdateUserData, UsersUpdateUserResponse, UsersDeleteUserData, UsersDeleteUserResponse, UtilsTestEmailData, UtilsTestEmailResponse, UtilsHealthCheckResponse } from './types.gen';
+import type { AdminCohortsListCohortsResponse, AdminCohortsCreateCohortData, AdminCohortsCreateCohortResponse, AdminCohortsUpdateCohortData, AdminCohortsUpdateCohortResponse, AdminCohortsListMembersData, AdminCohortsListMembersResponse, AdminCohortsExportCohortData, AdminCohortsExportCohortResponse, AdminCohortsCohortProgressData, AdminCohortsCohortProgressResponse, AdminCohortsExportCohortSurveyData, AdminCohortsExportCohortSurveyResponse, AdminCohortsExportCohortExamData, AdminCohortsExportCohortExamResponse, AdminCohortsMemberDetailData, AdminCohortsMemberDetailResponse, AdminCohortsAnalyticsData, AdminCohortsAnalyticsResponse, AdminTeachersListTeachersData, AdminTeachersListTeachersResponse, AdminTeachersChangeTeacherData, AdminTeachersChangeTeacherResponse, BadgesOwnBadgesResponse, BadgesUpdateBadgeData, BadgesUpdateBadgeResponse, BadgesPublicBadgeData, BadgesPublicBadgeResponse, ClassesReadMyClassesResponse, ClassesJoinClassData, ClassesJoinClassResponse, ClassesClaimMembershipData, ClassesClaimMembershipResponse, ClassesListClassesResponse, ClassesCreateClassData, ClassesCreateClassResponse, ClassesUpdateClassData, ClassesUpdateClassResponse, ClassesListMembersData, ClassesListMembersResponse, ClassesUpdateMemberData, ClassesUpdateMemberResponse, ClassesRemoveMemberData, ClassesRemoveMemberResponse, ClassesReadMemberData, ClassesReadMemberResponse, ClassesReadOverviewData, ClassesReadOverviewResponse, ClassesExportClassData, ClassesExportClassResponse, ClassesCreateAssignmentData, ClassesCreateAssignmentResponse, ClassesUpdateAssignmentData, ClassesUpdateAssignmentResponse, ClassesDeleteAssignmentData, ClassesDeleteAssignmentResponse, CollectionsReadCollectionsResponse, CollectionsUpgradeCollectionData, CollectionsUpgradeCollectionResponse, CollectionsConfigureDisplayData, CollectionsConfigureDisplayResponse, CollectionsSavePresetData, CollectionsSavePresetResponse, CollectionsApplyPresetData, CollectionsApplyPresetResponse, CollectionsPermanentBoardData, CollectionsPermanentBoardResponse, DailyDailyTodayResponse, EconomyReadMeResponse, EconomyPostSettleResponse, EconomyClaimResponse, EconomyListPropertiesResponse, EconomyBuyPropertyData, EconomyBuyPropertyResponse, EconomyGetAssetsResponse, EconomyPostLiquidateData, EconomyPostLiquidateResponse, EquipmentListEquipmentResponse, EquipmentUpdateLoadoutData, EquipmentUpdateLoadoutResponse, EquipmentUpgradeItemData, EquipmentUpgradeItemResponse, EquipmentBreakthroughItemData, EquipmentBreakthroughItemResponse, ExamReadStatusResponse, ExamStartData, ExamStartResponse, ExamActiveResponse, ExamHistoryResponse, ExamReadData, ExamReadResponse, ExamPretestData, ExamPretestResponse, ExamSwipeData, ExamSwipeResponse, ExamMessageData, ExamMessageResponse, ExamScenarioStartData, ExamScenarioStartResponse, ExamScenarioJudgeData, ExamScenarioJudgeResponse, ExamAbandonData, ExamAbandonResponse, HomeHomeSummaryResponse, InviteRedeemInviteData, InviteRedeemInviteResponse, InviteRedeemClassInviteData, InviteRedeemClassInviteResponse, ItemsReadItemsData, ItemsReadItemsResponse, ItemsCreateItemData, ItemsCreateItemResponse, ItemsReadItemData, ItemsReadItemResponse, ItemsUpdateItemData, ItemsUpdateItemResponse, ItemsDeleteItemData, ItemsDeleteItemResponse, LeaderboardReadLeaderboardData, LeaderboardReadLeaderboardResponse, LeaderboardUpdateNicknameData, LeaderboardUpdateNicknameResponse, LoginLoginAccessTokenData, LoginLoginAccessTokenResponse, LoginTestTokenResponse, LoginRecoverPasswordData, LoginRecoverPasswordResponse, LoginResetPasswordData, LoginResetPasswordResponse, LoginRecoverPasswordHtmlContentData, LoginRecoverPasswordHtmlContentResponse, LoginListProvidersResponse, LoginStartData, LoginStartResponse, LoginCallbackData, LoginCallbackResponse, MascotListMascotItemsResponse, MascotPurchaseItemData, MascotPurchaseItemResponse, MascotToggleEquipData, MascotToggleEquipResponse, MascotGetMyMascotResponse, OnboardingTourDoneResponse, OnboardingShopVisitedResponse, OnboardingClaimRewardResponse, PlayersGetPlayerShowcaseData, PlayersGetPlayerShowcaseResponse, PracticeReadProfileResponse, PretestGetPretestQuestionsResponse, PretestSubmitPretestData, PretestSubmitPretestResponse, PrivateCreateUserData, PrivateCreateUserResponse, ProgressionGetMyProgressionResponse, ProgressionGetRewardReceiptData, ProgressionGetRewardReceiptResponse, ProgressionPurchaseUnlockData, ProgressionPurchaseUnlockResponse, QuickSwipeDeckData, QuickSwipeDeckResponse, QuickSwipeAnswerData, QuickSwipeAnswerResponse, QuickSwipeCompleteData, QuickSwipeCompleteResponse, QuickQuizDeckData, QuickQuizDeckResponse, QuickQuizAnswerData, QuickQuizAnswerResponse, QuickQuizCompleteData, QuickQuizCompleteResponse, ScenarioInboxResponse, ScenarioCreateScenarioData, ScenarioCreateScenarioResponse, ScenarioReadScenarioData, ScenarioReadScenarioResponse, ScenarioSendMessageData, ScenarioSendMessageResponse, ScenarioJudgeScenarioData, ScenarioJudgeScenarioResponse, ScoreGetMyScoreResponse, SeasonsClaimChampionToolData, SeasonsClaimChampionToolResponse, SeasonsGetSeasonCurrentResponse, SeasonsGetBoardData, SeasonsGetBoardResponse, SeasonsGetMySeasonAwardData, SeasonsGetMySeasonAwardResponse, SeasonsTriggerCloseExpiredResponse, TeamReadBankResponse, TeamListCommentsData, TeamListCommentsResponse, TeamCreateCommentData, TeamCreateCommentResponse, TeamDeleteCommentData, TeamDeleteCommentResponse, TrialReadSurveyResponse, TrialSubmitSurveyData, TrialSubmitSurveyResponse, TrialStartSurveyResponse, UsersReadUsersData, UsersReadUsersResponse, UsersCreateUserData, UsersCreateUserResponse, UsersReadUserMeResponse, UsersDeleteUserMeResponse, UsersUpdateUserMeData, UsersUpdateUserMeResponse, UsersUpdatePasswordMeData, UsersUpdatePasswordMeResponse, UsersApplyTeacherMeData, UsersApplyTeacherMeResponse, UsersRegisterUserData, UsersRegisterUserResponse, UsersReadUserByIdData, UsersReadUserByIdResponse, UsersUpdateUserData, UsersUpdateUserResponse, UsersDeleteUserData, UsersDeleteUserResponse, UtilsTestEmailData, UtilsTestEmailResponse, UtilsHealthCheckResponse } from './types.gen';
 
 export class AdminCohortsService {
     /**
@@ -622,6 +622,131 @@ export class ClassesService {
     }
 }
 
+export class CollectionsService {
+    /**
+     * Read Collections
+     * @returns CollectionsPublic Successful Response
+     * @throws ApiError
+     */
+    public static readCollections(): CancelablePromise<CollectionsReadCollectionsResponse> {
+        return __request(OpenAPI, {
+            method: 'GET',
+            url: '/api/v1/collections/me'
+        });
+    }
+    
+    /**
+     * Upgrade Collection
+     * @param data The data for the request.
+     * @param data.kind
+     * @param data.targetId
+     * @param data.requestBody
+     * @returns CollectionsPublic Successful Response
+     * @throws ApiError
+     */
+    public static upgradeCollection(data: CollectionsUpgradeCollectionData): CancelablePromise<CollectionsUpgradeCollectionResponse> {
+        return __request(OpenAPI, {
+            method: 'POST',
+            url: '/api/v1/collections/{kind}/{target_id}/upgrade',
+            path: {
+                kind: data.kind,
+                target_id: data.targetId
+            },
+            body: data.requestBody,
+            mediaType: 'application/json',
+            errors: {
+                422: 'Validation Error'
+            }
+        });
+    }
+    
+    /**
+     * Configure Display
+     * @param data The data for the request.
+     * @param data.action
+     * @param data.requestBody
+     * @returns CollectionsPublic Successful Response
+     * @throws ApiError
+     */
+    public static configureDisplay(data: CollectionsConfigureDisplayData): CancelablePromise<CollectionsConfigureDisplayResponse> {
+        return __request(OpenAPI, {
+            method: 'POST',
+            url: '/api/v1/collections/display/{action}',
+            path: {
+                action: data.action
+            },
+            body: data.requestBody,
+            mediaType: 'application/json',
+            errors: {
+                422: 'Validation Error'
+            }
+        });
+    }
+    
+    /**
+     * Save Preset
+     * @param data The data for the request.
+     * @param data.position
+     * @param data.requestBody
+     * @returns CollectionsPublic Successful Response
+     * @throws ApiError
+     */
+    public static savePreset(data: CollectionsSavePresetData): CancelablePromise<CollectionsSavePresetResponse> {
+        return __request(OpenAPI, {
+            method: 'PUT',
+            url: '/api/v1/collections/presets/{position}',
+            path: {
+                position: data.position
+            },
+            body: data.requestBody,
+            mediaType: 'application/json',
+            errors: {
+                422: 'Validation Error'
+            }
+        });
+    }
+    
+    /**
+     * Apply Preset
+     * @param data The data for the request.
+     * @param data.position
+     * @returns CollectionsPublic Successful Response
+     * @throws ApiError
+     */
+    public static applyPreset(data: CollectionsApplyPresetData): CancelablePromise<CollectionsApplyPresetResponse> {
+        return __request(OpenAPI, {
+            method: 'POST',
+            url: '/api/v1/collections/presets/{position}/apply',
+            path: {
+                position: data.position
+            },
+            errors: {
+                422: 'Validation Error'
+            }
+        });
+    }
+    
+    /**
+     * Permanent Board
+     * @param data The data for the request.
+     * @param data.kind
+     * @returns PermanentBoardPublic Successful Response
+     * @throws ApiError
+     */
+    public static permanentBoard(data: CollectionsPermanentBoardData): CancelablePromise<CollectionsPermanentBoardResponse> {
+        return __request(OpenAPI, {
+            method: 'GET',
+            url: '/api/v1/collections/boards/{kind}',
+            path: {
+                kind: data.kind
+            },
+            errors: {
+                422: 'Validation Error'
+            }
+        });
+    }
+}
+
 export class DailyService {
     /**
      * Daily Today
@@ -738,6 +863,91 @@ export class EconomyService {
             url: '/api/v1/economy/liquidate',
             body: data.requestBody,
             mediaType: 'application/json',
+            errors: {
+                422: 'Validation Error'
+            }
+        });
+    }
+}
+
+export class EquipmentService {
+    /**
+     * List Equipment
+     * 查詢當前玩家擁有的所有工具、當前生效槽位與強化狀態。
+     * @returns EquipmentCatalogPublic Successful Response
+     * @throws ApiError
+     */
+    public static listEquipment(): CancelablePromise<EquipmentListEquipmentResponse> {
+        return __request(OpenAPI, {
+            method: 'GET',
+            url: '/api/v1/equipment'
+        });
+    }
+    
+    /**
+     * Update Loadout
+     * 整套更新生效裝備，檢查容量與家族唯一性。
+     * @param data The data for the request.
+     * @param data.requestBody
+     * @returns EquipmentCatalogPublic Successful Response
+     * @throws ApiError
+     */
+    public static updateLoadout(data: EquipmentUpdateLoadoutData): CancelablePromise<EquipmentUpdateLoadoutResponse> {
+        return __request(OpenAPI, {
+            method: 'PUT',
+            url: '/api/v1/equipment/loadout',
+            body: data.requestBody,
+            mediaType: 'application/json',
+            errors: {
+                422: 'Validation Error'
+            }
+        });
+    }
+    
+    /**
+     * Upgrade Item
+     * 消耗金錢強化工具階數。
+     * @param data The data for the request.
+     * @param data.itemId
+     * @param data.xIdempotencyKey
+     * @returns EquipmentItemPublic Successful Response
+     * @throws ApiError
+     */
+    public static upgradeItem(data: EquipmentUpgradeItemData): CancelablePromise<EquipmentUpgradeItemResponse> {
+        return __request(OpenAPI, {
+            method: 'POST',
+            url: '/api/v1/equipment/{item_id}/upgrade',
+            path: {
+                item_id: data.itemId
+            },
+            headers: {
+                'X-Idempotency-Key': data.xIdempotencyKey
+            },
+            errors: {
+                422: 'Validation Error'
+            }
+        });
+    }
+    
+    /**
+     * Breakthrough Item
+     * 消耗圖紙碎片與鍛造能量突破上限至 8 階。
+     * @param data The data for the request.
+     * @param data.itemId
+     * @param data.xIdempotencyKey
+     * @returns EquipmentItemPublic Successful Response
+     * @throws ApiError
+     */
+    public static breakthroughItem(data: EquipmentBreakthroughItemData): CancelablePromise<EquipmentBreakthroughItemResponse> {
+        return __request(OpenAPI, {
+            method: 'POST',
+            url: '/api/v1/equipment/{item_id}/breakthrough',
+            path: {
+                item_id: data.itemId
+            },
+            headers: {
+                'X-Idempotency-Key': data.xIdempotencyKey
+            },
             errors: {
                 422: 'Validation Error'
             }
@@ -1430,6 +1640,29 @@ export class OnboardingService {
     }
 }
 
+export class PlayersService {
+    /**
+     * Get Player Showcase
+     * 查詢玩家公開名片與展示櫃（不含私密認證資訊）。
+     * @param data The data for the request.
+     * @param data.playerId
+     * @returns PlayerShowcasePublic Successful Response
+     * @throws ApiError
+     */
+    public static getPlayerShowcase(data: PlayersGetPlayerShowcaseData): CancelablePromise<PlayersGetPlayerShowcaseResponse> {
+        return __request(OpenAPI, {
+            method: 'GET',
+            url: '/api/v1/players/{player_id}/showcase',
+            path: {
+                player_id: data.playerId
+            },
+            errors: {
+                422: 'Validation Error'
+            }
+        });
+    }
+}
+
 export class PracticeService {
     /**
      * Read Profile
@@ -1496,6 +1729,63 @@ export class PrivateService {
             url: '/api/v1/private/users/',
             body: data.requestBody,
             mediaType: 'application/json',
+            errors: {
+                422: 'Validation Error'
+            }
+        });
+    }
+}
+
+export class ProgressionService {
+    /**
+     * Get My Progression
+     * 查詢當前玩家的養成進度、核心等級、槽位數與各通道倍率。
+     * @returns ProgressionSummaryPublic Successful Response
+     * @throws ApiError
+     */
+    public static getMyProgression(): CancelablePromise<ProgressionGetMyProgressionResponse> {
+        return __request(OpenAPI, {
+            method: 'GET',
+            url: '/api/v1/progression/me'
+        });
+    }
+    
+    /**
+     * Get Reward Receipt
+     * 查閱首次結算產出的不可變獎勵收據（僅限擁有者查詢）。
+     * @param data The data for the request.
+     * @param data.receiptId
+     * @returns RewardReceiptPublic Successful Response
+     * @throws ApiError
+     */
+    public static getRewardReceipt(data: ProgressionGetRewardReceiptData): CancelablePromise<ProgressionGetRewardReceiptResponse> {
+        return __request(OpenAPI, {
+            method: 'GET',
+            url: '/api/v1/progression/receipts/{receipt_id}',
+            path: {
+                receipt_id: data.receiptId
+            },
+            errors: {
+                422: 'Validation Error'
+            }
+        });
+    }
+    
+    /**
+     * Purchase Unlock
+     * 啟用或兌換永久資格（如第 6 槽許可或解鎖新家族工具）。
+     * @param data The data for the request.
+     * @param data.unlockKey
+     * @returns unknown Successful Response
+     * @throws ApiError
+     */
+    public static purchaseUnlock(data: ProgressionPurchaseUnlockData): CancelablePromise<ProgressionPurchaseUnlockResponse> {
+        return __request(OpenAPI, {
+            method: 'POST',
+            url: '/api/v1/progression/unlocks/{unlock_key}',
+            path: {
+                unlock_key: data.unlockKey
+            },
             errors: {
                 422: 'Validation Error'
             }
@@ -1739,6 +2029,101 @@ export class ScoreService {
         return __request(OpenAPI, {
             method: 'GET',
             url: '/api/v1/score/me'
+        });
+    }
+}
+
+export class SeasonsService {
+    /**
+     * Claim Champion Tool
+     * @param data The data for the request.
+     * @param data.seasonId
+     * @param data.requestBody
+     * @returns string Successful Response
+     * @throws ApiError
+     */
+    public static claimChampionTool(data: SeasonsClaimChampionToolData): CancelablePromise<SeasonsClaimChampionToolResponse> {
+        return __request(OpenAPI, {
+            method: 'POST',
+            url: '/api/v1/seasons/{season_id}/awards/tool',
+            path: {
+                season_id: data.seasonId
+            },
+            body: data.requestBody,
+            mediaType: 'application/json',
+            errors: {
+                422: 'Validation Error'
+            }
+        });
+    }
+    
+    /**
+     * Get Season Current
+     * 查詢當前 14 天競技賽季狀態與自己的參賽進度。
+     * @returns SeasonPublic Successful Response
+     * @throws ApiError
+     */
+    public static getSeasonCurrent(): CancelablePromise<SeasonsGetSeasonCurrentResponse> {
+        return __request(OpenAPI, {
+            method: 'GET',
+            url: '/api/v1/seasons/current'
+        });
+    }
+    
+    /**
+     * Get Board
+     * 查詢指定賽季的三大排行榜（accuracy: 正確率榜, speed: 速度榜, power: 養成競技榜）。
+     * @param data The data for the request.
+     * @param data.seasonId
+     * @param data.board
+     * @returns SeasonBoardPublic Successful Response
+     * @throws ApiError
+     */
+    public static getBoard(data: SeasonsGetBoardData): CancelablePromise<SeasonsGetBoardResponse> {
+        return __request(OpenAPI, {
+            method: 'GET',
+            url: '/api/v1/seasons/{season_id}/boards/{board}',
+            path: {
+                season_id: data.seasonId,
+                board: data.board
+            },
+            errors: {
+                422: 'Validation Error'
+            }
+        });
+    }
+    
+    /**
+     * Get My Season Award
+     * 查看自己在已關帳賽季中的最終結算與獲得獎勵。
+     * @param data The data for the request.
+     * @param data.seasonId
+     * @returns unknown Successful Response
+     * @throws ApiError
+     */
+    public static getMySeasonAward(data: SeasonsGetMySeasonAwardData): CancelablePromise<SeasonsGetMySeasonAwardResponse> {
+        return __request(OpenAPI, {
+            method: 'GET',
+            url: '/api/v1/seasons/{season_id}/awards/me',
+            path: {
+                season_id: data.seasonId
+            },
+            errors: {
+                422: 'Validation Error'
+            }
+        });
+    }
+    
+    /**
+     * Trigger Close Expired
+     * 觸發已到期賽季的關帳結算與發獎。
+     * @returns unknown Successful Response
+     * @throws ApiError
+     */
+    public static triggerCloseExpired(): CancelablePromise<SeasonsTriggerCloseExpiredResponse> {
+        return __request(OpenAPI, {
+            method: 'POST',
+            url: '/api/v1/seasons/close-expired'
         });
     }
 }

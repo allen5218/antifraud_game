@@ -1,0 +1,22 @@
+[
+  {
+    "name": "matching source and images",
+    "passed": true
+  },
+  {
+    "name": "changed source is rejected",
+    "passed": true
+  },
+  {
+    "name": "changed image is rejected",
+    "passed": true
+  },
+  {
+    "name": "matching test images",
+    "passed": true
+  },
+  {
+    "name": "changed test input is rejected",
+    "passed": true
+  }
+]

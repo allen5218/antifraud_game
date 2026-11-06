@@ -73,3 +73,9 @@ data_pipeline/data/*
 
 # CodePen 殘留樣板(非專案內容)
 /sample/
+
+# 本機評估歷史與暫存；保留最終驗收與遮蔽後基線
+docs/agent-work/gameplay-evaluation/baseline-git-state/
+docs/agent-work/gameplay-evaluation/post-fix/
+docs/agent-work/gameplay-evaluation/verified-20261106/
+docs/agent-work/gameplay-evaluation/verified2-20261106/

@@ -1,0 +1,29 @@
+{
+  "checkedAt": "2026-11-06T05:11:56.980Z",
+  "profiles": {
+    "all_correct": {
+      "receipts": 10,
+      "rounds": 10,
+      "passed": true,
+      "cashAfterTenRounds": "3497",
+      "growthXpAfterTenRounds": "1330",
+      "energyAfterTenRounds": "1110"
+    },
+    "acc_70": {
+      "receipts": 10,
+      "rounds": 10,
+      "passed": true,
+      "cashAfterTenRounds": "2320",
+      "growthXpAfterTenRounds": "831",
+      "energyAfterTenRounds": "658"
+    },
+    "acc_40": {
+      "receipts": 10,
+      "rounds": 10,
+      "passed": true,
+      "cashAfterTenRounds": "1292",
+      "growthXpAfterTenRounds": "446",
+      "energyAfterTenRounds": "306"
+    }
+  }
+}

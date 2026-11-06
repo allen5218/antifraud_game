@@ -50,6 +50,9 @@ from app.practice.service import (
     queue_refresh,
     record_answers,
 )
+from app.progression.models import RewardContext
+from app.progression.seasons import record_daily_competition_entry
+from app.progression.service import create_reward_context, settle_reward
 from app.schemas import (
     QuizAnswerItem,
     QuizAnswerRequest,
@@ -73,6 +76,7 @@ from app.schemas import (
     QuizVerificationOption,
     QuizVerificationPublic,
     QuizWeaknessDetail,
+    RewardReceiptSchema,
     SwipeAnswerRequest,
     SwipeAnswerResponse,
     SwipeCardPublic,
@@ -139,7 +143,9 @@ def swipe_deck(session: SessionDep, current_user: CurrentUser, size: int = 12) -
     # 一次性牌局:結算只認這裡發出去的卡(見 SwipeSession)
     swipe = SwipeSession(user_id=current_user.id, card_ids=[str(c.id) for c in cards])
     session.add(swipe)
+    create_reward_context(session, current_user.id, "swipe", swipe.id)
     session.commit()
+
     return SwipeDeckResponse(
         session_id=str(swipe.id),
         cards=[
@@ -289,15 +295,45 @@ def swipe_complete(
     adjust_cash(current_user, cash, reason="swipe_reward")
     add_xp(current_user, xp, reason="swipe_reward")
     touch_streak(current_user, taipei_today())
+
+    # 結算倍率獎勵
+    context = session.exec(
+        select(RewardContext).where(
+            RewardContext.source_kind == "swipe",
+            RewardContext.source_id == swipe.id,
+        )
+    ).first() or create_reward_context(session, current_user.id, "swipe", swipe.id)
+    receipt, _ = settle_reward(
+        session,
+        current_user,
+        context,
+        base_cash=cash,
+        base_xp=xp,
+        reason="swipe_reward",
+        best_streak=score.best_streak,
+    )
+    response.reward_receipt = RewardReceiptSchema(
+        receipt_id=receipt.id,
+        source_kind="swipe",
+        config_version=context.config_version,
+        base=receipt.base_rewards,
+        factors=receipt.factors,
+        final=receipt.final_rewards,
+        core_level_before=receipt.core_level_before,
+        core_level_after=receipt.core_level_after,
+    )
+    response.cash_earned = cash + int(receipt.final_rewards["cash_bonus"])
+
     # 標記已結算與發獎同一個 commit:不會有「已發獎但還能再結算」的中間狀態
     swipe.completed = True
     swipe.completed_at = datetime.now(timezone.utc)
-    swipe.result = response.model_dump()
+    swipe.result = response.model_dump(mode="json")
     session.add(current_user)
     session.add(swipe)
     user_id = current_user.id
     record_answers(session, user_id, "swipe", score.practice)
     session.commit()
+
     queue_refresh(background_tasks, session, user_id)
     return response
 
@@ -606,6 +642,7 @@ def quiz_deck(session: SessionDep, current_user: CurrentUser, size: int = 5) -> 
             deck.mirror_relaxed_count,
         )
     session.add(quiz)
+    create_reward_context(session, current_user.id, "quiz", quiz.id)
     session.commit()
     session.refresh(quiz)
     return QuizDeckResponse(session_id=str(quiz.id), items=deck.public_items)
@@ -1021,6 +1058,55 @@ def quiz_complete(
             completed_at=completed_at,
         )
     touch_streak(current_user, taipei_today())
+
+    # 結算倍率獎勵
+    context = session.exec(
+        select(RewardContext).where(
+            RewardContext.source_kind == "quiz",
+            RewardContext.source_id == quiz.id,
+        )
+    ).first() or create_reward_context(session, current_user.id, "quiz", quiz.id)
+    # daily 固定獎勵不重複算倍率基礎
+    mult_base_cash = cash - (DAILY_BONUS_CASH if quiz.daily_date is not None else 0)
+    mult_base_xp = xp - (DAILY_BONUS_XP if quiz.daily_date is not None else 0)
+    receipt, _ = settle_reward(
+        session,
+        current_user,
+        context,
+        base_cash=mult_base_cash,
+        base_xp=mult_base_xp,
+        fixed_cash=DAILY_BONUS_CASH if quiz.daily_date is not None else 0,
+        fixed_training_xp=DAILY_BONUS_XP if quiz.daily_date is not None else 0,
+        reason="quiz_reward",
+        best_streak=best_streak,
+    )
+    receipt_schema = RewardReceiptSchema(
+        receipt_id=receipt.id,
+        source_kind="quiz",
+        config_version=context.config_version,
+        base=receipt.base_rewards,
+        factors=receipt.factors,
+        final=receipt.final_rewards,
+        core_level_before=receipt.core_level_before,
+        core_level_after=receipt.core_level_after,
+    )
+
+    if quiz.daily_date is not None:
+        duration = int(
+            (completed_at - (quiz.created_at or completed_at)).total_seconds()
+        )
+        quiz.completed_at = completed_at
+        record_daily_competition_entry(
+            session,
+            current_user.id,
+            quiz,
+            context,
+            correct=correct_count,
+            total=total,
+            duration=max(1, duration),
+        )
+
+    final_cash_earned = cash + int(receipt.final_rewards["cash_bonus"])
     # 標記已結算與加獎同一 commit 原子化——不會有「已發獎但可重放」的中間態
     quiz.completed = True
     quiz.completed_at = completed_at
@@ -1036,7 +1122,8 @@ def quiz_complete(
         correct_count=correct_count,
         total=total,
         best_streak=best_streak,
-        cash_earned=cash,
+        cash_earned=final_cash_earned,
         xp_earned=xp,
         weakness_summary=summary,
+        reward_receipt=receipt_schema,
     )

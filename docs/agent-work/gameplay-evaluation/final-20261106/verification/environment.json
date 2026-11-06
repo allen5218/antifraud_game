@@ -1,0 +1,26 @@
+{
+  "postgresVersion": "PostgreSQL 17.6 on x86_64-pc-linux-gnu, compiled by gcc (GCC) 15.2.0, 64-bit",
+  "migration": "d4e5f6a7b8c9",
+  "publishedPools": [
+    {
+      "pool": "exam_message",
+      "count": 80
+    },
+    {
+      "pool": "exam_scenario",
+      "count": 20
+    },
+    {
+      "pool": "exam_tactics",
+      "count": 10
+    },
+    {
+      "pool": "practice",
+      "count": 120
+    }
+  ],
+  "verificationQuestions": 34,
+  "dockerVersion": "29.2.1",
+  "sqliteUsed": false,
+  "localBackendWorkers": 1
+}

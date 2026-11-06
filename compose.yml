@@ -70,6 +70,16 @@ services:
       context: .
       dockerfile: backend/Dockerfile
 
+  season-worker:
+    image: '${DOCKER_IMAGE_BACKEND?Variable not set}:${TAG-latest}'
+    restart: unless-stopped
+    command: ["uv", "run", "--no-sync", "python", "-m", "app.progression.close_seasons", "--watch"]
+    env_file:
+      - .env
+    depends_on:
+      prestart:
+        condition: service_completed_successfully
+
   frontend:
     image: '${DOCKER_IMAGE_FRONTEND?Variable not set}:${TAG-latest}'
     restart: always

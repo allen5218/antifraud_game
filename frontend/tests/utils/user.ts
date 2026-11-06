@@ -46,3 +46,13 @@ export async function skipTour(page: Page) {
   await skip.click()
   await expect(page.getByTestId("onboarding-tour")).toBeHidden()
 }
+
+// 直接告訴後端「看過導覽」，不等畫面出現（房間資料慢時導覽會晚於任何固定的等待時間才出現）
+export async function markTourSeen(page: Page) {
+  const token = await page.evaluate(() => localStorage.getItem("access_token"))
+  const response = await page.request.post(
+    `${process.env.VITE_API_URL}/api/v1/onboarding/tour`,
+    { headers: { Authorization: `Bearer ${token}` } },
+  )
+  expect(response.ok()).toBeTruthy()
+}

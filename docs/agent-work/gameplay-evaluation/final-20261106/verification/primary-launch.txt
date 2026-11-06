@@ -1,0 +1,124 @@
+{"project":"scamgym-gameplay-v1","state":"C:\\Users\\kun\\AppData\\Local\\ScamGym\\scamgym-gameplay-v1","website":"http://localhost:17173","keyConfigured":true}
+linux
+Local source and image IDs match; reuse the existing build.
+ Container scamgym-gameplay-v1-prestart-1 Recreate
+ Container scamgym-gameplay-v1-prestart-1 Recreated
+ Container scamgym-gameplay-v1-season-worker-1 Recreate
+ Container scamgym-gameplay-v1-backend-1 Recreate
+ Container scamgym-gameplay-v1-season-worker-1 Recreated
+ Container scamgym-gameplay-v1-backend-1 Recreated
+ Container scamgym-gameplay-v1-frontend-1 Recreate
+ Container scamgym-gameplay-v1-frontend-1 Recreated
+ Container scamgym-gameplay-v1-mailcatcher-1 Starting
+ Container scamgym-gameplay-v1-imgproxy-1 Starting
+ Container scamgym-gameplay-v1-studio-1 Starting
+ Container scamgym-gameplay-v1-db-1 Starting
+ Container scamgym-gameplay-v1-mailcatcher-1 Started
+ Container scamgym-gameplay-v1-imgproxy-1 Started
+ Container scamgym-gameplay-v1-studio-1 Started
+ Container scamgym-gameplay-v1-studio-1 Waiting
+ Container scamgym-gameplay-v1-db-1 Started
+ Container scamgym-gameplay-v1-db-1 Waiting
+ Container scamgym-gameplay-v1-db-1 Waiting
+ Container scamgym-gameplay-v1-db-1 Waiting
+ Container scamgym-gameplay-v1-db-1 Waiting
+ Container scamgym-gameplay-v1-db-1 Waiting
+ Container scamgym-gameplay-v1-db-1 Healthy
+ Container scamgym-gameplay-v1-db-1 Healthy
+ Container scamgym-gameplay-v1-realtime-1 Starting
+ Container scamgym-gameplay-v1-supavisor-1 Starting
+ Container scamgym-gameplay-v1-db-1 Healthy
+ Container scamgym-gameplay-v1-rest-1 Starting
+ Container scamgym-gameplay-v1-db-1 Healthy
+ Container scamgym-gameplay-v1-auth-1 Starting
+ Container scamgym-gameplay-v1-db-1 Healthy
+ Container scamgym-gameplay-v1-meta-1 Starting
+ Container scamgym-gameplay-v1-auth-1 Started
+ Container scamgym-gameplay-v1-realtime-1 Started
+ Container scamgym-gameplay-v1-supavisor-1 Started
+ Container scamgym-gameplay-v1-supavisor-1 Waiting
+ Container scamgym-gameplay-v1-rest-1 Started
+ Container scamgym-gameplay-v1-db-1 Waiting
+ Container scamgym-gameplay-v1-meta-1 Started
+ Container scamgym-gameplay-v1-db-1 Healthy
+ Container scamgym-gameplay-v1-storage-1 Starting
+ Container scamgym-gameplay-v1-storage-1 Started
+ Container scamgym-gameplay-v1-studio-1 Healthy
+ Container scamgym-gameplay-v1-kong-1 Starting
+ Container scamgym-gameplay-v1-kong-1 Started
+ Container scamgym-gameplay-v1-kong-1 Waiting
+ Container scamgym-gameplay-v1-kong-1 Healthy
+ Container scamgym-gameplay-v1-functions-1 Starting
+ Container scamgym-gameplay-v1-functions-1 Started
+ Container scamgym-gameplay-v1-supavisor-1 Healthy
+ Container scamgym-gameplay-v1-prestart-1 Starting
+ Container scamgym-gameplay-v1-prestart-1 Started
+ Container scamgym-gameplay-v1-prestart-1 Waiting
+ Container scamgym-gameplay-v1-prestart-1 Waiting
+ Container scamgym-gameplay-v1-prestart-1 Exited
+ Container scamgym-gameplay-v1-backend-1 Starting
+ Container scamgym-gameplay-v1-prestart-1 Exited
+ Container scamgym-gameplay-v1-season-worker-1 Starting
+ Container scamgym-gameplay-v1-season-worker-1 Started
+ Container scamgym-gameplay-v1-backend-1 Started
+ Container scamgym-gameplay-v1-backend-1 Waiting
+ Container scamgym-gameplay-v1-backend-1 Healthy
+ Container scamgym-gameplay-v1-frontend-1 Starting
+ Container scamgym-gameplay-v1-frontend-1 Started
+ Container scamgym-gameplay-v1-meta-1 Waiting
+ Container scamgym-gameplay-v1-rest-1 Waiting
+ Container scamgym-gameplay-v1-auth-1 Waiting
+ Container scamgym-gameplay-v1-realtime-1 Waiting
+ Container scamgym-gameplay-v1-storage-1 Waiting
+ Container scamgym-gameplay-v1-prestart-1 Waiting
+ Container scamgym-gameplay-v1-db-1 Waiting
+ Container scamgym-gameplay-v1-frontend-1 Waiting
+ Container scamgym-gameplay-v1-backend-1 Waiting
+ Container scamgym-gameplay-v1-kong-1 Waiting
+ Container scamgym-gameplay-v1-functions-1 Waiting
+ Container scamgym-gameplay-v1-mailcatcher-1 Waiting
+ Container scamgym-gameplay-v1-season-worker-1 Waiting
+ Container scamgym-gameplay-v1-imgproxy-1 Waiting
+ Container scamgym-gameplay-v1-studio-1 Waiting
+ Container scamgym-gameplay-v1-supavisor-1 Waiting
+ Container scamgym-gameplay-v1-meta-1 Healthy
+ Container scamgym-gameplay-v1-season-worker-1 Healthy
+ Container scamgym-gameplay-v1-supavisor-1 Healthy
+ Container scamgym-gameplay-v1-mailcatcher-1 Healthy
+ Container scamgym-gameplay-v1-rest-1 Healthy
+ Container scamgym-gameplay-v1-functions-1 Healthy
+ Container scamgym-gameplay-v1-studio-1 Healthy
+ Container scamgym-gameplay-v1-auth-1 Healthy
+ Container scamgym-gameplay-v1-storage-1 Healthy
+ Container scamgym-gameplay-v1-prestart-1 Exited
+ Container scamgym-gameplay-v1-backend-1 Healthy
+ Container scamgym-gameplay-v1-kong-1 Healthy
+ Container scamgym-gameplay-v1-realtime-1 Healthy
+ Container scamgym-gameplay-v1-imgproxy-1 Healthy
+ Container scamgym-gameplay-v1-db-1 Healthy
+ Container scamgym-gameplay-v1-frontend-1 Healthy
+NOTICE:  relation "scamgym_local_bootstrap" already exists, skipping
+ Container scamgym-gameplay-v1-db-1 Running
+ Container scamgym-gameplay-v1-supavisor-1 Running
+ Container scamgym-gameplay-v1-db-1 Waiting
+ Container scamgym-gameplay-v1-db-1 Healthy
+ Container scamgym-gameplay-v1-supavisor-1 Waiting
+ Container scamgym-gameplay-v1-supavisor-1 Healthy
+ Container scamgym-gameplay-v1-backend-tests-run-3f10ab1d7e1d Creating
+ Container scamgym-gameplay-v1-backend-tests-run-3f10ab1d7e1d Created
++ python app/backend_pre_start.py
+INFO:__main__:Initializing service
+INFO:__main__:Starting call to '__main__.init', this is the 1st time calling it.
+INFO:__main__:Service finished initializing
++ alembic upgrade head
+INFO  [alembic.runtime.migration] Context impl PostgresqlImpl.
+INFO  [alembic.runtime.migration] Will assume transactional DDL.
++ python app/initial_data.py
+INFO:__main__:Creating initial data
+INFO:__main__:Initial data created
+exam_message|80
+exam_scenario|20
+exam_tactics|10
+practice|120
+遊戲已啟動：http://localhost:17173
+私密環境與資料庫設定保存在：C:\Users\kun\AppData\Local\ScamGym\scamgym-gameplay-v1

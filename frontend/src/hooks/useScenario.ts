@@ -44,6 +44,9 @@ export function useJudge(id: string) {
       }),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["economy"] })
+      qc.invalidateQueries({ queryKey: ["progression"] })
+      qc.invalidateQueries({ queryKey: ["collections"] })
+      qc.invalidateQueries({ queryKey: ["collection-board"] })
       qc.invalidateQueries({ queryKey: ["scenario"] })
       refreshPracticeProfileSoon(qc)
     },
