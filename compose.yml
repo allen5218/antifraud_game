@@ -73,7 +73,7 @@ services:
   season-worker:
     image: '${DOCKER_IMAGE_BACKEND?Variable not set}:${TAG-latest}'
     restart: unless-stopped
-    command: ["uv", "run", "--no-sync", "python", "-m", "app.progression.close_seasons", "--watch"]
+    command: ["python", "-m", "app.progression.close_seasons", "--watch"]
     env_file:
       - .env
     depends_on:

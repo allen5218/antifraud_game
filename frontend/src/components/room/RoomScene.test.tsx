@@ -444,3 +444,15 @@ test("有新手任務時不顯示房間榮譽（兩張卡都在右下，會疊�
   await renderScene()
   expect(await screen.findByText("第一期冠軍")).toBeTruthy()
 })
+
+test("頁首左邊的按鈕放不下會換行，右邊的錢不會被壓住", async () => {
+  current = summary({ admin_access: true })
+  await renderScene()
+  const left = await screen.findByTestId("room-header-left")
+  const right = screen.getByTestId("room-header-right")
+  // 同一排：管理員多兩顆按鈕時左邊換行，右邊固定寬度
+  expect(left.parentElement).toBe(right.parentElement)
+  expect(left.className).toContain("flex-wrap")
+  expect(right.className).toContain("shrink-0")
+  expect(left.contains(screen.getByTestId("room-classes"))).toBe(true)
+})

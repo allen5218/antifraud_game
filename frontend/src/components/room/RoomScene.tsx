@@ -231,64 +231,73 @@ export function RoomScene() {
           房子
         </Link>
       </div>
-      <div className="absolute top-[calc(env(safe-area-inset-top)+0.75rem)] left-3 z-20 flex items-center gap-1">
-        <Link
-          to="/me"
-          data-testid="room-me"
-          className={`flex items-center gap-1 rounded-full bg-card px-2.5 py-1.5 text-xs font-bold text-card-foreground shadow ${PRESS}`}
+      {/* 頁首一排：左邊按鈕放不下就換行，右邊的錢固定靠右不被壓住（管理員與老師多兩顆按鈕） */}
+      <div className="pointer-events-none absolute top-[calc(env(safe-area-inset-top)+0.75rem)] right-3 left-3 z-20 flex items-start justify-between gap-1">
+        <div
+          data-testid="room-header-left"
+          className="pointer-events-auto flex min-w-0 flex-wrap items-center gap-1"
         >
-          <UserRound aria-hidden className="size-3.5" />我
-        </Link>
-        <Link
-          to="/progression"
-          data-testid="room-progression"
-          className={`flex items-center gap-1 rounded-full bg-card px-2.5 py-1.5 text-xs font-bold text-card-foreground shadow ${PRESS}`}
-        >
-          <Sparkles aria-hidden className="size-3.5 text-primary" />
-          裝備
-        </Link>
-        {data?.admin_access && (
           <Link
-            to="/admin/cohorts"
-            data-testid="room-admin"
-            className={`flex items-center gap-1 rounded-full bg-primary px-2.5 py-1.5 text-xs font-bold text-primary-foreground shadow ${PRESS}`}
+            to="/me"
+            data-testid="room-me"
+            className={`flex items-center gap-1 rounded-full bg-card px-2.5 py-1.5 text-xs font-bold text-card-foreground shadow ${PRESS}`}
           >
-            <QrCode aria-hidden className="size-3.5" />
-            試測管理
+            <UserRound aria-hidden className="size-3.5" />我
           </Link>
-        )}
-        {(data?.teacher_status === "approved" || data?.admin_access) && (
           <Link
-            to="/classes"
-            data-testid="room-classes"
-            className={`flex items-center gap-1 rounded-full bg-primary px-2.5 py-1.5 text-xs font-bold text-primary-foreground shadow ${PRESS}`}
+            to="/progression"
+            data-testid="room-progression"
+            className={`flex items-center gap-1 rounded-full bg-card px-2.5 py-1.5 text-xs font-bold text-card-foreground shadow ${PRESS}`}
           >
-            <GraduationCap aria-hidden className="size-3.5" />
-            班級管理
+            <Sparkles aria-hidden className="size-3.5 text-primary" />
+            裝備
           </Link>
-        )}
-      </div>
-      <div className="absolute top-[calc(env(safe-area-inset-top)+0.75rem)] right-3 z-20 flex items-center gap-1">
-        <Link
-          to="/assets"
-          data-testid="hdr-cash"
-          className={`flex items-center gap-1 rounded-full bg-card px-2.5 py-1.5 text-xs font-bold shadow ${PRESS} ${
-            cash < 0n ? "text-destructive" : "text-card-foreground"
-          }`}
+          {data?.admin_access && (
+            <Link
+              to="/admin/cohorts"
+              data-testid="room-admin"
+              className={`flex items-center gap-1 rounded-full bg-primary px-2.5 py-1.5 text-xs font-bold text-primary-foreground shadow ${PRESS}`}
+            >
+              <QrCode aria-hidden className="size-3.5" />
+              試測管理
+            </Link>
+          )}
+          {(data?.teacher_status === "approved" || data?.admin_access) && (
+            <Link
+              to="/classes"
+              data-testid="room-classes"
+              className={`flex items-center gap-1 rounded-full bg-primary px-2.5 py-1.5 text-xs font-bold text-primary-foreground shadow ${PRESS}`}
+            >
+              <GraduationCap aria-hidden className="size-3.5" />
+              班級管理
+            </Link>
+          )}
+        </div>
+        <div
+          data-testid="room-header-right"
+          className="pointer-events-auto flex shrink-0 items-center gap-1"
         >
-          <Coins aria-hidden className="size-3.5" />
-          {formatMoney(cash)}
-        </Link>
-        {pending > 0n && (
-          <button
-            type="button"
-            disabled={isPending}
-            onClick={() => claim()}
-            className="rounded-full bg-legit px-2.5 py-1.5 text-xs font-bold text-legit-foreground disabled:opacity-50"
+          <Link
+            to="/assets"
+            data-testid="hdr-cash"
+            className={`flex items-center gap-1 rounded-full bg-card px-2.5 py-1.5 text-xs font-bold shadow ${PRESS} ${
+              cash < 0n ? "text-destructive" : "text-card-foreground"
+            }`}
           >
-            可領 {formatMoney(pending)}
-          </button>
-        )}
+            <Coins aria-hidden className="size-3.5" />
+            {formatMoney(cash)}
+          </Link>
+          {pending > 0n && (
+            <button
+              type="button"
+              disabled={isPending}
+              onClick={() => claim()}
+              className="rounded-full bg-legit px-2.5 py-1.5 text-xs font-bold text-legit-foreground disabled:opacity-50"
+            >
+              可領 {formatMoney(pending)}
+            </button>
+          )}
+        </div>
       </div>
       <button
         type="button"
