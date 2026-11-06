@@ -1,7 +1,7 @@
 import json
 import math
 import uuid
-from datetime import datetime, timedelta, timezone
+from datetime import timedelta
 from decimal import Decimal
 from fractions import Fraction
 
@@ -12,13 +12,12 @@ from app.core.config import settings
 from app.core.db import engine
 from app.economy.service import adjust_cash
 from app.main import app
-from app.models import QuizSession, User
+from app.models import User
 from app.progression.config import CONFIG_VERSION
 from app.progression.math import core_factor
 from app.progression.models import (
     CompetitionEntry,
     CompetitionSeason,
-    PlayerGrowth,
     RewardContext,
     SeasonAward,
 )
@@ -284,4 +283,4 @@ def run_all_probes() -> dict:
 
 if __name__ == "__main__":
     res = run_all_probes()
-    print(json.dumps(res, indent=2, ensure_ascii=False))
+    print(json.dumps(res, indent=2, ensure_ascii=False))  # noqa: T201  CLI 輸出

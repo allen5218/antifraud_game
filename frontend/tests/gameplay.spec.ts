@@ -28,6 +28,13 @@ test("原題組逐題作答揭曉，結算收據與錢包一致，配裝重新�
     expect(response.ok()).toBeTruthy()
     return response.json()
   }
+  // 這個流程要真的題庫。CI 的 E2E 資料庫不灌訊息判讀題庫（game_cases，
+  // 見 CLAUDE.md「資料邊界」），拿不到題目就略過；灌了題庫的環境會跑完整流程。
+  const probe = await request.get(
+    `${process.env.VITE_API_URL}/api/v1/quick/quiz/deck`,
+    { headers },
+  )
+  test.skip(!probe.ok(), "這個環境沒有灌訊息判讀題庫（game_cases）")
   const before = await wallet()
   const deckResponse = page.waitForResponse(
     (r) =>
