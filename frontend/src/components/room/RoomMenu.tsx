@@ -10,6 +10,7 @@ import {
   MessageCircle,
   NotebookPen,
   QrCode,
+  Sparkles,
   Trophy,
   Tv,
 } from "lucide-react"
@@ -28,6 +29,7 @@ export const MENU_ICONS = {
   admin: QrCode,
   classes: GraduationCap,
   classwork: NotebookPen,
+  progression: Sparkles,
   tour: Compass,
 } as const
 

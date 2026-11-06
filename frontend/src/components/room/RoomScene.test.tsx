@@ -350,8 +350,8 @@ test("導覽一步一步走到最後，新帳號接著去做入門前測", async
   )
   await renderScene()
   await screen.findByText("這是你的房間")
-  expect(screen.getByText("第 1／10 步")).toBeTruthy()
-  for (let i = 0; i < 9; i++) {
+  expect(screen.getByText("第 1／11 步")).toBeTruthy()
+  for (let i = 0; i < 10; i++) {
     fireEvent.click(screen.getByRole("button", { name: "下一步" }))
   }
   expect(screen.getByText("先做個小測驗")).toBeTruthy()
@@ -371,7 +371,7 @@ test("選單可以重看導覽，看完只是關掉", async () => {
     within(screen.getByTestId("room-menu-list")).getByText("重看導覽"),
   )
   expect(await screen.findByText("這是你的房間")).toBeTruthy()
-  for (let i = 0; i < 9; i++) {
+  for (let i = 0; i < 10; i++) {
     fireEvent.click(screen.getByRole("button", { name: "下一步" }))
   }
   fireEvent.click(screen.getByRole("button", { name: "知道了" }))

@@ -1,5 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router"
 import {
+  CircleHelp,
   Coins,
   Compass,
   Hammer,
@@ -10,7 +11,10 @@ import {
 } from "lucide-react"
 import { useState } from "react"
 import type { EquipmentItemPublic } from "@/client"
+import { guideSeen, markGuideSeen } from "@/components/progression/guideSteps"
 import { LongTermGrowth } from "@/components/progression/LongTermGrowth"
+import { ProgressionGuide } from "@/components/progression/ProgressionGuide"
+import { poseImage } from "@/components/room/logic"
 import { useEconomyMe } from "@/hooks/useEconomy"
 import {
   useBreakthroughEquipment,
@@ -18,6 +22,7 @@ import {
   useUpdateLoadout,
   useUpgradeEquipment,
 } from "@/hooks/useEquipment"
+import { useHomeSummary } from "@/hooks/useHomeSummary"
 import { useProgression, usePurchaseUnlock } from "@/hooks/useProgression"
 import { formatMoney, isGreaterOrEqual } from "@/utils/money"
 import { formatFactor } from "@/utils/progressionDisplay"
@@ -80,6 +85,13 @@ function ProgressionPage() {
 
   const [activeFamilyFilter, setActiveFamilyFilter] = useState<string>("all")
   const [actionError, setActionError] = useState<string | null>(null)
+  // 第一次進來先看玩法說明；看過記在這台裝置，之後按「怎麼玩」再看
+  const [guideOpen, setGuideOpen] = useState(() => !guideSeen())
+  const { data: home } = useHomeSummary()
+  const closeGuide = () => {
+    markGuideSeen()
+    setGuideOpen(false)
+  }
 
   if (progressionQuery.isError || equipmentQuery.isError) {
     return (
@@ -243,12 +255,30 @@ function ProgressionPage() {
 
   return (
     <div className="flex flex-col gap-4 pb-12">
-      <Link
-        to="/quick/quiz"
-        className="rounded-xl bg-primary p-3 text-center text-sm font-bold text-primary-foreground"
-      >
-        繼續訓練，賺取養成資源
-      </Link>
+      <ProgressionGuide
+        open={guideOpen}
+        onClose={closeGuide}
+        mascotSrc={poseImage(
+          home?.mascot_image_url ?? "/assets/mascot/shiba/base.webp",
+          "point",
+        )}
+      />
+      <div className="flex gap-2">
+        <Link
+          to="/quick/quiz"
+          className="flex-1 rounded-xl bg-primary p-3 text-center text-sm font-bold text-primary-foreground"
+        >
+          繼續訓練，賺取養成資源
+        </Link>
+        <button
+          type="button"
+          onClick={() => setGuideOpen(true)}
+          className="flex shrink-0 items-center gap-1 rounded-xl border border-border bg-card px-3 text-sm font-bold text-card-foreground"
+        >
+          <CircleHelp aria-hidden className="size-4 text-primary" />
+          怎麼玩
+        </button>
+      </div>
       {/* 頂部核心能力卡 */}
       <div className="rounded-2xl border border-border bg-card p-4 text-card-foreground shadow-xs">
         <div className="flex items-center justify-between">

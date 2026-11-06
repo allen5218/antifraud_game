@@ -2,7 +2,14 @@ import type { HomeSummary } from "@/hooks/useHomeSummary"
 import type { HotspotId } from "./logic"
 
 /** 導覽每一步要亮的東西；null 是整個畫面變暗、只有吉祥物說話 */
-export type TourTarget = HotspotId | "mascot" | "cash" | "shop" | "menu" | null
+export type TourTarget =
+  | HotspotId
+  | "mascot"
+  | "cash"
+  | "progression"
+  | "shop"
+  | "menu"
+  | null
 
 export type TourStep = {
   target: TourTarget
@@ -20,6 +27,7 @@ export const TOUR_TEST_IDS: Record<Exclude<TourTarget, null>, string> = {
   bookshelf: "hotspot-bookshelf",
   mascot: "hotspot-mascot",
   cash: "hdr-cash",
+  progression: "room-progression",
   shop: "room-shop-row",
   menu: "room-menu",
 }
@@ -48,7 +56,7 @@ const ROOM_STEPS: TourStep[] = [
   {
     target: "calendar",
     title: "月曆：每日訓練",
-    text: "每天一份大家都一樣的 10 題，還有排行榜。升到第 5 級就會開放。",
+    text: "每天一份大家都一樣的 10 題，還有排行榜，成績每兩週結算一次發獎。升到第 5 級就會開放。",
   },
   {
     target: "bookshelf",
@@ -59,6 +67,11 @@ const ROOM_STEPS: TourStep[] = [
     target: "cash",
     title: "錢和經驗值",
     text: "練習答對就會拿到錢和經驗值。經驗值累積起來會升級，等級越高能玩的越多。",
+  },
+  {
+    target: "progression",
+    title: "裝備：讓獎勵變多",
+    text: "練習也會累積養成經驗和鍛造能量，拿來裝備、強化工具，之後每一輪的獎勵就會變多。點進去會有完整的玩法說明。",
   },
   {
     target: "shop",
