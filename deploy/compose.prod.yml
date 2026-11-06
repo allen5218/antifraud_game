@@ -39,7 +39,7 @@ services:
   # 兩週競技賽季到期關帳、發獎（每分鐘檢查一次，中斷可續跑）
   season-worker:
     image: ${DOCKER_IMAGE_BACKEND}:${TAG-latest}
-    command: ["uv", "run", "--no-sync", "python", "-m", "app.progression.close_seasons", "--watch"]
+    command: ["python", "-m", "app.progression.close_seasons", "--watch"]
     restart: always
     depends_on:
       prestart:

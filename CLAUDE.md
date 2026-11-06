@@ -146,7 +146,7 @@ pre-commit 有 `generate-frontend-sdk` hook，當 `backend/` 變更時會自動�
 - 養成經驗（`player_growth.growth_xp`）、鍛造能量、圖紙和原本的 `User.xp`（訓練等級）是兩套，別混用。
 - **金額是 NUMERIC(78,0)**（`models.SqlBigInt`，Python 端是 int）。API 用 `schemas.DecimalStr`：在 JavaScript 安全整數（2^53-1）內回 JSON 數字（舊版 PWA 照常可用），超過才回十進位字串；前端一律經 `utils/money.ts` 的 `parseBigIntSafe`／`formatMoney` 用 BigInt 算。餘額超過安全整數時，沒帶 `X-ScamGym-Client-Version: 2` 的舊畫面會收到 426 要求重新整理（`deps.get_current_user`）。
 - 強化、突破、買格子都要防重送：強化／突破的 `X-Idempotency-Key` 依「從哪一階開始」產生（`utils/progressionDisplay.ts`），買展示位與配裝位一定要帶 `expected_level`。工具目錄（`EquipmentDefinition`）在 `init_db()` 建好，請求路徑不插入共用列。
-- 兩週一期的競技榜（正確率、速度、養成），到期由 `season-worker`（`python -m app.progression.close_seasons --watch`，正式環境在 `deploy/compose.prod.yml`）凍結名次、發獎。回滾到沒有這支程式的舊版映像時，這個服務會一直重啟，回滾後用 `docker compose -f deploy/compose.prod.yml --project-directory . stop season-worker` 停掉。
+- 兩週一期的競技榜（正確率、速度、養成），到期由 `season-worker`（`python -m app.progression.close_seasons --watch`，映像裡直接用 `python`，不要用 `uv run`（映像沒有 uv 專案環境，會找不到套件），正式環境在 `deploy/compose.prod.yml`）凍結名次、發獎。回滾到沒有這支程式的舊版映像時，這個服務會一直重啟，回滾後用 `docker compose -f deploy/compose.prod.yml --project-directory . stop season-worker` 停掉。
 - 前端：`/progression`（養成與配裝）、排行榜頁的賽季與永久榜、房間的榮譽卡（`RoomHonors`，新手任務或導覽開著時不顯示）。
 
 ## Skills 與 Personas 機制
