@@ -183,6 +183,8 @@ PostgreSQL 17.6，經 Supavisor 連線；遷移版本 d4e5f6a7b8c9。題庫查�
 
 恢復期間鏡像倉庫連線曾重置，因此核對 uv.lock、根與後端 pyproject.toml、bun.lock、根與前端 package.json 六個依賴輸入，均與先前通過驗證的 Docker 依賴映像一致，再以其為基底重建最新應用層與正式前端。不是這次重新下載全部依賴的無快取建置。應用來源、鎖檔、映像 ID 與驗收結果一起保存，正常新環境仍可由原 Dockerfile 建立。
 
+桌面交付另以原始 Dockerfile 完成正式建置與全套啟動，再次通過兩帳號資料保存、真實登入、手機養成頁、榜單與公開名片檢查。此最後建置使用既有依賴快取，不宣稱重新下載所有套件；目前執行中的映像 ID 另記在 verification/desktop-delivery.json。啟動完整輸出見 desktop-launch.txt，重新查驗見 desktop-verification.txt。
+
 ### 8.2 關鍵畫面
 
 ![普通玩家近期目標](agent-work/gameplay-evaluation/final-20261106/screenshots/02-progression-initial-mobile-390x844.png)

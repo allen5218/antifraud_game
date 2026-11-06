@@ -1,0 +1,2 @@
+Persistence after verified for two local accounts.
+Production Nginx mobile UI verified with real API and no mocked responses.
