@@ -1,0 +1,76 @@
+# 本機獨立環境：沿用 compose.yml 的應用程式建置與啟動流程。
+# 使用方式：pwsh -File scripts/local-docker.ps1 up
+# PostgreSQL 17 + pgvector 與專案 CI 一致；不啟動正式站的 Supabase 管理服務或 Tunnel。
+services:
+  db:
+    image: pgvector/pgvector:pg17
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER?Variable not set}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD?Variable not set}
+      POSTGRES_DB: ${POSTGRES_DB?Variable not set}
+    ports:
+      - "127.0.0.1:54323:5432"
+    volumes:
+      - local-db:/var/lib/postgresql/data
+      - ./deploy/seed/game_cases.sql:/docker-entrypoint-initdb.d/10-game-cases.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $$POSTGRES_USER -d $$POSTGRES_DB"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+      start_period: 30s
+
+  prestart:
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      POSTGRES_SERVER: db
+      POSTGRES_PORT: "5432"
+
+  backend:
+    ports:
+      - "127.0.0.1:8000:8000"
+    depends_on:
+      db:
+        condition: service_healthy
+      prestart:
+        condition: service_completed_successfully
+    environment:
+      POSTGRES_SERVER: db
+      POSTGRES_PORT: "5432"
+      SMTP_HOST: mailcatcher
+      SMTP_PORT: "1025"
+      SMTP_TLS: "false"
+      EMAILS_FROM_EMAIL: noreply@example.com
+
+  season-worker:
+    environment:
+      POSTGRES_SERVER: db
+      POSTGRES_PORT: "5432"
+
+  frontend:
+    ports:
+      - "127.0.0.1:5173:80"
+    build:
+      args:
+        VITE_API_URL: http://localhost:8000
+        NODE_ENV: production
+    depends_on:
+      backend:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-fsS", "http://127.0.0.1/"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
+  mailcatcher:
+    image: schickling/mailcatcher
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:1080:1080"
+
+volumes:
+  local-db:

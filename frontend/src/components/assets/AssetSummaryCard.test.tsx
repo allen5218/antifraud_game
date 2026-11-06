@@ -1,4 +1,4 @@
-import { afterEach, describe, expect, it, mock } from "bun:test"
+import { afterAll, afterEach, describe, expect, it, mock } from "bun:test"
 import { cleanup, render, screen } from "@testing-library/react"
 
 // bun 的 mock.module 會留給之後的測試檔，只覆寫要用的 hook，其他保留真的（查詢設定等）
@@ -6,16 +6,6 @@ const actualEconomy = { ...(await import("@/hooks/useEconomy")) }
 
 mock.module("@/hooks/useEconomy", () => ({
   ...actualEconomy,
-  useEconomyMe: () => ({
-    data: {
-      cash: 12450,
-      streak_days: 5,
-      level: 3,
-      pending_accrual: 840,
-      bankruptcy_pending: false,
-      xp: 850,
-    },
-  }),
   useAssets: () => ({
     data: {
       cash: 12450,
@@ -25,13 +15,13 @@ mock.module("@/hooks/useEconomy", () => ({
       owned_count: 2,
     },
   }),
-  useClaimAccrual: () => ({ mutate: () => {}, isPending: false }),
-  useProperties: () => ({ data: { tiers: [], owned: [] } }),
-  useBuyProperty: () => ({ mutate: () => {} }),
-  useLiquidate: () => ({ mutate: () => {} }),
 }))
 
 import { AssetSummaryCard } from "./AssetSummaryCard"
+
+afterAll(() => {
+  mock.module("@/hooks/useEconomy", () => actualEconomy)
+})
 
 describe("<AssetSummaryCard />", () => {
   afterEach(cleanup)

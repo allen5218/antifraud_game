@@ -6,11 +6,15 @@ import {
   Menu,
   QrCode,
   ShoppingBag,
+  Sparkles,
   UserRound,
 } from "lucide-react"
 import { useEffect, useState } from "react"
+import { RoomHonors } from "@/components/progression/RoomHonors"
+import { useCollections } from "@/hooks/useCollections"
 import { useClaimAccrual, useEconomyMe } from "@/hooks/useEconomy"
 import { useHomeSummary } from "@/hooks/useHomeSummary"
+import { formatMoney, parseBigIntSafe } from "@/utils/money"
 import {
   mascotLine,
   mascotPose,
@@ -102,6 +106,7 @@ export function RoomScene() {
   const router = useRouter()
   const summary = useHomeSummary()
   const economy = useEconomyMe()
+  const { data: collections } = useCollections()
   const { mutate: claim, isPending } = useClaimAccrual()
   const data = summary.data
   const bubbles = data ? pickBubbles(data) : []
@@ -109,8 +114,8 @@ export function RoomScene() {
   const items = data ? menuItems(data) : []
   const [menuOpen, setMenuOpen] = useState(false)
   const [guideOpen, setGuideOpen] = useState(() => !guideSeenToday())
-  const cash = economy.data?.cash ?? 0
-  const pending = economy.data?.pending_accrual ?? 0
+  const cash = parseBigIntSafe(economy.data?.cash)
+  const pending = parseBigIntSafe(economy.data?.pending_accrual)
   const streakDays = economy.data?.streak_days ?? 0
   const bubbleCount = bubbles.reduce(
     (sum, bubble) => sum + (bubble.count ?? 0),
@@ -163,6 +168,11 @@ export function RoomScene() {
       <RoomStage
         stage={stage ?? lastLook?.stage ?? 0}
         mascotSrc={mascotShown}
+        mascotAppearance={
+          collections?.collectibles.find(
+            (c) => c.item_key === collections.active_appearance,
+          )?.name
+        }
         badges={data ? roomBadges(data) : {}}
         paused={data ? pausedHotspots(data) : []}
         strong={data ? recommended(data) : null}
@@ -170,6 +180,7 @@ export function RoomScene() {
         onMascot={() => setGuideOpen(true)}
         onRoomShown={() => setRoomShown(true)}
       />
+      <RoomHonors />
       {/* 購物與房子貼著畫面左下，避開手機的 Home 橫條 */}
       <div className="absolute bottom-[calc(env(safe-area-inset-bottom)+1rem)] left-3 z-20 flex gap-2">
         <Link
@@ -197,6 +208,14 @@ export function RoomScene() {
         >
           <UserRound aria-hidden className="size-3.5" />我
         </Link>
+        <Link
+          to="/progression"
+          data-testid="room-progression"
+          className={`flex items-center gap-1 rounded-full bg-card px-2.5 py-1.5 text-xs font-bold text-card-foreground shadow ${PRESS}`}
+        >
+          <Sparkles aria-hidden className="size-3.5 text-primary" />
+          裝備
+        </Link>
         {data?.admin_access && (
           <Link
             to="/admin/cohorts"
@@ -223,20 +242,20 @@ export function RoomScene() {
           to="/assets"
           data-testid="hdr-cash"
           className={`flex items-center gap-1 rounded-full bg-card px-2.5 py-1.5 text-xs font-bold shadow ${PRESS} ${
-            cash < 0 ? "text-destructive" : "text-card-foreground"
+            cash < 0n ? "text-destructive" : "text-card-foreground"
           }`}
         >
           <Coins aria-hidden className="size-3.5" />
-          {cash.toLocaleString()}
+          {formatMoney(cash)}
         </Link>
-        {pending > 0 && (
+        {pending > 0n && (
           <button
             type="button"
             disabled={isPending}
             onClick={() => claim()}
             className="rounded-full bg-legit px-2.5 py-1.5 text-xs font-bold text-legit-foreground disabled:opacity-50"
           >
-            可領 {pending.toLocaleString()}
+            可領 {formatMoney(pending)}
           </button>
         )}
       </div>

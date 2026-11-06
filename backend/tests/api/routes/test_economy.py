@@ -67,7 +67,7 @@ def test_me_returns_economy_state(
     assert "bankruptcy_pending" in body
     assert isinstance(body["level"], int)
     assert body["level"] >= 1
-    assert body["cash"] >= 0
+    assert int(body["cash"]) >= 0
 
 
 def test_properties_list_returns_tiers_and_owned(
@@ -102,10 +102,10 @@ def test_assets_summary_for_fresh_user(
     response = client.get(_url("/assets"), headers=normal_user_token_headers)
     assert response.status_code == 200
     body = response.json()
-    assert body["cash"] == 1000
+    assert body["cash"] == "1000"
     assert body["property_value"] == 0
     assert body["daily_income"] == 0
-    assert body["total_net_worth"] == 1000
+    assert body["total_net_worth"] == "1000"
     assert body["owned_count"] == 0
 
 
@@ -129,7 +129,7 @@ def test_buy_property_succeeds(
     assert "property_id" in body
     assert "new_cash" in body
     # tier 1 costs exactly 1000, started with 1000, no accrual → new_cash == 0
-    assert body["new_cash"] == 0
+    assert body["new_cash"] == "0"
 
 
 def test_buy_tier_locked_by_level_returns_400(
@@ -198,9 +198,9 @@ def test_liquidate_clears_bankruptcy(
     assert response.status_code == 200
     body = response.json()
     # recovered = floor(5000 * 0.6) = 3000
-    assert body["recovered"] == 3000
+    assert body["recovered"] == "3000"
     # new cash = -2000 + 3000 = 1000
-    assert body["new_cash"] == 1000
+    assert body["new_cash"] == "1000"
     assert body["bankruptcy_pending"] is False
 
 
@@ -240,9 +240,9 @@ def test_liquidate_partial_insufficient_deficit(
     assert response.status_code == 200
     body = response.json()
     # recovered = floor(1000 * 0.6) = 600
-    assert body["recovered"] == 600
+    assert body["recovered"] == "600"
     # new cash = -5000 + 600 = -4400 (still negative)
-    assert body["new_cash"] == -4400
+    assert body["new_cash"] == "-4400"
     # bankruptcy_pending should remain True since cash is still < 0
     assert body["bankruptcy_pending"] is True
 

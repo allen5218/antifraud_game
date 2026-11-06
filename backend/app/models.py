@@ -1,8 +1,10 @@
 import enum
 import uuid
 from datetime import date, datetime, timezone
+from decimal import Decimal
 from typing import Annotated, Any
 
+import sqlalchemy.types as types
 from pydantic import EmailStr, StringConstraints, field_validator
 from sqlalchemy import (
     BigInteger,
@@ -18,6 +20,34 @@ from sqlalchemy.dialects.postgresql import JSONB
 from sqlmodel import Field, Relationship, SQLModel
 
 from app.scenario.config import MAX_TURNS
+
+
+class SqlBigInt(types.TypeDecorator[int]):
+    """PostgreSQL NUMERIC(78, 0) type decorator that maps to arbitrary-precision Python int.
+    Ensures that values read from and written to DB never undergo float conversion.
+    """
+
+    impl = types.Numeric(78, 0, asdecimal=True)
+    cache_ok = True
+
+    def process_bind_param(self, value: Any, dialect: Any) -> Any:
+        if value is None:
+            return None
+        if isinstance(value, (float, bool)):
+            raise ValueError("資源禁止經過浮點數或布林值")
+        number = Decimal(str(value))
+        if (
+            not number.is_finite()
+            or number != number.to_integral_value()
+            or number.copy_abs() >= Decimal("1e78")
+        ):
+            raise ValueError("資源必須是 78 位範圍內的精確整數")
+        return number
+
+    def process_result_value(self, value: Any, dialect: Any) -> int | None:
+        if value is None:
+            return None
+        return int(Decimal(str(value)))
 
 
 def get_datetime_utc() -> datetime:
@@ -100,11 +130,17 @@ class User(UserBase, table=True):
     items: list["Item"] = Relationship(back_populates="owner", cascade_delete=True)
 
     # ── economy fields ──
-    cash: int = Field(default=1000)
+    cash: int = Field(
+        default=1000,
+        sa_column=Column(SqlBigInt, nullable=False, server_default=text("1000")),
+    )
     xp: int = Field(default=0)
     streak_days: int = Field(default=0)
     streak_last_day: date | None = Field(default=None)
-    pending_accrual: int = Field(default=0)
+    pending_accrual: int = Field(
+        default=0,
+        sa_column=Column(SqlBigInt, nullable=False, server_default=text("0")),
+    )
     last_settled_at: datetime = Field(
         default_factory=get_datetime_utc,
         sa_type=DateTime(timezone=True),  # type: ignore
@@ -950,3 +986,25 @@ class ClassAssignment(SQLModel, table=True):
         default_factory=get_datetime_utc,
         sa_type=DateTime(timezone=True),  # type: ignore
     )
+
+
+# Register progression tables into SQLModel metadata
+from app.progression.models import (  # noqa: E402, F401
+    CollectionGrowth,
+    CompetitionEntry,
+    CompetitionSeason,
+    EquipmentDefinition,
+    EquipmentLoadout,
+    GrowthMilestoneClaim,
+    LoadoutPreset,
+    PlayerCollectible,
+    PlayerEquipment,
+    PlayerGrowth,
+    PlayerShowcase,
+    PlayerUnlock,
+    ProgressionLedger,
+    RewardContext,
+    RewardReceipt,
+    SeasonAward,
+    SeasonFinalRow,
+)

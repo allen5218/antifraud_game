@@ -31,5 +31,25 @@ describe("<QuizSummary />", () => {
     expect(
       screen.getByRole("link", { name: "回房間" }).getAttribute("href"),
     ).toBe("/")
+    expect(
+      screen.getByRole("link", { name: /前往養成與配裝/ }).getAttribute("href"),
+    ).toBe("/progression")
+  })
+
+  it("keeps the growth entry without offering another daily round", async () => {
+    await renderWithRouter(
+      <QuizSummary
+        result={{
+          correct_count: 0,
+          total: 5,
+          best_streak: 0,
+          cash_earned: "0",
+          xp_earned: 0,
+          weakness_summary: [],
+        }}
+      />,
+    )
+    expect(screen.queryByRole("button", { name: "再來一輪" })).toBeNull()
+    expect(screen.getByRole("link", { name: /前往養成與配裝/ })).toBeTruthy()
   })
 })

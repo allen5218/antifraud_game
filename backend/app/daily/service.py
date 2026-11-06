@@ -93,7 +93,13 @@ def get_or_create_daily_session(
             index_where=text("daily_date IS NOT NULL"),
         )
     )
-    session.commit()
     created = _daily_session(session, user_id, challenge.day)
     assert created is not None
+    from app.progression.seasons import get_current_season
+    from app.progression.service import create_reward_context
+
+    create_reward_context(
+        session, user_id, "quiz", created.id, season_id=get_current_season(session).id
+    )
+    session.commit()
     return created

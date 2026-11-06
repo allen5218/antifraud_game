@@ -231,6 +231,8 @@ def test_message_turn_limit(
 def test_judge_report_scam_rewards(
     client: TestClient, db: Session, normal_user_token_headers: dict[str, str]
 ) -> None:
+    from app.progression.service import get_or_create_growth
+
     user = _test_user(db)
     # 共用測試使用者的 cash 可能被其他測試檔留在破產狀態(如 test_economy.py 最後一個
     # 測試刻意留 cash=-4400);此測試斷言 +50 後 triggers_forced_sell 為 False,
@@ -241,6 +243,9 @@ def test_judge_report_scam_rewards(
     db.commit()
     db.refresh(user)
     sc = _make_session(db, user, role="scam", tactics_seen=["greed"])
+    growth = get_or_create_growth(db, user.id)
+    income_before = growth.lifetime_cash
+    db.commit()
     cash_before, xp_before = user.cash, user.xp
     r = client.post(
         f"{settings.API_V1_STR}/scenario/{sc.id}/judge",
@@ -251,16 +256,31 @@ def test_judge_report_scam_rewards(
     data = r.json()
     assert data["outcome"] == "win_report"
     assert data["true_role"] == "scam"
-    assert data["cash_delta"] == 50
+    assert data["cash_delta"] == "50"
+    assert data["reward_receipt"]["final"]["cash_total"] == "50"
+    assert data["reward_receipt"]["final"]["cash_bonus"] == "0"
+    assert data["reward_receipt"]["factors"]["cash"] == "1.0"
     assert data["xp_delta"] == 15
     assert data["flags"][0]["tag"] == "greed"
     assert data["triggers_forced_sell"] is False
     db.refresh(user)
     assert user.cash == cash_before + 50
     assert user.xp == xp_before + 15
+    db.refresh(growth)
+    assert growth.lifetime_cash == income_before + 50
     db.refresh(sc)
     assert sc.status == ScenarioStatus.COMPLETED
     assert sc.outcome == "win_report"
+    replay = client.post(
+        f"{settings.API_V1_STR}/scenario/{sc.id}/judge",
+        headers=normal_user_token_headers,
+        json={"action": "report"},
+    )
+    assert replay.status_code == 400
+    db.refresh(user)
+    db.refresh(growth)
+    assert user.cash == cash_before + 50
+    assert growth.lifetime_cash == income_before + 50
 
 
 def test_judge_comply_scam_loses_and_can_trigger_forced_sell(
@@ -276,7 +296,7 @@ def test_judge_comply_scam_loses_and_can_trigger_forced_sell(
     )
     data = r.json()
     assert data["outcome"] == "lose_scammed"
-    assert data["new_cash"] == -500
+    assert data["new_cash"] == "-500"
     assert data["triggers_forced_sell"] is True
     db.refresh(user)
     assert user.bankruptcy_pending is True
@@ -301,7 +321,7 @@ def test_judge_misreport_legit_costs_penalty(
     assert r.status_code == 200
     data = r.json()
     assert data["outcome"] == "lose_misreport"
-    assert data["cash_delta"] == -10
+    assert data["cash_delta"] == "-10"
     assert data["xp_delta"] == 0
     db.refresh(user)
     assert user.cash == cash_before - 10
@@ -319,7 +339,7 @@ def test_judge_trust_legit_small_reward_with_signals(
     )
     data = r.json()
     assert data["outcome"] == "win_trust"
-    assert data["cash_delta"] == 30
+    assert data["cash_delta"] == "30"
     assert all(f["tag"] is None for f in data["flags"])
     assert len(data["flags"]) >= 2
 

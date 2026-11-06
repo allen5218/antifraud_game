@@ -1,0 +1,10 @@
+bun test v1.4.4 (38afee6c8)
+
+evaluation-math.test.ts:
+(pass) free rank-one equipment analysis excludes the paid rank-two upgrade [45.46ms]
+(pass) rounding preserves a large integer and can erase a small pet energy bonus [1.41ms]
+
+ 2 pass
+ 0 fail
+ 4 expect() calls
+Ran 2 tests across 1 file. [4.58s]

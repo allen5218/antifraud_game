@@ -1,5 +1,7 @@
 import { RotateCcw } from "lucide-react"
 import type { SwipeCompleteResponse } from "@/client"
+import { RewardBreakdown } from "@/components/progression/RewardBreakdown"
+import { formatMoney } from "@/utils/money"
 
 export function SwipeRoundSummary({
   result,
@@ -15,12 +17,15 @@ export function SwipeRoundSummary({
       <div className="grid grid-cols-3 gap-2">
         <Metric
           label="獎勵"
-          value={`+$${result.cash_earned}`}
+          value={`+$${formatMoney(result.cash_earned)}`}
           accent="text-legit"
         />
         <Metric label="經驗" value={`+${result.xp_earned} XP`} />
         <Metric label="最佳連勝" value={String(result.best_streak)} />
       </div>
+      {result.reward_receipt && (
+        <RewardBreakdown receipt={result.reward_receipt} className="mt-3" />
+      )}
       {top && (
         <div className="mt-3 rounded-md border border-warning/40 bg-warning/15 px-3 py-2 text-xs">
           這輪最常漏看的話術：<b>{top.label}</b>

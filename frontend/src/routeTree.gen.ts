@@ -25,6 +25,7 @@ import { Route as BadgeSlugRouteImport } from './routes/badge.$slug'
 import { Route as ShellTeamRouteImport } from './routes/_shell/team'
 import { Route as ShellSurveyRouteImport } from './routes/_shell/survey'
 import { Route as ShellShopRouteImport } from './routes/_shell/shop'
+import { Route as ShellProgressionRouteImport } from './routes/_shell/progression'
 import { Route as ShellMeRouteImport } from './routes/_shell/me'
 import { Route as ShellLeaderboardRouteImport } from './routes/_shell/leaderboard'
 import { Route as ShellExamRouteImport } from './routes/_shell/exam'
@@ -120,6 +121,11 @@ const ShellSurveyRoute = ShellSurveyRouteImport.update({
 const ShellShopRoute = ShellShopRouteImport.update({
   id: '/shop',
   path: '/shop',
+  getParentRoute: () => ShellRoute,
+} as any)
+const ShellProgressionRoute = ShellProgressionRouteImport.update({
+  id: '/progression',
+  path: '/progression',
   getParentRoute: () => ShellRoute,
 } as any)
 const ShellMeRoute = ShellMeRouteImport.update({
@@ -232,6 +238,7 @@ export interface FileRoutesByFullPath {
   '/exam': typeof ShellExamRoute
   '/leaderboard': typeof ShellLeaderboardRoute
   '/me': typeof ShellMeRoute
+  '/progression': typeof ShellProgressionRoute
   '/shop': typeof ShellShopRoute
   '/survey': typeof ShellSurveyRoute
   '/team': typeof ShellTeamRoute
@@ -266,6 +273,7 @@ export interface FileRoutesByTo {
   '/exam': typeof ShellExamRoute
   '/leaderboard': typeof ShellLeaderboardRoute
   '/me': typeof ShellMeRoute
+  '/progression': typeof ShellProgressionRoute
   '/shop': typeof ShellShopRoute
   '/survey': typeof ShellSurveyRoute
   '/team': typeof ShellTeamRoute
@@ -302,6 +310,7 @@ export interface FileRoutesById {
   '/_shell/exam': typeof ShellExamRoute
   '/_shell/leaderboard': typeof ShellLeaderboardRoute
   '/_shell/me': typeof ShellMeRoute
+  '/_shell/progression': typeof ShellProgressionRoute
   '/_shell/shop': typeof ShellShopRoute
   '/_shell/survey': typeof ShellSurveyRoute
   '/_shell/team': typeof ShellTeamRoute
@@ -339,6 +348,7 @@ export interface FileRouteTypes {
     | '/exam'
     | '/leaderboard'
     | '/me'
+    | '/progression'
     | '/shop'
     | '/survey'
     | '/team'
@@ -373,6 +383,7 @@ export interface FileRouteTypes {
     | '/exam'
     | '/leaderboard'
     | '/me'
+    | '/progression'
     | '/shop'
     | '/survey'
     | '/team'
@@ -408,6 +419,7 @@ export interface FileRouteTypes {
     | '/_shell/exam'
     | '/_shell/leaderboard'
     | '/_shell/me'
+    | '/_shell/progression'
     | '/_shell/shop'
     | '/_shell/survey'
     | '/_shell/team'
@@ -553,6 +565,13 @@ declare module '@tanstack/react-router' {
       path: '/shop'
       fullPath: '/shop'
       preLoaderRoute: typeof ShellShopRouteImport
+      parentRoute: typeof ShellRoute
+    }
+    '/_shell/progression': {
+      id: '/_shell/progression'
+      path: '/progression'
+      fullPath: '/progression'
+      preLoaderRoute: typeof ShellProgressionRouteImport
       parentRoute: typeof ShellRoute
     }
     '/_shell/me': {
@@ -709,6 +728,7 @@ interface ShellRouteChildren {
   ShellExamRoute: typeof ShellExamRoute
   ShellLeaderboardRoute: typeof ShellLeaderboardRoute
   ShellMeRoute: typeof ShellMeRoute
+  ShellProgressionRoute: typeof ShellProgressionRoute
   ShellShopRoute: typeof ShellShopRoute
   ShellSurveyRoute: typeof ShellSurveyRoute
   ShellTeamRoute: typeof ShellTeamRoute
@@ -729,6 +749,7 @@ const ShellRouteChildren: ShellRouteChildren = {
   ShellExamRoute: ShellExamRoute,
   ShellLeaderboardRoute: ShellLeaderboardRoute,
   ShellMeRoute: ShellMeRoute,
+  ShellProgressionRoute: ShellProgressionRoute,
   ShellShopRoute: ShellShopRoute,
   ShellSurveyRoute: ShellSurveyRoute,
   ShellTeamRoute: ShellTeamRoute,

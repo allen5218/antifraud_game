@@ -9,6 +9,7 @@ import {
   useEconomyMe,
 } from "@/hooks/useEconomy"
 import { HOME_SUMMARY_KEY } from "@/hooks/useHomeSummary"
+import { parseBigIntSafe } from "@/utils/money"
 import { MascotCard } from "./MascotCard"
 import { mascotApi, mascotItemsQuery } from "./mascotApi"
 
@@ -40,7 +41,7 @@ export function ShopPage() {
   // 跟 useBuyProperty 同一把 query key，買完會一起刷新。
   const { data: properties } = useQuery(propertiesQuery)
   const { mutate: buyProperty } = useBuyProperty()
-  const cash = me?.cash ?? 0
+  const cash = parseBigIntSafe(me?.cash)
   const level = me?.level ?? 1
   const ownedCount = new Map<number, number>()
   for (const owned of properties?.owned ?? []) {
@@ -114,7 +115,7 @@ export function ShopPage() {
                 tier={tier}
                 count={count}
                 locked={level < tier.unlock_level}
-                affordable={cash >= tier.price}
+                affordable={cash >= BigInt(tier.price)}
                 onBuy={() => buyProperty(tier.id)}
               />
             )

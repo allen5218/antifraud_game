@@ -13,6 +13,7 @@ import {
   SurveyPrompt,
 } from "@/components/survey/SurveyPrompt"
 import { FRAUD_TYPES, fraudTypeLabel } from "@/lib/fraudTypes"
+import { formatMoney, parseBigIntSafe } from "@/utils/money"
 import { ExamBadges } from "./ExamBadges"
 
 export function ExamResult({ state }: { state: ExamState }) {
@@ -115,9 +116,9 @@ export function ExamResult({ state }: { state: ExamState }) {
         </section>
       )}
       {result.badges.length > 0 && <ExamBadges badges={result.badges} />}
-      {(result.reward.cash ?? 0) + (result.reward.xp ?? 0) > 0 && (
+      {(parseBigIntSafe(result.reward.cash) > 0n || (result.reward.xp ?? 0) > 0) && (
         <p className="text-sm">
-          獲得 {result.reward.cash ?? 0} 遊戲幣、{result.reward.xp ?? 0} 經驗。
+          獲得 {formatMoney(result.reward.cash)} 遊戲幣、{result.reward.xp ?? 0} 經驗。
         </p>
       )}
       <SurveyPrompt />

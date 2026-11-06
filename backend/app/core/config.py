@@ -95,6 +95,10 @@ class Settings(BaseSettings):
     FIRST_SUPERUSER_PASSWORD: str
 
     GOOGLE_API_KEY: str = ""
+    SCENARIO_MODEL: str = "google:gemini-3.5-flash"
+    SCENARIO_FALLBACK_MODELS: str = (
+        "google:gemini-3.5-flash-lite,google:gemini-3.1-flash-lite"
+    )
 
     # 第三方登入；沒填就不開放那一家(登入頁也不顯示按鈕)。
     # 回呼網址是 {FRONTEND_HOST}/oauth/<google|line>/callback,要在兩家的後台登記。

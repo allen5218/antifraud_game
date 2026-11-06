@@ -2,7 +2,7 @@ from collections.abc import Generator
 from typing import Annotated
 
 import jwt
-from fastapi import Depends, HTTPException, status
+from fastapi import Depends, HTTPException, Request, status
 from fastapi.security import OAuth2PasswordBearer
 from jwt.exceptions import InvalidTokenError
 from pydantic import ValidationError
@@ -27,7 +27,7 @@ SessionDep = Annotated[Session, Depends(get_db)]
 TokenDep = Annotated[str, Depends(reusable_oauth2)]
 
 
-def get_current_user(session: SessionDep, token: TokenDep) -> User:
+def get_current_user(session: SessionDep, token: TokenDep, request: Request) -> User:
     try:
         payload = jwt.decode(
             token, settings.SECRET_KEY, algorithms=[security.ALGORITHM]
@@ -47,6 +47,17 @@ def get_current_user(session: SessionDep, token: TokenDep) -> User:
         )
     if not user.is_active:
         raise HTTPException(status_code=400, detail="Inactive user")
+    if (
+        max(abs(user.cash), abs(user.pending_accrual)) > 2**53 - 1
+        and request.headers.get("X-ScamGym-Client-Version") != "2"
+    ):
+        raise HTTPException(
+            426,
+            {
+                "code": "client_upgrade_required",
+                "detail": "請重新整理遊戲以使用精確金額版本",
+            },
+        )
     return user
 
 

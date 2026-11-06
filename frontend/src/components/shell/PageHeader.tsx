@@ -5,6 +5,7 @@ const TITLES: { prefix: string; title: string }[] = [
   { prefix: "/quick/swipe", title: "滑卡訓練" },
   { prefix: "/quick/quiz", title: "訊息判讀" },
   { prefix: "/daily", title: "每日訓練" },
+  { prefix: "/progression", title: "養成與裝備" },
   { prefix: "/leaderboard", title: "排行榜" },
   { prefix: "/exam", title: "檢測" },
   { prefix: "/assets", title: "我的資產" },

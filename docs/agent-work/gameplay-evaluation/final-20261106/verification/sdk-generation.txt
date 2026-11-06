@@ -1,0 +1,3 @@
+$ openapi-ts
+⏳ [36mGenerating from[39m ./openapi.json
+[32m🚀 Done![39m Your output is in [96m/app/frontend/src/client[39m

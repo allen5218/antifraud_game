@@ -52,6 +52,9 @@ export function useSwipeComplete() {
       QuickService.swipeComplete({ requestBody: { session_id: sessionId } }),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["economy"] })
+      qc.invalidateQueries({ queryKey: ["progression"] })
+      qc.invalidateQueries({ queryKey: ["collections"] })
+      qc.invalidateQueries({ queryKey: ["collection-board"] })
       refreshPracticeProfileSoon(qc)
     },
   })

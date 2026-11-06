@@ -1,4 +1,4 @@
-import { afterEach, describe, expect, it, mock } from "bun:test"
+import { afterAll, afterEach, describe, expect, it, mock } from "bun:test"
 import { cleanup, fireEvent, render, screen } from "@testing-library/react"
 
 // 破產未發生時
@@ -59,9 +59,6 @@ mock.module("@/hooks/useEconomy", () => ({
   useEconomyMe: () => ({ data: defaultMeData }),
   useProperties: () => ({ data: { tiers: [], owned: mockOwned } }),
   useLiquidate: () => ({ mutate: mockLiquidate }),
-  useClaimAccrual: () => ({ mutate: () => {}, isPending: false }),
-  useAssets: () => ({ data: null }),
-  useBuyProperty: () => ({ mutate: () => {} }),
 }))
 
 import { ForcedSellModal } from "./ForcedSellModal"
@@ -69,6 +66,10 @@ import { ForcedSellModal } from "./ForcedSellModal"
 afterEach(() => {
   cleanup()
   mockLiquidate.mockClear()
+})
+
+afterAll(() => {
+  mock.module("@/hooks/useEconomy", () => actualEconomy)
 })
 
 describe("<ForcedSellModal />", () => {

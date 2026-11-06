@@ -65,7 +65,10 @@ test("開啟公開才顯示查驗連結及 QR，關閉收起連結", async () =>
     badgeId: "b",
     requestBody: { is_public: true },
   })
-  fireEvent.click(screen.getByRole("checkbox", { name: "公開這枚徽章" }))
+  const checkbox = screen.getByRole("checkbox", { name: "公開這枚徽章" }) as HTMLInputElement
+  await waitFor(() => expect(checkbox.disabled).toBe(false))
+  fireEvent.click(checkbox)
+  await waitFor(() => expect(toggle).toHaveBeenCalledTimes(2))
   await waitFor(() => expect(screen.queryByRole("link")).toBeNull())
 })
 test("公開查驗只顯示允許欄位與複測提示，不顯示分數或私有類型", async () => {

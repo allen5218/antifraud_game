@@ -618,12 +618,12 @@ def test_complete_rewards_all_three_types_equally(
     data = response.json()
     assert data["total"] == len(items)
     assert data["correct_count"] == len(items)
-    assert data["cash_earned"] == int(
+    assert int(data["cash_earned"]) == int(
         40 * len(items) * (1 + 0.1 * (data["best_streak"] // 3))
     )
     assert data["xp_earned"] == 20 * len(items)
     db.refresh(user)
-    assert user.cash == cash_before + data["cash_earned"]
+    assert user.cash == cash_before + int(data["cash_earned"])
     assert user.xp == xp_before + data["xp_earned"]
 
 

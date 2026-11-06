@@ -2,7 +2,7 @@
  * 在 frontend 執行：bun test src/components/Admin/InviteCohort.test.tsx
  * QR 畫布與下載出口使用替身，實際掃碼與瀏覽器下載需另做驗證。
  */
-import { afterEach, expect, mock, test } from "bun:test"
+import { afterAll, afterEach, expect, mock, test } from "bun:test"
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query"
 import {
   cleanup,
@@ -39,9 +39,10 @@ const cohort = {
   created_by: "admin",
 }
 
-const { QRCodeSVG } = await import("qrcode.react")
+const actualQr = { ...(await import("qrcode.react")) }
+const { QRCodeSVG } = actualQr
 
-const actualRouter = await import("@tanstack/react-router")
+const actualRouter = { ...(await import("@tanstack/react-router")) }
 mock.module("@tanstack/react-router", () => ({
   ...actualRouter,
   createFileRoute: () => (options: any) => ({
@@ -80,7 +81,7 @@ mock.module("qrcode.react", () => ({
   },
 }))
 // 保留其他匯出：模組替換會留到之後的測試檔（例如要用 HomeService 的元件）
-const actualClient = await import("@/client")
+const actualClient = { ...(await import("@/client")) }
 mock.module("@/client", () => ({
   ...actualClient,
   ApiError,
@@ -241,6 +242,12 @@ afterEach(() => {
   navigate.mockClear()
   calls = 0
   mode = "success"
+})
+
+afterAll(() => {
+  mock.module("@tanstack/react-router", () => actualRouter)
+  mock.module("qrcode.react", () => actualQr)
+  mock.module("@/client", () => actualClient)
 })
 
 test("StrictMode 只兌換一次，切換帳號清除舊資料，重開邀請保留受試者", async () => {

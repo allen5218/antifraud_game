@@ -20,6 +20,7 @@ const VIEW_INSET = 14 // 點擊範圍離畫面邊緣至少這麼遠，右上角�
 type Props = {
   stage: number
   mascotSrc: string
+  mascotAppearance?: string | null
   badges: Partial<Record<HotspotId, Badge>>
   paused: HotspotId[]
   strong: HotspotId | null
@@ -54,6 +55,7 @@ function tapBox(rect: Rect, viewW: number, viewH: number) {
 export function RoomStage({
   stage,
   mascotSrc,
+  mascotAppearance,
   badges,
   paused,
   strong,
@@ -108,10 +110,17 @@ export function RoomStage({
               )}
               <img
                 data-testid={`layer-${layer.id}`}
+                data-appearance={
+                  layer.target === "mascot" ? mascotAppearance : undefined
+                }
                 src={layer.src}
                 alt=""
                 draggable={false}
-                className="absolute"
+                className={
+                  layer.target === "mascot" && mascotAppearance
+                    ? "absolute drop-shadow-[0_0_18px_var(--color-warning)]"
+                    : "absolute"
+                }
                 style={box}
               />
               {layer.id === "bookshelf" &&

@@ -20,6 +20,8 @@ from app.practice.service import (
     queue_refresh,
     record_answers,
 )
+from app.progression.models import RewardContext
+from app.progression.service import create_reward_context, settle_reward
 from app.scenario import agent as scenario_agent
 from app.scenario import manager
 from app.scenario.config import (
@@ -33,6 +35,7 @@ from app.scenario.config import (
 )
 from app.scenario.input_guard import InputRejected, check_player_text
 from app.schemas import (
+    RewardReceiptSchema,
     ScenarioDetail,
     ScenarioInboxItem,
     ScenarioJudgeRequest,
@@ -75,6 +78,7 @@ def _create_session(
         penalty_misreport=econ.penalty_misreport,
     )
     session.add(sc)
+    create_reward_context(session, user_id, "scenario", sc.id)
     session.commit()
     session.refresh(sc)
     return sc
@@ -388,6 +392,35 @@ def judge_scenario(
     missed = list(sc.tactics_seen) if outcome == manager.OUTCOME_LOSE_SCAMMED else []
     user_id = current_user.id
     record_answers(session, user_id, "scenario", [(sc.fraud_type, won, missed)])
+    # 情境結算倍率：成功時獲得倍率養成經驗與鍛造能量（現金維持原值）
+    receipt_schema = None
+    if won and xp_delta > 0:
+        context = session.exec(
+            select(RewardContext).where(
+                RewardContext.source_kind == "scenario",
+                RewardContext.source_id == sc.id,
+            )
+        ).first() or create_reward_context(session, current_user.id, "scenario", sc.id)
+        receipt, _ = settle_reward(
+            session,
+            current_user,
+            context,
+            base_cash=cash_delta,
+            base_xp=xp_delta,
+            reason="scenario_reward",
+            allow_cash_multiplier=False,
+        )
+        receipt_schema = RewardReceiptSchema(
+            receipt_id=receipt.id,
+            source_kind="scenario",
+            config_version=context.config_version,
+            base=receipt.base_rewards,
+            factors=receipt.factors,
+            final=receipt.final_rewards,
+            core_level_before=receipt.core_level_before,
+            core_level_after=receipt.core_level_after,
+        )
+
     # 回應在 commit 前組好:current_user.cash 已經是 adjust_cash 之後的值(列已鎖),
     # commit 之後就不再讀 ORM 屬性(理由見 queue_refresh)
     response = ScenarioJudgeResponse(
@@ -400,6 +433,7 @@ def judge_scenario(
         new_cash=current_user.cash,
         triggers_forced_sell=current_user.cash < 0,
         case_provenance=case.provenance if case else None,
+        reward_receipt=receipt_schema,
     )
     session.commit()
     queue_refresh(background_tasks, session, user_id)

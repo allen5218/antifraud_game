@@ -3,10 +3,11 @@ import { LeaderboardService } from "@/client"
 
 export type LeaderboardPeriod = "today" | "week"
 
-export function useLeaderboard(period: LeaderboardPeriod) {
+export function useLeaderboard(period: LeaderboardPeriod, enabled = true) {
   return useQuery({
     queryKey: ["leaderboard", period],
     queryFn: () => LeaderboardService.readLeaderboard({ period }),
+    enabled,
     staleTime: 30_000,
     retry: false,
   })

@@ -1,0 +1,237 @@
+[
+  {
+    "path": "backend/app/core/cases.py",
+    "sha256": "0a1d7dfac0c7ada51e3e073fc309c2dae2d58ab3b0d9076c7c7ac6fb5c9fb60b",
+    "unchangedIgnoringLineEndings": true
+  },
+  {
+    "path": "backend/app/scenario/manager.py",
+    "sha256": "fd35006194bd8530f8e304b19888849174c0b826078660dba86bdee1bb73b6dc",
+    "unchangedIgnoringLineEndings": true
+  },
+  {
+    "path": "backend/skills/fraud-atm/SKILL.md",
+    "sha256": "87b460045717c330300f8bf7d3a9785e8343a7afee0553c96765f0d79ae61878",
+    "unchangedIgnoringLineEndings": true
+  },
+  {
+    "path": "backend/skills/fraud-atm/personas/exam-legit.soul.md",
+    "sha256": "fb2518d41dc6e13cb1c51786f332a1fd9e97d5298282642a94f72db60436330c",
+    "unchangedIgnoringLineEndings": true
+  },
+  {
+    "path": "backend/skills/fraud-atm/personas/exam-scammer.soul.md",
+    "sha256": "7593b89a93f98fdbaed93e3c940bd3cab8b2f6eb1596c62a305af050107239b9",
+    "unchangedIgnoringLineEndings": true
+  },
+  {
+    "path": "backend/skills/fraud-atm/personas/legit.soul.md",
+    "sha256": "b9beaaaad9a3af92d9c9e12dcb08b550841428fee4d4e203bdbaa0b13c3e8f7f",
+    "unchangedIgnoringLineEndings": true
+  },
+  {
+    "path": "backend/skills/fraud-atm/personas/scammer.soul.md",
+    "sha256": "b85b0051f7e67f65c6aab62ee732177d61fa97f12e8ee8bd6b488797429d8f04",
+    "unchangedIgnoringLineEndings": true
+  },
+  {
+    "path": "backend/skills/fraud-fake-sale/SKILL.md",
+    "sha256": "ebb2842670a2726dcbe5ea26a7862a37e1a18fea8f7dd2c93d5606ef26446ba7",
+    "unchangedIgnoringLineEndings": true
+  },
+  {
+    "path": "backend/skills/fraud-fake-sale/personas/exam-legit.soul.md",
+    "sha256": "745c87b0bab4dd40c1419ac53aa4b99415723a6b4905c5418f7d6ed4c42803cc",
+    "unchangedIgnoringLineEndings": true
+  },
+  {
+    "path": "backend/skills/fraud-fake-sale/personas/exam-scammer.soul.md",
+    "sha256": "f4ce222b923db7009b24b99a90e5f79f34af97d60d83e1118b1066612f734cb3",
+    "unchangedIgnoringLineEndings": true
+  },
+  {
+    "path": "backend/skills/fraud-fake-sale/personas/legit.soul.md",
+    "sha256": "a09761ab08980fd8b161a24e665fa4005add3141ba5a1bf680896b15f93f7a6f",
+    "unchangedIgnoringLineEndings": true
+  },
+  {
+    "path": "backend/skills/fraud-fake-sale/personas/scammer.soul.md",
+    "sha256": "9f90680a65d2d3ca4eed863582b8e10c03d86ce1f4567d14580e308a01ed73a8",
+    "unchangedIgnoringLineEndings": true
+  },
+  {
+    "path": "backend/skills/fraud-investment/SKILL.md",
+    "sha256": "ccd83da6fe9a89038aaed2b4d9e3d47a5ae32ff8da09a139e950e7eb7930f925",
+    "unchangedIgnoringLineEndings": true
+  },
+  {
+    "path": "backend/skills/fraud-investment/personas/exam-legit.soul.md",
+    "sha256": "f029b8ea2a9b79466a989b2ca3d0e8d0d9b7cec51a0729b87bf78a2c5fbf8404",
+    "unchangedIgnoringLineEndings": true
+  },
+  {
+    "path": "backend/skills/fraud-investment/personas/exam-scammer.soul.md",
+    "sha256": "b94f51d35d4f3c2cebae1a2ab4ac1638e615b0deafff848e2af183a0343321d5",
+    "unchangedIgnoringLineEndings": true
+  },
+  {
+    "path": "backend/skills/fraud-investment/personas/legit.soul.md",
+    "sha256": "c9ec940e7cbb0ac47cc9a3f9f1086efc5e4ca40c60b54b28d64be1084cfa0bbb",
+    "unchangedIgnoringLineEndings": true
+  },
+  {
+    "path": "backend/skills/fraud-investment/personas/scammer.soul.md",
+    "sha256": "8c850cb6494562e849a77ae93614d5241b4568b958b51c0754e1dc0df95949cf",
+    "unchangedIgnoringLineEndings": true
+  },
+  {
+    "path": "backend/skills/fraud-romance/SKILL.md",
+    "sha256": "907769d358578ef0daf1e3121250c2611e12591695e139749a8fcd5a3df9d789",
+    "unchangedIgnoringLineEndings": true
+  },
+  {
+    "path": "backend/skills/fraud-romance/personas/exam-legit.soul.md",
+    "sha256": "afdd7c481d7e53e81c1262be62fbccf59abd7effb55cf2170966c2033a9ff30b",
+    "unchangedIgnoringLineEndings": true
+  },
+  {
+    "path": "backend/skills/fraud-romance/personas/exam-scammer.soul.md",
+    "sha256": "8c9d7ab8333a7e9061b1563b31b72fad9bca29e9d9310ca16e8eb2a0a75a2060",
+    "unchangedIgnoringLineEndings": true
+  },
+  {
+    "path": "backend/skills/fraud-romance/personas/legit.soul.md",
+    "sha256": "9b7596100cf0ada513ac804703c63d0a0d9fd7975de549ae02eb2b69a619ea96",
+    "unchangedIgnoringLineEndings": true
+  },
+  {
+    "path": "backend/skills/fraud-romance/personas/scammer.soul.md",
+    "sha256": "ee0715dfdaf889ad5c2b3b56c0fee597637963aa99d8dd5cfd50b407adf47a41",
+    "unchangedIgnoringLineEndings": true
+  },
+  {
+    "path": "backend/skills/fraud-shopping/SKILL.md",
+    "sha256": "e698abc72d880159af6b6e9b464440e8c4db5ba67e0147c4021b038c6fdf2be1",
+    "unchangedIgnoringLineEndings": true
+  },
+  {
+    "path": "backend/skills/fraud-shopping/personas/exam-legit.soul.md",
+    "sha256": "e491e1cfdbb0f880c4810dd4693b89c05fd1eefc9ee47ec26486845cae6c611c",
+    "unchangedIgnoringLineEndings": true
+  },
+  {
+    "path": "backend/skills/fraud-shopping/personas/exam-scammer.soul.md",
+    "sha256": "24b4131e7e19fd876e96c3886dea73e0c94d83ab616165ac510deda856bb9356",
+    "unchangedIgnoringLineEndings": true
+  },
+  {
+    "path": "backend/skills/fraud-shopping/personas/legit.soul.md",
+    "sha256": "f73d2dc327731dd8ead45d41e75bf8c78785fc1ea3e20b2026473abee8c383c5",
+    "unchangedIgnoringLineEndings": true
+  },
+  {
+    "path": "backend/skills/fraud-shopping/personas/scammer.soul.md",
+    "sha256": "f8b8714f25b328f9375f0f4c6988201b97a948f088679931bcd66b4b4e04c8bc",
+    "unchangedIgnoringLineEndings": true
+  },
+  {
+    "path": "data_pipeline/data/manual/case_questions_2026q4.jsonl",
+    "sha256": "de0b7c20404f545f65df4145821a4fb0ec2dca9cb02dfe727e0926610b4305af",
+    "unchangedIgnoringLineEndings": true
+  },
+  {
+    "path": "data_pipeline/data/manual/legit_drafts_2026q3.jsonl",
+    "sha256": "de32adbb7563b5d11ec581eb0e5788c8dc3c6366e4d40cce44e997666f4af380",
+    "unchangedIgnoringLineEndings": true
+  },
+  {
+    "path": "data_pipeline/data/manual/legit_drafts_2026q4.jsonl",
+    "sha256": "fb3502d534c88e95dfd61dccaf943c5c6e156077bfb76ebdf8c64a34ffc7e828",
+    "unchangedIgnoringLineEndings": true
+  },
+  {
+    "path": "data_pipeline/data/manual/legit_hard_drafts.jsonl",
+    "sha256": "e43d4ecfb8f05670785775c5ac32883f2945b5f22a1e0884287d6494ec7fc635",
+    "unchangedIgnoringLineEndings": true
+  },
+  {
+    "path": "data_pipeline/data/manual/legit_process_docs.jsonl",
+    "sha256": "08ab1a68fed7b3ee3dfee7ba4c058eb8327cf75c89634304f78427ca914b6877",
+    "unchangedIgnoringLineEndings": true
+  },
+  {
+    "path": "data_pipeline/data/manual/scam_drafts_2026q3.jsonl",
+    "sha256": "044e49404755b2262aa2979f63117f35a545d25719602f2fe2965fb05d91daaa",
+    "unchangedIgnoringLineEndings": true
+  },
+  {
+    "path": "data_pipeline/data/manual/scam_drafts_2026q4.jsonl",
+    "sha256": "bc7249a4142657dbd0890e889bf980f513d6be32bf131867afcdd27f4f83ab30",
+    "unchangedIgnoringLineEndings": true
+  },
+  {
+    "path": "data_pipeline/data/manual/scam_rewrite_drafts.jsonl",
+    "sha256": "499976b280ac5953324c1e0314af53e8eebd2dde04640bb8b867ce30a6dc8180",
+    "unchangedIgnoringLineEndings": true
+  },
+  {
+    "path": "data_pipeline/data/manual/seed_game_cases.jsonl",
+    "sha256": "982ec6a35b60711b36d287cb9ea4267a9187a865adb2b74be160f195787850ad",
+    "unchangedIgnoringLineEndings": true
+  },
+  {
+    "path": "deploy/seed/game_case_questions.sql",
+    "sha256": "aaac5c2a29fe8be31a4431c6916dcd4a04e79e5aa85d36d70c09044196b74f27",
+    "unchangedIgnoringLineEndings": true
+  },
+  {
+    "path": "deploy/seed/game_cases.sql",
+    "sha256": "9e87b9c91b6a04970a5fca9f4769a7939267a22d10b4dba4b2bfa1402d0ff874",
+    "unchangedIgnoringLineEndings": true
+  },
+  {
+    "path": "deploy/sql/2026-09-25-question-bank-wording.py",
+    "sha256": "b47ec594b8dd072f5987aba813febc9a4433a37acbbbd5c33964e079b6d7a9aa",
+    "unchangedIgnoringLineEndings": true
+  },
+  {
+    "path": "deploy/sql/2026-09-25-question-bank-wording.sql",
+    "sha256": "4d0ef0f0eab70c9bef2bd4c528a230f84556a1e2e4a351c44dc7ba3c464f7986",
+    "unchangedIgnoringLineEndings": true
+  },
+  {
+    "path": "deploy/sql/2026-09-27-question-provenance.py",
+    "sha256": "7596aab1cd570a8139e0af2dbba86a8da0065962e6166df107786d33de721bc0",
+    "unchangedIgnoringLineEndings": true
+  },
+  {
+    "path": "deploy/sql/2026-09-27-question-provenance.sql",
+    "sha256": "8f0fc82c336495df99b29580376ad42c1cc4bab2993ed3a08021728114b44203",
+    "unchangedIgnoringLineEndings": true
+  },
+  {
+    "path": "deploy/sql/2026-10-09-game-cases-pool.sql",
+    "sha256": "1ff79a7b3ef566b446a85000a4530d73eac3cc69987f88b61cf2a570d73126cc",
+    "unchangedIgnoringLineEndings": true
+  },
+  {
+    "path": "deploy/sql/2026-10-16-exam-cases.sql",
+    "sha256": "01776c5c2622c2b00a8f7309825957d640acd44505cef50b379ac6b349f7db8d",
+    "unchangedIgnoringLineEndings": true
+  },
+  {
+    "path": "deploy/sql/2026-10-16-question-rewrites.py",
+    "sha256": "d5b9f68cc5852aa27ed8bd5909dfa47fb8af6defa96bf670092f0f38743a277a",
+    "unchangedIgnoringLineEndings": true
+  },
+  {
+    "path": "deploy/sql/2026-10-16-question-rewrites.sql",
+    "sha256": "d6bbd89783b6c3073c2d38f69330d511248ffb9c4cd1a243e71113d0e9a43e80",
+    "unchangedIgnoringLineEndings": true
+  },
+  {
+    "path": "deploy/sql/2026-10-22-shopping-004-title-price.sql",
+    "sha256": "5f6af5c2f201db9d590c0e9dba10dc755461e369a03ee8e2aa26d52edb0c8bbb",
+    "unchangedIgnoringLineEndings": true
+  }
+]

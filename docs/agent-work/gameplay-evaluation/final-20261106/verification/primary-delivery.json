@@ -1,0 +1,39 @@
+{
+  "passed": true,
+  "checkedAt": "2026-11-06T05:24:35.880Z",
+  "website": "http://localhost:17173",
+  "api": "http://localhost:20000",
+  "websiteStatus": 200,
+  "healthStatus": 200,
+  "persistence": {
+    "passed": true,
+    "fullStackRestart": true,
+    "accounts": 2,
+    "checks": [
+      "cash",
+      "core and resources",
+      "equipment and ranks",
+      "presets",
+      "pet bond",
+      "collectibles and display",
+      "active appearance"
+    ],
+    "at": "2026-11-06T05:23:53.849Z"
+  },
+  "browser": {
+    "passed": true,
+    "website": "http://localhost:17173",
+    "nginxProductionBuild": true,
+    "mockedResponses": false,
+    "checks": [
+      "real login",
+      "mobile room",
+      "equip persisted after reload",
+      "season and permanent boards",
+      "loaded public showcase"
+    ],
+    "browserErrors": [],
+    "at": "2026-11-06T05:24:00.017Z"
+  },
+  "sqliteUsed": false
+}

@@ -2,7 +2,32 @@ import uuid
 from datetime import date, datetime
 from typing import Annotated, Any, Literal
 
-from pydantic import BaseModel, ConfigDict, Field, StrictBool, StringConstraints
+from pydantic import (
+    BaseModel,
+    BeforeValidator,
+    ConfigDict,
+    Field,
+    PlainSerializer,
+    StrictBool,
+    StringConstraints,
+    WithJsonSchema,
+)
+
+
+def _decimal_integer(value: Any) -> int:
+    if isinstance(value, int) and not isinstance(value, bool):
+        return value
+    if isinstance(value, str) and value.lstrip("-").isdigit():
+        return int(value)
+    raise ValueError("金額必須是精確整數或十進位整數字串")
+
+
+DecimalStr = Annotated[
+    int,
+    BeforeValidator(_decimal_integer),
+    PlainSerializer(str, return_type=str, when_used="json"),
+    WithJsonSchema({"type": "string", "pattern": "^-?[0-9]+$"}),
+]
 
 
 class ExamGateCount(BaseModel):
@@ -109,11 +134,11 @@ class HomeSummary(BaseModel):
 
 
 class EconomyMeResponse(BaseModel):
-    cash: int
+    cash: DecimalStr
     xp: int
     level: int
     streak_days: int
-    pending_accrual: int
+    pending_accrual: DecimalStr
     bankruptcy_pending: bool
 
 
@@ -138,16 +163,16 @@ class PropertiesListResponse(BaseModel):
 
 
 class AssetSummaryResponse(BaseModel):
-    cash: int
+    cash: DecimalStr
     property_value: int
     daily_income: int
-    total_net_worth: int
+    total_net_worth: DecimalStr
     owned_count: int
 
 
 class BuyPropertyResponse(BaseModel):
     property_id: str
-    new_cash: int
+    new_cash: DecimalStr
 
 
 class LiquidateRequest(BaseModel):
@@ -155,8 +180,8 @@ class LiquidateRequest(BaseModel):
 
 
 class LiquidateResponse(BaseModel):
-    recovered: int
-    new_cash: int
+    recovered: DecimalStr
+    new_cash: DecimalStr
     bankruptcy_pending: bool
 
 
@@ -213,13 +238,25 @@ class WeaknessSummaryItem(BaseModel):
     count: int
 
 
+class RewardReceiptSchema(BaseModel):
+    receipt_id: uuid.UUID
+    source_kind: str
+    config_version: str
+    base: dict[str, Any]
+    factors: dict[str, str]
+    final: dict[str, str]
+    core_level_before: int
+    core_level_after: int
+
+
 class SwipeCompleteResponse(BaseModel):
     correct_count: int
     total: int
     best_streak: int
-    cash_earned: int
+    cash_earned: DecimalStr
     xp_earned: int
     weakness_summary: list[WeaknessSummaryItem]
+    reward_receipt: RewardReceiptSchema | None = None
 
 
 # ── Scenario（情境模擬）──────────────────────────────────────
@@ -276,11 +313,12 @@ class ScenarioJudgeResponse(BaseModel):
     true_role: str
     persona_name: str
     flags: list[FlagItem]
-    cash_delta: int
+    cash_delta: DecimalStr
     xp_delta: int
-    new_cash: int
+    new_cash: DecimalStr
     triggers_forced_sell: bool
     case_provenance: str | None
+    reward_receipt: RewardReceiptSchema | None = None
 
 
 class ScenarioDetail(BaseModel):
@@ -454,9 +492,10 @@ class QuizCompleteResponse(BaseModel):
     correct_count: int
     total: int
     best_streak: int
-    cash_earned: int
+    cash_earned: DecimalStr
     xp_earned: int
     weakness_summary: list[WeaknessSummaryItem]
+    reward_receipt: RewardReceiptSchema | None = None
 
 
 # ── 每日訓練與排行榜 ─────────────────────────────────────────
@@ -574,7 +613,7 @@ class ExamBadgePublic(BaseModel):
 
 
 class ExamReward(BaseModel):
-    cash: int = 0
+    cash: DecimalStr = 0
     xp: int = 0
 
 

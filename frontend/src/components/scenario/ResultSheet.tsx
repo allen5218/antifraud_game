@@ -1,8 +1,10 @@
 import { Banknote, ChevronRight, Target } from "lucide-react"
 import type { ScenarioJudgeResponse } from "@/client"
+import { RewardBreakdown } from "@/components/progression/RewardBreakdown"
 import { Provenance, SignalItem } from "@/components/quiz/Signals"
 import { useDialogFocus } from "@/hooks/useDialogFocus"
 import { fraudTypeLabel } from "@/lib/fraudTypes"
+import { absMoney, formatMoney, parseBigIntSafe } from "@/utils/money"
 
 /** 結局插圖在 public/assets/outcome/,檔名就是 outcome 值。 */
 const OUTCOME_META: Record<
@@ -63,10 +65,9 @@ export function ResultSheet({
   const showNext = next && !result.triggers_forced_sell
   const dialogRef = useDialogFocus<HTMLDivElement>(true)
   const meta = OUTCOME_META[result.outcome]
-  const gained = result.cash_delta >= 0
-  const cashText = `${gained ? "+" : "-"}$${Math.abs(
-    result.cash_delta,
-  ).toLocaleString()}`
+  const cashDelta = parseBigIntSafe(result.cash_delta)
+  const gained = cashDelta >= 0n
+  const cashText = `${gained ? "+" : "-"}$${formatMoney(absMoney(result.cash_delta))}`
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
       <div
@@ -132,6 +133,9 @@ export function ResultSheet({
               {result.xp_delta > 0 && ` · +${result.xp_delta} XP`}
             </span>
           </div>
+          {result.reward_receipt && (
+            <RewardBreakdown receipt={result.reward_receipt} className="mt-2.5" />
+          )}
           {result.triggers_forced_sell && (
             <p className="mt-2 flex gap-1.5 rounded-lg border border-warning/40 bg-warning/15 px-3 py-2 text-[11px]">
               <Banknote

@@ -152,7 +152,7 @@ def test_completing_records_result_bonus_and_streak(
     assert response.status_code == 200
     summary = response.json()
     assert summary["correct_count"] == 10
-    assert summary["cash_earned"] >= DAILY_BONUS_CASH
+    assert int(summary["cash_earned"]) >= DAILY_BONUS_CASH
     assert summary["xp_earned"] == 20 * 10 + DAILY_BONUS_XP
 
     db.expire_all()
