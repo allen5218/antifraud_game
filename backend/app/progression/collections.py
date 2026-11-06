@@ -328,7 +328,10 @@ def configure_display(
             else ("preset_capacity", 2, 5)
         )
         capacity = unlock_value(session, user.id, key, default)
-        if payload.expected_level is not None and capacity != payload.expected_level:
+        # 一定要帶目前容量：重送同一個請求時對不上就 409，不會再扣一次圖紙
+        if payload.expected_level is None:
+            raise HTTPException(400, {"code": "expected_level_required"})
+        if capacity != payload.expected_level:
             raise HTTPException(409, {"code": "revision_mismatch"})
         if capacity >= maximum or get_player_blueprints(session, user.id) < 10:
             raise HTTPException(

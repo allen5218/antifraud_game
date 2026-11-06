@@ -20,6 +20,7 @@ import {
 } from "@/hooks/useEquipment"
 import { useProgression, usePurchaseUnlock } from "@/hooks/useProgression"
 import { formatMoney, isGreaterOrEqual } from "@/utils/money"
+import { formatFactor } from "@/utils/progressionDisplay"
 
 export const Route = createFileRoute("/_shell/progression")({
   component: ProgressionPage,
@@ -66,8 +67,10 @@ const FAMILY_UNLOCK_INFO: Record<
 }
 
 function ProgressionPage() {
-  const { data: progression, isLoading: progLoading } = useProgression()
-  const { data: equipmentCatalog, isLoading: eqLoading } = useEquipment()
+  const progressionQuery = useProgression()
+  const equipmentQuery = useEquipment()
+  const { data: progression, isLoading: progLoading } = progressionQuery
+  const { data: equipmentCatalog, isLoading: eqLoading } = equipmentQuery
   const { data: economy } = useEconomyMe()
 
   const updateLoadout = useUpdateLoadout()
@@ -77,6 +80,24 @@ function ProgressionPage() {
 
   const [activeFamilyFilter, setActiveFamilyFilter] = useState<string>("all")
   const [actionError, setActionError] = useState<string | null>(null)
+
+  if (progressionQuery.isError || equipmentQuery.isError) {
+    return (
+      <div className="flex h-64 flex-col items-center justify-center gap-3 text-xs text-muted-foreground">
+        <p>成長與裝備資料讀不到，請確認網路後再試一次。</p>
+        <button
+          type="button"
+          onClick={() => {
+            progressionQuery.refetch()
+            equipmentQuery.refetch()
+          }}
+          className="rounded-lg bg-primary px-3 py-1.5 font-bold text-primary-foreground"
+        >
+          再試一次
+        </button>
+      </div>
+    )
+  }
 
   if (progLoading || eqLoading || !progression || !equipmentCatalog) {
     return (
@@ -162,7 +183,7 @@ function ProgressionPage() {
       setActionError("現金餘額不足，無法強化此工具。")
       return
     }
-    upgradeItem.mutate(item.id, {
+    upgradeItem.mutate(item, {
       onError: () => setActionError("強化失敗，請確認資源與網路狀態。"),
     })
   }
@@ -180,7 +201,7 @@ function ProgressionPage() {
       setActionError("鍛造能量不足 500 點，無法突破上限。")
       return
     }
-    breakthroughItem.mutate(item.id, {
+    breakthroughItem.mutate(item, {
       onError: () => setActionError("突破上限失敗，請重試。"),
     })
   }
@@ -188,15 +209,15 @@ function ProgressionPage() {
   const handleUnlock6thSlot = () => {
     setActionError(null)
     if (core_level < 25) {
-      setActionError("核心等級未達 25 級，無法解鎖第 6 槽。")
+      setActionError("核心等級未達 25 級，還不能買額外槽位。")
       return
     }
     if (blueprint_fragments < 40) {
-      setActionError("槽位圖紙不足 40 片，無法解鎖第 6 槽許可。")
+      setActionError("槽位圖紙不足 40 片，還不能買額外槽位。")
       return
     }
     purchaseUnlock.mutate("sixth_slot_license", {
-      onError: () => setActionError("解鎖第 6 槽失敗，請重試。"),
+      onError: () => setActionError("購買額外槽位失敗，請重試。"),
     })
   }
 
@@ -275,19 +296,19 @@ function ProgressionPage() {
           <div className="rounded-xl bg-muted/60 p-2.5 text-center">
             <div className="text-[10px] text-muted-foreground">金錢產出</div>
             <div className="text-base font-extrabold text-legit">
-              {factors?.cash ?? "1.0"}x
+              {formatFactor(factors?.cash)} 倍
             </div>
           </div>
           <div className="rounded-xl bg-muted/60 p-2.5 text-center">
             <div className="text-[10px] text-muted-foreground">養成經驗</div>
             <div className="text-base font-extrabold text-primary">
-              {factors?.growth_xp ?? "1.0"}x
+              {formatFactor(factors?.growth_xp)} 倍
             </div>
           </div>
           <div className="rounded-xl bg-muted/60 p-2.5 text-center">
             <div className="text-[10px] text-muted-foreground">鍛造能量</div>
             <div className="text-base font-extrabold text-warning">
-              {factors?.energy ?? "1.0"}x
+              {formatFactor(factors?.energy)} 倍
             </div>
           </div>
         </div>
@@ -334,7 +355,7 @@ function ProgressionPage() {
                   }
                   className="rounded-lg bg-primary px-2.5 py-1 text-xs font-bold text-primary-foreground hover:bg-primary/90 disabled:opacity-50"
                 >
-                  解鎖第 6 槽 (40圖紙)
+                  多一個槽位（40 圖紙）
                 </button>
               ) : (
                 <span className="text-[11px] text-muted-foreground">

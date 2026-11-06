@@ -208,7 +208,7 @@ export function RoomScene() {
         onMascot={() => setGuideOpen(true)}
         onRoomShown={() => setRoomShown(true)}
       />
-      <RoomHonors />
+      {!data?.starter_tasks && !tourOpen && <RoomHonors />}
       {/* 購物與房子貼著畫面左下，避開手機的 Home 橫條 */}
       <div
         data-testid="room-shop-row"

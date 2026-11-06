@@ -27,7 +27,11 @@ import {
 } from "@testing-library/react"
 import type { ExamStatus } from "@/client"
 import { CancelablePromise } from "@/client/core/CancelablePromise"
-import { EconomyService, ExamService } from "@/client/sdk.gen"
+import {
+  CollectionsService,
+  EconomyService,
+  ExamService,
+} from "@/client/sdk.gen"
 import type { HomeSummary } from "@/hooks/useHomeSummary"
 import { homeApi } from "@/hooks/useHomeSummary"
 import { onboardingApi } from "./onboardingApi"
@@ -405,4 +409,38 @@ test("有新手任務時房間顯示任務卡，導覽開著時先不顯示", as
   await renderScene()
   await screen.findByText("這是你的房間")
   expect(screen.queryByTestId("starter-tasks")).toBeNull()
+})
+
+test("有新手任務時不顯示房間榮譽（兩張卡都在右下，會疊在一起）", async () => {
+  spyOn(CollectionsService, "readCollections").mockImplementation(() =>
+    response({
+      assets: [],
+      collectibles: [],
+      titles: [],
+      active_title: "第一期冠軍",
+      active_appearance: null,
+      showcase_capacity: 1,
+      presets: [],
+      preset_capacity: 2,
+      lifetime_cash: "0",
+    }),
+  )
+  current = summary({
+    starter_tasks: {
+      swipe: true,
+      quiz: false,
+      scenario: false,
+      shop: false,
+      reward_cash: 500,
+      reward_xp: 100,
+    },
+  })
+  await renderScene()
+  expect(await screen.findByTestId("starter-tasks")).toBeTruthy()
+  expect(screen.queryByText("第一期冠軍")).toBeNull()
+  cleanup()
+  qc.clear()
+  current = summary({ starter_tasks: null })
+  await renderScene()
+  expect(await screen.findByText("第一期冠軍")).toBeTruthy()
 })

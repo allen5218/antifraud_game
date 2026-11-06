@@ -72,7 +72,11 @@ function LeaderboardPage() {
   } = useLeaderboard(period, Boolean(economy && isDailyUnlocked))
 
   // 當期賽季與三榜
-  const { data: seasonData, isLoading: seasonLoading } = useSeasonCurrent()
+  const {
+    data: seasonData,
+    isLoading: seasonLoading,
+    isError: seasonError,
+  } = useSeasonCurrent()
   const { data: boardData, isLoading: boardLoading } = useSeasonBoard(
     seasonData?.id,
     selectedBoard,
@@ -188,6 +192,7 @@ function LeaderboardPage() {
         <SeasonLeaderboardView
           season={seasonData}
           seasonLoading={seasonLoading}
+          seasonError={seasonError}
           boardKind={selectedBoard}
           onBoardChange={setSelectedBoard}
           boardData={boardData}
@@ -346,6 +351,7 @@ function DailyRow({
 function SeasonLeaderboardView({
   season,
   seasonLoading,
+  seasonError,
   boardKind,
   onBoardChange,
   boardData,
@@ -356,6 +362,7 @@ function SeasonLeaderboardView({
 }: {
   season: SeasonPublic | undefined
   seasonLoading: boolean
+  seasonError: boolean
   boardKind: BoardKind
   onBoardChange: (k: BoardKind) => void
   boardData: SeasonBoardPublic | undefined
@@ -364,6 +371,13 @@ function SeasonLeaderboardView({
   isDailyUnlocked: boolean
   xpGapToLv5: number
 }) {
+  if (seasonError) {
+    return (
+      <div className="py-8 text-center text-xs text-muted-foreground">
+        賽季資料讀不到，請確認網路後重新整理。
+      </div>
+    )
+  }
   if (seasonLoading || !season) {
     return (
       <div className="py-8 text-center text-xs text-muted-foreground">

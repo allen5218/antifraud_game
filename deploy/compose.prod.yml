@@ -36,6 +36,22 @@ services:
       timeout: 5s
       retries: 5
 
+  # 兩週競技賽季到期關帳、發獎（每分鐘檢查一次，中斷可續跑）
+  season-worker:
+    image: ${DOCKER_IMAGE_BACKEND}:${TAG-latest}
+    command: ["uv", "run", "--no-sync", "python", "-m", "app.progression.close_seasons", "--watch"]
+    restart: always
+    depends_on:
+      prestart:
+        condition: service_completed_successfully
+    env_file:
+      - .env
+    environment:
+      POSTGRES_SERVER: supavisor
+      POSTGRES_PORT: 5432
+    networks:
+      - supabase_default
+
   frontend:
     image: ${DOCKER_IMAGE_FRONTEND}:${TAG-latest}
     restart: always

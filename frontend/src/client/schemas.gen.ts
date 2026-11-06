@@ -3,8 +3,15 @@
 export const AssetSummaryResponseSchema = {
     properties: {
         cash: {
-            type: 'string',
-            pattern: '^-?[0-9]+$',
+            anyOf: [
+                {
+                    type: 'integer'
+                },
+                {
+                    type: 'string',
+                    pattern: '^-?[0-9]+$'
+                }
+            ],
             title: 'Cash'
         },
         property_value: {
@@ -16,8 +23,15 @@ export const AssetSummaryResponseSchema = {
             title: 'Daily Income'
         },
         total_net_worth: {
-            type: 'string',
-            pattern: '^-?[0-9]+$',
+            anyOf: [
+                {
+                    type: 'integer'
+                },
+                {
+                    type: 'string',
+                    pattern: '^-?[0-9]+$'
+                }
+            ],
             title: 'Total Net Worth'
         },
         owned_count: {
@@ -256,8 +270,15 @@ export const BuyPropertyResponseSchema = {
             title: 'Property Id'
         },
         new_cash: {
-            type: 'string',
-            pattern: '^-?[0-9]+$',
+            anyOf: [
+                {
+                    type: 'integer'
+                },
+                {
+                    type: 'string',
+                    pattern: '^-?[0-9]+$'
+                }
+            ],
             title: 'New Cash'
         }
     },
@@ -1353,8 +1374,15 @@ export const DailyTodayResponseSchema = {
 export const EconomyMeResponseSchema = {
     properties: {
         cash: {
-            type: 'string',
-            pattern: '^-?[0-9]+$',
+            anyOf: [
+                {
+                    type: 'integer'
+                },
+                {
+                    type: 'string',
+                    pattern: '^-?[0-9]+$'
+                }
+            ],
             title: 'Cash'
         },
         xp: {
@@ -1370,8 +1398,15 @@ export const EconomyMeResponseSchema = {
             title: 'Streak Days'
         },
         pending_accrual: {
-            type: 'string',
-            pattern: '^-?[0-9]+$',
+            anyOf: [
+                {
+                    type: 'integer'
+                },
+                {
+                    type: 'string',
+                    pattern: '^-?[0-9]+$'
+                }
+            ],
             title: 'Pending Accrual'
         },
         bankruptcy_pending: {
@@ -2152,10 +2187,17 @@ export const ExamRetakeSchema = {
 export const ExamRewardSchema = {
     properties: {
         cash: {
-            type: 'string',
-            pattern: '^-?[0-9]+$',
+            anyOf: [
+                {
+                    type: 'integer'
+                },
+                {
+                    type: 'string',
+                    pattern: '^-?[0-9]+$'
+                }
+            ],
             title: 'Cash',
-            default: '0'
+            default: 0
         },
         xp: {
             type: 'integer',
@@ -3117,13 +3159,27 @@ export const LiquidateRequestSchema = {
 export const LiquidateResponseSchema = {
     properties: {
         recovered: {
-            type: 'string',
-            pattern: '^-?[0-9]+$',
+            anyOf: [
+                {
+                    type: 'integer'
+                },
+                {
+                    type: 'string',
+                    pattern: '^-?[0-9]+$'
+                }
+            ],
             title: 'Recovered'
         },
         new_cash: {
-            type: 'string',
-            pattern: '^-?[0-9]+$',
+            anyOf: [
+                {
+                    type: 'integer'
+                },
+                {
+                    type: 'string',
+                    pattern: '^-?[0-9]+$'
+                }
+            ],
             title: 'New Cash'
         },
         bankruptcy_pending: {
@@ -3225,8 +3281,15 @@ export const MascotPublicSchema = {
 export const MascotPurchasePublicSchema = {
     properties: {
         new_cash: {
-            type: 'string',
-            pattern: '^-?[0-9]+$',
+            anyOf: [
+                {
+                    type: 'integer'
+                },
+                {
+                    type: 'string',
+                    pattern: '^-?[0-9]+$'
+                }
+            ],
             title: 'New Cash'
         }
     },
@@ -4451,8 +4514,15 @@ export const QuizCompleteResponseSchema = {
             title: 'Best Streak'
         },
         cash_earned: {
-            type: 'string',
-            pattern: '^-?[0-9]+$',
+            anyOf: [
+                {
+                    type: 'integer'
+                },
+                {
+                    type: 'string',
+                    pattern: '^-?[0-9]+$'
+                }
+            ],
             title: 'Cash Earned'
         },
         xp_earned: {
@@ -5263,8 +5333,15 @@ export const ScenarioJudgeResponseSchema = {
             title: 'Flags'
         },
         cash_delta: {
-            type: 'string',
-            pattern: '^-?[0-9]+$',
+            anyOf: [
+                {
+                    type: 'integer'
+                },
+                {
+                    type: 'string',
+                    pattern: '^-?[0-9]+$'
+                }
+            ],
             title: 'Cash Delta'
         },
         xp_delta: {
@@ -5272,8 +5349,15 @@ export const ScenarioJudgeResponseSchema = {
             title: 'Xp Delta'
         },
         new_cash: {
-            type: 'string',
-            pattern: '^-?[0-9]+$',
+            anyOf: [
+                {
+                    type: 'integer'
+                },
+                {
+                    type: 'string',
+                    pattern: '^-?[0-9]+$'
+                }
+            ],
             title: 'New Cash'
         },
         triggers_forced_sell: {
@@ -5869,8 +5953,15 @@ export const SwipeCompleteResponseSchema = {
             title: 'Best Streak'
         },
         cash_earned: {
-            type: 'string',
-            pattern: '^-?[0-9]+$',
+            anyOf: [
+                {
+                    type: 'integer'
+                },
+                {
+                    type: 'string',
+                    pattern: '^-?[0-9]+$'
+                }
+            ],
             title: 'Cash Earned'
         },
         xp_earned: {

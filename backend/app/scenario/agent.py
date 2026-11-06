@@ -269,7 +269,7 @@ def create_scenario_agent() -> Agent[ScenarioDeps, ScenarioReply]:
         model_settings=GoogleModelSettings(
             google_thinking_config={"thinking_level": ThinkingLevel.LOW},
             max_tokens=2048,
-            timeout=15,
+            timeout=30,
         ),
     )
 

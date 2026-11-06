@@ -22,11 +22,22 @@ def _decimal_integer(value: Any) -> int:
     raise ValueError("金額必須是精確整數或十進位整數字串")
 
 
+# JavaScript 的 number 只能精確表示到 2^53-1。金額在這個範圍內照舊回 JSON 數字，
+# 還開著舊版畫面（PWA 快取）的玩家拿到的型別不變；超過才回十進位字串保持精確。
+JS_SAFE_INTEGER = 2**53 - 1
+
+
+def _money_json(value: int) -> int | str:
+    return value if -JS_SAFE_INTEGER <= value <= JS_SAFE_INTEGER else str(value)
+
+
 DecimalStr = Annotated[
     int,
     BeforeValidator(_decimal_integer),
-    PlainSerializer(str, return_type=str, when_used="json"),
-    WithJsonSchema({"type": "string", "pattern": "^-?[0-9]+$"}),
+    PlainSerializer(_money_json, return_type=int | str, when_used="json"),
+    WithJsonSchema(
+        {"anyOf": [{"type": "integer"}, {"type": "string", "pattern": "^-?[0-9]+$"}]}
+    ),
 ]
 
 

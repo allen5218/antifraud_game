@@ -2,6 +2,7 @@ import { Coins, Hammer, ReceiptText, Sparkles, Zap } from "lucide-react"
 import { useState } from "react"
 import type { RewardReceiptSchema } from "@/client"
 import { formatMoney } from "@/utils/money"
+import { formatFactor } from "@/utils/progressionDisplay"
 
 interface RewardBreakdownProps {
   receipt?: RewardReceiptSchema | null
@@ -22,9 +23,9 @@ export function RewardBreakdown({
   const energy = receipt.final?.forge_energy ?? "0"
   const fixedCash = receipt.final?.fixed_cash ?? "0"
 
-  const cashFactor = receipt.factors?.cash ?? "1.0"
-  const growthXpFactor = receipt.factors?.growth_xp ?? "1.0"
-  const energyFactor = receipt.factors?.energy ?? "1.0"
+  const cashFactor = formatFactor(receipt.factors?.cash)
+  const growthXpFactor = formatFactor(receipt.factors?.growth_xp)
+  const energyFactor = formatFactor(receipt.factors?.energy)
 
   const levelUp = receipt.core_level_after > receipt.core_level_before
 
@@ -61,7 +62,7 @@ export function RewardBreakdown({
         <div className="rounded-lg bg-muted/60 p-2">
           <div className="flex items-center gap-1 text-[10px] text-muted-foreground">
             <Coins className="size-3 text-legit" aria-hidden="true" />
-            金錢 ({cashFactor}x)
+            金錢 ({cashFactor} 倍)
           </div>
           <div className="mt-0.5 text-xs font-extrabold text-legit">
             +${formatMoney(cashFinal)}
@@ -89,7 +90,7 @@ export function RewardBreakdown({
         <div className="rounded-lg bg-muted/60 p-2">
           <div className="flex items-center gap-1 text-[10px] text-muted-foreground">
             <Hammer className="size-3 text-warning" aria-hidden="true" />
-            鍛造能量 ({energyFactor}x)
+            鍛造能量 ({energyFactor} 倍)
           </div>
           <div className="mt-0.5 text-xs font-extrabold text-warning">
             +{formatMoney(energy)}

@@ -256,7 +256,7 @@ def test_judge_report_scam_rewards(
     data = r.json()
     assert data["outcome"] == "win_report"
     assert data["true_role"] == "scam"
-    assert data["cash_delta"] == "50"
+    assert data["cash_delta"] == 50
     assert data["reward_receipt"]["final"]["cash_total"] == "50"
     assert data["reward_receipt"]["final"]["cash_bonus"] == "0"
     assert data["reward_receipt"]["factors"]["cash"] == "1.0"
@@ -296,7 +296,7 @@ def test_judge_comply_scam_loses_and_can_trigger_forced_sell(
     )
     data = r.json()
     assert data["outcome"] == "lose_scammed"
-    assert data["new_cash"] == "-500"
+    assert data["new_cash"] == -500
     assert data["triggers_forced_sell"] is True
     db.refresh(user)
     assert user.bankruptcy_pending is True
@@ -321,7 +321,7 @@ def test_judge_misreport_legit_costs_penalty(
     assert r.status_code == 200
     data = r.json()
     assert data["outcome"] == "lose_misreport"
-    assert data["cash_delta"] == "-10"
+    assert data["cash_delta"] == -10
     assert data["xp_delta"] == 0
     db.refresh(user)
     assert user.cash == cash_before - 10
@@ -339,7 +339,7 @@ def test_judge_trust_legit_small_reward_with_signals(
     )
     data = r.json()
     assert data["outcome"] == "win_trust"
-    assert data["cash_delta"] == "30"
+    assert data["cash_delta"] == 30
     assert all(f["tag"] is None for f in data["flags"])
     assert len(data["flags"]) >= 2
 

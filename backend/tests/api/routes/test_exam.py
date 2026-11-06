@@ -268,9 +268,9 @@ def test_full_exam_and_first_badge_only(client, normal_user_token_headers, db, m
     assert result["total_score"] == 100 and result["passed"]
     assert result["weakness_score"] == (70 if mode == "comprehensive" else 100)
     assert result["reward"] == (
-        {"cash": "5000", "xp": 300}
+        {"cash": 5000, "xp": 300}
         if mode == "comprehensive"
-        else {"cash": "3000", "xp": 150}
+        else {"cash": 3000, "xp": 150}
     )
     assert not any(
         key in json.dumps(state)
@@ -284,7 +284,7 @@ def test_full_exam_and_first_badge_only(client, normal_user_token_headers, db, m
     )
     assert db.exec(select(PracticeAnswer)).all() == []
     again = finish(client, h, db, start(client, h, mode))
-    assert again["result"]["reward"] == {"cash": "0", "xp": 0}
+    assert again["result"]["reward"] == {"cash": 0, "xp": 0}
     assert len(req(client, h, "get", "/badges").json()) == 1
     badge = result["badges"][0]
     public = req(
@@ -526,7 +526,7 @@ def test_locked_snapshots_and_wrong_result(client, normal_user_token_headers, db
     assert state["result"]["total_score"] == 0
     assert not state["result"]["passed"]
     assert set(state["result"]["missed_tactics"]) == {"用好處引誘你", "冒充官方或專家"}
-    assert state["result"]["reward"] == {"cash": "0", "xp": 0}
+    assert state["result"]["reward"] == {"cash": 0, "xp": 0}
 
 
 def test_ai_recovery_turn_limit_and_expired_partial_score(

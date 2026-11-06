@@ -1,5 +1,8 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
 import { EquipmentService } from "@/client"
+import { equipmentActionKey } from "@/utils/progressionDisplay"
+
+type EquipmentRef = { id: string; rank: number; rank_cap: number }
 
 export function useEquipment() {
   return useQuery({
@@ -34,10 +37,10 @@ export function useUpdateLoadout() {
 export function useUpgradeEquipment() {
   const queryClient = useQueryClient()
   return useMutation({
-    mutationFn: (itemId: string) =>
+    mutationFn: (item: EquipmentRef) =>
       EquipmentService.upgradeItem({
-        itemId,
-        xIdempotencyKey: crypto.randomUUID(),
+        itemId: item.id,
+        xIdempotencyKey: equipmentActionKey("upgrade", item),
       }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["equipment"] })
@@ -50,10 +53,10 @@ export function useUpgradeEquipment() {
 export function useBreakthroughEquipment() {
   const queryClient = useQueryClient()
   return useMutation({
-    mutationFn: (itemId: string) =>
+    mutationFn: (item: EquipmentRef) =>
       EquipmentService.breakthroughItem({
-        itemId,
-        xIdempotencyKey: crypto.randomUUID(),
+        itemId: item.id,
+        xIdempotencyKey: equipmentActionKey("breakthrough", item),
       }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["equipment"] })
