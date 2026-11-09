@@ -52,7 +52,7 @@ jobs:
           --min-tag-count 6
           --fail-over 0.75
 
-      - uses: docker/setup-buildx-action@37fe631027851001ddb9b187196cc803df7f5f0e # v4
+      - uses: docker/setup-buildx-action@f87e5991a6d7451dcb8d9637bfbc97413f497069 # v4
 
       # compose.prod.yml 用 env_file: .env(fresh checkout 無此檔)——由 .env.example 建一份
       # 佔位 .env 讓 config 可解析;--project-directory . 讓 env_file/volumes 從 repo 根解析。
