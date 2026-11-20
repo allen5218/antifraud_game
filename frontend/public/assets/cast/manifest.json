@@ -2,9 +2,18 @@
   "version": 1,
   "style": "chibi-flat",
   "viewBox": {
-    "scene": [400, 300],
-    "cast": [200, 240],
-    "prop": [120, 120]
+    "scene": [
+      400,
+      300
+    ],
+    "cast": [
+      200,
+      240
+    ],
+    "prop": [
+      120,
+      120
+    ]
   },
   "paths": {
     "scene": "scenes/<id>.svg",
@@ -21,43 +30,103 @@
   ],
   "cast": {
     "grandma": {
-      "poses": ["neutral", "talking-phone", "worried", "happy", "suspicious"],
+      "poses": [
+        "neutral",
+        "talking-phone",
+        "worried",
+        "happy",
+        "suspicious"
+      ],
       "look": "阿嬤：灰白燙捲短髮、眼鏡、陶土色開襟外套"
     },
     "grandpa": {
-      "poses": ["neutral", "talking-phone", "worried", "happy", "suspicious"],
+      "poses": [
+        "neutral",
+        "talking-phone",
+        "worried",
+        "happy",
+        "suspicious"
+      ],
       "look": "阿公：禿頭、兩側灰髮、灰八字鬍、藍襯衫"
     },
     "office-worker": {
-      "poses": ["neutral", "talking-phone", "worried", "happy", "suspicious"],
+      "poses": [
+        "neutral",
+        "talking-phone",
+        "worried",
+        "happy",
+        "suspicious"
+      ],
       "look": "上班族女生：黑色鮑伯頭、深藍西裝外套、識別證掛繩"
     },
     "student": {
-      "poses": ["neutral", "talking-phone", "worried", "happy", "suspicious"],
+      "poses": [
+        "neutral",
+        "talking-phone",
+        "worried",
+        "happy",
+        "suspicious"
+      ],
       "look": "高中男生：刺刺短髮、白制服襯衫、短褲、後背包"
     },
     "fake-cs": {
-      "poses": ["neutral", "talking-phone", "worried", "happy", "suspicious"],
+      "poses": [
+        "neutral",
+        "talking-phone",
+        "worried",
+        "happy",
+        "suspicious"
+      ],
       "look": "客服（男）：油頭、耳機麥克風、綠色 POLO 衫"
     },
     "seller": {
-      "poses": ["neutral", "talking-phone", "worried", "happy", "suspicious"],
+      "poses": [
+        "neutral",
+        "talking-phone",
+        "worried",
+        "happy",
+        "suspicious"
+      ],
       "look": "賣家（女）：綁馬尾、圍裙"
     },
     "buyer": {
-      "poses": ["neutral", "talking-phone", "worried", "happy", "suspicious"],
+      "poses": [
+        "neutral",
+        "talking-phone",
+        "worried",
+        "happy",
+        "suspicious"
+      ],
       "look": "買家（女）：長髮、黃色毛衣、牛仔褲"
     },
     "stranger": {
-      "poses": ["neutral", "talking-phone", "worried", "happy", "suspicious"],
+      "poses": [
+        "neutral",
+        "talking-phone",
+        "worried",
+        "happy",
+        "suspicious"
+      ],
       "look": "網友（男）：蓬鬆捲髮、皮夾克"
     },
     "bank-clerk": {
-      "poses": ["neutral", "talking-phone", "worried", "happy", "suspicious"],
+      "poses": [
+        "neutral",
+        "talking-phone",
+        "worried",
+        "happy",
+        "suspicious"
+      ],
       "look": "行員（女）：包頭、深藍背心制服、橘色領巾"
     },
     "police": {
-      "poses": ["neutral", "talking-phone", "worried", "happy", "suspicious"],
+      "poses": [
+        "neutral",
+        "talking-phone",
+        "worried",
+        "happy",
+        "suspicious"
+      ],
       "look": "警察（男）：警帽、淺藍制服襯衫、深藍褲"
     }
   },

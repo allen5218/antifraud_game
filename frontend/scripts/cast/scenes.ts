@@ -274,7 +274,7 @@ function office(): string {
   )
   s += shapes([{ rect: [128, 156, 12, 12, 3] }], "#E38E8A")
   // 盆栽
-  s += plant(380, 216, 1.1)
+  s += plant(368, 216, 1.1)
   return s
 }
 

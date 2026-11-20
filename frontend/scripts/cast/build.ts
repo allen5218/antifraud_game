@@ -2,6 +2,7 @@
 
 import { mkdirSync, writeFileSync } from "node:fs"
 import { dirname, join } from "node:path"
+import { fileURLToPath } from "node:url"
 import {
   ART_VIEWBOX,
   CAST_IDS,
@@ -19,7 +20,7 @@ import { drawCharacter } from "./rig"
 import { SCENES } from "./scenes"
 import { svgDoc } from "./svg"
 
-const PUBLIC = join(import.meta.dir, "../../public")
+const PUBLIC = fileURLToPath(new URL("../../public", import.meta.url))
 
 function write(href: string, content: string) {
   const file = join(PUBLIC, href)
