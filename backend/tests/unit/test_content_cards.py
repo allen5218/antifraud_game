@@ -41,6 +41,10 @@ CAST = {
     "police",
 }
 PROPS = {"phone", "chat", "atm", "parcel", "card", "laptop", "money", "house", "qr"}
+# 姿勢可以不寫：`pose` 套在第一個角色，或在 cast 裡寫 "grandma:worried"。
+POSES = {"neutral", "talking-phone", "worried", "happy", "suspicious"}
+# 這些角色在 phone-screen 場景排第一時，會被畫在手機螢幕裡；玩家這一方不該在裡面。
+PLAYER_ROLES = {"grandma", "grandpa", "office-worker", "student"}
 
 POOLS = {"practice", "exam"}
 PROVENANCE_PREFIXES = ("改編自：", "依據：")
@@ -358,23 +362,42 @@ def test_art_ids() -> None:
     errors = []
     for card in CARDS:
         art = card["art"]
-        if not isinstance(art, dict) or set(art) != {"scene", "cast", "props"}:
-            errors.append(f"{_where(card)} art 要有 scene、cast、props")
+        keys = set(art) if isinstance(art, dict) else set()
+        if not {"scene", "cast", "props"} <= keys <= {"scene", "cast", "props", "pose"}:
+            errors.append(f"{_where(card)} art 要有 scene、cast、props（pose 可不寫）")
             continue
         if art["scene"] not in SCENES:
             errors.append(f"{_where(card)} scene 不在清單：{art['scene']}")
-        for field, allowed in (("cast", CAST), ("props", PROPS)):
-            values = art[field]
-            if not isinstance(values, list) or len(values) > 3:
+        if art.get("pose", "neutral") not in POSES:
+            errors.append(f"{_where(card)} pose 不在清單：{art['pose']}")
+        for field in ("cast", "props"):
+            if not isinstance(art[field], list) or len(art[field]) > 3:
                 errors.append(f"{_where(card)} {field} 要是最多 3 個的清單")
-                continue
+        if errors and errors[-1].startswith(_where(card)):
+            continue
+        # cast 可以寫 "grandma:worried"，冒號後面是姿勢。
+        cast = [c.split(":", 1)[0] for c in art["cast"]]
+        poses = [c.split(":", 1)[1] for c in art["cast"] if ":" in c]
+        for field, values, allowed in (
+            ("cast", cast, CAST),
+            ("props", art["props"], PROPS),
+        ):
             if len(set(values)) != len(values):
                 errors.append(f"{_where(card)} {field} 重複")
             bad = set(values) - allowed
             if bad:
                 errors.append(f"{_where(card)} {field} 不在清單：{sorted(bad)}")
-        if not art["cast"] and not art["props"]:
+        if set(poses) - POSES:
+            errors.append(
+                f"{_where(card)} cast 的姿勢不在清單：{sorted(set(poses) - POSES)}"
+            )
+        if not cast and not art["props"]:
             errors.append(f"{_where(card)} 插圖至少要一個角色或道具")
+        if art["scene"] == "phone-screen" and cast and cast[0] in PLAYER_ROLES:
+            errors.append(
+                f"{_where(card)} phone-screen 的第一個角色會畫在螢幕裡，"
+                f"玩家角色 {cast[0]} 不該排第一"
+            )
     assert not errors, "\n".join(errors[:20])
 
 
