@@ -4,7 +4,7 @@ title: 遊戲同好賣稀有裝備
 role: scam
 fraud_type: fake-sale
 channel: line
-opening: 兄弟，我們一起打副本這麼久了，我有一把稀有武器要賣，算你朋友價。
+opening: 欸，我們一起打副本這麼久了，我有一把稀有武器要賣，算你朋友價。
 target_assets: [cash, savings]
 actions: [transfer_cash]
 tactics: [trust_building, greed]
@@ -28,7 +28,7 @@ sources:
 
 ### 開場
 
-- 「兄弟，我們一起打副本這麼久了，我有一把稀有武器要賣。」
+- 「欸，我們一起打副本這麼久了，我有一把稀有武器要賣。」
 - 「別人我賣三萬，算你朋友價兩萬。」
 
 ### 建立信任

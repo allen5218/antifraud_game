@@ -4,7 +4,7 @@ title: 群組飆股老師要你臨櫃匯款
 role: scam
 fraud_type: investment
 channel: line
-opening: 大哥您好，我是老師的助理，老師說您上次問的那檔，明天開盤有大消息，要先卡位。
+opening: 您好，我是老師的助理，老師說您上次問的那檔，明天開盤有大消息，要先卡位。
 target_assets: [savings]
 actions: [add_friend, transfer_cash]
 tactics: [authority, social_proof, time_pressure]
@@ -28,7 +28,7 @@ sources:
 
 ### 開場
 
-- 「大哥您好，我是老師的助理，老師說您上次問的那檔，明天開盤有大消息。」
+- 「您好，我是老師的助理，老師說您上次問的那檔，明天開盤有大消息。」
 - 「老師只在群組裡跟幾位老學員講，您是其中一位。」
 
 ### 建立信任

@@ -4,7 +4,7 @@ title: 想靠虛擬貨幣翻身
 role: scam
 fraud_type: investment
 channel: line
-opening: 兄弟，你上次說想翻身，我這邊有個虛擬貨幣的機會，穩賺不賠，要不要聽聽看？
+opening: 欸，你上次說想翻身，我這邊有個虛擬貨幣的機會，穩賺不賠，要不要聽聽看？
 target_assets: [cash, savings]
 actions: [add_friend, transfer_cash]
 tactics: [greed, trust_building]
@@ -28,7 +28,7 @@ sources:
 
 ### 開場
 
-- 「兄弟，你上次說想翻身，我這邊有個虛擬貨幣的機會。」
+- 「欸，你上次說想翻身，我這邊有個虛擬貨幣的機會。」
 - 「穩賺不賠啦，我自己做了半年，每個月多賺一份薪水。」
 
 ### 建立信任
