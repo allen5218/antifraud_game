@@ -773,6 +773,66 @@ class SwipeSession(SQLModel, table=True):
     )
 
 
+class CardProgress(SQLModel, table=True):
+    """日常卡片流：每位玩家每張卡的間隔重複進度（`app/cards/srs.py`）。
+
+    沒有這一列就是還沒見過。卡片本身在 `backend/content/cards/`，這裡只存代號。
+    """
+
+    __tablename__ = "card_progress"
+
+    user_id: uuid.UUID = Field(
+        foreign_key="user.id", primary_key=True, ondelete="CASCADE"
+    )
+    card_key: str = Field(primary_key=True, max_length=64)
+    fraud_type: str = Field(max_length=32)
+    source_key: str = Field(max_length=64)
+    # 0 沒答過、1 剛答錯或第一次答對、越大越熟；到 3 算學會
+    box: int = Field(default=0)
+    due_at: datetime = Field(sa_type=DateTime(timezone=True))  # type: ignore
+    seen_count: int = Field(default=0)
+    correct_count: int = Field(default=0)
+    last_answered_at: datetime | None = Field(
+        default=None,
+        sa_type=DateTime(timezone=True),  # type: ignore
+    )
+
+
+class CardRound(SQLModel, table=True):
+    """日常卡片流的一次性牌局，理由同 SwipeSession。
+
+    只認發牌時的卡、每張卡第一次的作答（快照存在這裡），同一局只能結算一次。
+    選項代號是用這一局的 id 算出來的（`app/cards/grading.py`），別局的代號對不上。
+    """
+
+    __tablename__ = "card_round"
+
+    id: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True)
+    user_id: uuid.UUID = Field(
+        foreign_key="user.id", nullable=False, ondelete="CASCADE", index=True
+    )
+    # 只練某一類時的 fraud_type；沒指定是 None
+    topic: str | None = Field(default=None, max_length=32)
+    card_keys: list[str] = Field(
+        default=[], sa_column=Column(JSONB, nullable=False, server_default="[]")
+    )
+    # {card_key: 第一次作答的快照}：ids、correct、正解代號、類型、話術、解說
+    answers: dict[str, dict[str, Any]] = Field(
+        default={}, sa_column=Column(JSONB, nullable=False, server_default="{}")
+    )
+    completed: bool = Field(default=False)
+    result: dict[str, Any] | None = Field(default=None, sa_column=Column(JSONB))
+    created_at: datetime | None = Field(
+        default_factory=get_datetime_utc,
+        sa_type=DateTime(timezone=True),  # type: ignore
+        index=True,
+    )
+    completed_at: datetime | None = Field(
+        default=None,
+        sa_type=DateTime(timezone=True),  # type: ignore
+    )
+
+
 class DailyChallenge(SQLModel, table=True):
     """某一天所有人共用的每日訓練題目，當天第一個請求時產生。
 

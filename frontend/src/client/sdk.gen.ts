@@ -3,7 +3,7 @@
 import type { CancelablePromise } from './core/CancelablePromise';
 import { OpenAPI } from './core/OpenAPI';
 import { request as __request } from './core/request';
-import type { AdminCohortsListCohortsResponse, AdminCohortsCreateCohortData, AdminCohortsCreateCohortResponse, AdminCohortsUpdateCohortData, AdminCohortsUpdateCohortResponse, AdminCohortsListMembersData, AdminCohortsListMembersResponse, AdminCohortsExportCohortData, AdminCohortsExportCohortResponse, AdminCohortsCohortProgressData, AdminCohortsCohortProgressResponse, AdminCohortsExportCohortSurveyData, AdminCohortsExportCohortSurveyResponse, AdminCohortsExportCohortExamData, AdminCohortsExportCohortExamResponse, AdminCohortsMemberDetailData, AdminCohortsMemberDetailResponse, AdminCohortsAnalyticsData, AdminCohortsAnalyticsResponse, AdminTeachersListTeachersData, AdminTeachersListTeachersResponse, AdminTeachersChangeTeacherData, AdminTeachersChangeTeacherResponse, BadgesOwnBadgesResponse, BadgesUpdateBadgeData, BadgesUpdateBadgeResponse, BadgesPublicBadgeData, BadgesPublicBadgeResponse, ClassesReadMyClassesResponse, ClassesJoinClassData, ClassesJoinClassResponse, ClassesClaimMembershipData, ClassesClaimMembershipResponse, ClassesListClassesResponse, ClassesCreateClassData, ClassesCreateClassResponse, ClassesUpdateClassData, ClassesUpdateClassResponse, ClassesListMembersData, ClassesListMembersResponse, ClassesUpdateMemberData, ClassesUpdateMemberResponse, ClassesRemoveMemberData, ClassesRemoveMemberResponse, ClassesReadMemberData, ClassesReadMemberResponse, ClassesReadOverviewData, ClassesReadOverviewResponse, ClassesExportClassData, ClassesExportClassResponse, ClassesCreateAssignmentData, ClassesCreateAssignmentResponse, ClassesUpdateAssignmentData, ClassesUpdateAssignmentResponse, ClassesDeleteAssignmentData, ClassesDeleteAssignmentResponse, CollectionsReadCollectionsResponse, CollectionsUpgradeCollectionData, CollectionsUpgradeCollectionResponse, CollectionsConfigureDisplayData, CollectionsConfigureDisplayResponse, CollectionsSavePresetData, CollectionsSavePresetResponse, CollectionsApplyPresetData, CollectionsApplyPresetResponse, CollectionsPermanentBoardData, CollectionsPermanentBoardResponse, DailyDailyTodayResponse, EconomyReadMeResponse, EconomyPostSettleResponse, EconomyClaimResponse, EconomyListPropertiesResponse, EconomyBuyPropertyData, EconomyBuyPropertyResponse, EconomyGetAssetsResponse, EconomyPostLiquidateData, EconomyPostLiquidateResponse, EquipmentListEquipmentResponse, EquipmentUpdateLoadoutData, EquipmentUpdateLoadoutResponse, EquipmentUpgradeItemData, EquipmentUpgradeItemResponse, EquipmentBreakthroughItemData, EquipmentBreakthroughItemResponse, ExamReadStatusResponse, ExamStartData, ExamStartResponse, ExamActiveResponse, ExamHistoryResponse, ExamReadData, ExamReadResponse, ExamPretestData, ExamPretestResponse, ExamSwipeData, ExamSwipeResponse, ExamMessageData, ExamMessageResponse, ExamScenarioStartData, ExamScenarioStartResponse, ExamScenarioJudgeData, ExamScenarioJudgeResponse, ExamAbandonData, ExamAbandonResponse, HomeHomeSummaryResponse, InviteRedeemInviteData, InviteRedeemInviteResponse, InviteRedeemClassInviteData, InviteRedeemClassInviteResponse, ItemsReadItemsData, ItemsReadItemsResponse, ItemsCreateItemData, ItemsCreateItemResponse, ItemsReadItemData, ItemsReadItemResponse, ItemsUpdateItemData, ItemsUpdateItemResponse, ItemsDeleteItemData, ItemsDeleteItemResponse, LeaderboardReadLeaderboardData, LeaderboardReadLeaderboardResponse, LeaderboardUpdateNicknameData, LeaderboardUpdateNicknameResponse, LoginLoginAccessTokenData, LoginLoginAccessTokenResponse, LoginTestTokenResponse, LoginRecoverPasswordData, LoginRecoverPasswordResponse, LoginResetPasswordData, LoginResetPasswordResponse, LoginRecoverPasswordHtmlContentData, LoginRecoverPasswordHtmlContentResponse, LoginListProvidersResponse, LoginStartData, LoginStartResponse, LoginCallbackData, LoginCallbackResponse, MascotListMascotItemsResponse, MascotPurchaseItemData, MascotPurchaseItemResponse, MascotToggleEquipData, MascotToggleEquipResponse, MascotGetMyMascotResponse, OnboardingTourDoneResponse, OnboardingShopVisitedResponse, OnboardingClaimRewardResponse, PlayersGetPlayerShowcaseData, PlayersGetPlayerShowcaseResponse, PracticeReadProfileResponse, PretestGetPretestQuestionsResponse, PretestSubmitPretestData, PretestSubmitPretestResponse, PrivateCreateUserData, PrivateCreateUserResponse, ProgressionGetMyProgressionResponse, ProgressionGetRewardReceiptData, ProgressionGetRewardReceiptResponse, ProgressionPurchaseUnlockData, ProgressionPurchaseUnlockResponse, QuickSwipeDeckData, QuickSwipeDeckResponse, QuickSwipeAnswerData, QuickSwipeAnswerResponse, QuickSwipeCompleteData, QuickSwipeCompleteResponse, QuickQuizDeckData, QuickQuizDeckResponse, QuickQuizAnswerData, QuickQuizAnswerResponse, QuickQuizCompleteData, QuickQuizCompleteResponse, ScenarioInboxResponse, ScenarioCreateScenarioData, ScenarioCreateScenarioResponse, ScenarioReadScenarioData, ScenarioReadScenarioResponse, ScenarioSendMessageData, ScenarioSendMessageResponse, ScenarioJudgeScenarioData, ScenarioJudgeScenarioResponse, ScoreGetMyScoreResponse, SeasonsClaimChampionToolData, SeasonsClaimChampionToolResponse, SeasonsGetSeasonCurrentResponse, SeasonsGetBoardData, SeasonsGetBoardResponse, SeasonsGetMySeasonAwardData, SeasonsGetMySeasonAwardResponse, SeasonsTriggerCloseExpiredResponse, TeamReadBankResponse, TeamListCommentsData, TeamListCommentsResponse, TeamCreateCommentData, TeamCreateCommentResponse, TeamDeleteCommentData, TeamDeleteCommentResponse, TrialReadSurveyResponse, TrialSubmitSurveyData, TrialSubmitSurveyResponse, TrialStartSurveyResponse, UsersReadUsersData, UsersReadUsersResponse, UsersCreateUserData, UsersCreateUserResponse, UsersReadUserMeResponse, UsersDeleteUserMeResponse, UsersUpdateUserMeData, UsersUpdateUserMeResponse, UsersUpdatePasswordMeData, UsersUpdatePasswordMeResponse, UsersApplyTeacherMeData, UsersApplyTeacherMeResponse, UsersSetBirthYearMeData, UsersSetBirthYearMeResponse, UsersRegisterUserData, UsersRegisterUserResponse, UsersReadUserByIdData, UsersReadUserByIdResponse, UsersUpdateUserData, UsersUpdateUserResponse, UsersDeleteUserData, UsersDeleteUserResponse, UtilsTestEmailData, UtilsTestEmailResponse, UtilsHealthCheckResponse } from './types.gen';
+import type { AdminCohortsListCohortsResponse, AdminCohortsCreateCohortData, AdminCohortsCreateCohortResponse, AdminCohortsUpdateCohortData, AdminCohortsUpdateCohortResponse, AdminCohortsListMembersData, AdminCohortsListMembersResponse, AdminCohortsExportCohortData, AdminCohortsExportCohortResponse, AdminCohortsCohortProgressData, AdminCohortsCohortProgressResponse, AdminCohortsExportCohortSurveyData, AdminCohortsExportCohortSurveyResponse, AdminCohortsExportCohortExamData, AdminCohortsExportCohortExamResponse, AdminCohortsMemberDetailData, AdminCohortsMemberDetailResponse, AdminCohortsAnalyticsData, AdminCohortsAnalyticsResponse, AdminTeachersListTeachersData, AdminTeachersListTeachersResponse, AdminTeachersChangeTeacherData, AdminTeachersChangeTeacherResponse, BadgesOwnBadgesResponse, BadgesUpdateBadgeData, BadgesUpdateBadgeResponse, BadgesPublicBadgeData, BadgesPublicBadgeResponse, CardsCardSummaryResponse, CardsStartRoundData, CardsStartRoundResponse, CardsAnswerCardData, CardsAnswerCardResponse, CardsCompleteRoundData, CardsCompleteRoundResponse, ClassesReadMyClassesResponse, ClassesJoinClassData, ClassesJoinClassResponse, ClassesClaimMembershipData, ClassesClaimMembershipResponse, ClassesListClassesResponse, ClassesCreateClassData, ClassesCreateClassResponse, ClassesUpdateClassData, ClassesUpdateClassResponse, ClassesListMembersData, ClassesListMembersResponse, ClassesUpdateMemberData, ClassesUpdateMemberResponse, ClassesRemoveMemberData, ClassesRemoveMemberResponse, ClassesReadMemberData, ClassesReadMemberResponse, ClassesReadOverviewData, ClassesReadOverviewResponse, ClassesExportClassData, ClassesExportClassResponse, ClassesCreateAssignmentData, ClassesCreateAssignmentResponse, ClassesUpdateAssignmentData, ClassesUpdateAssignmentResponse, ClassesDeleteAssignmentData, ClassesDeleteAssignmentResponse, CollectionsReadCollectionsResponse, CollectionsUpgradeCollectionData, CollectionsUpgradeCollectionResponse, CollectionsConfigureDisplayData, CollectionsConfigureDisplayResponse, CollectionsSavePresetData, CollectionsSavePresetResponse, CollectionsApplyPresetData, CollectionsApplyPresetResponse, CollectionsPermanentBoardData, CollectionsPermanentBoardResponse, DailyDailyTodayResponse, EconomyReadMeResponse, EconomyPostSettleResponse, EconomyClaimResponse, EconomyListPropertiesResponse, EconomyBuyPropertyData, EconomyBuyPropertyResponse, EconomyGetAssetsResponse, EconomyPostLiquidateData, EconomyPostLiquidateResponse, EquipmentListEquipmentResponse, EquipmentUpdateLoadoutData, EquipmentUpdateLoadoutResponse, EquipmentUpgradeItemData, EquipmentUpgradeItemResponse, EquipmentBreakthroughItemData, EquipmentBreakthroughItemResponse, ExamReadStatusResponse, ExamStartData, ExamStartResponse, ExamActiveResponse, ExamHistoryResponse, ExamReadData, ExamReadResponse, ExamPretestData, ExamPretestResponse, ExamSwipeData, ExamSwipeResponse, ExamMessageData, ExamMessageResponse, ExamScenarioStartData, ExamScenarioStartResponse, ExamScenarioJudgeData, ExamScenarioJudgeResponse, ExamAbandonData, ExamAbandonResponse, HomeHomeSummaryResponse, InviteRedeemInviteData, InviteRedeemInviteResponse, InviteRedeemClassInviteData, InviteRedeemClassInviteResponse, ItemsReadItemsData, ItemsReadItemsResponse, ItemsCreateItemData, ItemsCreateItemResponse, ItemsReadItemData, ItemsReadItemResponse, ItemsUpdateItemData, ItemsUpdateItemResponse, ItemsDeleteItemData, ItemsDeleteItemResponse, LeaderboardReadLeaderboardData, LeaderboardReadLeaderboardResponse, LeaderboardUpdateNicknameData, LeaderboardUpdateNicknameResponse, LoginLoginAccessTokenData, LoginLoginAccessTokenResponse, LoginTestTokenResponse, LoginRecoverPasswordData, LoginRecoverPasswordResponse, LoginResetPasswordData, LoginResetPasswordResponse, LoginRecoverPasswordHtmlContentData, LoginRecoverPasswordHtmlContentResponse, LoginListProvidersResponse, LoginStartData, LoginStartResponse, LoginCallbackData, LoginCallbackResponse, MascotListMascotItemsResponse, MascotPurchaseItemData, MascotPurchaseItemResponse, MascotToggleEquipData, MascotToggleEquipResponse, MascotGetMyMascotResponse, OnboardingTourDoneResponse, OnboardingShopVisitedResponse, OnboardingClaimRewardResponse, PlayersGetPlayerShowcaseData, PlayersGetPlayerShowcaseResponse, PracticeReadProfileResponse, PretestGetPretestQuestionsResponse, PretestSubmitPretestData, PretestSubmitPretestResponse, PrivateCreateUserData, PrivateCreateUserResponse, ProgressionGetMyProgressionResponse, ProgressionGetRewardReceiptData, ProgressionGetRewardReceiptResponse, ProgressionPurchaseUnlockData, ProgressionPurchaseUnlockResponse, QuickSwipeDeckData, QuickSwipeDeckResponse, QuickSwipeAnswerData, QuickSwipeAnswerResponse, QuickSwipeCompleteData, QuickSwipeCompleteResponse, QuickQuizDeckData, QuickQuizDeckResponse, QuickQuizAnswerData, QuickQuizAnswerResponse, QuickQuizCompleteData, QuickQuizCompleteResponse, ScenarioInboxResponse, ScenarioCreateScenarioData, ScenarioCreateScenarioResponse, ScenarioReadScenarioData, ScenarioReadScenarioResponse, ScenarioSendMessageData, ScenarioSendMessageResponse, ScenarioJudgeScenarioData, ScenarioJudgeScenarioResponse, ScoreGetMyScoreResponse, SeasonsClaimChampionToolData, SeasonsClaimChampionToolResponse, SeasonsGetSeasonCurrentResponse, SeasonsGetBoardData, SeasonsGetBoardResponse, SeasonsGetMySeasonAwardData, SeasonsGetMySeasonAwardResponse, SeasonsTriggerCloseExpiredResponse, TeamReadBankResponse, TeamListCommentsData, TeamListCommentsResponse, TeamCreateCommentData, TeamCreateCommentResponse, TeamDeleteCommentData, TeamDeleteCommentResponse, TrialReadSurveyResponse, TrialSubmitSurveyData, TrialSubmitSurveyResponse, TrialStartSurveyResponse, UsersReadUsersData, UsersReadUsersResponse, UsersCreateUserData, UsersCreateUserResponse, UsersReadUserMeResponse, UsersDeleteUserMeResponse, UsersUpdateUserMeData, UsersUpdateUserMeResponse, UsersUpdatePasswordMeData, UsersUpdatePasswordMeResponse, UsersApplyTeacherMeData, UsersApplyTeacherMeResponse, UsersSetBirthYearMeData, UsersSetBirthYearMeResponse, UsersRegisterUserData, UsersRegisterUserResponse, UsersReadUserByIdData, UsersReadUserByIdResponse, UsersUpdateUserData, UsersUpdateUserResponse, UsersDeleteUserData, UsersDeleteUserResponse, UtilsTestEmailData, UtilsTestEmailResponse, UtilsHealthCheckResponse } from './types.gen';
 
 export class AdminCohortsService {
     /**
@@ -303,6 +303,82 @@ export class BadgesService {
             url: '/api/v1/badges/public/{slug}',
             path: {
                 slug: data.slug
+            },
+            errors: {
+                422: 'Validation Error'
+            }
+        });
+    }
+}
+
+export class CardsService {
+    /**
+     * Card Summary
+     * @returns CardSummary Successful Response
+     * @throws ApiError
+     */
+    public static cardSummary(): CancelablePromise<CardsCardSummaryResponse> {
+        return __request(OpenAPI, {
+            method: 'GET',
+            url: '/api/v1/cards/summary'
+        });
+    }
+    
+    /**
+     * Start Round
+     * @param data The data for the request.
+     * @param data.requestBody
+     * @returns RoundResponse Successful Response
+     * @throws ApiError
+     */
+    public static startRound(data: CardsStartRoundData): CancelablePromise<CardsStartRoundResponse> {
+        return __request(OpenAPI, {
+            method: 'POST',
+            url: '/api/v1/cards/rounds',
+            body: data.requestBody,
+            mediaType: 'application/json',
+            errors: {
+                422: 'Validation Error'
+            }
+        });
+    }
+    
+    /**
+     * Answer Card
+     * @param data The data for the request.
+     * @param data.roundId
+     * @param data.requestBody
+     * @returns AnswerResponse Successful Response
+     * @throws ApiError
+     */
+    public static answerCard(data: CardsAnswerCardData): CancelablePromise<CardsAnswerCardResponse> {
+        return __request(OpenAPI, {
+            method: 'POST',
+            url: '/api/v1/cards/rounds/{round_id}/answer',
+            path: {
+                round_id: data.roundId
+            },
+            body: data.requestBody,
+            mediaType: 'application/json',
+            errors: {
+                422: 'Validation Error'
+            }
+        });
+    }
+    
+    /**
+     * Complete Round
+     * @param data The data for the request.
+     * @param data.roundId
+     * @returns RoundResult Successful Response
+     * @throws ApiError
+     */
+    public static completeRound(data: CardsCompleteRoundData): CancelablePromise<CardsCompleteRoundResponse> {
+        return __request(OpenAPI, {
+            method: 'POST',
+            url: '/api/v1/cards/rounds/{round_id}/complete',
+            path: {
+                round_id: data.roundId
             },
             errors: {
                 422: 'Validation Error'
