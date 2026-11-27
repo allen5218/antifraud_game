@@ -1,9 +1,11 @@
 """檢測選題規則；注入亂數即可重現，不碰資料庫。"""
 
+from collections import Counter
 from collections.abc import Callable, Sequence
 from random import Random
 from typing import TypeVar
 
+from app.cards.bank import Card
 from app.core.cases import GameCaseRow
 
 T = TypeVar("T")
@@ -82,3 +84,36 @@ def pick_cases(
     if not choose():
         raise InsufficientMaterial("檢測素材不足或鏡像衝突")
     return [selected[i] for i in range(len(slots))]
+
+
+def pick_cards(
+    cards: Sequence[Card], count: int, seen: dict[str, int], rng: Random
+) -> list[Card]:
+    """卡片題：一句原料只出一張，同一句變出來的卡放在一起會互相洩題。
+
+    先挑最少考過的原料，每句原料裡再挑最少考過的卡；考過的次數一樣時，
+    挑這份卷還沒出現過的題型，免得五張都是判斷題。
+    """
+    by_source: dict[str, list[Card]] = {}
+    for card in cards:
+        by_source.setdefault(card.source_key, []).append(card)
+    if len(by_source) < count:
+        raise InsufficientMaterial("檢測卡片不足")
+    source_seen = {
+        source: sum(seen.get(f"card:{c.card_key}", 0) for c in rows)
+        for source, rows in by_source.items()
+    }
+    sources = least_seen(list(by_source), lambda s: s, source_seen, rng)[:count]
+    kinds: Counter[str] = Counter()
+    picked: list[Card] = []
+    for source in sources:
+        options = least_seen(
+            by_source[source], lambda c: f"card:{c.card_key}", seen, rng
+        )
+        card = min(
+            options, key=lambda c: (seen.get(f"card:{c.card_key}", 0), kinds[c.kind])
+        )
+        kinds[card.kind] += 1
+        picked.append(card)
+    rng.shuffle(picked)
+    return picked

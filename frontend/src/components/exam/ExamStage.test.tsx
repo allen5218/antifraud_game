@@ -24,7 +24,11 @@ const state: ExamState = {
     { id: "c1", source_label: "通知", scenario: "請先看資料" },
     { id: "c2", source_label: "簡訊", scenario: "今天要付款" },
   ],
-  progress: { stage_index: 0, stage_count: 3 },
+  progress: {
+    stage_index: 0,
+    stage_count: 3,
+    stages: ["swipe", "message", "scenario"],
+  },
   scenario: null,
   result: null,
 }
@@ -99,7 +103,11 @@ test("綜合前測沿用選項外觀，二十題都作答後一次提交", async
     mode: "comprehensive",
     stage: "pretest",
     fraud_type: null,
-    progress: { stage_index: 0, stage_count: 4 },
+    progress: {
+      stage_index: 0,
+      stage_count: 4,
+      stages: ["pretest", "swipe", "message", "scenario"],
+    },
     stage_items: Array.from({ length: 20 }, (_, i) => ({
       id: `q${i}`,
       question_text: `前測第 ${i + 1} 題`,
@@ -124,3 +132,57 @@ test("綜合前測沿用選項外觀，二十題都作答後一次提交", async
     })),
   )
 }, 15000)
+
+test("卡片題一張一張作答，不標對錯，整關送出代號", async () => {
+  const submit = mock(async () => {})
+  const cards: ExamState = {
+    ...state,
+    stage: "cards",
+    progress: {
+      stage_index: 1,
+      stage_count: 4,
+      stages: ["swipe", "cards", "message", "scenario"],
+    },
+    stage_items: [
+      {
+        card_key: "romance-judge-099",
+        kind: "judge",
+        fraud_type: "romance",
+        prompt: "網友：「先借我一萬，下個月還你。」",
+        difficulty: 3,
+        art: { scene: "phone-screen" },
+        choices: [
+          { id: "j1", text: "是詐騙" },
+          { id: "j2", text: "不是詐騙" },
+        ],
+      },
+      {
+        card_key: "romance-order-099",
+        kind: "order",
+        fraud_type: "romance",
+        prompt: "照順序排好查證的步驟",
+        difficulty: 3,
+        art: { scene: "phone-screen" },
+        choices: [
+          { id: "s2", text: "打 165 問" },
+          { id: "s1", text: "先掛電話" },
+        ],
+      },
+    ],
+  }
+  render(<ExamStage state={cards} onSubmit={submit} busy={false} />)
+  expect(screen.getByText("第 1 題，共 2 題")).toBeTruthy()
+  fireEvent.click(screen.getByRole("button", { name: "是詐騙" }))
+  // 檢測不揭曉：直接換下一張，沒有答對、答錯或解說
+  expect(screen.queryByText(/答對|答錯|過幾天/)).toBeNull()
+  expect(screen.getByText("照順序排好查證的步驟")).toBeTruthy()
+  fireEvent.click(screen.getByRole("button", { name: "先掛電話" }))
+  fireEvent.click(screen.getByRole("button", { name: "打 165 問" }))
+  fireEvent.click(screen.getByRole("button", { name: "送出" }))
+  fireEvent.click(screen.getByRole("button", { name: "送出這一關" }))
+  await waitFor(() => expect(submit).toHaveBeenCalledTimes(1))
+  expect(submit.mock.calls[0][0]).toEqual([
+    { card_key: "romance-judge-099", ids: ["j1"] },
+    { card_key: "romance-order-099", ids: ["s1", "s2"] },
+  ])
+})

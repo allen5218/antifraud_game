@@ -1,10 +1,13 @@
 import { useRef, useState } from "react"
 import type {
+  ExamCardAnswer,
   ExamMessageAnswer,
   ExamPretestAnswer,
   ExamState,
   ExamSwipeAnswer,
 } from "@/client"
+import { CardArt } from "@/components/cards/CardArt"
+import { CardPrompt, CardQuestion } from "@/components/cards/CardQuestion"
 import { PretestQuestion } from "@/components/Pretest/PretestQuestion"
 import { TacticsQuestion } from "@/components/quiz/TacticsQuestion"
 import { VerdictQuestion } from "@/components/quiz/VerdictQuestion"
@@ -76,6 +79,31 @@ export function ExamStage({
             } satisfies ExamSwipeAnswer)
           }
         />
+      )}
+      {state.stage === "cards" && "card_key" in item && (
+        // 檢測不揭曉答案：作答後直接換下一張，不標對錯、不給解說
+        <article
+          key={item.card_key}
+          data-testid="exam-card"
+          // 和日常卡片一樣的寬度，插圖才不會在寬螢幕上把題目擠到下面
+          className="mx-auto max-w-md overflow-hidden rounded-3xl border border-border bg-card shadow-sm"
+        >
+          <CardArt {...item.art} />
+          <div className="space-y-4 p-4">
+            <CardPrompt card={item} answered={null} />
+            <CardQuestion
+              card={item}
+              answered={null}
+              busy={busy}
+              onSubmit={(ids) =>
+                answer({
+                  card_key: item.card_key,
+                  ids,
+                } satisfies ExamCardAnswer)
+              }
+            />
+          </div>
+        </article>
       )}
       {state.stage === "message" &&
         "item_id" in item &&

@@ -148,7 +148,7 @@ function TrialSection({ data }: { data: Analytics }) {
       </Card>
       <Card
         title="五類答對率：綜合檢測的前測關"
-        note="每人第一次考完的綜合檢測，第一關 20 題前測，把同一類的題目合起來算答對率；滑過看題數。"
+        note="每人第一次考完的綜合檢測，第一關是前測（舊版 20 題、新版 10 題），把同一類的題目合起來算答對率；滑過看題數。"
       >
         <ResponsiveContainer width="100%" height={240}>
           <BarChart

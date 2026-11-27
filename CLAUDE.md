@@ -231,7 +231,9 @@ description: 一句話描述  # 必填，≤1024 字
 
 `backend/app/exam/`（路由 `api/routes/exam.py`，前端 `components/exam/`、`/exam`、`/exam/$attemptId`、公開查驗頁 `/badge/$slug`）。
 
-- **兩種模式**：綜合 `comprehensive`（前測 20 題 → 最弱一類的滑卡 2+2、訊息判讀 2+2＋話術複選 1、情境 1 場最多 5 回合）；專項 `specialized`（自選一類：滑卡 3+3、訊息判讀 4+4＋話術 1、情境 2 場一真一假各最多 8 回合）。配分在 `scoring.py`，**用四捨五入後的整數判定 70 分過關**（和結果頁一致）。
+- **兩種模式**：綜合 `comprehensive`（前測 10 題 → 最弱一類的滑卡 1+1、卡片題 5、訊息判讀 1+1＋話術複選 1、情境 1 場最多 5 回合）；專項 `specialized`（自選一類：滑卡 1+1、卡片題 5、訊息判讀 2+2＋話術 1、情境 2 場一真一假各最多 8 回合）。題數、關卡順序、配分都在 `config.py` 的 `VERSIONS`，**用四捨五入後的整數判定 70 分過關**（和結果頁一致）。
+- **版本**：`ExamAttempt.version`，2026-11 改版前的卷是 1（前測 20 題、沒有卡片題），之後開考是 2（`EXAM_VERSION`）。舊卷照舊版關卡與配分考完、重算；改題數或配分要開新版本，不要改舊版本的數字。試測成效分析（`trial/effect.py` 的 `exams`）依版本分開算，匯出 CSV 有 `exam_version`。
+- **卡片題**：日常卡片題庫裡 `pool: "exam"` 的卡（練習不會出），同一類、一句原料只出一張（`picking.pick_cards`），年長者只出 `elder_ok`。出題與判定都用 `app/cards/grading.py`（代號範圍是 `exam-<attempt_id>`），畫面重用 `CardQuestion`，作答後直接換下一張、不揭曉。
 - **檢測專用題庫**：`game_cases.pool`（`practice`／`exam_message`／`exam_tactics`／`exam_scenario`）與 `pattern_key`；`swipe_card.pool`（`practice`／`exam`）；人格 `personas/exam-{scammer,legit}.soul.md`。**所有練習讀取都只讀 `pool='practice'`**。抽題 `picking.py`：一份卷內不出現鏡像對、同一關 `pattern_key` 不重複、優先沒看過的。檢測案例不在種子裡：先跑 `deploy/sql/2026-10-09-game-cases-pool.sql` 加欄位，再跑 `deploy/sql/2026-10-16-exam-cases.sql`（110 則，依 `case_key` upsert，可重複執行）；檢測滑卡在 `core/db.py`，啟動時同步。
 - **開考鎖定**：`ExamAttempt.items` 存題目快照，正解只在快照裡、交卷前不送前端；結果頁不分關、不揭曉（只給總分、是否通過、弱項合計、漏掉的話術）。1 小時期限（`config.py`），到期懶惰結算；情境關 AI 出錯且到期就作廢 `voided`、不算次數。每日 ①② 合計 3 次（台灣日期）。
 - **檢測中暫停三種訓練**：`lifecycle.require_no_active_exam()` 擋所有練習的發牌、**作答**、收件匣、開新情境、練習情境的送訊息與判斷、入門前測與每日訓練，回 400 `exam_in_progress`（前端換成 `ExamInProgress`）。要先取這把檢測鎖、再鎖牌局，不要反過來。

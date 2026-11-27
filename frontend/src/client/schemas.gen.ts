@@ -1539,11 +1539,12 @@ export const EconomyMeResponseSchema = {
 
 export const EffectAnalyticsSchema = {
     properties: {
-        exam: {
-            '$ref': '#/components/schemas/ExamStageEffect'
-        },
-        repeat: {
-            '$ref': '#/components/schemas/RepeatEffect'
+        exams: {
+            items: {
+                '$ref': '#/components/schemas/ExamVersionEffect'
+            },
+            type: 'array',
+            title: 'Exams'
         },
         entry: {
             '$ref': '#/components/schemas/EntryEffect'
@@ -1556,7 +1557,7 @@ export const EffectAnalyticsSchema = {
         }
     },
     type: 'object',
-    required: ['exam', 'repeat', 'entry', 'practice', 'volume'],
+    required: ['exams', 'entry', 'practice', 'volume'],
     title: 'EffectAnalytics'
 } as const;
 
@@ -2000,6 +2001,46 @@ export const ExamBadgeVerificationSchema = {
     title: 'ExamBadgeVerification'
 } as const;
 
+export const ExamCardAnswerSchema = {
+    properties: {
+        card_key: {
+            type: 'string',
+            maxLength: 64,
+            title: 'Card Key'
+        },
+        ids: {
+            items: {
+                type: 'string',
+                maxLength: 32
+            },
+            type: 'array',
+            maxItems: 10,
+            minItems: 1,
+            title: 'Ids'
+        }
+    },
+    additionalProperties: false,
+    type: 'object',
+    required: ['card_key', 'ids'],
+    title: 'ExamCardAnswer'
+} as const;
+
+export const ExamCardRequestSchema = {
+    properties: {
+        answers: {
+            items: {
+                '$ref': '#/components/schemas/ExamCardAnswer'
+            },
+            type: 'array',
+            maxItems: 10,
+            title: 'Answers'
+        }
+    },
+    type: 'object',
+    required: ['answers'],
+    title: 'ExamCardRequest'
+} as const;
+
 export const ExamDetailSchema = {
     properties: {
         id: {
@@ -2010,6 +2051,10 @@ export const ExamDetailSchema = {
         mode: {
             type: 'string',
             title: 'Mode'
+        },
+        version: {
+            type: 'integer',
+            title: 'Version'
         },
         fraud_type: {
             anyOf: [
@@ -2075,7 +2120,7 @@ export const ExamDetailSchema = {
         }
     },
     type: 'object',
-    required: ['id', 'mode', 'fraud_type', 'status', 'counted', 'started_at', 'completed_at', 'seconds', 'score', 'passed', 'stages'],
+    required: ['id', 'mode', 'version', 'fraud_type', 'status', 'counted', 'started_at', 'completed_at', 'seconds', 'score', 'passed', 'stages'],
     title: 'ExamDetail'
 } as const;
 
@@ -2383,10 +2428,18 @@ export const ExamProgressSchema = {
         stage_count: {
             type: 'integer',
             title: 'Stage Count'
+        },
+        stages: {
+            items: {
+                type: 'string',
+                enum: ['pretest', 'swipe', 'cards', 'message', 'scenario', 'done']
+            },
+            type: 'array',
+            title: 'Stages'
         }
     },
     type: 'object',
-    required: ['stage_index', 'stage_count'],
+    required: ['stage_index', 'stage_count', 'stages'],
     title: 'ExamProgress'
 } as const;
 
@@ -2422,6 +2475,17 @@ export const ExamResultSchema = {
                 }
             ],
             title: 'Pretest By Type'
+        },
+        pretest_per_type: {
+            anyOf: [
+                {
+                    type: 'integer'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Pretest Per Type'
         },
         weakness_score: {
             type: 'integer',
@@ -2633,7 +2697,7 @@ export const ExamStateSchema = {
         },
         stage: {
             type: 'string',
-            enum: ['pretest', 'swipe', 'message', 'scenario', 'done'],
+            enum: ['pretest', 'swipe', 'cards', 'message', 'scenario', 'done'],
             title: 'Stage'
         },
         fraud_type: {
@@ -2660,6 +2724,9 @@ export const ExamStateSchema = {
                     },
                     {
                         '$ref': '#/components/schemas/ExamSwipeItem'
+                    },
+                    {
+                        '$ref': '#/components/schemas/CardPublic'
                     },
                     {
                         '$ref': '#/components/schemas/ExamMessageItem'
@@ -2810,6 +2877,32 @@ export const ExamSwipeRequestSchema = {
     type: 'object',
     required: ['answers'],
     title: 'ExamSwipeRequest'
+} as const;
+
+export const ExamVersionEffectSchema = {
+    properties: {
+        version: {
+            type: 'integer',
+            title: 'Version'
+        },
+        label: {
+            type: 'string',
+            title: 'Label'
+        },
+        pretest_items: {
+            type: 'integer',
+            title: 'Pretest Items'
+        },
+        exam: {
+            '$ref': '#/components/schemas/ExamStageEffect'
+        },
+        repeat: {
+            '$ref': '#/components/schemas/RepeatEffect'
+        }
+    },
+    type: 'object',
+    required: ['version', 'label', 'pretest_items', 'exam', 'repeat'],
+    title: 'ExamVersionEffect'
 } as const;
 
 export const FlagItemSchema = {

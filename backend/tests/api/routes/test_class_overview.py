@@ -251,7 +251,12 @@ def test_member_detail(client: TestClient, db: Session) -> None:
     assert detail.status_code == 200, detail.text
     body = detail.json()
     assert (body["student_number"], body["student_name"]) == ("S9", "王小明")
-    assert [p["mode"] for p in body["practice"]] == ["swipe", "quiz", "scenario"]
+    assert [p["mode"] for p in body["practice"]] == [
+        "card",
+        "swipe",
+        "quiz",
+        "scenario",
+    ]
     assert len(body["exams"]) == 1 and body["assignments"] == []
     stranger = create_random_user(db)
     missing = client.get(

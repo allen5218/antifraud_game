@@ -20,7 +20,11 @@ const state: ExamState = {
     { id: "one", source_label: "訊息", scenario: "你好" },
     { id: "two", source_label: "訊息", scenario: "請看說明" },
   ],
-  progress: { stage_index: 0, stage_count: 3 },
+  progress: {
+    stage_index: 0,
+    stage_count: 3,
+    stages: ["swipe", "message", "scenario"],
+  },
   scenario: null,
   result: null,
 }

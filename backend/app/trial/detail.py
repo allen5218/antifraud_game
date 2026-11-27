@@ -7,6 +7,7 @@ from typing import Any
 
 from sqlmodel import Session, SQLModel, col, select
 
+from app.exam.config import ALL_STAGES
 from app.exam.export import item_answer
 from app.exam.scoring import round_score
 from app.models import (
@@ -21,8 +22,8 @@ from app.models import (
 )
 from app.trial.survey import OTHER, QUESTIONS
 
-EXAM_STAGES = ("pretest", "swipe", "message", "scenario")
-PRACTICE_MODES = ("swipe", "quiz", "scenario")
+EXAM_STAGES = ALL_STAGES
+PRACTICE_MODES = ("card", "swipe", "quiz", "scenario")
 
 
 class PretestItemDetail(SQLModel):
@@ -52,6 +53,8 @@ class ExamStageDetail(SQLModel):
 class ExamDetail(SQLModel):
     id: uuid.UUID
     mode: str
+    # 1 是改版前、2 是加了卡片題的新版
+    version: int
     fraud_type: str | None
     status: str
     counted: bool
@@ -179,6 +182,7 @@ def exam_details(session: Session, user_id: uuid.UUID) -> list[ExamDetail]:
         ExamDetail(
             id=attempt.id,
             mode=attempt.mode,
+            version=attempt.version,
             fraud_type=attempt.fraud_type,
             status=attempt.status,
             counted=attempt.counted,
@@ -235,7 +239,7 @@ def survey_detail(survey: TrialSurvey | None) -> SurveyDetail | None:
 def practice_details(
     practice_rows: Sequence[tuple[str, bool, datetime | None]],
 ) -> list[PracticeDetail]:
-    """三種練習各做幾題、答對幾題；`practice_rows` 是 (mode, correct, created_at)。"""
+    """各種練習各做幾題、答對幾題；`practice_rows` 是 (mode, correct, created_at)。"""
     return [
         PracticeDetail(
             mode=mode,

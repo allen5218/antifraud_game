@@ -1,7 +1,7 @@
 """放置經營：每人的信譽與搬家紀錄、六種產業、被騙走財產的紀錄。
 
 Revision ID: c000d14c68e7
-Revises: e27b2e63487a
+Revises: 21379b03aa34
 Create Date: 2026-11-27 13:52:47.976889
 
 """
@@ -12,7 +12,7 @@ from sqlalchemy.dialects import postgresql
 
 # revision identifiers, used by Alembic.
 revision = 'c000d14c68e7'
-down_revision = 'e27b2e63487a'
+down_revision = '21379b03aa34'
 branch_labels = None
 depends_on = None
 

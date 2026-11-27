@@ -68,7 +68,11 @@ test("進行中的檢測可繼續，兩種新檢測都鎖住", async () => {
       fraud_type: "atm",
       expires_at: "2099-01-01T00:00:00Z",
       stage_items: [],
-      progress: { stage_index: 0, stage_count: 3 },
+      progress: {
+        stage_index: 0,
+        stage_count: 3,
+        stages: ["swipe", "message", "scenario"],
+      },
       scenario: null,
       result: null,
     }),

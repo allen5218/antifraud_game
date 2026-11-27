@@ -3,10 +3,12 @@
 `load_effect_input` 把資料庫讀成純資料，其餘都是純函式（單元測試不用資料庫）。
 答對率一律用百分比（0–100，小數一位）。
 
-- 檢測：第一次考完的綜合檢測，前測關挑出的最弱一類，對照後三關（同一類）。
+- 檢測：第一次考完的綜合檢測，前測關挑出的最弱一類，對照後面幾關（同一類）。
 - 考兩次以上：第一次和最近一次正常交卷的綜合檢測。
-- 入門前測到檢測前測關：兩者同題庫、同抽法，可以直接配對。
-- 日常練習：起點（入門前測，沒有就用檢測前測關）之後的滑卡、訊息判讀、情境對抗。
+- 這兩段依檢測版本分開算（`ExamAttempt.version`）：新舊版的關卡、題數、配分不同，
+  前測關答對題數與分數不能放在一起比。
+- 入門前測到檢測前測關：兩者同題庫，比答對率，新舊版都可以配對。
+- 日常練習：起點（入門前測，沒有就用檢測前測關）之後的卡片、滑卡、訊息判讀、情境對抗。
 """
 
 import statistics
@@ -20,13 +22,25 @@ from sqlmodel import Session, SQLModel, col, select
 
 from app.core.weakness import WEAKNESS_LABELS
 from app.daily.dates import TAIPEI
+from app.exam.config import EXAM_VERSION, VERSIONS, exam_config
 from app.exam.export import item_answer
 from app.exam.scoring import round_score
 from app.models import ExamAttempt, PracticeAnswer, PretestAttempt, PretestResult
 
 FRAUD_TYPE_ORDER = ("investment", "fake-sale", "shopping", "romance", "atm")
-LATER_STAGES = (("swipe", "滑卡"), ("message", "訊息判讀"), ("scenario", "情境對抗"))
-PRACTICE_MODES = (("swipe", "滑卡"), ("quiz", "訊息判讀"), ("scenario", "情境對抗"))
+LATER_STAGES = (
+    ("swipe", "滑卡"),
+    ("cards", "卡片題"),
+    ("message", "訊息判讀"),
+    ("scenario", "情境對抗"),
+)
+PRACTICE_MODES = (
+    ("card", "卡片練習"),
+    ("swipe", "滑卡"),
+    ("quiz", "訊息判讀"),
+    ("scenario", "情境對抗"),
+)
+EXAM_VERSION_LABELS = {1: "舊版檢測", 2: "新版檢測"}
 CURVE_STEP = 10
 CURVE_LAST = 51  # 第 51 題以後併成一段
 MODE_MIN_ANSWERS = 4
@@ -48,6 +62,7 @@ class ExamRecord:
     weakest: str | None
     pretest: list[tuple[str, bool]]
     later: dict[str, list[bool]] = field(default_factory=dict)
+    version: int = 1
 
     @property
     def done_at(self) -> datetime:
@@ -163,9 +178,18 @@ class PracticeVolume(SQLModel):
     scenario_rounds: int
 
 
-class EffectAnalytics(SQLModel):
+class ExamVersionEffect(SQLModel):
+    version: int
+    label: str
+    # 這一版前測關幾題（考兩次以上比的是答對題數）
+    pretest_items: int
     exam: ExamStageEffect
     repeat: RepeatEffect
+
+
+class EffectAnalytics(SQLModel):
+    # 依檢測版本分開，新版在前；範圍內只有一版就只有一筆
+    exams: list[ExamVersionEffect]
     entry: EntryEffect
     practice: PracticeEffect
     volume: PracticeVolume
@@ -244,7 +268,10 @@ def first_exams(exams: Sequence[ExamRecord]) -> dict[uuid.UUID, ExamRecord]:
 # ---------- 各段計算 ----------
 
 
-def exam_stage_effect(firsts: dict[uuid.UUID, ExamRecord]) -> ExamStageEffect:
+def exam_stage_effect(
+    firsts: dict[uuid.UUID, ExamRecord],
+    later_stages: Sequence[tuple[str, str]] = LATER_STAGES,
+) -> ExamStageEffect:
     weakest: list[bool] = []
     weakest_people = 0
     stage_marks: dict[str, list[bool]] = defaultdict(list)
@@ -252,8 +279,8 @@ def exam_stage_effect(firsts: dict[uuid.UUID, ExamRecord]) -> ExamStageEffect:
     pairs: list[tuple[float, float]] = []
     for record in firsts.values():
         mine = [ok for t, ok in record.pretest if t == record.weakest]
-        later = [ok for key, _ in LATER_STAGES for ok in record.later.get(key, [])]
-        for key, _ in LATER_STAGES:
+        later = [ok for key, _ in later_stages for ok in record.later.get(key, [])]
+        for key, _ in later_stages:
             if record.later.get(key):
                 stage_marks[key] += record.later[key]
                 stage_people[key] += 1
@@ -279,9 +306,36 @@ def exam_stage_effect(firsts: dict[uuid.UUID, ExamRecord]) -> ExamStageEffect:
             people=stage_people[key],
             items=len(stage_marks[key]),
         )
-        for key, label in LATER_STAGES
+        for key, label in later_stages
     ]
     return ExamStageEffect(stages=stages, change=paired(pairs))
+
+
+def exam_version_effects(exams: Sequence[ExamRecord]) -> list[ExamVersionEffect]:
+    """每個檢測版本各算一份，新版在前；同一人考過兩版，兩版各自配對，不跨版比。
+
+    範圍內還沒有人考過檢測時，回一份空的目前版本，畫面照常有卡片可以畫。
+    """
+    versions = sorted(
+        {e.version for e in exams if e.version in VERSIONS}, reverse=True
+    ) or [EXAM_VERSION]
+    effects = []
+    for version in versions:
+        mine = [e for e in exams if e.version == version]
+        cfg = exam_config(version, "comprehensive")
+        effects.append(
+            ExamVersionEffect(
+                version=version,
+                label=EXAM_VERSION_LABELS.get(version, f"第 {version} 版檢測"),
+                pretest_items=cfg.pretest_count,
+                exam=exam_stage_effect(
+                    first_exams(mine),
+                    [(k, label) for k, label in LATER_STAGES if k in cfg.stages],
+                ),
+                repeat=repeat_effect(mine),
+            )
+        )
+    return effects
 
 
 def repeat_effect(exams: Sequence[ExamRecord]) -> RepeatEffect:
@@ -454,8 +508,7 @@ def effect_analytics(data: EffectInput) -> EffectAnalytics:
     for entry in data.entries:
         baselines[entry.user_id] = (entry.at, entry.answers)
     return EffectAnalytics(
-        exam=exam_stage_effect(firsts),
-        repeat=repeat_effect(data.exams),
+        exams=exam_version_effects(data.exams),
         entry=entry_effect(data.entries, firsts, practice),
         practice=practice_effect(baselines, practice),
         volume=practice_volume(firsts, practice),
@@ -483,6 +536,7 @@ def _exam_record(attempt: ExamAttempt) -> ExamRecord:
         passed=attempt.passed,
         score=round_score(attempt.total_score),
         weakest=attempt.fraud_type,
+        version=attempt.version,
         # 前測關沒作答的算錯（和現有五類答對率一致）；後三關只算有作答的
         pretest=[(t, mark == "true") for t, mark in marks("pretest")],
         later={
