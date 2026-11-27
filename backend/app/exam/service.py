@@ -8,16 +8,29 @@ from typing import Any
 from fastapi import HTTPException
 from sqlmodel import Session, col, func, select
 
+from app.cards.bank import load_bank
+from app.cards.grading import CardPublic, decode_answer, is_correct
+from app.core.age import is_elder
 from app.core.fraud_types import FRAUD_TYPES
 from app.daily.dates import TAIPEI, taipei_today
 from app.exam.badges import list_badges
-from app.exam.config import EXAM_DAILY_LIMIT, EXAM_DURATION_SECONDS, MODES
+from app.exam.config import (
+    EXAM_DAILY_LIMIT,
+    EXAM_DURATION_SECONDS,
+    EXAM_VERSION,
+    exam_config,
+)
 from app.exam.gate import retake_status
 from app.exam.lifecycle import active_attempt, finalize
-from app.exam.material import downstream_material, pretest_material, seen_material
+from app.exam.material import (
+    card_round_id,
+    downstream_material,
+    pretest_material,
+    seen_material,
+)
 from app.exam.picking import InsufficientMaterial, weakest_type
-from app.exam.scoring import round_score, score_answers
-from app.models import ExamAttempt, ScenarioSession, get_datetime_utc
+from app.exam.scoring import item_key, round_score, score_answers
+from app.models import ExamAttempt, ScenarioSession, User, get_datetime_utc
 from app.scenario.agent import read_persona_meta
 from app.scenario.config import AVATAR_POOL, DISPLAY_NAME_POOL
 from app.schemas import (
@@ -49,13 +62,10 @@ def owned_attempt(
 
 
 def state_of(session: Session, attempt: ExamAttempt) -> ExamState:
-    stages = (
-        ["pretest", "swipe", "message", "scenario"]
-        if attempt.mode == "comprehensive"
-        else ["swipe", "message", "scenario"]
-    )
+    cfg = exam_config(attempt.version, attempt.mode)
+    stages = list(cfg.stages)
     rows = attempt.items.get(attempt.stage, []) if attempt.status == "active" else []
-    public: list[ExamPretestItem | ExamSwipeItem | ExamMessageItem] = []
+    public: list[ExamPretestItem | ExamSwipeItem | CardPublic | ExamMessageItem] = []
     if attempt.stage == "pretest":
         public = [
             ExamPretestItem.model_validate(
@@ -70,6 +80,9 @@ def state_of(session: Session, attempt: ExamAttempt) -> ExamState:
             )
             for item in rows
         ]
+    elif attempt.stage == "cards":
+        # 出題時就算好的畫面資料：代號只在這份卷有效，正解不在裡面
+        public = [CardPublic.model_validate(item["public"]) for item in rows]
     elif attempt.stage == "message":
         public = [
             ExamMessageItem.model_validate(
@@ -96,8 +109,8 @@ def state_of(session: Session, attempt: ExamAttempt) -> ExamState:
         scenario = ExamScenario(
             session_id=sid,
             index=index + 1,
-            count=MODES[attempt.mode].scenario_count,
-            max_turns=MODES[attempt.mode].max_turns,
+            count=cfg.scenario_count,
+            max_turns=cfg.max_turns,
             player_turns=sc.player_turns if sc else 0,
         )
     result = (
@@ -114,11 +127,14 @@ def state_of(session: Session, attempt: ExamAttempt) -> ExamState:
             "fraud_type": attempt.fraud_type,
             "expires_at": attempt.expires_at,
             "stage_items": public,
-            "progress": ExamProgress(
-                stage_index=stages.index(attempt.stage)
-                if attempt.stage in stages
-                else len(stages),
-                stage_count=len(stages),
+            "progress": ExamProgress.model_validate(
+                {
+                    "stage_index": stages.index(attempt.stage)
+                    if attempt.stage in stages
+                    else len(stages),
+                    "stage_count": len(stages),
+                    "stages": stages,
+                }
             ),
             "scenario": scenario,
             "result": result,
@@ -186,24 +202,37 @@ def start_exam(
         raise HTTPException(400, detail)
     rng = random.Random()
     seen = seen_material(session, user_id)
+    cfg = exam_config(EXAM_VERSION, payload.mode)
+    attempt_id = uuid.uuid4()
+    elder = elder_of(session, user_id)
     try:
         if payload.mode == "comprehensive":
-            items = {"pretest": pretest_material(session, seen, rng)}
+            items = {"pretest": pretest_material(session, cfg, seen, rng)}
             # 前測之後類型才確定；開考前先確認五類都有完整素材，避免考到半途卡住。
             for ft in FRAUD_TYPES:
-                downstream_material(session, payload.mode, ft, seen, rng)
+                downstream_material(
+                    session, cfg, ft, seen, rng, attempt_id=attempt_id, elder=elder
+                )
         else:
             items = downstream_material(
-                session, payload.mode, payload.fraud_type or "", seen, rng
+                session,
+                cfg,
+                payload.fraud_type or "",
+                seen,
+                rng,
+                attempt_id=attempt_id,
+                elder=elder,
             )
     except (InsufficientMaterial, FileNotFoundError) as exc:
         raise HTTPException(503, {"code": "exam_unavailable"}) from exc
     now = get_datetime_utc()
     attempt = ExamAttempt(
+        id=attempt_id,
         user_id=user_id,
         mode=payload.mode,
+        version=EXAM_VERSION,
         fraud_type=payload.fraud_type,
-        stage="pretest" if payload.mode == "comprehensive" else "swipe",
+        stage=cfg.stages[0],
         items=items,
         created_at=now,
         expires_at=now + timedelta(seconds=EXAM_DURATION_SECONDS),
@@ -213,6 +242,22 @@ def start_exam(
     response = state_of(session, attempt)
     session.commit()
     return response
+
+
+def elder_of(session: Session, user_id: uuid.UUID) -> bool:
+    user = session.get(User, user_id)
+    return user is not None and is_elder(user.birth_year)
+
+
+def card_answer(attempt: ExamAttempt, card_key: str, ids: list[str]) -> dict[str, Any]:
+    """卡片題的判定照日常卡片的規則（`app/cards/grading.py`），存成答案快照。"""
+    card = load_bank().get(card_key)
+    if card is None:
+        raise HTTPException(503, {"code": "exam_unavailable"})
+    indexes = decode_answer(card_round_id(attempt.id), card, ids)
+    if indexes is None:
+        raise HTTPException(400, {"code": "invalid_exam_answers"})
+    return {"ids": list(ids), "correct": is_correct(card, indexes)}
 
 
 def submit_stage(
@@ -225,10 +270,16 @@ def submit_stage(
     attempt = owned_attempt(session, user_id, attempt_id)
     if attempt.status != "active":
         return state_of(session, attempt)
+    cfg = exam_config(attempt.version, attempt.mode)
     rows = attempt.items.get(stage, [])
-    field = {"pretest": "question_id", "swipe": "card_id", "message": "item_id"}[stage]
+    field = {
+        "pretest": "question_id",
+        "swipe": "card_id",
+        "cards": "card_key",
+        "message": "item_id",
+    }[stage]
     canonical: dict[str, Any] = {}
-    by_id = {str(item.get("item_id", item.get("id"))): item for item in rows}
+    by_id = {item_key(stage, item): item for item in rows}
     for answer in submitted:
         key = str(answer[field])
         if key in canonical or key not in by_id:
@@ -240,6 +291,8 @@ def submit_stage(
                 raise HTTPException(400, {"code": "invalid_exam_answers"})
         elif stage == "swipe":
             chosen = answer["guess_is_scam"]
+        elif stage == "cards":
+            chosen = card_answer(attempt, key, answer["ids"])
         elif item["kind"] == "tactics":
             tags = answer.get("tags")
             if (
@@ -267,32 +320,32 @@ def submit_stage(
         )
     if stage == "pretest":
         _, correct, _ = score_answers(
-            attempt.mode, attempt.items, {"pretest": canonical}
+            attempt.mode, attempt.items, {"pretest": canonical}, version=attempt.version
         )
         ft = weakest_type(correct, random.Random())
         try:
             materials = downstream_material(
                 session,
-                attempt.mode,
+                cfg,
                 ft,
                 seen_material(session, user_id),
                 random.Random(),
+                attempt_id=attempt.id,
+                elder=elder_of(session, user_id),
             )
         except (InsufficientMaterial, FileNotFoundError) as exc:
             raise HTTPException(503, {"code": "exam_unavailable"}) from exc
         attempt.fraud_type = ft
         attempt.pretest_by_type = correct
         attempt.items = {**attempt.items, **materials}
-    attempt.stage = {"pretest": "swipe", "swipe": "message", "message": "scenario"}[
-        stage
-    ]
+    attempt.stage = cfg.stages[cfg.stages.index(stage) + 1]
     attempt.answers = {
         **attempt.answers,
         stage: canonical,
         "_last_stage": attempt.stage,
     }
     attempt.stage_scores, _, _ = score_answers(
-        attempt.mode, attempt.items, attempt.answers
+        attempt.mode, attempt.items, attempt.answers, version=attempt.version
     )
     session.add(attempt)
     response = state_of(session, attempt)
@@ -325,7 +378,7 @@ def start_scenario(
         fraud_type=ft,
         pool="exam",
         exam_attempt_id=attempt.id,
-        max_turns=MODES[attempt.mode].max_turns,
+        max_turns=exam_config(attempt.version, attempt.mode).max_turns,
         persona_role=role,
         case_id=item["case_id"],
         display_name=random.choice(DISPLAY_NAME_POOL[ft]),
@@ -402,9 +455,9 @@ def judge_scenario(
     session.add(sc)
     attempt.answers = {**attempt.answers, "scenario": answers}
     attempt.stage_scores, _, _ = score_answers(
-        attempt.mode, attempt.items, attempt.answers
+        attempt.mode, attempt.items, attempt.answers, version=attempt.version
     )
-    if len(answers) == MODES[attempt.mode].scenario_count:
+    if len(answers) == exam_config(attempt.version, attempt.mode).scenario_count:
         finalize(session, attempt, "completed", get_datetime_utc())
     session.add(attempt)
     response = state_of(session, attempt)

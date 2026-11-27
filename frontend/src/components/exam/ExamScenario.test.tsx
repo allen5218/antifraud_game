@@ -22,7 +22,11 @@ const state: ExamState = {
   fraud_type: "romance",
   expires_at: "2099-01-01T00:00:00Z",
   stage_items: [],
-  progress: { stage_index: 2, stage_count: 3 },
+  progress: {
+    stage_index: 2,
+    stage_count: 3,
+    stages: ["swipe", "message", "scenario"],
+  },
   scenario: {
     session_id: "s",
     index: 1,

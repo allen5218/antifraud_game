@@ -30,6 +30,7 @@ def exam(
     correct: dict[str, int] | None = None,
     later: dict[str, list[bool]] | None = None,
     completed: bool = True,
+    version: int = 1,
 ) -> ExamRecord:
     return ExamRecord(
         user_id=user,
@@ -43,6 +44,7 @@ def exam(
         weakest="romance",
         pretest=pretest(correct or {}),
         later=later if later is not None else {},
+        version=version,
     )
 
 
@@ -67,9 +69,11 @@ def answer(
 
 def test_empty_input() -> None:
     result = effect_analytics(EffectInput([], [], []))
-    assert result.exam.change.n == 0
-    assert result.exam.change.before_mean is None
-    assert result.repeat.people == 0
+    # 沒有人考過時給一份空的目前版本，畫面照常畫
+    assert [e.version for e in result.exams] == [2]
+    assert result.exams[0].exam.change.n == 0
+    assert result.exams[0].exam.change.before_mean is None
+    assert result.exams[0].repeat.people == 0
     assert result.entry.total.n == 0
     assert result.practice.curve == []
     assert result.practice.baseline_people == 0
@@ -94,7 +98,14 @@ def test_exam_stage_change() -> None:
         [],
         [],
     )
-    result = effect_analytics(data).exam
+    result = effect_analytics(data).exams[0].exam
+    # 舊版沒有卡片題那一關
+    assert [s.key for s in result.stages] == [
+        "pretest_weakest",
+        "swipe",
+        "message",
+        "scenario",
+    ]
     assert result.stages[0].key == "pretest_weakest"
     assert result.stages[0].accuracy == 25.0
     assert result.change.before_mean == 25.0
@@ -108,7 +119,7 @@ def test_exam_without_later_answers_skipped() -> None:
         [exam(user, status="abandoned", completed=False, later={})], [], []
     )
     result = effect_analytics(data)
-    assert result.exam.change.n == 0
+    assert result.exams[0].exam.change.n == 0
     assert result.volume.exam_people == 1
 
 
@@ -120,7 +131,7 @@ def test_repeat_and_retake() -> None:
     second.pretest = pretest(
         {"investment": 4, "fake-sale": 4, "shopping": 4, "romance": 3}
     )
-    result = effect_analytics(EffectInput([first, second], [], [])).repeat
+    result = effect_analytics(EffectInput([first, second], [], [])).exams[0].repeat
     assert result.people == 1
     assert result.score.diff_mean == 15.0
     assert result.pretest.diff_mean == 3.0
@@ -186,7 +197,7 @@ def test_specialized_only_ignored() -> None:
         [exam(user, mode="specialized", later={"swipe": [True]})], [], []
     )
     result = effect_analytics(data)
-    assert result.exam.change.n == 0
+    assert result.exams[0].exam.change.n == 0
     assert result.volume.exam_people == 0
 
 
@@ -205,3 +216,43 @@ def test_volume() -> None:
     assert result.median_answers == 3
     assert result.median_days == 2
     assert result.scenario_rounds == 1
+
+
+def test_versions_are_counted_apart() -> None:
+    # 同一人考過舊版又考新版：前測關題數不同（20 對 10），不能拿來配對
+    user, other = uuid.uuid4(), uuid.uuid4()
+    old = exam(user, score=60, passed=False, correct=dict.fromkeys(TYPES, 2))
+    new = exam(
+        user,
+        at=T0 + timedelta(days=1),
+        score=80,
+        version=2,
+        correct={"romance": 1},
+        later={"swipe": [True], "cards": [True, False, True, True, True]},
+    )
+    new.pretest = new.pretest[::2]
+    again = exam(other, version=2, later={"cards": [True]})
+    result = effect_analytics(EffectInput([old, new, again], [], []))
+    assert [e.version for e in result.exams] == [2, 1]
+    v2, v1 = result.exams
+    assert (v2.pretest_items, v1.pretest_items) == (10, 20)
+    assert v1.repeat.people == 0 and v2.repeat.people == 0
+    assert v1.repeat.failed_first == 1 and v1.repeat.retook == 0
+    cards = next(s for s in v2.exam.stages if s.key == "cards")
+    assert (cards.people, cards.items, cards.accuracy) == (2, 6, 83.3)
+    assert "cards" not in [s.key for s in v1.exam.stages]
+    # 第一次考完的檢測各版本自己算：新版裡兩人的第一次都是新版那份；舊版那份沒有後面幾關
+    assert v2.exam.change.n == 2 and v1.exam.change.n == 0
+
+
+def test_card_practice_counts_as_practice() -> None:
+    user = uuid.uuid4()
+    start = T0 + timedelta(hours=1)
+    answers = [
+        answer(user, start + timedelta(minutes=i), i >= 2, mode="card")
+        for i in range(4)
+    ]
+    result = effect_analytics(EffectInput([exam(user)], [], answers)).practice
+    card = next(m for m in result.modes if m.mode == "card")
+    assert (card.change.before_mean, card.change.after_mean) == (0.0, 100.0)
+    assert result.curve[0].items == 4

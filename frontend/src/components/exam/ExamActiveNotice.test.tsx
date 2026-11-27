@@ -38,6 +38,10 @@ function attempt(mode: ExamState["mode"], fraudType: string | null): ExamState {
     progress: {
       stage_index: 0,
       stage_count: mode === "comprehensive" ? 4 : 3,
+      stages:
+        mode === "comprehensive"
+          ? ["pretest", "swipe", "message", "scenario"]
+          : ["swipe", "message", "scenario"],
     },
     scenario: null,
     result: null,

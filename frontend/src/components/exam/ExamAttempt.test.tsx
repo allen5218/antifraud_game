@@ -20,7 +20,11 @@ const base: ExamState = {
   fraud_type: "romance",
   expires_at: "2099-01-01T00:00:00Z",
   stage_items: [{ id: "c", source_label: "通知", scenario: "請先看資料" }],
-  progress: { stage_index: 0, stage_count: 3 },
+  progress: {
+    stage_index: 0,
+    stage_count: 3,
+    stages: ["swipe", "message", "scenario"],
+  },
   scenario: null,
   result: null,
 }
@@ -57,7 +61,11 @@ test("重新整理先讀伺服器關卡，提交失敗重送原 payload，成功
       response({
         ...base,
         stage: "message",
-        progress: { stage_index: 1, stage_count: 3 },
+        progress: {
+          stage_index: 1,
+          stage_count: 3,
+          stages: ["swipe", "message", "scenario"],
+        },
         stage_items: [
           {
             item_id: "m",
@@ -178,7 +186,11 @@ test("倒數歸零仍可交卷，伺服器仍進行中時改約每十秒再讀",
     current = {
       ...expired,
       stage: "message",
-      progress: { stage_index: 1, stage_count: 3 },
+      progress: {
+        stage_index: 1,
+        stage_count: 3,
+        stages: ["swipe", "message", "scenario"],
+      },
       stage_items: [
         {
           item_id: "m",
@@ -264,7 +276,11 @@ test("結算後立刻重抓畫面上的金額與等級", async () => {
       status: "completed",
       stage: "done",
       stage_items: [],
-      progress: { stage_index: 3, stage_count: 3 },
+      progress: {
+        stage_index: 3,
+        stage_count: 3,
+        stages: ["swipe", "message", "scenario"],
+      },
       result: {
         total_score: 90,
         passed: true,

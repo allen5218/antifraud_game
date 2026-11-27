@@ -331,8 +331,7 @@ export type EconomyMeResponse = {
 };
 
 export type EffectAnalytics = {
-    exam: ExamStageEffect;
-    repeat: RepeatEffect;
+    exams: Array<ExamVersionEffect>;
     entry: EntryEffect;
     practice: PracticeEffect;
     volume: PracticeVolume;
@@ -400,9 +399,19 @@ export type ExamBadgeVerification = {
 
 export type status2 = 'current' | 'retest_recommended';
 
+export type ExamCardAnswer = {
+    card_key: string;
+    ids: Array<(string)>;
+};
+
+export type ExamCardRequest = {
+    answers: Array<ExamCardAnswer>;
+};
+
 export type ExamDetail = {
     id: string;
     mode: string;
+    version: number;
     fraud_type: (string | null);
     status: string;
     counted: boolean;
@@ -488,6 +497,7 @@ export type ExamPretestRequest = {
 export type ExamProgress = {
     stage_index: number;
     stage_count: number;
+    stages: Array<('pretest' | 'swipe' | 'cards' | 'message' | 'scenario' | 'done')>;
 };
 
 export type ExamResult = {
@@ -498,6 +508,7 @@ export type ExamResult = {
     pretest_by_type: ({
     [key: string]: (number);
 } | null);
+    pretest_per_type?: (number | null);
     weakness_score: number;
     weakness_max: number;
     missed_tactics: Array<(string)>;
@@ -551,16 +562,16 @@ export type ExamState = {
     id: string;
     mode: 'comprehensive' | 'specialized';
     status: 'active' | 'completed' | 'expired' | 'abandoned' | 'voided';
-    stage: 'pretest' | 'swipe' | 'message' | 'scenario' | 'done';
+    stage: 'pretest' | 'swipe' | 'cards' | 'message' | 'scenario' | 'done';
     fraud_type: (string | null);
     expires_at: string;
-    stage_items: Array<(ExamPretestItem | ExamSwipeItem | ExamMessageItem)>;
+    stage_items: Array<(ExamPretestItem | ExamSwipeItem | CardPublic | ExamMessageItem)>;
     progress: ExamProgress;
     scenario: (ExamScenario | null);
     result: (ExamResult | null);
 };
 
-export type stage = 'pretest' | 'swipe' | 'message' | 'scenario' | 'done';
+export type stage = 'pretest' | 'swipe' | 'cards' | 'message' | 'scenario' | 'done';
 
 export type ExamStatus = {
     active_attempt_id: (string | null);
@@ -585,6 +596,14 @@ export type ExamSwipeItem = {
 
 export type ExamSwipeRequest = {
     answers: Array<ExamSwipeAnswer>;
+};
+
+export type ExamVersionEffect = {
+    version: number;
+    label: string;
+    pretest_items: number;
+    exam: ExamStageEffect;
+    repeat: RepeatEffect;
 };
 
 export type FlagItem = {
@@ -2053,6 +2072,13 @@ export type ExamSwipeData = {
 };
 
 export type ExamSwipeResponse = (ExamState);
+
+export type ExamCardsData = {
+    attemptId: string;
+    requestBody: ExamCardRequest;
+};
+
+export type ExamCardsResponse = (ExamState);
 
 export type ExamMessageData = {
     attemptId: string;

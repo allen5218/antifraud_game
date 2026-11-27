@@ -11,7 +11,7 @@ from sqlmodel import Session, col, select
 from app.core.weakness import WEAKNESS_LABELS
 from app.economy.service import add_xp, adjust_cash, lock_user
 from app.exam.badges import own_badge
-from app.exam.config import MODES
+from app.exam.config import exam_config
 from app.exam.picking import weakest_type
 from app.exam.scoring import is_passed, round_score, score_answers, terminal_status
 from app.models import ExamAttempt, ExamBadge, ScenarioSession, User, get_datetime_utc
@@ -53,8 +53,9 @@ def finalize(
         attempt.passed = False
         session.add(attempt)
         return
+    cfg = exam_config(attempt.version, attempt.mode)
     scores, by_type, missed = score_answers(
-        attempt.mode, attempt.items, attempt.answers
+        attempt.mode, attempt.items, attempt.answers, version=attempt.version
     )
     attempt.stage_scores = scores
     attempt.pretest_by_type = by_type if attempt.mode == "comprehensive" else {}
@@ -87,7 +88,6 @@ def finalize(
                 last_score=attempt.total_score,
                 last_attempt_id=attempt.id,
             )
-            cfg = MODES[attempt.mode]
             user = session.get(User, attempt.user_id)
             if user is None:
                 raise HTTPException(404, {"code": "user_not_found"})
@@ -113,8 +113,14 @@ def finalize(
             "pretest_by_type": attempt.pretest_by_type
             if attempt.mode == "comprehensive"
             else None,
+            "pretest_per_type": cfg.pretest_per_side * 2
+            if attempt.mode == "comprehensive"
+            else None,
             "weakness_score": round_score(attempt.total_score - scores["pretest"]),
-            "weakness_max": 70 if attempt.mode == "comprehensive" else 100,
+            # 前測以外的分數（只考最弱一類那幾關）滿分多少，依版本的配分
+            "weakness_max": round_score(
+                cfg.total_points - cfg.pretest_count * cfg.pretest_points
+            ),
             "missed_tactics": [WEAKNESS_LABELS[tag] for tag in missed],
             "badges": badges,
             "reward": reward,

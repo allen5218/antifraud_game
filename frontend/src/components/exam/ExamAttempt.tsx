@@ -3,6 +3,7 @@ import { Link } from "@tanstack/react-router"
 import { Clock } from "lucide-react"
 import { useEffect, useRef, useState } from "react"
 import type {
+  ExamCardAnswer,
   ExamMessageAnswer,
   ExamPretestAnswer,
   ExamState,
@@ -20,16 +21,10 @@ import {
   type DraftAnswer,
   errorCode,
   examError,
+  STAGE_LABELS,
   secondsLeft,
 } from "./exam"
 
-const LABELS = {
-  pretest: "前測",
-  swipe: "滑卡",
-  message: "訊息判讀",
-  scenario: "情境對抗",
-  done: "結果",
-}
 export function ExamAttempt({ attemptId }: { attemptId: string }) {
   const qc = useQueryClient()
   const queryKey = ["exam", "attempt", attemptId]
@@ -112,6 +107,11 @@ export function ExamAttempt({ attemptId }: { attemptId: string }) {
           attemptId,
           requestBody: { answers: answers as ExamSwipeAnswer[] },
         })
+      if (state?.stage === "cards")
+        return ExamService.cards({
+          attemptId,
+          requestBody: { answers: answers as ExamCardAnswer[] },
+        })
       return ExamService.message({
         attemptId,
         requestBody: { answers: answers as ExamMessageAnswer[] },
@@ -140,15 +140,13 @@ export function ExamAttempt({ attemptId }: { attemptId: string }) {
       </div>
     )
   if (state.status !== "active") return <ExamResult state={state} />
-  const stages =
-    state.mode === "comprehensive"
-      ? ["前測", "滑卡", "訊息判讀", "情境對抗"]
-      : ["滑卡", "訊息判讀", "情境對抗"]
+  // 關卡跟著這份卷的版本走（改版前開考的卷沒有卡片題）
+  const stages = state.progress.stages.map((stage) => STAGE_LABELS[stage])
   return (
     <div className="space-y-4">
       <header className="space-y-3">
         <div className="flex items-center justify-between gap-2">
-          <h1 className="text-xl font-bold">{LABELS[state.stage]}</h1>
+          <h1 className="text-xl font-bold">{STAGE_LABELS[state.stage]}</h1>
           <Button
             variant="outline"
             size="sm"

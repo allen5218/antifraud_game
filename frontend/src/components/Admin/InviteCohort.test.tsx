@@ -219,15 +219,22 @@ mock.module("@/client", () => ({
           texts: [],
         },
         effect: {
-          exam: { stages: [], change: NO_CHANGE },
-          repeat: {
-            people: 0,
-            pretest: NO_CHANGE,
-            score: NO_CHANGE,
-            failed_first: 0,
-            retook: 0,
-            retake_passed: 0,
-          },
+          exams: [
+            {
+              version: 2,
+              label: "新版檢測",
+              pretest_items: 10,
+              exam: { stages: [], change: NO_CHANGE },
+              repeat: {
+                people: 0,
+                pretest: NO_CHANGE,
+                score: NO_CHANGE,
+                failed_first: 0,
+                retook: 0,
+                retake_passed: 0,
+              },
+            },
+          ],
           entry: { total: NO_CHANGE, by_type: [], practiced_between: 0 },
           practice: {
             baseline_people: 0,

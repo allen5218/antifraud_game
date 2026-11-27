@@ -222,13 +222,13 @@ def _asked(qid: str, ctx: SurveyContext) -> bool:
     if qid == "badges":
         return ctx.badge
     if qid == "ai_safe":
-        # 綜合檢測的第四關是情境對抗
+        # 綜合檢測的最後一關是情境對抗
         return ctx.scenario or ctx.exam_done
     return True
 
 
 def _favorite_options(ctx: SurveyContext) -> tuple[str, ...]:
-    """「最喜歡的功能」只列用過的；檢測裡有滑卡、訊息判讀、情境對抗三關，也算用過。"""
+    """「最喜歡的功能」只列用過的；檢測裡有滑卡、訊息判讀、情境對抗這幾關，也算用過。"""
     used = {
         "滑卡": ctx.swipe or ctx.exam_done,
         "訊息判讀": ctx.quiz or ctx.exam_done,

@@ -3,9 +3,10 @@ from random import Random
 
 import pytest
 
+from app.cards.bank import Card, load_bank
 from app.core.cases import GameCaseRow
 from app.core.weakness import WEAKNESS_TAGS
-from app.exam import picking, scoring
+from app.exam import config, picking, scoring
 
 
 def test_tactics_penalize_extras_and_never_reward_select_all():
@@ -21,20 +22,46 @@ def test_tactics_penalize_extras_and_never_reward_select_all():
 
 
 @pytest.mark.parametrize(
-    "mode, counts, want",
+    "version, mode, counts, want",
     [
-        ("comprehensive", (20, 4, 4, 1, 1), (30, 20, 30, 5, 15)),
-        ("specialized", (0, 6, 8, 1, 2), (0, 24, 48, 8, 20)),
+        # 改版前的卷照當時的配分算
+        (1, "comprehensive", (20, 4, 0, 4, 1, 1), (30, 20, 0, 30, 5, 15)),
+        (1, "specialized", (0, 6, 0, 8, 1, 2), (0, 24, 0, 48, 8, 20)),
+        # 新版：原本的題型砍半，加五張卡片題
+        (2, "comprehensive", (10, 2, 5, 2, 1, 1), (20, 10, 30, 20, 5, 15)),
+        (2, "specialized", (0, 2, 5, 4, 1, 2), (0, 10, 35, 30, 5, 20)),
     ],
 )
-def test_full_scores(mode, counts, want):
+def test_full_scores(version, mode, counts, want):
     results = []
-    for stage, n in zip(
-        ("pretest", "swipe", "verdict", "tactics", "scenario"), counts, strict=True
-    ):
-        results.append(scoring.part_score(mode, stage, [True] * n))
+    for part, n in zip(config.PARTS, counts, strict=True):
+        results.append(scoring.part_score(mode, part, [True] * n, version=version))
     assert results == list(want)
     assert sum(results) == 100
+
+
+@pytest.mark.parametrize("version", sorted(config.VERSIONS))
+@pytest.mark.parametrize("mode", ["comprehensive", "specialized"])
+def test_every_version_totals_one_hundred(version, mode):
+    cfg = config.exam_config(version, mode)
+    assert cfg.total_points == 100
+    assert cfg.stages[-1] == "scenario"
+    assert list(cfg.stages) == [s for s in config.ALL_STAGES if s in cfg.stages]
+    assert ("cards" in cfg.stages) == (cfg.card_count > 0)
+
+
+def test_new_exam_halves_the_old_question_types():
+    for mode in ("comprehensive", "specialized"):
+        old, new = config.exam_config(1, mode), config.exam_config(2, mode)
+        assert new.pretest_count * 2 == old.pretest_count
+        assert new.message_per_side * 2 == old.message_per_side
+        assert new.swipe_per_side * 2 <= old.swipe_per_side
+        # 情境關這一版不動
+        assert (new.scenario_count, new.max_turns) == (
+            old.scenario_count,
+            old.max_turns,
+        )
+        assert new.scenario_points == old.scenario_points
 
 
 def test_pass_threshold_uses_the_displayed_rounded_score():
@@ -140,6 +167,7 @@ def test_scenario_points_use_saved_rule_judgment():
         "specialized",
         {"scenario": [{"is_scam": True}]},
         {"scenario": {"0": {"action": "comply", "correct": True}}},
+        version=2,
     )
     assert scores["scenario"] == 10
 
@@ -156,7 +184,7 @@ def test_partial_answers_score_only_present_answers_and_deduct_tactics():
         "swipe": {"a": True},
         "message": {"m": True, "t": ["authority", "greed", "time_pressure"]},
     }
-    scores, _, missed = scoring.score_answers("specialized", items, answers)
+    scores, _, missed = scoring.score_answers("specialized", items, answers, version=1)
     assert scores["swipe"] == 4 and scores["verdict"] == 6
     assert scores["tactics"] == pytest.approx(16 / 3)
     assert missed == []
@@ -169,12 +197,12 @@ def test_unanswered_tactics_question_never_reveals_its_tags():
             {"item_id": "t", "kind": "tactics", "correct_tags": ["authority", "greed"]},
         ],
     }
-    scores, _, missed = scoring.score_answers("comprehensive", items, {})
+    scores, _, missed = scoring.score_answers("comprehensive", items, {}, version=2)
     assert scores["tactics"] == 0
     assert missed == []
 
     _, _, missed = scoring.score_answers(
-        "comprehensive", items, {"message": {"t": ["greed"]}}
+        "comprehensive", items, {"message": {"t": ["greed"]}}, version=2
     )
     assert missed == ["authority"]
 
@@ -207,3 +235,54 @@ def test_same_pattern_is_allowed_across_stages():
         cases, [("exam_message", True), ("exam_scenario", False)], {}, Random(1)
     )
     assert [x.id for x in picked] == [1, 2]
+
+
+def test_card_points_read_the_saved_judgment():
+    items = {"cards": [{"card_key": "a"}, {"card_key": "b"}, {"card_key": "c"}]}
+    answers = {
+        "cards": {
+            "a": {"ids": ["x"], "correct": True},
+            "b": {"ids": ["y"], "correct": False},
+        }
+    }
+    scores, _, _ = scoring.score_answers("comprehensive", items, answers, version=2)
+    assert scores["card"] == 6
+    scores, _, _ = scoring.score_answers("specialized", items, answers, version=2)
+    assert scores["card"] == 7
+
+
+def exam_cards(fraud_type: str) -> list[Card]:
+    return [
+        c
+        for c in load_bank().values()
+        if c.pool == "exam" and c.fraud_type == fraud_type
+    ]
+
+
+@pytest.mark.parametrize(
+    "fraud_type", ["investment", "fake-sale", "shopping", "romance", "atm"]
+)
+def test_card_pick_uses_one_card_per_source(fraud_type):
+    cards = exam_cards(fraud_type)
+    for seed in range(20):
+        picked = picking.pick_cards(cards, 5, {}, Random(seed))
+        assert len(picked) == 5
+        assert len({c.source_key for c in picked}) == 5
+        assert all(c.pool == "exam" and c.fraud_type == fraud_type for c in picked)
+    # 年長者只出短卡，每一類也湊得滿五張
+    elder = [c for c in cards if c.elder_ok]
+    assert len(picking.pick_cards(elder, 5, {}, Random(1))) == 5
+
+
+def test_card_pick_prefers_unseen_cards_and_mixed_kinds():
+    cards = exam_cards("atm")
+    first = picking.pick_cards(cards, 5, {}, Random(3))
+    seen = {f"card:{c.card_key}": 1 for c in first}
+    second = picking.pick_cards(cards, 5, seen, Random(3))
+    assert not {c.card_key for c in first} & {c.card_key for c in second}
+    assert len({c.kind for c in first}) >= 3
+
+
+def test_card_pick_fails_closed_without_enough_sources():
+    with pytest.raises(picking.InsufficientMaterial):
+        picking.pick_cards(exam_cards("atm")[:2], 5, {}, Random(1))

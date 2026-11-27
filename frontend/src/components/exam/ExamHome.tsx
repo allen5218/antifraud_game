@@ -118,9 +118,9 @@ export function ExamHome() {
       )}
       <section className="space-y-3 rounded-2xl border bg-card p-5">
         <h2 className="text-lg font-bold">綜合檢測</h2>
-        <p className="text-sm">先做 20 題前測，再考你最弱的一類。</p>
+        <p className="text-sm">先做 10 題前測，再考你最弱的一類。</p>
         <p className="text-xs text-muted-foreground">
-          前測、滑卡、訊息判讀、情境對抗，共四關。
+          前測、滑卡、卡片題、訊息判讀、情境對抗，共五關。
         </p>
         <Button
           className="w-full"
@@ -135,7 +135,9 @@ export function ExamHome() {
       {!trial && (
         <section className="space-y-3 rounded-2xl border bg-card p-5">
           <h2 className="text-lg font-bold">專項檢測</h2>
-          <p className="text-sm">選一類，完成滑卡、訊息判讀和情境對抗三關。</p>
+          <p className="text-sm">
+            選一類，完成滑卡、卡片題、訊息判讀和情境對抗四關。
+          </p>
           <label className="block text-sm">
             要考哪一類？
             <select

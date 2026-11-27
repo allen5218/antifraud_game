@@ -29,6 +29,8 @@ export function ExamResult({ state }: { state: ExamState }) {
       </section>
     )
   if (!result) return <p role="alert">結果讀不到，請重新讀取。</p>
+  // 前測每類幾題跟著檢測版本（舊版 4 題、新版 2 題）；舊結果沒有這欄就是 4
+  const perType = result.pretest_per_type ?? 4
   return (
     <div className="space-y-5">
       <section className="rounded-2xl border bg-card p-5 text-center">
@@ -50,7 +52,7 @@ export function ExamResult({ state }: { state: ExamState }) {
             你已放棄這次檢測，算一次沒過。
           </p>
         )}
-        {/* 專項檢測沒有前測，三關合計就是總分，不再重複 */}
+        {/* 專項檢測沒有前測，各關合計就是總分，不再重複 */}
         {result.mode === "comprehensive" && (
           <p className="mt-3 text-sm">
             弱項關卡合計：{result.weakness_score}／{result.weakness_max} 分
@@ -75,8 +77,8 @@ export function ExamResult({ state }: { state: ExamState }) {
               />
               <PolarRadiusAxis
                 angle={54}
-                domain={[0, 4]}
-                tickCount={5}
+                domain={[0, perType]}
+                tickCount={perType + 1}
                 tick={{ fontSize: 10, fill: "var(--muted-foreground)" }}
               />
               <Radar
@@ -91,8 +93,7 @@ export function ExamResult({ state }: { state: ExamState }) {
           <ul className="grid gap-1 text-sm">
             {FRAUD_TYPES.map((type) => (
               <li key={type}>
-                {fraudTypeLabel(type)}：{result.pretest_by_type?.[type] ?? 0}／4
-                題
+                {`${fraudTypeLabel(type)}：${result.pretest_by_type?.[type] ?? 0}／${perType} 題`}
               </li>
             ))}
           </ul>
