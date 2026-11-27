@@ -9,6 +9,7 @@ export async function signUpNewUser(
   await page.goto("/signup")
 
   await page.getByTestId("full-name-input").fill(name)
+  await page.getByTestId("birth-year-input").fill("1990")
   await page.getByTestId("email-input").fill(email)
   await page.getByTestId("password-input").fill(password)
   await page.getByTestId("confirm-password-input").fill(password)
@@ -55,4 +56,20 @@ export async function markTourSeen(page: Page) {
     { headers: { Authorization: `Bearer ${token}` } },
   )
   expect(response.ok()).toBeTruthy()
+}
+
+/**
+ * 還沒有出生年的帳號一進來會被「你是哪一年出生的」蓋住。共用的管理員直接用 API 填好；
+ * 已經填過（不管哪一年）後端回 400 birth_year_locked，也算好了。
+ */
+export async function markBirthYear(page: Page, birthYear = 1990) {
+  const token = await page.evaluate(() => localStorage.getItem("access_token"))
+  const response = await page.request.post(
+    `${process.env.VITE_API_URL}/api/v1/users/me/birth-year`,
+    {
+      headers: { Authorization: `Bearer ${token}` },
+      data: { birth_year: birthYear },
+    },
+  )
+  expect(response.ok() || response.status() === 400).toBeTruthy()
 }

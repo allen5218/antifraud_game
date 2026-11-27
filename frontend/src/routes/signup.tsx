@@ -25,6 +25,7 @@ import { Input } from "@/components/ui/input"
 import { LoadingButton } from "@/components/ui/loading-button"
 import { PasswordInput } from "@/components/ui/password-input"
 import useAuth, { isLoggedIn } from "@/hooks/useAuth"
+import { BIRTH_YEAR_HINT } from "@/lib/birthYear"
 
 export const Route = createFileRoute("/signup")({
   component: SignUp,
@@ -53,6 +54,7 @@ function SignUp() {
     defaultValues: {
       email: "",
       full_name: "",
+      birth_year: "",
       password: "",
       confirm_password: "",
       teacher: false,
@@ -90,6 +92,26 @@ function SignUp() {
                       data-testid="full-name-input"
                       placeholder="你的名字或暱稱"
                       type="text"
+                      {...field}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="birth_year"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>出生年</FormLabel>
+                  <FormControl>
+                    <Input
+                      data-testid="birth-year-input"
+                      placeholder={BIRTH_YEAR_HINT}
+                      inputMode="numeric"
+                      autoComplete="bday-year"
                       {...field}
                     />
                   </FormControl>

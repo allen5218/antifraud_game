@@ -89,6 +89,7 @@ pre-commit 有 `generate-frontend-sdk` hook，當 `backend/` 變更時會自動�
 - **介面不用表情符號。** 文字旁的小圖示用 lucide（與頁首的 coin／flame／star 一致）；圖片用 `public/assets/` 的插圖（Codex 內建生圖產生，暖色手繪的可愛居家畫風，WebP）：`room/<0～6>/`（房間外觀跟著擁有的最高房產；每間是一整張 941×1672 畫好家具的房間圖 `bg.webp`，加上從同一張圖剪下的書櫃、月曆、信件架、電視、手機，位置在 `components/room/roomArtLayout.ts`）、`mascot/<動物>/{base,point,cheer,think}`（512px，預設柴犬，商店可買其他動物；房間裡的姿勢由 `room/logic.ts` 的 `mascotPose` 依狀態決定）、`badge/`、`property/`、`avatar/`（情境頭貼，代號 `<類型>-1..3`）、`outcome/`（情境結局）、`misc/`（後五類 256px）。聊天內容裡角色打的表情符號是模擬真實對話，不算。
 - **日常卡片插圖**（`components/cards/`）：固定班底拼畫面，不每題各畫一張。`public/assets/cast/` 的場景、角色（10 人 × 5 種姿勢）、道具都是 `frontend/scripts/cast/` 用程式畫的二頭身向量圖（不是 AI 生圖），**不要手改 SVG**，改程式後 `cd frontend && bun scripts/cast/build.ts` 重新產生。id 清單只在 `cardArtManifest.ts`（題庫 `art` 欄位共用，不改名；`CAST_LOOKS` 寫了每個角色的性別外觀，題目文字要對得上）。`CardArt` 吃 `{scene, cast, props, pose}`：`pose` 只套主角，`"grandma:worried"` 個別指定；清單外的 id 略過。插圖用固定暖色，不跟深色模式換色（使用者之後要拿掉深色模式）。
 - **首頁資料**：`GET /home/summary`（`api/routes/home.py`）唯讀彙整房間要的狀態（房間階段、吉祥物、前測、收件匣、每日訓練、檢測、補考、練習重點、徽章），不建立任何牌局。前端 `useHomeSummary` 每次回到房間都重讀；狀態在房間裡就改變的（放棄檢測、買賣房產）要另外讓 `HOME_SUMMARY_KEY` 重讀。
+- **出生年與年長者模式**（`backend/app/core/age.py`、`components/shell/BirthYearGate.tsx`、`lib/birthYear.ts`）：註冊表單必填出生年（民國、西元都收，前端換成西元）；訪客、LINE／Google、舊帳號沒有出生年，進 `_shell` 先被蓋住問一次（`POST /users/me/birth-year`，只能填一次，換年份回 400 `birth_year_locked`，填錯由管理員改）。依台灣日期算今年幾歲，50 歲以上 `UserPublic.elder_mode` 為 true，兩種模式都不能切換。E2E 建的帳號預設 1990（`private.py`），共用管理員在 `auth.setup.ts` 填好。
 - **新手導覽與新手任務**（`components/room/tour.ts`、`OnboardingTour.tsx`、`StarterTasksCard.tsx`，後端 `app/onboarding/service.py`、`api/routes/onboarding.py`、表 `user_onboarding`）：還沒玩過任何東西（沒有入門前測、練習作答、檢測）又沒看過導覽的帳號，進房間先看十一步導覽（`HomeSummary.tour_pending`）：畫面變暗一次亮一件（家具、頁首的錢、頁首的裝備（只講一句，細節在養成頁）、購物、選單），結尾帶試測帳號去綜合檢測、其他帳號去入門前測；看完或跳過 `POST /onboarding/tour`。選單與側欄「重看導覽」用 `/?tour=1`。試測帳號交完問卷（導覽上線前就交卷的也算）、其他帳號看過導覽又做完入門前測，房間右下角出現新手任務（卡片寬度抓房間 53% 扣邊距，手機上不蓋到電視；獎勵數字 `reward_cash／reward_xp` 由後端給）（`HomeSummary.starter_tasks`：滑卡、訊息判讀（不含每日訓練）、練習情境各完成一輪、進過商店（商店頁打 `POST /onboarding/shop`）），四項完成 `POST /onboarding/claim` 領 500 元與 100 經驗值，鎖列只發一次。
 - **房間舞台**（`components/room/stage.ts`、`RoomStage.tsx`）：房間圖與圖層在固定大小的世界裡一起縮放，最寬 3:4（平板直放）到最長 9:21（長手機）都鋪滿畫面；更寬的畫面把中央核心完整放進來、兩側露出底色。**可以點的東西在最窄的畫面也要看得到**：手機完整落在核心裡，其他家具中心在核心裡、至少七成面積看得到（`roomArt.test.ts` 會擋）。可點的家具是從同一張房間圖剪下來疊回原位的圖層（一定對齊），墊一份在底下做呼吸光（`index.css` 的 `.room-glow`，只動透明度）；不要另外畫家具再貼到背景上（透視與落地會對不上）。有數量的顯示紅色數字、只是「有新的」顯示紅點（`logic.ts` 的 `roomBadges`）。每件可點家具下緣常駐模式名稱標籤（`RoomStage` 的 `room-label-<id>`，文字取 `hotspotLinks.ts`，跨在點擊範圍下緣，所以跟著留在畫面內）。桌機滑鼠移到可點的家具會出現「物件・模式：狀態」提示（`logic.ts` 的 `roomHints`，狀態和選單同一份；Tailwind 的 hover 只在有滑鼠的裝置生效）。家具上不放圖示泡泡，要去哪裡靠呼吸光（推薦的那件比較快）、紅色標記與選單。點擊範圍與標記放在舞台外一層，用換算後的位置擺，不跟著縮小，物件被裁到一點時會移回畫面內。房間圖在 `antifraud_video` 生成：兩房公寓（`gen_rooms_from_collage.py`）當構圖，其他六間照它換裝潢（`gen_rooms_restyle.py`）；`cut_room_layers.py` 沿墨線剪圖層並重寫 `roomArtLayout.ts`。
 - **換頁要先載入**：正式環境從台灣連線每個請求往返要零點幾秒到一秒，點下去才抓資料會很遲鈍。查詢設定用 `queryOptions` 匯出（例：`economyMeQuery`），頁面路由的 `loader` 用 `lib/prefetch.ts` 的 `warmQueries` 先抓（不等結果）；路由 context 帶 `queryClient`、`defaultPreload: "intent"`，房間圖出現後會先載入各入口頁。**loader 只能做唯讀查詢**，會建立牌局或開始計時的 API（例：`/daily/today`）不要放進 loader。
@@ -123,6 +124,15 @@ pre-commit 有 `generate-frontend-sdk` hook，當 `backend/` 變更時會自動�
 
 對話歷史存在 `ScenarioSession.conversation_history`（JSON list），`role` 為 `"npc"` / `"player"`。
 設定集中在 `backend/app/scenario/config.py`：`MAX_TURNS=10`、`SCENARIO_DAILY_LIMIT_PER_TYPE=3`（練習重點那一類 `SCENARIO_DAILY_LIMIT_FOCUS=5`）、`SCAM_RATIO=0.5`。
+
+### 日常卡片流（2026-11 改版）— 一次一張卡、間隔重複，一樣無 AI
+
+`backend/app/cards/`、`api/routes/cards.py`，前端 `/learn`（`components/cards/`）。會逐步取代滑卡、訊息判讀、每日訓練。
+- 題庫是資料檔 `backend/content/cards/*.jsonl`（816 張，`tests/unit/test_content_cards.py` 守門），程式第一次用到才讀、留在記憶體，**改題庫要重啟後端**；映像要 `COPY ./backend/content`。只出 `pool='practice'`，年長者只出 `elder_ok`。
+- 出題時選項、句子、配對、步驟都換成「這一局才有效」的代號（伺服器金鑰的 HMAC，`grading.py`），前端看不出哪個是正解；判斷題固定「是詐騙」在左。
+- 牌局 `card_round` 照 `SwipeSession` 的防重送做法：只認發出去的卡、每張第一次的答案存快照，重送同答案回快照、換答案 400，結算只發一次。
+- 間隔重複 `card_progress`（Leitner，`srs.py`）：答對升一盒、間隔 1／3／7／14／30 天，答錯回第一盒隔天再出，第三盒算學會；「學會幾招」以原料句 `source_key` 計。發牌 `deal.py`：到期複習 → 新卡（練習重點比例、簡單的先出）→ 提早練，**同一句原料變出來的卡不會同一輪**。一般一輪 8 張、每日目標 20；年長者 3 張、目標 6。
+- 結算走 `economy.service` 與養成倍率（`source_kind="card"`），作答寫 `practice_answer`（`mode="card"`，共通類 `general` 不寫）。
 
 ### 每日訓練與排行榜（Lv.5 解鎖）— 題組的變形，一樣無 AI
 

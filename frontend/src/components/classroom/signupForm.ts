@@ -1,11 +1,18 @@
 import { z } from "zod"
 import type { UserRegister } from "@/client"
+import { parseBirthYear } from "@/lib/birthYear"
 
-/** 註冊表單：勾「我是老師」才要填學校與任教科目（送出後是審核中，管理員核准才算老師） */
+/**
+ * 註冊表單：出生年必填（50 歲以上用年長者介面）；
+ * 勾「我是老師」才要填學校與任教科目（送出後是審核中，管理員核准才算老師）
+ */
 export const signupSchema = z
   .object({
     email: z.email({ message: "電子郵件格式不正確" }),
     full_name: z.string().min(1, { message: "請輸入名稱" }),
+    birth_year: z.string().refine((value) => parseBirthYear(value) !== null, {
+      message: "請輸入出生年，民國或西元都可以",
+    }),
     password: z
       .string()
       .min(1, { message: "請輸入密碼" })
@@ -38,6 +45,7 @@ export function toSignupBody(data: SignupForm): UserRegister {
     email: data.email,
     full_name: data.full_name,
     password: data.password,
+    birth_year: parseBirthYear(data.birth_year),
   }
   if (data.teacher)
     body.teacher = { school: data.school.trim(), subject: data.subject.trim() }

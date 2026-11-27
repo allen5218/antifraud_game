@@ -27,6 +27,7 @@ import { Route as ShellSurveyRouteImport } from './routes/_shell/survey'
 import { Route as ShellShopRouteImport } from './routes/_shell/shop'
 import { Route as ShellProgressionRouteImport } from './routes/_shell/progression'
 import { Route as ShellMeRouteImport } from './routes/_shell/me'
+import { Route as ShellLearnRouteImport } from './routes/_shell/learn'
 import { Route as ShellLeaderboardRouteImport } from './routes/_shell/leaderboard'
 import { Route as ShellExamRouteImport } from './routes/_shell/exam'
 import { Route as ShellDailyRouteImport } from './routes/_shell/daily'
@@ -133,6 +134,11 @@ const ShellMeRoute = ShellMeRouteImport.update({
   path: '/me',
   getParentRoute: () => ShellRoute,
 } as any)
+const ShellLearnRoute = ShellLearnRouteImport.update({
+  id: '/learn',
+  path: '/learn',
+  getParentRoute: () => ShellRoute,
+} as any)
 const ShellLeaderboardRoute = ShellLeaderboardRouteImport.update({
   id: '/leaderboard',
   path: '/leaderboard',
@@ -237,6 +243,7 @@ export interface FileRoutesByFullPath {
   '/daily': typeof ShellDailyRoute
   '/exam': typeof ShellExamRoute
   '/leaderboard': typeof ShellLeaderboardRoute
+  '/learn': typeof ShellLearnRoute
   '/me': typeof ShellMeRoute
   '/progression': typeof ShellProgressionRoute
   '/shop': typeof ShellShopRoute
@@ -272,6 +279,7 @@ export interface FileRoutesByTo {
   '/daily': typeof ShellDailyRoute
   '/exam': typeof ShellExamRoute
   '/leaderboard': typeof ShellLeaderboardRoute
+  '/learn': typeof ShellLearnRoute
   '/me': typeof ShellMeRoute
   '/progression': typeof ShellProgressionRoute
   '/shop': typeof ShellShopRoute
@@ -309,6 +317,7 @@ export interface FileRoutesById {
   '/_shell/daily': typeof ShellDailyRoute
   '/_shell/exam': typeof ShellExamRoute
   '/_shell/leaderboard': typeof ShellLeaderboardRoute
+  '/_shell/learn': typeof ShellLearnRoute
   '/_shell/me': typeof ShellMeRoute
   '/_shell/progression': typeof ShellProgressionRoute
   '/_shell/shop': typeof ShellShopRoute
@@ -347,6 +356,7 @@ export interface FileRouteTypes {
     | '/daily'
     | '/exam'
     | '/leaderboard'
+    | '/learn'
     | '/me'
     | '/progression'
     | '/shop'
@@ -382,6 +392,7 @@ export interface FileRouteTypes {
     | '/daily'
     | '/exam'
     | '/leaderboard'
+    | '/learn'
     | '/me'
     | '/progression'
     | '/shop'
@@ -418,6 +429,7 @@ export interface FileRouteTypes {
     | '/_shell/daily'
     | '/_shell/exam'
     | '/_shell/leaderboard'
+    | '/_shell/learn'
     | '/_shell/me'
     | '/_shell/progression'
     | '/_shell/shop'
@@ -581,6 +593,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ShellMeRouteImport
       parentRoute: typeof ShellRoute
     }
+    '/_shell/learn': {
+      id: '/_shell/learn'
+      path: '/learn'
+      fullPath: '/learn'
+      preLoaderRoute: typeof ShellLearnRouteImport
+      parentRoute: typeof ShellRoute
+    }
     '/_shell/leaderboard': {
       id: '/_shell/leaderboard'
       path: '/leaderboard'
@@ -727,6 +746,7 @@ interface ShellRouteChildren {
   ShellDailyRoute: typeof ShellDailyRoute
   ShellExamRoute: typeof ShellExamRoute
   ShellLeaderboardRoute: typeof ShellLeaderboardRoute
+  ShellLearnRoute: typeof ShellLearnRoute
   ShellMeRoute: typeof ShellMeRoute
   ShellProgressionRoute: typeof ShellProgressionRoute
   ShellShopRoute: typeof ShellShopRoute
@@ -748,6 +768,7 @@ const ShellRouteChildren: ShellRouteChildren = {
   ShellDailyRoute: ShellDailyRoute,
   ShellExamRoute: ShellExamRoute,
   ShellLeaderboardRoute: ShellLeaderboardRoute,
+  ShellLearnRoute: ShellLearnRoute,
   ShellMeRoute: ShellMeRoute,
   ShellProgressionRoute: ShellProgressionRoute,
   ShellShopRoute: ShellShopRoute,

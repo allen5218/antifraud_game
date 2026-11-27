@@ -20,6 +20,7 @@ export type MascotLine = {
 
 export type MenuTo =
   | "/"
+  | "/learn"
   | "/scenarios"
   | "/quick/swipe"
   | "/quick/quiz"
@@ -36,6 +37,7 @@ export type MenuTo =
 export type MenuItem = {
   id:
     | HotspotId
+    | "learn"
     | "leaderboard"
     | "badges"
     | "team"
@@ -247,6 +249,14 @@ export function menuItems(s: HomeSummary): MenuItem[] {
   const swipeLeft = gate ? remain(gate.swipe.done, gate.swipe.need) : 0
   const quizLeft = gate ? remain(gate.quiz.done, gate.quiz.need) : 0
   const items: MenuItem[] = [
+    {
+      // 2026-11 改版的日常卡片流，之後會取代滑卡、訊息判讀、每日訓練
+      id: "learn",
+      label: "卡片練習",
+      status: "可以練",
+      done: false,
+      to: "/learn",
+    },
     {
       id: "phone",
       label: "情境對抗",

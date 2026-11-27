@@ -5,7 +5,7 @@ from decimal import Decimal
 from typing import Annotated, Any
 
 import sqlalchemy.types as types
-from pydantic import EmailStr, StringConstraints, field_validator
+from pydantic import EmailStr, StringConstraints, computed_field, field_validator
 from sqlalchemy import (
     BigInteger,
     CheckConstraint,
@@ -19,6 +19,7 @@ from sqlalchemy import (
 from sqlalchemy.dialects.postgresql import JSONB
 from sqlmodel import Field, Relationship, SQLModel
 
+from app.core.age import check_birth_year, is_elder
 from app.scenario.config import MAX_TURNS
 
 
@@ -77,6 +78,18 @@ AccountEmail = EmailStr | InternalEmail
 # Properties to receive via API on creation
 class UserCreate(UserBase):
     password: str = Field(min_length=8, max_length=128)
+    birth_year: int | None = None
+
+
+class BirthYearIn(SQLModel):
+    """第一次進來補填出生年（西元）。"""
+
+    birth_year: int
+
+    @field_validator("birth_year")
+    @classmethod
+    def _valid_year(cls, value: int) -> int:
+        return check_birth_year(value)
 
 
 def clean_required_text(value: str) -> str:
@@ -101,12 +114,26 @@ class UserRegister(SQLModel):
     full_name: str | None = Field(default=None, max_length=255)
     # 註冊時勾「我是老師」才有；送出後是申請中，管理員核准才算老師
     teacher: TeacherApplication | None = None
+    # 註冊表單一定會送；舊版畫面沒有這格，沒送就等第一次進來再問
+    birth_year: int | None = None
+
+    @field_validator("birth_year")
+    @classmethod
+    def _valid_year(cls, value: int | None) -> int | None:
+        return None if value is None else check_birth_year(value)
 
 
 # Properties to receive via API on update, all are optional
 class UserUpdate(UserBase):
     email: AccountEmail | None = Field(default=None, max_length=255)  # type: ignore
     password: str | None = Field(default=None, min_length=8, max_length=128)
+    # 玩家自己不能改出生年（模式不能切換），填錯只能由管理員修
+    birth_year: int | None = None
+
+    @field_validator("birth_year")
+    @classmethod
+    def _valid_year(cls, value: int | None) -> int | None:
+        return None if value is None else check_birth_year(value)
 
 
 class UserUpdateMe(SQLModel):
@@ -165,6 +192,8 @@ class User(UserBase, table=True):
         default=None,
         sa_type=DateTime(timezone=True),  # type: ignore
     )
+    # 西元出生年。50 歲以上用年長者介面（app/core/age.py），玩家自己不能改
+    birth_year: int | None = Field(default=None)
 
     properties: list["UserProperty"] = Relationship(
         back_populates="owner", cascade_delete=True
@@ -180,6 +209,13 @@ class UserPublic(UserBase):
     participant_code: str | None = None
     cohort_id: uuid.UUID | None = None
     teacher_status: str = "none"
+    birth_year: int | None = None
+
+    @computed_field  # type: ignore[prop-decorator]
+    @property
+    def elder_mode(self) -> bool:
+        """50 歲以上用年長者介面；還沒填出生年是 false，前端會先問。"""
+        return is_elder(self.birth_year)
 
 
 class UsersPublic(SQLModel):
@@ -730,6 +766,66 @@ class SwipeSession(SQLModel, table=True):
     created_at: datetime | None = Field(
         default_factory=get_datetime_utc,
         sa_type=DateTime(timezone=True),  # type: ignore
+    )
+    completed_at: datetime | None = Field(
+        default=None,
+        sa_type=DateTime(timezone=True),  # type: ignore
+    )
+
+
+class CardProgress(SQLModel, table=True):
+    """日常卡片流：每位玩家每張卡的間隔重複進度（`app/cards/srs.py`）。
+
+    沒有這一列就是還沒見過。卡片本身在 `backend/content/cards/`，這裡只存代號。
+    """
+
+    __tablename__ = "card_progress"
+
+    user_id: uuid.UUID = Field(
+        foreign_key="user.id", primary_key=True, ondelete="CASCADE"
+    )
+    card_key: str = Field(primary_key=True, max_length=64)
+    fraud_type: str = Field(max_length=32)
+    source_key: str = Field(max_length=64)
+    # 0 沒答過、1 剛答錯或第一次答對、越大越熟；到 3 算學會
+    box: int = Field(default=0)
+    due_at: datetime = Field(sa_type=DateTime(timezone=True))  # type: ignore
+    seen_count: int = Field(default=0)
+    correct_count: int = Field(default=0)
+    last_answered_at: datetime | None = Field(
+        default=None,
+        sa_type=DateTime(timezone=True),  # type: ignore
+    )
+
+
+class CardRound(SQLModel, table=True):
+    """日常卡片流的一次性牌局，理由同 SwipeSession。
+
+    只認發牌時的卡、每張卡第一次的作答（快照存在這裡），同一局只能結算一次。
+    選項代號是用這一局的 id 算出來的（`app/cards/grading.py`），別局的代號對不上。
+    """
+
+    __tablename__ = "card_round"
+
+    id: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True)
+    user_id: uuid.UUID = Field(
+        foreign_key="user.id", nullable=False, ondelete="CASCADE", index=True
+    )
+    # 只練某一類時的 fraud_type；沒指定是 None
+    topic: str | None = Field(default=None, max_length=32)
+    card_keys: list[str] = Field(
+        default=[], sa_column=Column(JSONB, nullable=False, server_default="[]")
+    )
+    # {card_key: 第一次作答的快照}：ids、correct、正解代號、類型、話術、解說
+    answers: dict[str, dict[str, Any]] = Field(
+        default={}, sa_column=Column(JSONB, nullable=False, server_default="{}")
+    )
+    completed: bool = Field(default=False)
+    result: dict[str, Any] | None = Field(default=None, sa_column=Column(JSONB))
+    created_at: datetime | None = Field(
+        default_factory=get_datetime_utc,
+        sa_type=DateTime(timezone=True),  # type: ignore
+        index=True,
     )
     completed_at: datetime | None = Field(
         default=None,

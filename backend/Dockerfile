@@ -33,6 +33,9 @@ COPY ./backend/pyproject.toml ./backend/alembic.ini /app/backend/
 
 COPY ./backend/app /app/backend/app
 
+# 日常卡片與情境劇本的資料檔（程式讀 backend/content/，不在 app/ 底下）
+COPY ./backend/content /app/backend/content
+
 # Sync the project
 # Ref: https://docs.astral.sh/uv/guides/integration/docker/#intermediate-layers
 RUN --mount=type=cache,target=/root/.cache/uv \
