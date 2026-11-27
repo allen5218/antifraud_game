@@ -1,5 +1,5 @@
 import { useQuery } from "@tanstack/react-query"
-import { Shield, Sparkles, User, X } from "lucide-react"
+import { Building2, Sparkles, User, X } from "lucide-react"
 import { PlayersService } from "@/client"
 import {
   Dialog,
@@ -11,15 +11,6 @@ import {
 interface PlayerShowcaseModalProps {
   playerId: string | null
   onClose: () => void
-}
-
-const FAMILY_LABELS: Record<string, string> = {
-  save_vault: "防禦金庫",
-  growth_lens: "經驗透鏡",
-  forge_hammer: "鍛造神錘",
-  balance_core: "平衡核心",
-  streak_amplifier: "連勝擴大器",
-  competition_crest: "競賽紋章",
 }
 
 export function PlayerShowcaseModal({
@@ -96,49 +87,23 @@ export function PlayerShowcaseModal({
               <div className="flex items-center justify-between rounded-xl bg-surface-2 p-3">
                 <span className="flex items-center gap-1.5 text-xs font-semibold text-muted-foreground">
                   <Sparkles className="size-3.5 text-primary" />
-                  核心養成等級
+                  信譽
                 </span>
                 <span className="text-base font-extrabold text-foreground">
-                  Lv.{showcase.core_level}
+                  {showcase.reputation ?? 0} 點
                 </span>
               </div>
-
-              <div>
-                <div className="mb-1.5 text-xs font-bold text-muted-foreground">
-                  生效工具組合 ({showcase.active_loadout.length} 件)
+              {showcase.top_industry && (
+                <div className="flex items-center justify-between rounded-xl bg-surface-2 p-3">
+                  <span className="flex items-center gap-1.5 text-xs font-semibold text-muted-foreground">
+                    <Building2 className="size-3.5 text-primary" />
+                    最好的房產
+                  </span>
+                  <span className="text-base font-extrabold text-foreground">
+                    {showcase.top_industry}
+                  </span>
                 </div>
-                {showcase.active_loadout.length === 0 ? (
-                  <div className="rounded-xl border border-dashed border-border p-3 text-center text-xs text-muted-foreground">
-                    尚未配戴任何生效工具
-                  </div>
-                ) : (
-                  <div className="flex flex-col gap-1.5">
-                    {showcase.active_loadout.map((item) => (
-                      <div
-                        key={item.item_id}
-                        className="flex items-center justify-between rounded-xl border border-border bg-muted/40 p-2.5 text-xs"
-                      >
-                        <div>
-                          <div className="flex items-center gap-1 font-bold">
-                            <Shield className="size-3 text-primary" />
-                            <span>
-                              {FAMILY_LABELS[item.family] ?? item.name}
-                            </span>
-                            <span className="rounded bg-primary/20 px-1 py-0.5 text-[9px] text-primary">
-                              {item.rank} 階
-                            </span>
-                          </div>
-                          <div className="text-[10px] text-muted-foreground">
-                            金錢 {item.factors.cash} 倍 · 養成經驗{" "}
-                            {item.factors.growth_xp} 倍 · 能量{" "}
-                            {item.factors.energy} 倍
-                          </div>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </div>
+              )}
             </div>
           )}
         </div>

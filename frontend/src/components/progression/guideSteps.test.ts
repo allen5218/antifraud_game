@@ -10,19 +10,24 @@ afterEach(() => {
   localStorage.removeItem(PROGRESSION_GUIDE_KEY)
 })
 
-test("說明涵蓋資源、核心等級、配裝、強化突破、兩週競技", () => {
+test("說明涵蓋收租、經理、翻倍、練習加速、升級卡、搬家、兩週競技", () => {
   const all = GUIDE_STEPS.map((s) => `${s.title}${s.text}`).join("")
   for (const word of [
-    "養成經驗",
-    "鍛造能量",
-    "核心養成階級",
-    "生效配裝",
-    "強化",
-    "突破圖紙",
+    "收租",
+    "經理",
+    "24 小時",
+    "25、50",
+    "20 分鐘",
+    "升級卡",
+    "搬家",
+    "信譽",
     "競技榜",
-    "下一局",
   ]) {
     expect(all).toContain(word)
+  }
+  // 收掉的東西不能再出現
+  for (const gone of ["鍛造能量", "圖紙", "配裝", "核心養成階級"]) {
+    expect(all).not.toContain(gone)
   }
 })
 

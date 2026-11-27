@@ -8,7 +8,7 @@ export function RoomHonors() {
   if (!data || (!displayed.length && !data.active_title)) return null
   return (
     <Link
-      to="/progression"
+      to="/room"
       aria-label="管理房間榮譽"
       className="absolute bottom-24 right-3 z-20 max-w-44 rounded-xl border border-border bg-card/95 p-3 text-xs text-card-foreground shadow"
     >

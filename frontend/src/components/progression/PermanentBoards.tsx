@@ -1,31 +1,30 @@
 import { useQuery } from "@tanstack/react-query"
 import { useState } from "react"
-import { CollectionsService } from "@/client"
-import { formatMoney } from "@/utils/money"
+import { EstateService } from "@/client"
+import { formatYuan } from "@/components/estate/format"
 
 export function PermanentBoards({
   onInspect,
 }: {
   onInspect: (id: string) => void
 }) {
-  const [kind, setKind] = useState<"wealth" | "houses" | "pets">("wealth")
+  const [kind, setKind] = useState<"wealth" | "reputation">("wealth")
   const { data, isError, isPending } = useQuery({
-    queryKey: ["collection-board", kind],
-    queryFn: () => CollectionsService.permanentBoard({ kind }),
+    queryKey: ["estate-board", kind],
+    queryFn: () => EstateService.estateBoard({ kind }),
     staleTime: 15_000,
   })
   return (
-    <section className="flex flex-col gap-3" aria-label="永久養成排行榜">
+    <section className="flex flex-col gap-3" aria-label="永久經營排行榜">
       <div
-        className="grid grid-cols-3 gap-1 rounded-xl bg-surface-2 p-1"
+        className="grid grid-cols-2 gap-1 rounded-xl bg-surface-2 p-1"
         role="tablist"
         aria-label="長期排行項目"
       >
         {(
           [
-            ["wealth", "累積所得"],
-            ["houses", "房屋建設"],
-            ["pets", "寵物收藏"],
+            ["wealth", "歷來租金"],
+            ["reputation", "信譽"],
           ] as const
         ).map(([value, label]) => (
           <button
@@ -46,8 +45,8 @@ export function PermanentBoards({
       </div>
       <p className="text-xs text-muted-foreground">
         {kind === "wealth"
-          ? "自養成版本啟用起累積的訓練收入，消費不扣分，退款與變賣不加分。"
-          : "每種收藏基礎 100 分，加上養成等級平方乘以 10。房屋只計目前持有的種類，重複購買不重複算。"}
+          ? "經營以來收到的租金加總，花錢和搬家都不會變少。"
+          : "搬家和賽季拿到的信譽。"}
       </p>
       {isPending && <p className="p-6 text-center text-xs">載入排行…</p>}
       {isError && (
@@ -58,12 +57,13 @@ export function PermanentBoards({
       {data?.my_entry && (
         <p className="rounded-xl bg-primary/10 p-3 text-sm font-bold text-primary">
           我的位置：第 {data.my_entry.rank} 名 ·{" "}
-          {formatMoney(data.my_entry.score, { abbreviated: true })} 分
+          {formatYuan(data.my_entry.score)}
+          {kind === "wealth" ? " 元" : " 點"}
         </p>
       )}
       {data && !data.entries.length && (
         <p className="py-6 text-center text-xs text-muted-foreground">
-          完成一輪訓練，開始累積你的長期地位。
+          去經營收租，開始累積。
         </p>
       )}
       <ol className="flex flex-col gap-2">
@@ -79,7 +79,7 @@ export function PermanentBoards({
                 {entry.nickname}
               </span>
               <span className="font-bold text-primary">
-                {formatMoney(entry.score, { abbreviated: true })}
+                {formatYuan(entry.score)}
               </span>
             </button>
           </li>
