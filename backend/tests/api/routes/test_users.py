@@ -9,7 +9,7 @@ from app import crud
 from app.core.config import settings
 from app.core.security import create_access_token, verify_password
 from app.models import User, UserCreate
-from tests.utils.user import create_random_user
+from tests.utils.user import create_random_user, user_authentication_headers
 from tests.utils.utils import random_email, random_lower_string
 
 
@@ -638,3 +638,89 @@ def test_admin_edits_guest_with_unchanged_email(
     )
     assert r.status_code == 400
     assert r.json()["detail"] == {"code": "guest_account"}
+
+
+def test_register_with_birth_year_sets_elder_mode(client: TestClient) -> None:
+    r = client.post(
+        f"{settings.API_V1_STR}/users/signup",
+        json={
+            "email": random_email(),
+            "password": random_lower_string(),
+            "birth_year": 1960,
+        },
+    )
+    assert r.status_code == 200, r.text
+    assert r.json()["birth_year"] == 1960
+    assert r.json()["elder_mode"] is True
+
+
+def test_register_rejects_unreasonable_birth_year(client: TestClient) -> None:
+    r = client.post(
+        f"{settings.API_V1_STR}/users/signup",
+        json={
+            "email": random_email(),
+            "password": random_lower_string(),
+            "birth_year": 64,
+        },
+    )
+    assert r.status_code == 422
+
+
+def test_birth_year_can_be_set_once(client: TestClient, db: Session) -> None:
+    password = random_lower_string()
+    user = crud.create_user(
+        session=db, user_create=UserCreate(email=random_email(), password=password)
+    )
+    headers = user_authentication_headers(
+        client=client, email=user.email, password=password
+    )
+    me = client.get(f"{settings.API_V1_STR}/users/me", headers=headers).json()
+    assert me["birth_year"] is None
+    assert me["elder_mode"] is False
+
+    url = f"{settings.API_V1_STR}/users/me/birth-year"
+    r = client.post(url, headers=headers, json={"birth_year": 2001})
+    assert r.status_code == 200, r.text
+    assert r.json()["birth_year"] == 2001
+    assert r.json()["elder_mode"] is False
+
+    # 重送同一年照常回傳；換年份（等於切換模式）擋下
+    assert (
+        client.post(url, headers=headers, json={"birth_year": 2001}).status_code == 200
+    )
+    r = client.post(url, headers=headers, json={"birth_year": 1950})
+    assert r.status_code == 400
+    assert r.json()["detail"]["code"] == "birth_year_locked"
+
+
+def test_superuser_can_correct_birth_year(
+    client: TestClient, superuser_token_headers: dict[str, str], db: Session
+) -> None:
+    user = create_random_user(db)
+    r = client.patch(
+        f"{settings.API_V1_STR}/users/{user.id}",
+        headers=superuser_token_headers,
+        json={"birth_year": 1955},
+    )
+    assert r.status_code == 200, r.text
+    assert r.json()["elder_mode"] is True
+
+
+def test_player_cannot_change_birth_year_via_me_update(
+    client: TestClient, db: Session
+) -> None:
+    password = random_lower_string()
+    user = crud.create_user(
+        session=db,
+        user_create=UserCreate(
+            email=random_email(), password=password, birth_year=2000
+        ),
+    )
+    headers = user_authentication_headers(
+        client=client, email=user.email, password=password
+    )
+    r = client.patch(
+        f"{settings.API_V1_STR}/users/me", headers=headers, json={"birth_year": 1950}
+    )
+    assert r.status_code == 200, r.text
+    assert r.json()["birth_year"] == 2000

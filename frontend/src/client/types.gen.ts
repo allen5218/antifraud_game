@@ -48,6 +48,13 @@ export type AssignmentUpdate = {
     due_at?: (string | null);
 };
 
+/**
+ * 第一次進來補填出生年（西元）。
+ */
+export type BirthYearIn = {
+    birth_year: number;
+};
+
 export type Body_login_login_access_token = {
     grant_type?: (string | null);
     username: string;
@@ -937,6 +944,7 @@ export type PrivateUserCreate = {
     password: string;
     full_name: string;
     is_verified?: boolean;
+    birth_year?: (number | null);
 };
 
 export type ProgressionSummaryPublic = {
@@ -1590,6 +1598,7 @@ export type UserCreate = {
     is_team?: boolean;
     full_name?: (string | null);
     password: string;
+    birth_year?: (number | null);
 };
 
 export type UserPublic = {
@@ -1604,6 +1613,11 @@ export type UserPublic = {
     participant_code?: (string | null);
     cohort_id?: (string | null);
     teacher_status?: string;
+    birth_year?: (number | null);
+    /**
+     * 50 歲以上用年長者介面；還沒填出生年是 false，前端會先問。
+     */
+    readonly elder_mode: boolean;
 };
 
 export type UserRegister = {
@@ -1611,6 +1625,7 @@ export type UserRegister = {
     password: string;
     full_name?: (string | null);
     teacher?: (TeacherApplication | null);
+    birth_year?: (number | null);
 };
 
 export type UsersPublic = {
@@ -1625,6 +1640,7 @@ export type UserUpdate = {
     is_team?: boolean;
     full_name?: (string | null);
     password?: (string | null);
+    birth_year?: (number | null);
 };
 
 export type UserUpdateMe = {
@@ -2282,6 +2298,12 @@ export type UsersApplyTeacherMeData = {
 };
 
 export type UsersApplyTeacherMeResponse = (UserPublic);
+
+export type UsersSetBirthYearMeData = {
+    requestBody: BirthYearIn;
+};
+
+export type UsersSetBirthYearMeResponse = (UserPublic);
 
 export type UsersRegisterUserData = {
     requestBody: UserRegister;

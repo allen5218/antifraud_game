@@ -15,6 +15,7 @@ from app.core.config import settings
 from app.core.security import get_password_hash, verify_password
 from app.models import (
     INTERNAL_EMAIL_PATTERN,
+    BirthYearIn,
     Item,
     Message,
     TeacherApplication,
@@ -160,6 +161,26 @@ def apply_teacher_me(
     if current_user.teacher_status in ("approved", "suspended"):
         raise HTTPException(status_code=400, detail={"code": "teacher_already"})
     apply_teacher(current_user, body)
+    session.add(current_user)
+    session.commit()
+    session.refresh(current_user)
+    return current_user
+
+
+@router.post("/me/birth-year", response_model=UserPublic)
+def set_birth_year_me(
+    session: SessionDep, body: BirthYearIn, current_user: CurrentUser
+) -> Any:
+    """補填出生年（訪客、LINE／Google 帳號、舊帳號第一次進來時問）。
+
+    只能填一次：模式依年齡決定、不能切換，填過再送不同年份回 400 `birth_year_locked`，
+    送一樣的年份照常回傳（網路重送不會出錯）。填錯要請管理員改。
+    """
+    if current_user.birth_year is not None:
+        if current_user.birth_year != body.birth_year:
+            raise HTTPException(status_code=400, detail={"code": "birth_year_locked"})
+        return current_user
+    current_user.birth_year = body.birth_year
     session.add(current_user)
     session.commit()
     session.refresh(current_user)

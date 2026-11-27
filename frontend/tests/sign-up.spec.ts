@@ -12,6 +12,7 @@ const fillForm = async (
   confirm_password: string,
 ) => {
   await page.getByTestId("full-name-input").fill(full_name)
+  await page.getByTestId("birth-year-input").fill("1990")
   await page.getByTestId("email-input").fill(email)
   await page.getByTestId("password-input").fill(password)
   await page.getByTestId("confirm-password-input").fill(confirm_password)

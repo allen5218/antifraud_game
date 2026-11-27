@@ -4,6 +4,7 @@ import { signupSchema, toSignupBody } from "./signupForm"
 const base = {
   email: "a@example.com",
   full_name: "王老師",
+  birth_year: "64",
   password: "password1",
   confirm_password: "password1",
   teacher: false,
@@ -18,6 +19,7 @@ test("沒勾老師不用填學校科目，送出也不帶 teacher", () => {
     email: "a@example.com",
     full_name: "王老師",
     password: "password1",
+    birth_year: 1975,
   })
 })
 
@@ -41,6 +43,16 @@ test("勾了老師，送出帶 teacher 並去掉頭尾空白", () => {
     email: "a@example.com",
     full_name: "王老師",
     password: "password1",
+    birth_year: 1975,
     teacher: { school: "範例國中", subject: "公民" },
   })
+})
+
+test("出生年必填，看不懂的年份擋下", () => {
+  for (const birth_year of ["", "abc", "1800"]) {
+    const parsed = signupSchema.safeParse({ ...base, birth_year })
+    expect(parsed.success).toBe(false)
+    const paths = parsed.error?.issues.map((i) => i.path.join(".")) ?? []
+    expect(paths).toContain("birth_year")
+  }
 })
