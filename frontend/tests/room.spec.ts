@@ -75,7 +75,8 @@ test.describe("房間首頁", () => {
     await cat.getByRole("button", { name: "購買" }).click()
     await expect(cat.getByText("錢不夠")).toBeVisible()
 
-    await page.getByTestId("tab-room").click()
+    // 商店不是分頁本身，沒有底部分頁，直接進經營
+    await page.goto("/room")
     await skipEstateIntro(page)
     await expect(page.getByTestId("estate-cash")).toHaveText("1,000 元")
     const shack = page.getByTestId("industry-1")

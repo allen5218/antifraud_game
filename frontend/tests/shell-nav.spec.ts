@@ -57,7 +57,8 @@ test.describe("首頁與分頁", () => {
     await expect(page.getByTestId("rail-tab-learn")).toBeVisible()
 
     await page.getByTestId("rail-tab-room").click()
-    await expect(page.getByTestId("estate-page")).toBeVisible()
+    // 第一次進經營頁會跳玩法說明，蓋住側欄
+    await skipEstateIntro(page)
     await page.getByTestId("rail-tab-learn").click()
     await expect(page.getByTestId("home-hero")).toBeVisible()
   })
