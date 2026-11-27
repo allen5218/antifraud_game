@@ -5,7 +5,7 @@ from decimal import Decimal
 from typing import Annotated, Any
 
 import sqlalchemy.types as types
-from pydantic import EmailStr, StringConstraints, field_validator
+from pydantic import EmailStr, StringConstraints, computed_field, field_validator
 from sqlalchemy import (
     BigInteger,
     CheckConstraint,
@@ -19,6 +19,7 @@ from sqlalchemy import (
 from sqlalchemy.dialects.postgresql import JSONB
 from sqlmodel import Field, Relationship, SQLModel
 
+from app.core.age import check_birth_year, is_elder
 from app.scenario.config import MAX_TURNS
 
 
@@ -77,6 +78,18 @@ AccountEmail = EmailStr | InternalEmail
 # Properties to receive via API on creation
 class UserCreate(UserBase):
     password: str = Field(min_length=8, max_length=128)
+    birth_year: int | None = None
+
+
+class BirthYearIn(SQLModel):
+    """第一次進來補填出生年（西元）。"""
+
+    birth_year: int
+
+    @field_validator("birth_year")
+    @classmethod
+    def _valid_year(cls, value: int) -> int:
+        return check_birth_year(value)
 
 
 def clean_required_text(value: str) -> str:
@@ -101,12 +114,26 @@ class UserRegister(SQLModel):
     full_name: str | None = Field(default=None, max_length=255)
     # 註冊時勾「我是老師」才有；送出後是申請中，管理員核准才算老師
     teacher: TeacherApplication | None = None
+    # 註冊表單一定會送；舊版畫面沒有這格，沒送就等第一次進來再問
+    birth_year: int | None = None
+
+    @field_validator("birth_year")
+    @classmethod
+    def _valid_year(cls, value: int | None) -> int | None:
+        return None if value is None else check_birth_year(value)
 
 
 # Properties to receive via API on update, all are optional
 class UserUpdate(UserBase):
     email: AccountEmail | None = Field(default=None, max_length=255)  # type: ignore
     password: str | None = Field(default=None, min_length=8, max_length=128)
+    # 玩家自己不能改出生年（模式不能切換），填錯只能由管理員修
+    birth_year: int | None = None
+
+    @field_validator("birth_year")
+    @classmethod
+    def _valid_year(cls, value: int | None) -> int | None:
+        return None if value is None else check_birth_year(value)
 
 
 class UserUpdateMe(SQLModel):
@@ -165,6 +192,8 @@ class User(UserBase, table=True):
         default=None,
         sa_type=DateTime(timezone=True),  # type: ignore
     )
+    # 西元出生年。50 歲以上用年長者介面（app/core/age.py），玩家自己不能改
+    birth_year: int | None = Field(default=None)
 
     properties: list["UserProperty"] = Relationship(
         back_populates="owner", cascade_delete=True
@@ -180,6 +209,13 @@ class UserPublic(UserBase):
     participant_code: str | None = None
     cohort_id: uuid.UUID | None = None
     teacher_status: str = "none"
+    birth_year: int | None = None
+
+    @computed_field  # type: ignore[prop-decorator]
+    @property
+    def elder_mode(self) -> bool:
+        """50 歲以上用年長者介面；還沒填出生年是 false，前端會先問。"""
+        return is_elder(self.birth_year)
 
 
 class UsersPublic(SQLModel):

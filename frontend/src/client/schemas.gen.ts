@@ -206,6 +206,19 @@ export const AssignmentUpdateSchema = {
     title: 'AssignmentUpdate'
 } as const;
 
+export const BirthYearInSchema = {
+    properties: {
+        birth_year: {
+            type: 'integer',
+            title: 'Birth Year'
+        }
+    },
+    type: 'object',
+    required: ['birth_year'],
+    title: 'BirthYearIn',
+    description: '第一次進來補填出生年（西元）。'
+} as const;
+
 export const Body_login_login_access_tokenSchema = {
     properties: {
         grant_type: {
@@ -4291,6 +4304,18 @@ export const PrivateUserCreateSchema = {
             type: 'boolean',
             title: 'Is Verified',
             default: false
+        },
+        birth_year: {
+            anyOf: [
+                {
+                    type: 'integer'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Birth Year',
+            default: 1990
         }
     },
     type: 'object',
@@ -6970,6 +6995,17 @@ export const UserCreateSchema = {
             maxLength: 128,
             minLength: 8,
             title: 'Password'
+        },
+        birth_year: {
+            anyOf: [
+                {
+                    type: 'integer'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Birth Year'
         }
     },
     type: 'object',
@@ -7068,10 +7104,27 @@ export const UserPublicSchema = {
             type: 'string',
             title: 'Teacher Status',
             default: 'none'
+        },
+        birth_year: {
+            anyOf: [
+                {
+                    type: 'integer'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Birth Year'
+        },
+        elder_mode: {
+            type: 'boolean',
+            title: 'Elder Mode',
+            description: '50 歲以上用年長者介面；還沒填出生年是 false，前端會先問。',
+            readOnly: true
         }
     },
     type: 'object',
-    required: ['email', 'id'],
+    required: ['email', 'id', 'elder_mode'],
     title: 'UserPublic'
 } as const;
 
@@ -7110,6 +7163,17 @@ export const UserRegisterSchema = {
                     type: 'null'
                 }
             ]
+        },
+        birth_year: {
+            anyOf: [
+                {
+                    type: 'integer'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Birth Year'
         }
     },
     type: 'object',
@@ -7179,6 +7243,17 @@ export const UserUpdateSchema = {
                 }
             ],
             title: 'Password'
+        },
+        birth_year: {
+            anyOf: [
+                {
+                    type: 'integer'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Birth Year'
         }
     },
     type: 'object',

@@ -4,6 +4,7 @@ import {
   redirect,
   useRouterState,
 } from "@tanstack/react-router"
+import { BirthYearGate } from "@/components/shell/BirthYearGate"
 import { ForcedSellModal } from "@/components/shell/ForcedSellModal"
 import { NavRail } from "@/components/shell/NavRail"
 import { PageHeader, pageTitle } from "@/components/shell/PageHeader"
@@ -50,6 +51,7 @@ function Shell() {
         </main>
       </div>
       <ForcedSellModal />
+      <BirthYearGate />
     </div>
   )
 }
