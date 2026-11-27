@@ -1,4 +1,5 @@
 import { expect, test } from "@playwright/test"
+import { closeMascotGuide } from "./utils/user"
 
 test.describe("首頁與分頁", () => {
   test.use({ viewport: { width: 375, height: 667 } })
@@ -14,6 +15,7 @@ test.describe("首頁與分頁", () => {
     await expect(page.getByTestId("room-hero")).toBeVisible()
     await expect(page.getByTestId("hdr-cash")).toBeVisible()
 
+    await closeMascotGuide(page)
     await page.getByTestId("hotspot-phone").click()
     await expect(page).toHaveURL(/\/scenarios/)
     await expect(page.getByRole("heading", { name: "情境對抗" })).toBeVisible()
@@ -23,6 +25,7 @@ test.describe("首頁與分頁", () => {
     await expect(page.getByTestId("home-hero")).toBeVisible()
 
     await page.getByTestId("tab-room").click()
+    await closeMascotGuide(page)
     await page.getByTestId("room-house").click()
     await expect(page.getByText("總身家")).toBeVisible()
     await page.getByRole("link", { name: "回首頁" }).click()

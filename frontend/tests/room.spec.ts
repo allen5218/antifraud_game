@@ -1,7 +1,7 @@
 import { expect, test } from "@playwright/test"
 import { createUser } from "./utils/privateApi.ts"
 import { randomEmail, randomPassword } from "./utils/random"
-import { logInUser, skipTour } from "./utils/user"
+import { closeMascotGuide, logInUser, skipTour } from "./utils/user"
 
 // 用新帳號：共用的 superuser 會被其他測試改現金與房產，房間階段就不固定。
 // 2026-11 改版後首頁是練習，房間在分頁「經營」（/room）。
@@ -35,6 +35,7 @@ test.describe("房間首頁", () => {
       "/pretest",
     )
 
+    await closeMascotGuide(page)
     await page.getByTestId("hotspot-phone").click()
     await expect(page).toHaveURL(/\/scenarios/)
     await page.getByRole("link", { name: "回首頁" }).click()
