@@ -8,11 +8,11 @@ afterEach(() => {
 })
 
 describe("<PageHeader />", () => {
-  it("顯示頁名，回房間連到首頁", async () => {
+  it("顯示頁名，回首頁連到首頁", async () => {
     await renderWithRouter(<PageHeader title="滑卡訓練" />)
     expect(screen.getByRole("heading", { name: "滑卡訓練" })).toBeTruthy()
     expect(
-      screen.getByRole("link", { name: "回房間" }).getAttribute("href"),
+      screen.getByRole("link", { name: "回首頁" }).getAttribute("href"),
     ).toBe("/")
   })
 

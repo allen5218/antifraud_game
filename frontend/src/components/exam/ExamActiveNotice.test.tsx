@@ -9,7 +9,7 @@ import {
   ExamService,
   PracticeService,
 } from "@/client/sdk.gen"
-import { Home } from "@/routes/_shell/index"
+import { RoomScene } from "@/components/room/RoomScene"
 import { renderWithRouter } from "@/test/renderWithRouter"
 
 const response = <T,>(value: T) =>
@@ -73,7 +73,7 @@ async function renderHome() {
   )
   await renderWithRouter(
     <QueryClientProvider client={qc}>
-      <Home />
+      <RoomScene />
     </QueryClientProvider>,
   )
 }
@@ -100,7 +100,7 @@ test("有進行中的專項檢測時，卡在大卡之前，繼續直接進那�
   expect(
     screen.getByRole("link", { name: "繼續檢測" }).getAttribute("href"),
   ).toBe("/exam/attempt-1")
-  const hero = screen.getByTestId("home-hero")
+  const hero = screen.getByTestId("room-hero")
   expect(hero.contains(heading)).toBe(true)
   expect(daily).not.toHaveBeenCalled()
 })
@@ -186,7 +186,7 @@ test("沒有進行中的檢測時不顯示卡，也不讀每日訓練", async ()
   )
   spyOn(ExamService, "readStatus").mockImplementation(() => response(idle))
   await renderHome()
-  await screen.findByTestId("home-hero")
+  await screen.findByTestId("room-hero")
   expect(
     screen.queryByRole("heading", { name: "你有一份檢測還沒做完" }),
   ).toBeNull()

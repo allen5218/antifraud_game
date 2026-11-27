@@ -73,3 +73,12 @@ export async function markBirthYear(page: Page, birthYear = 1990) {
   )
   expect(response.ok() || response.status() === 400).toBeTruthy()
 }
+
+/**
+ * 房間的吉祥物對話框每天第一次進來會自動打開。分頁列讓房間變矮後，
+ * 對話框會蓋到家具，要點家具前先按「收起」；沒打開就算了。
+ */
+export async function closeMascotGuide(page: Page) {
+  const close = page.getByRole("button", { name: "收起" })
+  if (await close.isVisible()) await close.click()
+}

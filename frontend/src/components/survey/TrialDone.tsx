@@ -16,7 +16,7 @@ export function TrialDone({ data }: { data: TrialSurveyPublic }) {
           你的回饋會用來改進這個遊戲。
         </p>
         <Button asChild>
-          <Link to="/">回房間</Link>
+          <Link to="/">回首頁</Link>
         </Button>
       </div>
     )
@@ -55,7 +55,7 @@ export function TrialDone({ data }: { data: TrialSurveyPublic }) {
         請截圖這個畫面，或直接拿給工作人員看。之後從房間選單的「試測完成」也能再打開。
       </p>
       <Button asChild>
-        <Link to="/">回房間</Link>
+        <Link to="/">回首頁</Link>
       </Button>
     </div>
   )

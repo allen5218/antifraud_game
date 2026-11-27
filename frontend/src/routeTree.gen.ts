@@ -25,6 +25,7 @@ import { Route as BadgeSlugRouteImport } from './routes/badge.$slug'
 import { Route as ShellTeamRouteImport } from './routes/_shell/team'
 import { Route as ShellSurveyRouteImport } from './routes/_shell/survey'
 import { Route as ShellShopRouteImport } from './routes/_shell/shop'
+import { Route as ShellRoomRouteImport } from './routes/_shell/room'
 import { Route as ShellProgressionRouteImport } from './routes/_shell/progression'
 import { Route as ShellMeRouteImport } from './routes/_shell/me'
 import { Route as ShellLearnRouteImport } from './routes/_shell/learn'
@@ -122,6 +123,11 @@ const ShellSurveyRoute = ShellSurveyRouteImport.update({
 const ShellShopRoute = ShellShopRouteImport.update({
   id: '/shop',
   path: '/shop',
+  getParentRoute: () => ShellRoute,
+} as any)
+const ShellRoomRoute = ShellRoomRouteImport.update({
+  id: '/room',
+  path: '/room',
   getParentRoute: () => ShellRoute,
 } as any)
 const ShellProgressionRoute = ShellProgressionRouteImport.update({
@@ -246,6 +252,7 @@ export interface FileRoutesByFullPath {
   '/learn': typeof ShellLearnRoute
   '/me': typeof ShellMeRoute
   '/progression': typeof ShellProgressionRoute
+  '/room': typeof ShellRoomRoute
   '/shop': typeof ShellShopRoute
   '/survey': typeof ShellSurveyRoute
   '/team': typeof ShellTeamRoute
@@ -282,6 +289,7 @@ export interface FileRoutesByTo {
   '/learn': typeof ShellLearnRoute
   '/me': typeof ShellMeRoute
   '/progression': typeof ShellProgressionRoute
+  '/room': typeof ShellRoomRoute
   '/shop': typeof ShellShopRoute
   '/survey': typeof ShellSurveyRoute
   '/team': typeof ShellTeamRoute
@@ -320,6 +328,7 @@ export interface FileRoutesById {
   '/_shell/learn': typeof ShellLearnRoute
   '/_shell/me': typeof ShellMeRoute
   '/_shell/progression': typeof ShellProgressionRoute
+  '/_shell/room': typeof ShellRoomRoute
   '/_shell/shop': typeof ShellShopRoute
   '/_shell/survey': typeof ShellSurveyRoute
   '/_shell/team': typeof ShellTeamRoute
@@ -359,6 +368,7 @@ export interface FileRouteTypes {
     | '/learn'
     | '/me'
     | '/progression'
+    | '/room'
     | '/shop'
     | '/survey'
     | '/team'
@@ -395,6 +405,7 @@ export interface FileRouteTypes {
     | '/learn'
     | '/me'
     | '/progression'
+    | '/room'
     | '/shop'
     | '/survey'
     | '/team'
@@ -432,6 +443,7 @@ export interface FileRouteTypes {
     | '/_shell/learn'
     | '/_shell/me'
     | '/_shell/progression'
+    | '/_shell/room'
     | '/_shell/shop'
     | '/_shell/survey'
     | '/_shell/team'
@@ -577,6 +589,13 @@ declare module '@tanstack/react-router' {
       path: '/shop'
       fullPath: '/shop'
       preLoaderRoute: typeof ShellShopRouteImport
+      parentRoute: typeof ShellRoute
+    }
+    '/_shell/room': {
+      id: '/_shell/room'
+      path: '/room'
+      fullPath: '/room'
+      preLoaderRoute: typeof ShellRoomRouteImport
       parentRoute: typeof ShellRoute
     }
     '/_shell/progression': {
@@ -749,6 +768,7 @@ interface ShellRouteChildren {
   ShellLearnRoute: typeof ShellLearnRoute
   ShellMeRoute: typeof ShellMeRoute
   ShellProgressionRoute: typeof ShellProgressionRoute
+  ShellRoomRoute: typeof ShellRoomRoute
   ShellShopRoute: typeof ShellShopRoute
   ShellSurveyRoute: typeof ShellSurveyRoute
   ShellTeamRoute: typeof ShellTeamRoute
@@ -771,6 +791,7 @@ const ShellRouteChildren: ShellRouteChildren = {
   ShellLearnRoute: ShellLearnRoute,
   ShellMeRoute: ShellMeRoute,
   ShellProgressionRoute: ShellProgressionRoute,
+  ShellRoomRoute: ShellRoomRoute,
   ShellShopRoute: ShellShopRoute,
   ShellSurveyRoute: ShellSurveyRoute,
   ShellTeamRoute: ShellTeamRoute,

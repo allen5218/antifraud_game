@@ -30,7 +30,7 @@ export function PageHeader({ title }: { title: string }) {
   return (
     <header className="sticky top-0 z-20 grid grid-cols-[4.5rem_1fr_4.5rem] items-center border-b bg-background px-3 py-3">
       <Link to="/" className="text-sm font-bold text-foreground">
-        回房間
+        回首頁
       </Link>
       <h1 className="truncate text-center text-sm font-bold">{title}</h1>
       <span aria-hidden="true" />

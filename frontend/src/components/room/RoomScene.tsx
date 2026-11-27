@@ -139,7 +139,8 @@ export function RoomScene() {
       .tourDone()
       .then(() => queryClient.invalidateQueries({ queryKey: HOME_SUMMARY_KEY }))
       .catch(() => {})
-    if (replay) navigate({ to: "/", search: {}, replace: true })
+    // 回到同一頁（首頁或 /room），只拿掉 ?tour=1
+    if (replay) navigate({ to: ".", search: {}, replace: true })
   }
   const cash = parseBigIntSafe(economy.data?.cash)
   const pending = parseBigIntSafe(economy.data?.pending_accrual)
@@ -189,7 +190,7 @@ export function RoomScene() {
   return (
     // overflow-clip 而不是 overflow-hidden：hidden 仍可被程式捲動，點吉祥物時焦點會把整個房間捲歪
     <section
-      data-testid="home-hero"
+      data-testid="room-hero"
       className="relative h-full w-full overflow-clip bg-surface-2"
     >
       <RoomStage

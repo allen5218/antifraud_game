@@ -82,7 +82,7 @@ pre-commit 有 `generate-frontend-sdk` hook，當 `backend/` 變更時會自動�
 - `backend/` — FastAPI · Python ≥3.10（實跑 3.13）· SQLModel · Alembic（uv workspace 成員）
 - `frontend/` — React 19 · TypeScript · TanStack Router/Query · Tailwind v4 · shadcn/ui（bun workspace）
 
-前端有**兩套殼並存**：`_shell.tsx`（玩家實際走的流程：首頁是房間場景 `components/room/`，其他頁用頁首的「回房間」返回；桌機左側另有 NavRail，分頁下面列出和房間漢堡選單同一份 `menuItems`）與 `_layout.tsx`（template 遺留的 sidebar，掛著 admin / items / settings）。
+前端有**兩套殼並存**：`_shell.tsx`（玩家實際走的流程：一般模式的首頁是 Lingvist 式練習首頁 `components/learn/LearnHome.tsx`，手機底部四個分頁練習／訊息／經營／我的（`components/shell/tabs.ts`、`TabBar.tsx`，只在四個分頁本身出現），房間場景 `components/room/` 在 `/room`（分頁「經營」，新手導覽也在這裡）；50 歲以上的年長者介面做好前，年長者的首頁仍是房間、沒有底部分頁；其他頁用頁首的「回首頁」返回；桌機左側 NavRail 是同一份分頁，下面列出和房間漢堡選單同一份 `menuItems`）與 `_layout.tsx`（template 遺留的 sidebar，掛著 admin / items / settings）。
 
 ### 前端慣例
 

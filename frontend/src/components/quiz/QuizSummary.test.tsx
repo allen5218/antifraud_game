@@ -27,9 +27,8 @@ describe("<QuizSummary />", () => {
     expect(screen.getByText(/\+80 XP/)).toBeTruthy()
     expect(screen.getByText(/冒充官方或專家 ×2/)).toBeTruthy()
     expect(screen.queryByText(/authority/)).toBeNull()
-    // 其他頁都叫「回房間」，首頁已經是房間
     expect(
-      screen.getByRole("link", { name: "回房間" }).getAttribute("href"),
+      screen.getByRole("link", { name: "回首頁" }).getAttribute("href"),
     ).toBe("/")
     expect(
       screen.getByRole("link", { name: /前往養成與配裝/ }).getAttribute("href"),

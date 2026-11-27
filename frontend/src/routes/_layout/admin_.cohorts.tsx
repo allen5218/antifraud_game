@@ -157,7 +157,7 @@ function CohortsPage() {
       <header>
         <div className="flex gap-4 text-sm">
           <Link to="/" className="text-primary">
-            回房間
+            回首頁
           </Link>
           <Link to="/admin" className="text-primary">
             回到帳號管理
