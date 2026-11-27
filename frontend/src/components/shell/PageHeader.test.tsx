@@ -25,7 +25,6 @@ describe("<PageHeader />", () => {
     expect(pageTitle("/leaderboard")).toBe("排行榜")
     expect(pageTitle("/exam")).toBe("檢測")
     expect(pageTitle("/exam/attempt-1")).toBe("檢測")
-    expect(pageTitle("/assets")).toBe("我的資產")
     expect(pageTitle("/shop")).toBe("商店")
     expect(pageTitle("/me")).toBe("我的")
     expect(pageTitle("/")).toBe("")

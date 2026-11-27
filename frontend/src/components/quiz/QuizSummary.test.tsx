@@ -31,11 +31,11 @@ describe("<QuizSummary />", () => {
       screen.getByRole("link", { name: "回首頁" }).getAttribute("href"),
     ).toBe("/")
     expect(
-      screen.getByRole("link", { name: /前往養成與配裝/ }).getAttribute("href"),
-    ).toBe("/progression")
+      screen.getByRole("link", { name: /去經營收租/ }).getAttribute("href"),
+    ).toBe("/room")
   })
 
-  it("keeps the growth entry without offering another daily round", async () => {
+  it("keeps the estate entry without offering another daily round", async () => {
     await renderWithRouter(
       <QuizSummary
         result={{
@@ -49,6 +49,6 @@ describe("<QuizSummary />", () => {
       />,
     )
     expect(screen.queryByRole("button", { name: "再來一輪" })).toBeNull()
-    expect(screen.getByRole("link", { name: /前往養成與配裝/ })).toBeTruthy()
+    expect(screen.getByRole("link", { name: /去經營收租/ })).toBeTruthy()
   })
 })

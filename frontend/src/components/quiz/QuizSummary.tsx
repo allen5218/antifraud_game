@@ -16,9 +16,6 @@ interface QuizSummaryProps {
 /** 回合結算：成績、獎勵、這輪漏看的話術 */
 export function QuizSummary({ result, onRestart, children }: QuizSummaryProps) {
   const receipt = result.reward_receipt
-  const earnedEnergy = BigInt(receipt?.final?.forge_energy ?? "0")
-  const earnedGxp = BigInt(receipt?.final?.growth_xp ?? "0")
-  const coreAfter = receipt?.core_level_after ?? 0
   return (
     <div className="flex h-full flex-col items-center justify-center gap-3 px-6 py-10 text-center">
       <img
@@ -71,13 +68,11 @@ export function QuizSummary({ result, onRestart, children }: QuizSummaryProps) {
         </button>
       )}
       <Link
-        to="/progression"
+        to="/room"
         className="flex w-full items-center justify-center gap-1.5 rounded-xl border border-border bg-surface-2 py-2.5 text-xs font-bold text-foreground hover:bg-surface-3"
       >
         <Sparkles aria-hidden className="size-3.5 text-primary" />
-        前往養成與配裝（核心 Lv.{coreAfter}
-        {earnedGxp > 0n ? ` · 本輪 +${formatMoney(earnedGxp)} 養成經驗` : ""}
-        {earnedEnergy > 0n ? ` / +${formatMoney(earnedEnergy)} 能量` : ""}）
+        去經營收租
       </Link>
       <Link to="/" className="text-xs text-muted-foreground underline">
         回首頁

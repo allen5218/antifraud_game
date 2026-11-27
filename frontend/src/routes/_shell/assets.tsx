@@ -1,31 +1,8 @@
-import { createFileRoute } from "@tanstack/react-router"
-import { AssetSummaryCard } from "@/components/assets/AssetSummaryCard"
-import { OwnedAndAvailableList } from "@/components/assets/OwnedAndAvailableList"
-import {
-  assetsQuery,
-  economyMeQuery,
-  propertiesQuery,
-} from "@/hooks/useEconomy"
-import { preloadImages, propertyArtSrc, warmQueries } from "@/lib/prefetch"
+import { createFileRoute, redirect } from "@tanstack/react-router"
 
+/** 舊的「我的資產」頁：房產改成放置經營，搬到分頁「經營」 */
 export const Route = createFileRoute("/_shell/assets")({
-  loader: ({ context: { queryClient } }) => {
-    warmQueries(queryClient, [economyMeQuery, assetsQuery])
-    queryClient
-      .ensureQueryData(propertiesQuery)
-      .then((data) =>
-        preloadImages(data.tiers.map((tier) => propertyArtSrc(tier.svg_key))),
-      )
-      .catch(() => {})
+  beforeLoad: () => {
+    throw redirect({ to: "/room" })
   },
-  component: Assets,
 })
-
-function Assets() {
-  return (
-    <>
-      <AssetSummaryCard />
-      <OwnedAndAvailableList />
-    </>
-  )
-}

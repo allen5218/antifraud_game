@@ -247,7 +247,7 @@ export function ScenarioChatPage({ scenarioId }: { scenarioId: string }) {
             setResult(null)
             navigate({ to: "/scenarios" })
           }}
-          onGoAssets={() => navigate({ to: "/assets" })}
+          onGoAssets={() => navigate({ to: "/room" })}
           next={
             focusType
               ? {

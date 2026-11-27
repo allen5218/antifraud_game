@@ -145,7 +145,7 @@ export function ResultSheet({
                 aria-hidden
                 className="mt-px size-3.5 shrink-0 text-warning"
               />
-              <span>現金不夠付，要變賣房產來還。請到資產頁處理。</span>
+              <span>錢不夠付，變成欠款。房產會繼續收租，慢慢還清。</span>
             </p>
           )}
           {showNext && (
@@ -182,7 +182,7 @@ export function ResultSheet({
                 : "bg-primary text-primary-foreground"
             }`}
           >
-            {result.triggers_forced_sell ? "查看資產" : "回到聯絡人"}
+            {result.triggers_forced_sell ? "看經營" : "回到聯絡人"}
             <ChevronRight aria-hidden className="size-4" />
           </button>
         </div>

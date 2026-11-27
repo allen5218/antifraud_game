@@ -5,12 +5,13 @@ import {
   redirect,
   useRouterState,
 } from "@tanstack/react-router"
+import { showsRoomScene } from "@/components/estate/roomView"
 import { BirthYearGate } from "@/components/shell/BirthYearGate"
-import { ForcedSellModal } from "@/components/shell/ForcedSellModal"
 import { NavRail } from "@/components/shell/NavRail"
 import { PageHeader, pageTitle } from "@/components/shell/PageHeader"
 import { showsTabBar, TabBar } from "@/components/shell/TabBar"
 import { currentUserQuery, isLoggedIn } from "@/hooks/useAuth"
+import { useHomeSummary } from "@/hooks/useHomeSummary"
 
 export const Route = createFileRoute("/_shell")({
   component: Shell,
@@ -24,13 +25,30 @@ function Shell() {
   const pathname = useRouterState({
     select: (state) => (state.resolvedLocation ?? state.location).pathname,
   })
+  const search = useRouterState({
+    select: (state) =>
+      (state.resolvedLocation ?? state.location).search as Record<
+        string,
+        unknown
+      >,
+  })
+  const { data: home } = useHomeSummary()
   const { data: user } = useQuery({
     ...currentUserQuery,
     enabled: isLoggedIn(),
   })
   const elder = user?.elder_mode === true
-  // 房間鋪滿整個畫面：一般模式在 /room（分頁「經營」）；年長者介面做好前，年長者的首頁也是房間
-  const isRoom = pathname === "/room" || (pathname === "/" && elder)
+  // 房間鋪滿整個畫面：分頁「經營」（/room）平常是放置經營，只有導覽、我的家、年長者是房間；
+  // 年長者介面做好前，年長者的首頁也是房間
+  const isRoom =
+    (pathname === "/room" &&
+      showsRoomScene({
+        elder,
+        tour: search.tour,
+        view: search.view,
+        tourPending: home?.tour_pending,
+      })) ||
+    (pathname === "/" && elder)
   const tabs = !elder && showsTabBar(pathname)
   return (
     // 桌機左側 NavRail；手機在四個分頁的頁面有底部分頁（年長者沒有）。
@@ -50,7 +68,7 @@ function Shell() {
     >
       <NavRail />
       <div className="flex min-w-0 flex-1 flex-col">
-        {!isRoom && pathname !== "/" && (
+        {!isRoom && pathname !== "/" && pathname !== "/room" && (
           <PageHeader title={pageTitle(pathname)} />
         )}
         <main
@@ -64,7 +82,6 @@ function Shell() {
         </main>
         {!elder && <TabBar />}
       </div>
-      <ForcedSellModal />
       <BirthYearGate />
     </div>
   )

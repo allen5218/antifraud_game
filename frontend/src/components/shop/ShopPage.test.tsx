@@ -1,7 +1,6 @@
 import { afterEach, beforeEach, expect, mock, spyOn, test } from "bun:test"
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query"
 import { cleanup, fireEvent, render, screen } from "@testing-library/react"
-import type { PropertyTierPublic } from "@/client"
 import { ApiError } from "@/client/core/ApiError"
 import { CancelablePromise } from "@/client/core/CancelablePromise"
 import { EconomyService } from "@/client/sdk.gen"
@@ -11,22 +10,6 @@ import { ShopPage } from "./ShopPage"
 
 const response = <T,>(value: T) =>
   new CancelablePromise<T>((resolve) => resolve(value))
-
-const TIERS: PropertyTierPublic[] = [
-  ["雅房", "tier-1", 1000, 5, 1],
-  ["套房", "tier-2", 5000, 35, 1],
-  ["兩房公寓", "tier-3", 25000, 250, 2],
-  ["三房公寓", "tier-4", 100000, 1200, 3],
-  ["別墅", "tier-5", 300000, 4200, 5],
-  ["豪宅", "tier-6", 1000000, 15000, 10],
-].map(([name, svg_key, price, daily_income, unlock_level], index) => ({
-  id: index + 1,
-  name: name as string,
-  svg_key: svg_key as string,
-  price: price as number,
-  daily_income: daily_income as number,
-  unlock_level: unlock_level as number,
-}))
 
 function item(overrides: Partial<MascotShopItem> = {}): MascotShopItem {
   return {
@@ -75,12 +58,7 @@ beforeEach(() => {
       xp: 0,
       level: 10,
       streak_days: 1,
-      pending_accrual: 0,
-      bankruptcy_pending: false,
     }),
-  )
-  spyOn(EconomyService, "listProperties").mockImplementation(() =>
-    response({ tiers: TIERS, owned: [] }),
   )
 })
 
@@ -119,12 +97,10 @@ test("展示中的按鈕停用", async () => {
   expect((button as HTMLButtonElement).disabled).toBe(true)
 })
 
-test("房產分頁列出六級", async () => {
+test("商店只賣吉祥物，說明可以派去當經理", async () => {
   renderShop()
-  fireEvent.click(await screen.findByRole("tab", { name: "房產" }))
-  for (const name of ["雅房", "套房", "兩房公寓", "三房公寓", "別墅", "豪宅"]) {
-    expect(await screen.findByRole("heading", { name })).toBeTruthy()
-  }
+  expect(await screen.findByText(/派去當經理/)).toBeTruthy()
+  expect(screen.queryByRole("tab", { name: "房產" })).toBeNull()
 })
 
 test("進商店會記下看過商店（新手任務的一項）", async () => {

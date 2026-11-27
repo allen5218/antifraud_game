@@ -34,7 +34,7 @@ describe("<ResultSheet />", () => {
     expect(screen.getByText(/用好處引誘你/)).toBeTruthy()
   })
 
-  it("renders lose reveal with forced-sell warning", () => {
+  it("renders lose reveal with a debt notice", () => {
     render(
       <ResultSheet
         result={{
@@ -52,7 +52,7 @@ describe("<ResultSheet />", () => {
     )
     expect(screen.getByText("你被騙了")).toBeTruthy()
     expect(screen.getByText(/-\$12,000/)).toBeTruthy()
-    expect(screen.getByText(/變賣房產/)).toBeTruthy()
+    expect(screen.getByText(/變成欠款/)).toBeTruthy()
   })
 
   it("shows case provenance when present", () => {
@@ -119,6 +119,6 @@ describe("<ResultSheet />", () => {
       />,
     )
     expect(screen.queryByTestId("practice-next")).toBeNull()
-    expect(screen.getByText("查看資產")).toBeTruthy()
+    expect(screen.getByText("看經營")).toBeTruthy()
   })
 })

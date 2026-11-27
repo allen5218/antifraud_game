@@ -69,7 +69,6 @@ function summary(overrides: Partial<HomeSummary> = {}): HomeSummary {
 }
 
 let current = summary()
-let pendingAccrual = 0
 const qc = new QueryClient({
   defaultOptions: { queries: { retry: false }, mutations: { retry: false } },
 })
@@ -77,7 +76,6 @@ const qc = new QueryClient({
 beforeEach(() => {
   localStorage.clear()
   current = summary()
-  pendingAccrual = 0
   spyOn(homeApi, "summary").mockImplementation(() => response(current))
   spyOn(EconomyService, "readMe").mockImplementation(() =>
     response({
@@ -85,8 +83,6 @@ beforeEach(() => {
       xp: 0,
       level: 1,
       streak_days: 3,
-      pending_accrual: pendingAccrual,
-      bankruptcy_pending: false,
     }),
   )
   spyOn(ExamService, "readStatus").mockImplementation(() => response(idle))
@@ -239,25 +235,6 @@ test("試測帳號今天看過對話框，回房間仍打開並帶去檢測", as
   await renderScene()
   const start = await screen.findByRole("link", { name: "開始檢測" })
   expect(start.getAttribute("href")).toBe("/exam")
-})
-
-test("待領收益顯示可領，點了就領", async () => {
-  pendingAccrual = 840
-  let claimed = false
-  spyOn(EconomyService, "claim").mockImplementation(() => {
-    claimed = true
-    return response({
-      cash: 13290,
-      xp: 0,
-      level: 1,
-      streak_days: 3,
-      pending_accrual: 0,
-      bankruptcy_pending: false,
-    })
-  })
-  await renderScene()
-  fireEvent.click(await screen.findByRole("button", { name: "可領 840" }))
-  await waitFor(() => expect(claimed).toBe(true))
 })
 
 test("離開房間再回來會重讀首頁資料，不沿用舊的台詞", async () => {
