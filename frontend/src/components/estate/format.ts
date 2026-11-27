@@ -35,7 +35,7 @@ export function formatYuan(value: MoneyLike): string {
       if (whole >= 10_000n) return `${sign}${withCommas(whole)} ${name}`
       const digits = whole.toString().length
       const decimals = Math.max(0, 3 - digits)
-      if (decimals === 0) return `${sign}${whole} ${name}`
+      if (decimals === 0) return `${sign}${withCommas(whole)} ${name}`
       const scale = 10n ** BigInt(decimals)
       const scaled = (abs * scale) / unit
       const frac = (scaled % scale)

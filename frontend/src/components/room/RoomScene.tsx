@@ -1,5 +1,11 @@
 import { useQueryClient } from "@tanstack/react-query"
-import { Link, useNavigate, useRouter, useSearch } from "@tanstack/react-router"
+import {
+  Link,
+  useLocation,
+  useNavigate,
+  useRouter,
+  useSearch,
+} from "@tanstack/react-router"
 import {
   Coins,
   GraduationCap,
@@ -122,6 +128,7 @@ export function RoomScene() {
   // 導覽：還沒玩過的帳號自動開；選單「重看導覽」帶 ?tour=1
   const queryClient = useQueryClient()
   const navigate = useNavigate()
+  const { pathname } = useLocation()
   const replay = Boolean(
     (useSearch({ strict: false }) as { tour?: unknown }).tour,
   )
@@ -138,8 +145,13 @@ export function RoomScene() {
       .tourDone()
       .then(() => queryClient.invalidateQueries({ queryKey: HOME_SUMMARY_KEY }))
       .catch(() => {})
-    // 回到同一頁（首頁或 /room），只拿掉 ?tour=1
-    if (replay) navigate({ to: ".", search: {}, replace: true })
+    // 在分頁「經營」看完導覽就留在房間（`?view=house`），不要一關掉就跳成經營畫面；
+    // 首頁（年長者）只拿掉 ?tour=1
+    if (pathname === "/room") {
+      navigate({ to: "/room", search: { view: "house" }, replace: true })
+    } else if (replay) {
+      navigate({ to: ".", search: {}, replace: true })
+    }
   }
   const cash = parseBigIntSafe(economy.data?.cash)
   const streakDays = economy.data?.streak_days ?? 0

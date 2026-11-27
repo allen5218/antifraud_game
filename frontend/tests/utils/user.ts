@@ -78,6 +78,20 @@ export async function markBirthYear(page: Page, birthYear = 1990) {
  * 房間的吉祥物對話框每天第一次進來會自動打開。分頁列讓房間變矮後，
  * 對話框會蓋到家具，要點家具前先按「收起」；沒打開就算了。
  */
+// 第一次進經營頁會先跳玩法說明，舊帳號接著還有一次換算說明
+export async function skipEstateIntro(page: Page) {
+  await expect(page.getByTestId("estate-page")).toBeVisible()
+  const skip = page.getByRole("button", { name: "跳過說明" })
+  try {
+    await skip.waitFor({ state: "visible", timeout: 3000 })
+    await skip.click()
+  } catch {
+    // 這個瀏覽器看過說明了
+  }
+  const legacy = page.getByRole("button", { name: "知道了" })
+  if (await legacy.isVisible()) await legacy.click()
+}
+
 export async function closeMascotGuide(page: Page) {
   const close = page.getByRole("button", { name: "收起" })
   if (await close.isVisible()) await close.click()

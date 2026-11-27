@@ -10,6 +10,7 @@ test("一萬以下照寫，以上用中文單位，不夾英文", () => {
   expect(formatYuan(250_000_000)).toBe("2.5 億")
   expect(formatYuan("12000000000000")).toBe("12 兆")
   expect(formatYuan(-45_000)).toBe("-4.5 萬")
+  expect(formatYuan(16_850_000)).toBe("1,685 萬")
   expect(formatYuan(`${10n ** 60n}`)).toMatch(/極$/)
   expect(formatYuan(`${10n ** 40n * 3n}`)).not.toMatch(/[A-Za-z]/)
 })

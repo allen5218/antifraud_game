@@ -81,7 +81,7 @@ mock.module("@/hooks/useCards", () => ({
   }),
 }))
 
-const { CardPlayer } = await import("./CardPlayer")
+const { CardPlayer, formatBoost } = await import("./CardPlayer")
 
 beforeEach(() => {
   answered = []
@@ -112,4 +112,10 @@ test("一張一張作答，答完看解說，最後看結果", async () => {
   expect(await screen.findByTestId("round-summary")).toBeTruthy()
   expect(screen.getByText("1／2")).toBeTruthy()
   expect(screen.getByText("今天 2／20 張")).toBeTruthy()
+})
+
+test("練習加速的時間寫成幾小時幾分鐘", () => {
+  expect(formatBoost(20)).toBe("20 分鐘")
+  expect(formatBoost(120)).toBe("2 小時")
+  expect(formatBoost(160)).toBe("2 小時 40 分鐘")
 })
