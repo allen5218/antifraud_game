@@ -1,21 +1,15 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
+import { Building2 } from "lucide-react"
 import { useEffect, useState } from "react"
-import { PropertyCard } from "@/components/assets/PropertyCard"
 import { onboardingApi } from "@/components/room/onboardingApi"
 import { Skeleton } from "@/components/ui/skeleton"
-import {
-  extractErrorCode,
-  propertiesQuery,
-  useBuyProperty,
-  useEconomyMe,
-} from "@/hooks/useEconomy"
+import { extractErrorCode } from "@/hooks/useEconomy"
 import { HOME_SUMMARY_KEY } from "@/hooks/useHomeSummary"
-import { parseBigIntSafe } from "@/utils/money"
 import { MascotCard } from "./MascotCard"
 import { mascotApi, mascotItemsQuery } from "./mascotApi"
 
+/** 商店：買吉祥物。買到的吉祥物可以在分頁「經營」派去當經理；房產在經營裡買 */
 export function ShopPage() {
-  const [tab, setTab] = useState<"mascot" | "property">("mascot")
   const [shortId, setShortId] = useState<string | null>(null)
   const queryClient = useQueryClient()
   // 新手任務「去購物看看」：進來就算看過；記不到也不影響購物
@@ -45,91 +39,28 @@ export function ShopPage() {
       queryClient.invalidateQueries({ queryKey: ["mascot", "items"] })
     },
   })
-  const { data: me } = useEconomyMe()
-  // 跟 useBuyProperty 同一把 query key，買完會一起刷新。
-  const { data: properties } = useQuery(propertiesQuery)
-  const { mutate: buyProperty } = useBuyProperty()
-  const cash = parseBigIntSafe(me?.cash)
-  const level = me?.level ?? 1
-  const ownedCount = new Map<number, number>()
-  for (const owned of properties?.owned ?? []) {
-    ownedCount.set(owned.tier.id, (ownedCount.get(owned.tier.id) ?? 0) + 1)
-  }
-
   return (
     <div className="flex flex-col gap-4">
-      <div
-        role="tablist"
-        aria-label="商店分類"
-        className="grid grid-cols-2 gap-2"
-      >
-        <button
-          type="button"
-          role="tab"
-          aria-selected={tab === "mascot"}
-          onClick={() => setTab("mascot")}
-          className={`rounded-xl px-3 py-2 text-sm font-bold ${
-            tab === "mascot"
-              ? "bg-primary text-primary-foreground"
-              : "bg-surface-2 text-foreground"
-          }`}
-        >
-          吉祥物
-        </button>
-        <button
-          type="button"
-          role="tab"
-          aria-selected={tab === "property"}
-          onClick={() => setTab("property")}
-          className={`rounded-xl px-3 py-2 text-sm font-bold ${
-            tab === "property"
-              ? "bg-primary text-primary-foreground"
-              : "bg-surface-2 text-foreground"
-          }`}
-        >
-          房產
-        </button>
-      </div>
-
-      {tab === "mascot" ? (
-        <div className="grid grid-cols-2 gap-3">
-          {list.isPending &&
-            [0, 1, 2, 3].map((n) => (
-              <Skeleton key={n} className="aspect-[3/4] w-full rounded-xl" />
-            ))}
-          {(list.data?.items ?? []).map((item) => (
-            <MascotCard
-              key={item.id}
-              item={item}
-              error={shortId === item.id ? "錢不夠" : undefined}
-              pending={purchase.isPending || display.isPending}
-              onBuy={() => purchase.mutate(item.id)}
-              onDisplay={() => display.mutate(item.id)}
-            />
+      <p className="flex items-center gap-2 rounded-xl bg-surface-2 px-3 py-2 text-sm">
+        <Building2 aria-hidden className="size-4 text-primary" />
+        買來的吉祥物可以派去當經理，自動幫房產收租。房產在「經營」買。
+      </p>
+      <div className="grid grid-cols-2 gap-3">
+        {list.isPending &&
+          [0, 1, 2, 3].map((n) => (
+            <Skeleton key={n} className="aspect-[3/4] w-full rounded-xl" />
           ))}
-        </div>
-      ) : (
-        // 房產卡是橫的（圖、價格與日收入、按鈕），兩欄會把價格擠成好幾行，所以一欄
-        <div className="grid grid-cols-1 gap-3">
-          {!properties &&
-            [0, 1, 2].map((n) => (
-              <Skeleton key={n} className="h-20 w-full rounded-xl" />
-            ))}
-          {(properties?.tiers ?? []).map((tier) => {
-            const count = ownedCount.get(tier.id)
-            return (
-              <PropertyCard
-                key={tier.id}
-                tier={tier}
-                count={count}
-                locked={level < tier.unlock_level}
-                affordable={cash >= BigInt(tier.price)}
-                onBuy={() => buyProperty(tier.id)}
-              />
-            )
-          })}
-        </div>
-      )}
+        {(list.data?.items ?? []).map((item) => (
+          <MascotCard
+            key={item.id}
+            item={item}
+            error={shortId === item.id ? "錢不夠" : undefined}
+            pending={purchase.isPending || display.isPending}
+            onBuy={() => purchase.mutate(item.id)}
+            onDisplay={() => display.mutate(item.id)}
+          />
+        ))}
+      </div>
     </div>
   )
 }

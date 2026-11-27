@@ -1,20 +1,46 @@
+import { useQuery } from "@tanstack/react-query"
 import { createFileRoute } from "@tanstack/react-router"
+import { EstatePage } from "@/components/estate/EstatePage"
+import { showsRoomScene } from "@/components/estate/roomView"
 import { RoomScene } from "@/components/room/RoomScene"
-import { economyMeQuery, propertiesQuery } from "@/hooks/useEconomy"
-import { homeSummaryQuery } from "@/hooks/useHomeSummary"
+import { currentUserQuery } from "@/hooks/useAuth"
+import { economyMeQuery } from "@/hooks/useEconomy"
+import { estateQuery } from "@/hooks/useEstate"
+import { homeSummaryQuery, useHomeSummary } from "@/hooks/useHomeSummary"
 import { warmQueries } from "@/lib/prefetch"
 
-/** 房間（分頁「經營」）：房產、吉祥物、商店與所有舊玩法的入口，新手導覽也在這裡。 */
+type RoomSearch = { tour?: 1; view?: "house" }
+
+/**
+ * 分頁「經營」：放置經營（房產自己收租）。
+ * 「我的家」（`?view=house`）、新手導覽（還沒看過或 `?tour=1`）和年長者仍是原本的房間。
+ */
 export const Route = createFileRoute("/_shell/room")({
   loader: ({ context: { queryClient } }) => {
-    warmQueries(queryClient, [
-      homeSummaryQuery,
-      economyMeQuery,
-      propertiesQuery,
-    ])
+    // GET /estate 會把經理收的租金入帳，但不建立牌局也不開始計時，可以先載入
+    warmQueries(queryClient, [homeSummaryQuery, economyMeQuery, estateQuery])
   },
-  // 選單「重看導覽」帶 ?tour=1
-  validateSearch: (search: Record<string, unknown>): { tour?: 1 } =>
-    search.tour ? { tour: 1 } : {},
-  component: RoomScene,
+  validateSearch: (search: Record<string, unknown>): RoomSearch => ({
+    ...(search.tour ? { tour: 1 as const } : {}),
+    ...(search.view === "house" ? { view: "house" as const } : {}),
+  }),
+  component: RoomRoute,
 })
+
+function RoomRoute() {
+  const { tour, view } = Route.useSearch()
+  const { data: user } = useQuery(currentUserQuery)
+  const { data: home } = useHomeSummary()
+  if (!user) return null
+  if (
+    showsRoomScene({
+      elder: user.elder_mode === true,
+      tour,
+      view,
+      tourPending: home?.tour_pending,
+    })
+  ) {
+    return <RoomScene />
+  }
+  return <EstatePage />
+}

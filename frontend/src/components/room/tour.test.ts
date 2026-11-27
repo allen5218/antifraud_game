@@ -20,7 +20,7 @@ function summary(overrides: Partial<HomeSummary> = {}): HomeSummary {
   }
 }
 
-test("一件一件介紹家具，再講錢、裝備、購物和選單", () => {
+test("一件一件介紹家具，再講錢、經營、購物和選單", () => {
   const targets = tourSteps(summary(), false).map((s) => String(s.target))
   expect(targets).toEqual([
     "null",
@@ -61,11 +61,12 @@ test("導覽文字不夾英文、不用破折號", () => {
   }
 })
 
-test("裝備那一步亮頁首的裝備按鈕，只講大概，細節點進去看", () => {
+test("經營那一步亮頁首的經營按鈕，只講大概，細節點進去看", () => {
   const step = tourSteps(summary(), false).find(
     (s) => s.target === "progression",
   )
-  expect(step?.title).toContain("裝備")
+  expect(step?.title).toContain("經營")
+  expect(step?.text).not.toMatch(/鍛造|裝備|養成經驗/)
   expect(step?.text).toContain("點進去")
 })
 

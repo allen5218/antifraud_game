@@ -4,7 +4,7 @@ import { LearnHome } from "@/components/learn/LearnHome"
 import { RoomScene } from "@/components/room/RoomScene"
 import { currentUserQuery } from "@/hooks/useAuth"
 import { cardSummaryQuery } from "@/hooks/useCards"
-import { economyMeQuery, propertiesQuery } from "@/hooks/useEconomy"
+import { economyMeQuery } from "@/hooks/useEconomy"
 import { homeSummaryQuery } from "@/hooks/useHomeSummary"
 import { warmQueries } from "@/lib/prefetch"
 
@@ -16,7 +16,6 @@ export const Route = createFileRoute("/_shell/")({
       homeSummaryQuery,
       cardSummaryQuery,
       economyMeQuery,
-      propertiesQuery,
     ])
   },
   // 舊版選單「重看導覽」帶 ?tour=1 回首頁；現在導覽在房間（/room）

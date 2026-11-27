@@ -1,20 +1,17 @@
 import { describe, expect, it } from "bun:test"
-import { QueryClient } from "@tanstack/react-query"
-import { refreshAfterPropertyChange } from "./useEconomy"
+import { extractErrorCode } from "./useEconomy"
 
-describe("refreshAfterPropertyChange", () => {
-  it("also refreshes the room, whose look follows the best property", () => {
-    const queryClient = new QueryClient()
-    queryClient.setQueryData(["economy", "me"], { cash: 0 })
-    queryClient.setQueryData(["home-summary"], { room_stage: 0 })
+describe("extractErrorCode", () => {
+  it("reads the code from a structured error", () => {
+    expect(
+      extractErrorCode({ body: { detail: { code: "insufficient_cash" } } }),
+    ).toBe("insufficient_cash")
+  })
 
-    refreshAfterPropertyChange(queryClient)
-
-    expect(queryClient.getQueryState(["economy", "me"])?.isInvalidated).toBe(
-      true,
+  it("falls back to a plain string detail", () => {
+    expect(extractErrorCode({ body: { detail: "Not Found" } })).toBe(
+      "Not Found",
     )
-    expect(queryClient.getQueryState(["home-summary"])?.isInvalidated).toBe(
-      true,
-    )
+    expect(extractErrorCode(new Error("x"))).toBeUndefined()
   })
 })

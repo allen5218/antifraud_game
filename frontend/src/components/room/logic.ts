@@ -33,7 +33,7 @@ export type MenuTo =
   | "/admin/cohorts"
   | "/classes"
   | "/classwork"
-  | "/progression"
+  | "/room"
 
 export type MenuItem = {
   id:
@@ -320,10 +320,10 @@ export function menuItems(s: HomeSummary): MenuItem[] {
     },
     {
       id: "progression",
-      label: "裝備",
-      status: "強化工具、多拿獎勵",
+      label: "經營",
+      status: "房產收租、升級卡、搬家",
       done: false,
-      to: "/progression",
+      to: "/room",
     },
   ]
   if ((s.class_count ?? 0) > 0) {

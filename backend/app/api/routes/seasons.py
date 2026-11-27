@@ -2,7 +2,6 @@ import uuid
 from typing import Any
 
 from fastapi import APIRouter, HTTPException
-from pydantic import BaseModel
 from sqlmodel import select
 
 from app.api.deps import CurrentUser, SessionDep
@@ -20,26 +19,6 @@ from app.progression.seasons import (
 from app.progression.service import get_utc_now
 
 router = APIRouter(prefix="/seasons", tags=["seasons"])
-
-
-class ChampionToolChoice(BaseModel):
-    family: str
-
-
-@router.post("/{season_id}/awards/tool")
-def claim_champion_tool(
-    season_id: uuid.UUID,
-    payload: ChampionToolChoice,
-    session: SessionDep,
-    current_user: CurrentUser,
-) -> dict[str, str]:
-    from app.economy.service import lock_user
-    from app.progression.awards import choose_champion_tool
-
-    user = lock_user(session, current_user)
-    definition_id = choose_champion_tool(session, user.id, season_id, payload.family)
-    session.commit()
-    return {"definition_id": definition_id}
 
 
 @router.get("/current", response_model=SeasonPublic)

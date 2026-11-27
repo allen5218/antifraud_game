@@ -8,22 +8,14 @@ from app.schemas import EconomyMeResponse
 SAFE = 2**53 - 1
 
 
-def _dump(cash: int, pending: int = 0) -> dict:
-    model = EconomyMeResponse(
-        cash=cash,
-        xp=0,
-        level=1,
-        streak_days=0,
-        pending_accrual=pending,
-        bankruptcy_pending=False,
-    )
+def _dump(cash: int) -> dict:
+    model = EconomyMeResponse(cash=cash, xp=0, level=1, streak_days=0)
     return json.loads(model.model_dump_json())
 
 
 def test_normal_money_stays_json_number() -> None:
-    data = _dump(1000, 250)
+    data = _dump(1000)
     assert data["cash"] == 1000 and isinstance(data["cash"], int)
-    assert data["pending_accrual"] == 250 and isinstance(data["pending_accrual"], int)
 
 
 def test_negative_money_stays_json_number() -> None:
@@ -48,8 +40,6 @@ def test_accepts_string_input_from_new_clients() -> None:
             "xp": 0,
             "level": 1,
             "streak_days": 0,
-            "pending_accrual": "0",
-            "bankruptcy_pending": False,
         }
     )
     assert model.cash == 123456789012345678901234567890
@@ -61,7 +51,5 @@ def test_python_mode_dump_stays_int() -> None:
         xp=0,
         level=1,
         streak_days=0,
-        pending_accrual=0,
-        bankruptcy_pending=False,
     )
     assert model.model_dump()["cash"] == 7

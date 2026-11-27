@@ -1,5 +1,11 @@
 import { useQueryClient } from "@tanstack/react-query"
-import { Link, useNavigate, useRouter, useSearch } from "@tanstack/react-router"
+import {
+  Link,
+  useLocation,
+  useNavigate,
+  useRouter,
+  useSearch,
+} from "@tanstack/react-router"
 import {
   Coins,
   GraduationCap,
@@ -13,7 +19,7 @@ import {
 import { useEffect, useState } from "react"
 import { RoomHonors } from "@/components/progression/RoomHonors"
 import { useCollections } from "@/hooks/useCollections"
-import { useClaimAccrual, useEconomyMe } from "@/hooks/useEconomy"
+import { useEconomyMe } from "@/hooks/useEconomy"
 import { HOME_SUMMARY_KEY, useHomeSummary } from "@/hooks/useHomeSummary"
 import { formatMoney, parseBigIntSafe } from "@/utils/money"
 import {
@@ -44,7 +50,7 @@ const DEFAULT_MASCOT = "/assets/mascot/shiba/base.webp"
 const PRELOAD_ROUTES = [
   "/me",
   "/shop",
-  "/assets",
+  "/room",
   "/scenarios",
   "/quick/swipe",
   "/quick/quiz",
@@ -113,7 +119,6 @@ export function RoomScene() {
   const summary = useHomeSummary()
   const economy = useEconomyMe()
   const { data: collections } = useCollections()
-  const { mutate: claim, isPending } = useClaimAccrual()
   const data = summary.data
   const bubbles = data ? pickBubbles(data) : []
   const line = data ? mascotLine(data) : null
@@ -123,6 +128,7 @@ export function RoomScene() {
   // 導覽：還沒玩過的帳號自動開；選單「重看導覽」帶 ?tour=1
   const queryClient = useQueryClient()
   const navigate = useNavigate()
+  const { pathname } = useLocation()
   const replay = Boolean(
     (useSearch({ strict: false }) as { tour?: unknown }).tour,
   )
@@ -139,11 +145,15 @@ export function RoomScene() {
       .tourDone()
       .then(() => queryClient.invalidateQueries({ queryKey: HOME_SUMMARY_KEY }))
       .catch(() => {})
-    // 回到同一頁（首頁或 /room），只拿掉 ?tour=1
-    if (replay) navigate({ to: ".", search: {}, replace: true })
+    // 在分頁「經營」看完導覽就留在房間（`?view=house`），不要一關掉就跳成經營畫面；
+    // 首頁（年長者）只拿掉 ?tour=1
+    if (pathname === "/room") {
+      navigate({ to: "/room", search: { view: "house" }, replace: true })
+    } else if (replay) {
+      navigate({ to: ".", search: {}, replace: true })
+    }
   }
   const cash = parseBigIntSafe(economy.data?.cash)
-  const pending = parseBigIntSafe(economy.data?.pending_accrual)
   const streakDays = economy.data?.streak_days ?? 0
   const bubbleCount = bubbles.reduce(
     (sum, bubble) => sum + (bubble.count ?? 0),
@@ -224,12 +234,12 @@ export function RoomScene() {
           購物
         </Link>
         <Link
-          to="/assets"
+          to="/room"
           data-testid="room-house"
           className={`flex items-center gap-1 rounded-xl bg-card px-3 py-2 text-xs font-bold text-card-foreground shadow ${PRESS}`}
         >
           <House aria-hidden className="size-3.5" />
-          房子
+          經營
         </Link>
       </div>
       {/* 頁首一排：左邊按鈕放不下就換行，右邊的錢固定靠右不被壓住（管理員與老師多兩顆按鈕） */}
@@ -246,12 +256,12 @@ export function RoomScene() {
             <UserRound aria-hidden className="size-3.5" />我
           </Link>
           <Link
-            to="/progression"
+            to="/room"
             data-testid="room-progression"
             className={`flex items-center gap-1 rounded-full bg-card px-2.5 py-1.5 text-xs font-bold text-card-foreground shadow ${PRESS}`}
           >
             <Sparkles aria-hidden className="size-3.5 text-primary" />
-            裝備
+            經營
           </Link>
           {data?.admin_access && (
             <Link
@@ -279,7 +289,7 @@ export function RoomScene() {
           className="pointer-events-auto flex shrink-0 items-center gap-1"
         >
           <Link
-            to="/assets"
+            to="/room"
             data-testid="hdr-cash"
             className={`flex items-center gap-1 rounded-full bg-card px-2.5 py-1.5 text-xs font-bold shadow ${PRESS} ${
               cash < 0n ? "text-destructive" : "text-card-foreground"
@@ -288,16 +298,6 @@ export function RoomScene() {
             <Coins aria-hidden className="size-3.5" />
             {formatMoney(cash)}
           </Link>
-          {pending > 0n && (
-            <button
-              type="button"
-              disabled={isPending}
-              onClick={() => claim()}
-              className="rounded-full bg-legit px-2.5 py-1.5 text-xs font-bold text-legit-foreground disabled:opacity-50"
-            >
-              可領 {formatMoney(pending)}
-            </button>
-          )}
         </div>
       </div>
       <button

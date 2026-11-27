@@ -2,6 +2,7 @@ import { Link } from "@tanstack/react-router"
 import { CircleCheck, CircleX } from "lucide-react"
 import { useRef, useState } from "react"
 import type { AnswerResponse, RoundResponse, RoundResult } from "@/client"
+import { formatYuan } from "@/components/estate/format"
 import { ExamInProgress } from "@/components/exam/ExamInProgress"
 import { errorCode } from "@/components/exam/exam"
 import { useAnswerCard, useCardRound, useCompleteRound } from "@/hooks/useCards"
@@ -10,6 +11,14 @@ import { cn } from "@/lib/utils"
 import { formatMoney } from "@/utils/money"
 import { CardArt } from "./CardArt"
 import { type Answered, CardPrompt, CardQuestion } from "./CardQuestion"
+
+/** 加速的時間：「2 小時 40 分鐘」 */
+export function formatBoost(minutes: number): string {
+  const h = Math.floor(minutes / 60)
+  const m = minutes % 60
+  if (h === 0) return `${m} 分鐘`
+  return m === 0 ? `${h} 小時` : `${h} 小時 ${m} 分鐘`
+}
 
 /**
  * 卡片練習：發一輪、出錯時換成提示。每一輪的作答狀態在 `CardRound`，
@@ -214,6 +223,16 @@ function RoundSummary({
       <p className="text-base text-muted-foreground">
         拿到 ${formatMoney(result.cash_earned)}、經驗值 {result.xp_earned}
       </p>
+      {(result.boost_minutes ?? 0) > 0 && (
+        <Link
+          to="/room"
+          data-testid="round-boost"
+          className="rounded-2xl bg-legit/15 px-4 py-2 text-base font-semibold text-legit"
+        >
+          房產多收了 {formatBoost(result.boost_minutes ?? 0)}的租，
+          {formatYuan(result.boost_cash ?? 0)} 元
+        </Link>
+      )}
       <p
         className={cn(
           "rounded-full px-4 py-1 text-base font-semibold",

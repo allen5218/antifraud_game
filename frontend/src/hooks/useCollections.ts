@@ -16,16 +16,9 @@ export function useGameplayAction() {
     mutationFn: (run: () => Promise<unknown>) => run(),
     onSuccess: async () => {
       await Promise.all(
-        [
-          "collections",
-          "progression",
-          "equipment",
-          "economy",
-          "seasons",
-          "collection-board",
-          "player",
-          "home-summary",
-        ].map((key) => client.invalidateQueries({ queryKey: [key] })),
+        ["collections", "seasons", "player", "home-summary"].map((key) =>
+          client.invalidateQueries({ queryKey: [key] }),
+        ),
       )
     },
   })

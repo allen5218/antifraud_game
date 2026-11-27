@@ -82,7 +82,7 @@ pre-commit 有 `generate-frontend-sdk` hook，當 `backend/` 變更時會自動�
 - `backend/` — FastAPI · Python ≥3.10（實跑 3.13）· SQLModel · Alembic（uv workspace 成員）
 - `frontend/` — React 19 · TypeScript · TanStack Router/Query · Tailwind v4 · shadcn/ui（bun workspace）
 
-前端有**兩套殼並存**：`_shell.tsx`（玩家實際走的流程：一般模式的首頁是 Lingvist 式練習首頁 `components/learn/LearnHome.tsx`，手機底部四個分頁練習／訊息／經營／我的（`components/shell/tabs.ts`、`TabBar.tsx`，只在四個分頁本身出現），房間場景 `components/room/` 在 `/room`（分頁「經營」，新手導覽也在這裡）；50 歲以上的年長者介面做好前，年長者的首頁仍是房間、沒有底部分頁；其他頁用頁首的「回首頁」返回；桌機左側 NavRail 是同一份分頁，下面列出和房間漢堡選單同一份 `menuItems`）與 `_layout.tsx`（template 遺留的 sidebar，掛著 admin / items / settings）。
+前端有**兩套殼並存**：`_shell.tsx`（玩家實際走的流程：一般模式的首頁是 Lingvist 式練習首頁 `components/learn/LearnHome.tsx`，手機底部四個分頁練習／訊息／經營／我的（`components/shell/tabs.ts`、`TabBar.tsx`，只在四個分頁本身出現），分頁「經營」（`/room`）是放置經營，房間場景 `components/room/` 是經營頁的「我的家」（新手導覽也在房間）；50 歲以上的年長者介面做好前，年長者的首頁仍是房間、沒有底部分頁；其他頁用頁首的「回首頁」返回；桌機左側 NavRail 是同一份分頁，下面列出和房間漢堡選單同一份 `menuItems`）與 `_layout.tsx`（template 遺留的 sidebar，掛著 admin / items / settings）。
 
 ### 前端慣例
 
@@ -90,7 +90,7 @@ pre-commit 有 `generate-frontend-sdk` hook，當 `backend/` 變更時會自動�
 - **日常卡片插圖**（`components/cards/`）：固定班底拼畫面，不每題各畫一張。`public/assets/cast/` 的場景、角色（10 人 × 5 種姿勢）、道具都是 `frontend/scripts/cast/` 用程式畫的二頭身向量圖（不是 AI 生圖），**不要手改 SVG**，改程式後 `cd frontend && bun scripts/cast/build.ts` 重新產生。id 清單只在 `cardArtManifest.ts`（題庫 `art` 欄位共用，不改名；`CAST_LOOKS` 寫了每個角色的性別外觀，題目文字要對得上）。`CardArt` 吃 `{scene, cast, props, pose}`：`pose` 只套主角，`"grandma:worried"` 個別指定；清單外的 id 略過。插圖用固定暖色，不跟深色模式換色（使用者之後要拿掉深色模式）。
 - **首頁資料**：`GET /home/summary`（`api/routes/home.py`）唯讀彙整房間要的狀態（房間階段、吉祥物、前測、收件匣、每日訓練、檢測、補考、練習重點、徽章），不建立任何牌局。前端 `useHomeSummary` 每次回到房間都重讀；狀態在房間裡就改變的（放棄檢測、買賣房產）要另外讓 `HOME_SUMMARY_KEY` 重讀。
 - **出生年與年長者模式**（`backend/app/core/age.py`、`components/shell/BirthYearGate.tsx`、`lib/birthYear.ts`）：註冊表單必填出生年（民國、西元都收，前端換成西元）；訪客、LINE／Google、舊帳號沒有出生年，進 `_shell` 先被蓋住問一次（`POST /users/me/birth-year`，只能填一次，換年份回 400 `birth_year_locked`，填錯由管理員改）。依台灣日期算今年幾歲，50 歲以上 `UserPublic.elder_mode` 為 true，兩種模式都不能切換。E2E 建的帳號預設 1990（`private.py`），共用管理員在 `auth.setup.ts` 填好。
-- **新手導覽與新手任務**（`components/room/tour.ts`、`OnboardingTour.tsx`、`StarterTasksCard.tsx`，後端 `app/onboarding/service.py`、`api/routes/onboarding.py`、表 `user_onboarding`）：還沒玩過任何東西（沒有入門前測、練習作答、檢測）又沒看過導覽的帳號，進房間先看十一步導覽（`HomeSummary.tour_pending`）：畫面變暗一次亮一件（家具、頁首的錢、頁首的裝備（只講一句，細節在養成頁）、購物、選單），結尾帶試測帳號去綜合檢測、其他帳號去入門前測；看完或跳過 `POST /onboarding/tour`。選單與側欄「重看導覽」用 `/?tour=1`。試測帳號交完問卷（導覽上線前就交卷的也算）、其他帳號看過導覽又做完入門前測，房間右下角出現新手任務（卡片寬度抓房間 53% 扣邊距，手機上不蓋到電視；獎勵數字 `reward_cash／reward_xp` 由後端給）（`HomeSummary.starter_tasks`：滑卡、訊息判讀（不含每日訓練）、練習情境各完成一輪、進過商店（商店頁打 `POST /onboarding/shop`）），四項完成 `POST /onboarding/claim` 領 500 元與 100 經驗值，鎖列只發一次。
+- **新手導覽與新手任務**（`components/room/tour.ts`、`OnboardingTour.tsx`、`StarterTasksCard.tsx`，後端 `app/onboarding/service.py`、`api/routes/onboarding.py`、表 `user_onboarding`）：還沒玩過任何東西（沒有入門前測、練習作答、檢測）又沒看過導覽的帳號，進房間先看十一步導覽（`HomeSummary.tour_pending`）：畫面變暗一次亮一件（家具、頁首的錢、頁首的經營（只講一句，細節在經營頁的玩法說明）、購物、選單），結尾帶試測帳號去綜合檢測、其他帳號去入門前測；看完或跳過 `POST /onboarding/tour`。選單與側欄「重看導覽」用 `/?tour=1`。試測帳號交完問卷（導覽上線前就交卷的也算）、其他帳號看過導覽又做完入門前測，房間右下角出現新手任務（卡片寬度抓房間 53% 扣邊距，手機上不蓋到電視；獎勵數字 `reward_cash／reward_xp` 由後端給）（`HomeSummary.starter_tasks`：滑卡、訊息判讀（不含每日訓練）、練習情境各完成一輪、進過商店（商店頁打 `POST /onboarding/shop`）），四項完成 `POST /onboarding/claim` 領 500 元與 100 經驗值，鎖列只發一次。
 - **房間舞台**（`components/room/stage.ts`、`RoomStage.tsx`）：房間圖與圖層在固定大小的世界裡一起縮放，最寬 3:4（平板直放）到最長 9:21（長手機）都鋪滿畫面；更寬的畫面把中央核心完整放進來、兩側露出底色。**可以點的東西在最窄的畫面也要看得到**：手機完整落在核心裡，其他家具中心在核心裡、至少七成面積看得到（`roomArt.test.ts` 會擋）。可點的家具是從同一張房間圖剪下來疊回原位的圖層（一定對齊），墊一份在底下做呼吸光（`index.css` 的 `.room-glow`，只動透明度）；不要另外畫家具再貼到背景上（透視與落地會對不上）。有數量的顯示紅色數字、只是「有新的」顯示紅點（`logic.ts` 的 `roomBadges`）。每件可點家具下緣常駐模式名稱標籤（`RoomStage` 的 `room-label-<id>`，文字取 `hotspotLinks.ts`，跨在點擊範圍下緣，所以跟著留在畫面內）。桌機滑鼠移到可點的家具會出現「物件・模式：狀態」提示（`logic.ts` 的 `roomHints`，狀態和選單同一份；Tailwind 的 hover 只在有滑鼠的裝置生效）。家具上不放圖示泡泡，要去哪裡靠呼吸光（推薦的那件比較快）、紅色標記與選單。點擊範圍與標記放在舞台外一層，用換算後的位置擺，不跟著縮小，物件被裁到一點時會移回畫面內。房間圖在 `antifraud_video` 生成：兩房公寓（`gen_rooms_from_collage.py`）當構圖，其他六間照它換裝潢（`gen_rooms_restyle.py`）；`cut_room_layers.py` 沿墨線剪圖層並重寫 `roomArtLayout.ts`。
 - **換頁要先載入**：正式環境從台灣連線每個請求往返要零點幾秒到一秒，點下去才抓資料會很遲鈍。查詢設定用 `queryOptions` 匯出（例：`economyMeQuery`），頁面路由的 `loader` 用 `lib/prefetch.ts` 的 `warmQueries` 先抓（不等結果）；路由 context 帶 `queryClient`、`defaultPreload: "intent"`，房間圖出現後會先載入各入口頁。**loader 只能做唯讀查詢**，會建立牌局或開始計時的 API（例：`/daily/today`）不要放進 loader。
 - **PWA**（`vite-plugin-pwa`，`vite.config.ts`）：App 殼預快取、`/assets/` 圖片先用快取再背景更新、API 不經過 service worker。新版本由玩家按「重新整理」套用（`components/Common/UpdatePrompt.tsx`），不自動重載。Playwright 設定封鎖 service worker。
@@ -132,7 +132,7 @@ pre-commit 有 `generate-frontend-sdk` hook，當 `backend/` 變更時會自動�
 - 出題時選項、句子、配對、步驟都換成「這一局才有效」的代號（伺服器金鑰的 HMAC，`grading.py`），前端看不出哪個是正解；判斷題固定「是詐騙」在左。
 - 牌局 `card_round` 照 `SwipeSession` 的防重送做法：只認發出去的卡、每張第一次的答案存快照，重送同答案回快照、換答案 400，結算只發一次。
 - 間隔重複 `card_progress`（Leitner，`srs.py`）：答對升一盒、間隔 1／3／7／14／30 天，答錯回第一盒隔天再出，第三盒算學會；「學會幾招」以原料句 `source_key` 計。發牌 `deal.py`：到期複習 → 新卡（練習重點比例、簡單的先出）→ 提早練，**同一句原料變出來的卡不會同一輪**。一般一輪 8 張、每日目標 20；年長者 3 張、目標 6。
-- 結算走 `economy.service` 與養成倍率（`source_kind="card"`），作答寫 `practice_answer`（`mode="card"`，共通類 `general` 不寫）。
+- 結算走 `economy.service` 與信譽倍率（`source_kind="card"`），另外讓放置經營加速（`estate.service.practice_boost`），作答寫 `practice_answer`（`mode="card"`，共通類 `general` 不寫）。
 
 ### 每日訓練與排行榜（Lv.5 解鎖）— 題組的變形，一樣無 AI
 
@@ -151,14 +151,21 @@ pre-commit 有 `generate-frontend-sdk` hook，當 `backend/` 變更時會自動�
 
 > `score`（`user_score`，積分等級）與 `economy`（`xp`，經濟等級）是**兩套不同的等級體系**，別混用。
 
-### 養成、配裝與兩週競技（`backend/app/progression/`）— 疊在獎勵上，不碰判分
+### 放置經營與兩週競技（`backend/app/estate/`、`backend/app/progression/`）— 練習之外的收入，不碰判分
 
-- 結算時照原本規則算出基本獎勵，再乘上養成倍率（核心等級 `1.2^n`、配裝工具），開局時把倍率鎖成 `RewardContext` 快照，中途換裝只影響下一局；`settle_reward` 把收據（`RewardReceipt`）、流水（`ProgressionLedger`）與資源寫在同一個交易，重送不重複發獎。**對錯、題目、扣分規則不變**。
-- 養成經驗（`player_growth.growth_xp`）、鍛造能量、圖紙和原本的 `User.xp`（訓練等級）是兩套，別混用。
+2026-11 把舊養成（核心等級、配裝、鍛造能量、圖紙）重做成像 AdVenture Capitalist 的放置經營。**規則與數值只在 `estate/config.py`**，純計算在 `estate/engine.py`（免 DB 測試 `tests/unit/test_estate_engine.py`），資料庫操作在 `estate/service.py`，路由 `api/routes/estate.py`，表 `player_estate`／`estate_industry`／`asset_transfer`。
+- 六種產業就是原本六種房產（`property_tier` id 1～6）：雅房對共通類（165、查證），套房、兩房、三房、別墅、豪宅各對一類詐騙。每種有自己的收租秒數，同一種買到 25／50／100／200／300／400 間產量各翻倍；對應那一類累積答對 25／50／100／200／400 題也各翻倍（五類看 `practice_answer`，共通類看 `card_progress`）。人人有一間起家雅房，不能被轉走。
+- 吉祥物當經理（`estate_industry.manager_item_id`，一隻只管一種）：有經理自動收租、離線最多收 24 小時；沒經理收完一次就停在「收租」。結算是懶惰的：`load_state` 先鎖 User 再把經理該收的入帳，**任何經營操作都要先 `load_state`**。
+- 升級卡（舊配裝工具換來的）每張讓一種產業翻倍、搬家不會不見；搬家換信譽（舊核心等級換來的）：房產回一間雅房、錢回 1,000，信譽 = floor(sqrt(歷來租金 ÷ 100 萬)) − 已拿。每點信譽讓所有收入多 2%，**練習拿的錢也乘**：發牌時 `create_reward_context` 鎖定信譽，`settle_reward` 只發差額（舊的養成經驗、能量、核心升級都拿掉了）。
+- 卡片練習結算（`/cards/rounds/{id}/complete`）另外呼叫 `practice_boost`：每答對一張，所有產業照現在的產量多賺 20 分鐘，`ProgressionLedger` 的 `estate_boost:` 鍵防重送。錢只能靠答題加速，不做花真錢的東西。
+- 買房帶 `expected_owned`、買升級卡帶 `expected_level`、搬家帶 `expected_moves`，對不上回 409，重送不會多買。
+- **舊資料換算**（`estate/legacy.py`）：玩家第一次碰到經營時做一次（`player_estate` 那一列存在就代表換算過），原則是不虧：房產照間數、工具幾階給幾張升級卡、核心等級＋吉祥物等級換成倍率不低於原本的信譽、剩下的能量與圖紙換信譽、收藏升級花的錢退回。舊表（`player_growth`、`player_equipment` 等）只剩換算時讀，沒有程式再寫。
+- 年長者（`elder_mode`）沒有經營：`GET /estate` 回一間房子＋存款，變更回 400 `elder_mode`，練習不加速。
+- **給 agent 情境對抗的財產介面在 `economy/service.py`**：`asset_snapshot`（一般模式的錢叫現金、年長者叫存款，都是 `User.cash`；房產列出間數、價值、可轉走幾間）、`transfer_asset`（被騙走：錢給多少沒多少、房產過戶幾間，`idempotency_key` 防重送）、`recover_transfer`（165 照比例追回，一筆一次）。都不 commit。
 - **金額是 NUMERIC(78,0)**（`models.SqlBigInt`，Python 端是 int）。API 用 `schemas.DecimalStr`：在 JavaScript 安全整數（2^53-1）內回 JSON 數字（舊版 PWA 照常可用），超過才回十進位字串；前端一律經 `utils/money.ts` 的 `parseBigIntSafe`／`formatMoney` 用 BigInt 算。餘額超過安全整數時，沒帶 `X-ScamGym-Client-Version: 2` 的舊畫面會收到 426 要求重新整理（`deps.get_current_user`）。
-- 強化、突破、買格子都要防重送：強化／突破的 `X-Idempotency-Key` 依「從哪一階開始」產生（`utils/progressionDisplay.ts`），買展示位與配裝位一定要帶 `expected_level`。工具目錄（`EquipmentDefinition`）在 `init_db()` 建好，請求路徑不插入共用列。
 - 兩週一期的競技榜（正確率、速度、養成），到期由 `season-worker`（`python -m app.progression.close_seasons --watch`，映像裡直接用 `python`，不要用 `uv run`（映像沒有 uv 專案環境，會找不到套件），正式環境在 `deploy/compose.prod.yml`）凍結名次、發獎。回滾到沒有這支程式的舊版映像時，這個服務會一直重啟，回滾後用 `docker compose -f deploy/compose.prod.yml --project-directory . stop season-worker` 停掉。
-- 前端：`/progression`（養成與配裝；第一次進來自動打開分步玩法說明 `ProgressionGuide`，文字在 `components/progression/guideSteps.ts`，看過記在 localStorage，按「怎麼玩」再看；規則改了說明要一起改）、排行榜頁的賽季與永久榜、房間的榮譽卡（`RoomHonors`，新手任務或導覽開著時不顯示）、房間選單的「裝備」。
+- 賽季獎改發信譽（`estate/config.SEASON_REPUTATION`），獎盃、稱號、吉祥物外觀照舊；養成競技積分 = floor(1000 × 答對比例) × 開局鎖定的信譽倍率。
+- 前端：分頁「經營」（`/room`）平常是 `components/estate/EstatePage.tsx`（總資產、每秒收入、一列列房產、搬家、榮譽）；年長者、新手導覽、「我的家」（`/room?view=house`）仍是房間（判斷在 `estate/roomView.ts`，外框和路由共用）。兩次重讀之間畫面自己推進度條與現金（`estateClock.ts`），大數字用 `estate/format.ts` 的萬、億、兆，不用英文的 K、M。第一次進經營頁自動打開玩法說明 `ProgressionGuide`（文字在 `components/progression/guideSteps.ts`，規則改了說明要一起改）。舊的 `/progression`、`/assets` 轉到 `/room`。
 
 ## Skills 與 Personas 機制
 

@@ -196,7 +196,7 @@ describe("mascotLine", () => {
 })
 
 describe("menuItems", () => {
-  it("五個物件再加上排行榜、我的徽章和裝備", () => {
+  it("五個物件再加上排行榜、我的徽章和經營", () => {
     const items = menuItems(
       summary({
         inbox_pending: 2,
@@ -226,12 +226,10 @@ describe("menuItems", () => {
       "檢測",
       "排行榜",
       "我的徽章",
-      "裝備",
+      "經營",
       "重看導覽",
     ])
-    expect(items.find((item) => item.id === "progression")?.to).toBe(
-      "/progression",
-    )
+    expect(items.find((item) => item.id === "progression")?.to).toBe("/room")
     expect(items.find((item) => item.id === "calendar")?.done).toBe(true)
     expect(items.find((item) => item.id === "phone")?.to).toBe("/scenarios")
     expect(items.find((item) => item.id === "learn")?.to).toBe("/learn")
@@ -503,7 +501,7 @@ describe("桌機滑鼠移到家具的提示", () => {
   })
 })
 
-describe("裝備入口", () => {
+describe("經營入口", () => {
   it("檢測中也照常可以去，不寫暫停", () => {
     const item = menuItems(summary({ exam_active_attempt_id: "a" })).find(
       (i) => i.id === "progression",

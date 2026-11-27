@@ -1,10 +1,10 @@
 import { expect, test } from "@playwright/test"
-import { closeMascotGuide } from "./utils/user"
+import { closeMascotGuide, skipEstateIntro } from "./utils/user"
 
 test.describe("首頁與分頁", () => {
   test.use({ viewport: { width: 375, height: 667 } })
 
-  test("首頁是練習；底部分頁進房間，點家具進出，再用回首頁回來", async ({
+  test("首頁是練習；經營分頁進我的家，點家具進出，再用回首頁回來", async ({
     page,
   }) => {
     await page.goto("/")
@@ -12,6 +12,9 @@ test.describe("首頁與分頁", () => {
     await expect(page.getByTestId("continue-practice")).toBeVisible()
 
     await page.getByTestId("tab-room").click()
+    await skipEstateIntro(page)
+    await expect(page.getByTestId("estate-total")).toBeVisible()
+    await page.getByTestId("estate-house").click()
     await expect(page.getByTestId("room-hero")).toBeVisible()
     await expect(page.getByTestId("hdr-cash")).toBeVisible()
 
@@ -25,11 +28,7 @@ test.describe("首頁與分頁", () => {
     await expect(page.getByTestId("home-hero")).toBeVisible()
 
     await page.getByTestId("tab-room").click()
-    await closeMascotGuide(page)
-    await page.getByTestId("room-house").click()
-    await expect(page.getByText("總身家")).toBeVisible()
-    await page.getByRole("link", { name: "回首頁" }).click()
-    await expect(page.getByTestId("home-hero")).toBeVisible()
+    await expect(page.getByTestId("estate-page")).toBeVisible()
 
     await page.getByTestId("tab-me").click()
     await expect(page).toHaveURL(/\/me/)
@@ -58,7 +57,8 @@ test.describe("首頁與分頁", () => {
     await expect(page.getByTestId("rail-tab-learn")).toBeVisible()
 
     await page.getByTestId("rail-tab-room").click()
-    await expect(page.getByTestId("room-hero")).toBeVisible()
+    // 第一次進經營頁會跳玩法說明，蓋住側欄
+    await skipEstateIntro(page)
     await page.getByTestId("rail-tab-learn").click()
     await expect(page.getByTestId("home-hero")).toBeVisible()
   })

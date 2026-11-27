@@ -2,7 +2,7 @@ import { expect, test } from "@playwright/test"
 import type { QuizCompleteResponse, QuizDeckResponse } from "../src/client"
 import { createUser } from "./utils/privateApi"
 import { randomEmail, randomPassword } from "./utils/random"
-import { logInUser } from "./utils/user"
+import { logInUser, skipEstateIntro } from "./utils/user"
 
 test.use({ storageState: { cookies: [], origins: [] } })
 
@@ -90,20 +90,14 @@ test("原題組逐題作答揭曉，結算收據與錢包一致，配裝重新�
   const response = await completion
   expect(response.status()).toBe(200)
   const result: QuizCompleteResponse = await response.json()
-  await expect(page.getByText("倍率加成結算", { exact: true })).toBeVisible()
+  await expect(page.getByText("信譽加成", { exact: true })).toBeVisible()
   expect(result.reward_receipt?.final.cash_total).toBe(result.cash_earned)
   expect(BigInt((await wallet()).cash) - BigInt(before.cash)).toBe(
     BigInt(result.cash_earned),
   )
+  // 舊的養成頁轉到經營
   await page.goto("/progression")
-  // 第一次進養成頁會先跳玩法說明
-  await page.getByRole("button", { name: "跳過說明" }).click()
-  await page.getByRole("button", { name: "裝備", exact: true }).first().click()
-  await expect(
-    page.getByRole("button", { name: "卸下", exact: true }),
-  ).toHaveCount(1)
-  await page.reload()
-  await expect(
-    page.getByRole("button", { name: "卸下", exact: true }),
-  ).toHaveCount(1)
+  await expect(page).toHaveURL(/\/room/)
+  await skipEstateIntro(page)
+  await expect(page.getByTestId("estate-total")).toBeVisible()
 })

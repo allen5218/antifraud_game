@@ -52,50 +52,6 @@ export const AnswerResponseSchema = {
     title: 'AnswerResponse'
 } as const;
 
-export const AssetSummaryResponseSchema = {
-    properties: {
-        cash: {
-            anyOf: [
-                {
-                    type: 'integer'
-                },
-                {
-                    type: 'string',
-                    pattern: '^-?[0-9]+$'
-                }
-            ],
-            title: 'Cash'
-        },
-        property_value: {
-            type: 'integer',
-            title: 'Property Value'
-        },
-        daily_income: {
-            type: 'integer',
-            title: 'Daily Income'
-        },
-        total_net_worth: {
-            anyOf: [
-                {
-                    type: 'integer'
-                },
-                {
-                    type: 'string',
-                    pattern: '^-?[0-9]+$'
-                }
-            ],
-            title: 'Total Net Worth'
-        },
-        owned_count: {
-            type: 'integer',
-            title: 'Owned Count'
-        }
-    },
-    type: 'object',
-    required: ['cash', 'property_value', 'daily_income', 'total_net_worth', 'owned_count'],
-    title: 'AssetSummaryResponse'
-} as const;
-
 export const AssignmentCreateSchema = {
     properties: {
         kind: {
@@ -258,6 +214,34 @@ export const AssignmentUpdateSchema = {
     title: 'AssignmentUpdate'
 } as const;
 
+export const AwayPublicSchema = {
+    properties: {
+        seconds: {
+            type: 'integer',
+            title: 'Seconds'
+        },
+        earned: {
+            anyOf: [
+                {
+                    type: 'integer'
+                },
+                {
+                    type: 'string',
+                    pattern: '^-?[0-9]+$'
+                }
+            ],
+            title: 'Earned'
+        },
+        capped: {
+            type: 'boolean',
+            title: 'Capped'
+        }
+    },
+    type: 'object',
+    required: ['seconds', 'earned', 'capped'],
+    title: 'AwayPublic'
+} as const;
+
 export const BirthYearInSchema = {
     properties: {
         birth_year: {
@@ -328,28 +312,24 @@ export const Body_login_login_access_tokenSchema = {
     title: 'Body_login-login_access_token'
 } as const;
 
-export const BuyPropertyResponseSchema = {
+export const BuyRequestSchema = {
     properties: {
-        property_id: {
-            type: 'string',
-            title: 'Property Id'
+        count: {
+            type: 'integer',
+            maximum: 100,
+            minimum: 1,
+            title: 'Count',
+            default: 1
         },
-        new_cash: {
-            anyOf: [
-                {
-                    type: 'integer'
-                },
-                {
-                    type: 'string',
-                    pattern: '^-?[0-9]+$'
-                }
-            ],
-            title: 'New Cash'
+        expected_owned: {
+            type: 'integer',
+            minimum: 0,
+            title: 'Expected Owned'
         }
     },
     type: 'object',
-    required: ['property_id', 'new_cash'],
-    title: 'BuyPropertyResponse'
+    required: ['expected_owned'],
+    title: 'BuyRequest'
 } as const;
 
 export const CardPublicSchema = {
@@ -410,6 +390,19 @@ export const CardPublicSchema = {
     description: '一張卡在畫面上的樣子，不含答案。'
 } as const;
 
+export const CardRequestSchema = {
+    properties: {
+        expected_level: {
+            type: 'integer',
+            minimum: 0,
+            title: 'Expected Level'
+        }
+    },
+    type: 'object',
+    required: ['expected_level'],
+    title: 'CardRequest'
+} as const;
+
 export const CardSummarySchema = {
     properties: {
         elder_mode: {
@@ -451,18 +444,6 @@ export const CardSummarySchema = {
     type: 'object',
     required: ['elder_mode', 'daily_goal', 'today_done', 'streak_days', 'learned', 'total', 'due_now', 'topics'],
     title: 'CardSummary'
-} as const;
-
-export const ChampionToolChoiceSchema = {
-    properties: {
-        family: {
-            type: 'string',
-            title: 'Family'
-        }
-    },
-    type: 'object',
-    required: ['family'],
-    title: 'ChampionToolChoice'
 } as const;
 
 export const ChoiceSchema = {
@@ -1280,13 +1261,6 @@ export const CollectionActionSchema = {
 
 export const CollectionsPublicSchema = {
     properties: {
-        assets: {
-            items: {
-                '$ref': '#/components/schemas/GrowthAsset'
-            },
-            type: 'array',
-            title: 'Assets'
-        },
         collectibles: {
             items: {
                 '$ref': '#/components/schemas/CollectiblePublic'
@@ -1329,32 +1303,10 @@ export const CollectionsPublicSchema = {
         showcase_capacity: {
             type: 'integer',
             title: 'Showcase Capacity'
-        },
-        presets: {
-            items: {
-                '$ref': '#/components/schemas/PresetPublic'
-            },
-            type: 'array',
-            title: 'Presets'
-        },
-        preset_capacity: {
-            type: 'integer',
-            title: 'Preset Capacity'
-        },
-        lifetime_cash: {
-            type: 'string',
-            title: 'Lifetime Cash'
-        },
-        tool_choices: {
-            items: {
-                type: 'string'
-            },
-            type: 'array',
-            title: 'Tool Choices'
         }
     },
     type: 'object',
-    required: ['assets', 'collectibles', 'titles', 'active_title', 'active_appearance', 'showcase_capacity', 'presets', 'preset_capacity', 'lifetime_cash'],
+    required: ['collectibles', 'titles', 'active_title', 'active_appearance', 'showcase_capacity'],
     title: 'CollectionsPublic'
 } as const;
 
@@ -1578,26 +1530,10 @@ export const EconomyMeResponseSchema = {
         streak_days: {
             type: 'integer',
             title: 'Streak Days'
-        },
-        pending_accrual: {
-            anyOf: [
-                {
-                    type: 'integer'
-                },
-                {
-                    type: 'string',
-                    pattern: '^-?[0-9]+$'
-                }
-            ],
-            title: 'Pending Accrual'
-        },
-        bankruptcy_pending: {
-            type: 'boolean',
-            title: 'Bankruptcy Pending'
         }
     },
     type: 'object',
-    required: ['cash', 'xp', 'level', 'streak_days', 'pending_accrual', 'bankruptcy_pending'],
+    required: ['cash', 'xp', 'level', 'streak_days'],
     title: 'EconomyMeResponse'
 } as const;
 
@@ -1625,6 +1561,42 @@ export const EffectAnalyticsSchema = {
     title: 'EffectAnalytics'
 } as const;
 
+export const ElderEstatePublicSchema = {
+    properties: {
+        home_name: {
+            type: 'string',
+            title: 'Home Name'
+        },
+        home_value: {
+            anyOf: [
+                {
+                    type: 'integer'
+                },
+                {
+                    type: 'string',
+                    pattern: '^-?[0-9]+$'
+                }
+            ],
+            title: 'Home Value'
+        },
+        savings: {
+            anyOf: [
+                {
+                    type: 'integer'
+                },
+                {
+                    type: 'string',
+                    pattern: '^-?[0-9]+$'
+                }
+            ],
+            title: 'Savings'
+        }
+    },
+    type: 'object',
+    required: ['home_name', 'home_value', 'savings'],
+    title: 'ElderEstatePublic'
+} as const;
+
 export const EntryEffectSchema = {
     properties: {
         total: {
@@ -1647,131 +1619,262 @@ export const EntryEffectSchema = {
     title: 'EntryEffect'
 } as const;
 
-export const EquipmentCatalogPublicSchema = {
+export const EstateBoardEntrySchema = {
     properties: {
-        items: {
-            items: {
-                '$ref': '#/components/schemas/EquipmentItemPublic'
-            },
-            type: 'array',
-            title: 'Items'
-        },
-        active_slots: {
-            type: 'integer',
-            title: 'Active Slots'
-        },
-        equipped_count: {
-            type: 'integer',
-            title: 'Equipped Count'
-        },
-        revision: {
-            type: 'integer',
-            title: 'Revision'
-        }
-    },
-    type: 'object',
-    required: ['items', 'active_slots', 'equipped_count', 'revision'],
-    title: 'EquipmentCatalogPublic'
-} as const;
-
-export const EquipmentItemPublicSchema = {
-    properties: {
-        id: {
-            type: 'string',
-            format: 'uuid',
-            title: 'Id'
-        },
-        definition_id: {
-            type: 'string',
-            title: 'Definition Id'
-        },
-        family: {
-            type: 'string',
-            title: 'Family'
-        },
-        name: {
-            type: 'string',
-            title: 'Name'
-        },
-        description: {
-            type: 'string',
-            title: 'Description'
-        },
         rank: {
             type: 'integer',
             title: 'Rank'
         },
-        rank_cap: {
-            type: 'integer',
-            title: 'Rank Cap'
+        user_id: {
+            type: 'string',
+            format: 'uuid',
+            title: 'User Id'
         },
-        is_equipped: {
-            type: 'boolean',
-            title: 'Is Equipped'
+        nickname: {
+            type: 'string',
+            title: 'Nickname'
         },
-        slot_index: {
+        score: {
             anyOf: [
                 {
                     type: 'integer'
                 },
                 {
-                    type: 'null'
+                    type: 'string',
+                    pattern: '^-?[0-9]+$'
                 }
             ],
-            title: 'Slot Index'
-        },
-        upgrade_cost_cash: {
-            anyOf: [
-                {
-                    type: 'string'
-                },
-                {
-                    type: 'null'
-                }
-            ],
-            title: 'Upgrade Cost Cash'
-        },
-        breakthrough_cost_energy: {
-            anyOf: [
-                {
-                    type: 'string'
-                },
-                {
-                    type: 'null'
-                }
-            ],
-            title: 'Breakthrough Cost Energy'
-        },
-        breakthrough_cost_blueprints: {
-            anyOf: [
-                {
-                    type: 'integer'
-                },
-                {
-                    type: 'null'
-                }
-            ],
-            title: 'Breakthrough Cost Blueprints'
-        },
-        can_upgrade: {
-            type: 'boolean',
-            title: 'Can Upgrade',
-            default: false
-        },
-        can_breakthrough: {
-            type: 'boolean',
-            title: 'Can Breakthrough',
-            default: false
-        },
-        breakthrough_ticket_cost: {
-            type: 'integer',
-            title: 'Breakthrough Ticket Cost',
-            default: 0
+            title: 'Score'
         }
     },
     type: 'object',
-    required: ['id', 'definition_id', 'family', 'name', 'description', 'rank', 'rank_cap', 'is_equipped'],
-    title: 'EquipmentItemPublic'
+    required: ['rank', 'user_id', 'nickname', 'score'],
+    title: 'EstateBoardEntry'
+} as const;
+
+export const EstateBoardPublicSchema = {
+    properties: {
+        kind: {
+            type: 'string',
+            title: 'Kind'
+        },
+        entries: {
+            items: {
+                '$ref': '#/components/schemas/EstateBoardEntry'
+            },
+            type: 'array',
+            title: 'Entries'
+        },
+        my_entry: {
+            anyOf: [
+                {
+                    '$ref': '#/components/schemas/EstateBoardEntry'
+                },
+                {
+                    type: 'null'
+                }
+            ]
+        }
+    },
+    type: 'object',
+    required: ['kind', 'entries', 'my_entry'],
+    title: 'EstateBoardPublic'
+} as const;
+
+export const EstatePublicSchema = {
+    properties: {
+        elder_mode: {
+            type: 'boolean',
+            title: 'Elder Mode'
+        },
+        server_time: {
+            type: 'string',
+            format: 'date-time',
+            title: 'Server Time'
+        },
+        cash: {
+            anyOf: [
+                {
+                    type: 'integer'
+                },
+                {
+                    type: 'string',
+                    pattern: '^-?[0-9]+$'
+                }
+            ],
+            title: 'Cash'
+        },
+        total_assets: {
+            anyOf: [
+                {
+                    type: 'integer'
+                },
+                {
+                    type: 'string',
+                    pattern: '^-?[0-9]+$'
+                }
+            ],
+            title: 'Total Assets'
+        },
+        income_per_hour: {
+            anyOf: [
+                {
+                    type: 'integer'
+                },
+                {
+                    type: 'string',
+                    pattern: '^-?[0-9]+$'
+                }
+            ],
+            title: 'Income Per Hour'
+        },
+        reputation: {
+            anyOf: [
+                {
+                    type: 'integer'
+                },
+                {
+                    type: 'string',
+                    pattern: '^-?[0-9]+$'
+                }
+            ],
+            title: 'Reputation'
+        },
+        reputation_percent: {
+            anyOf: [
+                {
+                    type: 'integer'
+                },
+                {
+                    type: 'string',
+                    pattern: '^-?[0-9]+$'
+                }
+            ],
+            title: 'Reputation Percent'
+        },
+        reputation_step_percent: {
+            type: 'integer',
+            title: 'Reputation Step Percent'
+        },
+        pending_reputation: {
+            anyOf: [
+                {
+                    type: 'integer'
+                },
+                {
+                    type: 'string',
+                    pattern: '^-?[0-9]+$'
+                }
+            ],
+            title: 'Pending Reputation'
+        },
+        next_reputation_at: {
+            anyOf: [
+                {
+                    type: 'integer'
+                },
+                {
+                    type: 'string',
+                    pattern: '^-?[0-9]+$'
+                }
+            ],
+            title: 'Next Reputation At'
+        },
+        lifetime_earnings: {
+            anyOf: [
+                {
+                    type: 'integer'
+                },
+                {
+                    type: 'string',
+                    pattern: '^-?[0-9]+$'
+                }
+            ],
+            title: 'Lifetime Earnings'
+        },
+        run_earnings: {
+            anyOf: [
+                {
+                    type: 'integer'
+                },
+                {
+                    type: 'string',
+                    pattern: '^-?[0-9]+$'
+                }
+            ],
+            title: 'Run Earnings'
+        },
+        moves: {
+            type: 'integer',
+            title: 'Moves'
+        },
+        boost_minutes_per_correct: {
+            type: 'integer',
+            title: 'Boost Minutes Per Correct'
+        },
+        offline_cap_hours: {
+            type: 'integer',
+            title: 'Offline Cap Hours'
+        },
+        quantity_milestones: {
+            items: {
+                type: 'integer'
+            },
+            type: 'array',
+            title: 'Quantity Milestones'
+        },
+        practice_milestones: {
+            items: {
+                type: 'integer'
+            },
+            type: 'array',
+            title: 'Practice Milestones'
+        },
+        industries: {
+            items: {
+                '$ref': '#/components/schemas/IndustryPublic'
+            },
+            type: 'array',
+            title: 'Industries'
+        },
+        managers_available: {
+            items: {
+                '$ref': '#/components/schemas/ManagerPublic'
+            },
+            type: 'array',
+            title: 'Managers Available'
+        },
+        away: {
+            anyOf: [
+                {
+                    '$ref': '#/components/schemas/AwayPublic'
+                },
+                {
+                    type: 'null'
+                }
+            ]
+        },
+        legacy_lines: {
+            items: {
+                type: 'string'
+            },
+            type: 'array',
+            title: 'Legacy Lines'
+        },
+        elder: {
+            anyOf: [
+                {
+                    '$ref': '#/components/schemas/ElderEstatePublic'
+                },
+                {
+                    type: 'null'
+                }
+            ]
+        }
+    },
+    type: 'object',
+    required: ['elder_mode', 'server_time', 'cash', 'total_assets', 'income_per_hour', 'reputation', 'reputation_percent', 'reputation_step_percent', 'pending_reputation', 'next_reputation_at', 'lifetime_earnings', 'run_earnings', 'moves', 'boost_minutes_per_correct', 'offline_cap_hours', 'quantity_milestones', 'practice_milestones', 'industries', 'managers_available', 'away', 'legacy_lines'],
+    title: 'EstatePublic'
 } as const;
 
 export const ExamBadgePublicSchema = {
@@ -2865,43 +2968,6 @@ export const FunnelStepSchema = {
     title: 'FunnelStep'
 } as const;
 
-export const GrowthAssetSchema = {
-    properties: {
-        kind: {
-            type: 'string',
-            enum: ['house', 'pet'],
-            title: 'Kind'
-        },
-        target_id: {
-            type: 'string',
-            title: 'Target Id'
-        },
-        name: {
-            type: 'string',
-            title: 'Name'
-        },
-        image_url: {
-            type: 'string',
-            title: 'Image Url'
-        },
-        level: {
-            type: 'integer',
-            title: 'Level'
-        },
-        cash_cost: {
-            type: 'string',
-            title: 'Cash Cost'
-        },
-        energy_cost: {
-            type: 'string',
-            title: 'Energy Cost'
-        }
-    },
-    type: 'object',
-    required: ['kind', 'target_id', 'name', 'image_url', 'level', 'cash_cost', 'energy_cost'],
-    title: 'GrowthAsset'
-} as const;
-
 export const HTTPValidationErrorSchema = {
     properties: {
         detail: {
@@ -3087,6 +3153,165 @@ export const HomeSummarySchema = {
     type: 'object',
     required: ['room_stage', 'mascot_image_url', 'pretest_done', 'inbox_pending', 'daily_unlocked', 'daily_done', 'exam_active_attempt_id', 'exam_can_start', 'retake', 'focus_type', 'focus_label', 'badges'],
     title: 'HomeSummary'
+} as const;
+
+export const IndustryPublicSchema = {
+    properties: {
+        tier_id: {
+            type: 'integer',
+            title: 'Tier Id'
+        },
+        name: {
+            type: 'string',
+            title: 'Name'
+        },
+        image_url: {
+            type: 'string',
+            title: 'Image Url'
+        },
+        category: {
+            type: 'string',
+            title: 'Category'
+        },
+        category_label: {
+            type: 'string',
+            title: 'Category Label'
+        },
+        owned: {
+            type: 'integer',
+            title: 'Owned'
+        },
+        next_price: {
+            anyOf: [
+                {
+                    type: 'integer'
+                },
+                {
+                    type: 'string',
+                    pattern: '^-?[0-9]+$'
+                }
+            ],
+            title: 'Next Price'
+        },
+        revenue_per_cycle: {
+            anyOf: [
+                {
+                    type: 'integer'
+                },
+                {
+                    type: 'string',
+                    pattern: '^-?[0-9]+$'
+                }
+            ],
+            title: 'Revenue Per Cycle'
+        },
+        cycle_seconds: {
+            type: 'integer',
+            title: 'Cycle Seconds'
+        },
+        income_per_hour: {
+            anyOf: [
+                {
+                    type: 'integer'
+                },
+                {
+                    type: 'string',
+                    pattern: '^-?[0-9]+$'
+                }
+            ],
+            title: 'Income Per Hour'
+        },
+        progress_seconds: {
+            type: 'number',
+            title: 'Progress Seconds'
+        },
+        ready: {
+            type: 'boolean',
+            title: 'Ready'
+        },
+        manager: {
+            anyOf: [
+                {
+                    '$ref': '#/components/schemas/ManagerPublic'
+                },
+                {
+                    type: 'null'
+                }
+            ]
+        },
+        card_level: {
+            type: 'integer',
+            title: 'Card Level'
+        },
+        max_card_level: {
+            type: 'integer',
+            title: 'Max Card Level'
+        },
+        card_price: {
+            anyOf: [
+                {
+                    type: 'integer'
+                },
+                {
+                    type: 'string',
+                    pattern: '^-?[0-9]+$'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Card Price'
+        },
+        doublings: {
+            type: 'integer',
+            title: 'Doublings'
+        },
+        quantity_doublings: {
+            type: 'integer',
+            title: 'Quantity Doublings'
+        },
+        card_doublings: {
+            type: 'integer',
+            title: 'Card Doublings'
+        },
+        practice_doublings: {
+            type: 'integer',
+            title: 'Practice Doublings'
+        },
+        next_quantity_milestone: {
+            anyOf: [
+                {
+                    type: 'integer'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Next Quantity Milestone'
+        },
+        practice_correct: {
+            type: 'integer',
+            title: 'Practice Correct'
+        },
+        next_practice_milestone: {
+            anyOf: [
+                {
+                    type: 'integer'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Next Practice Milestone'
+        },
+        starter: {
+            type: 'boolean',
+            title: 'Starter'
+        }
+    },
+    type: 'object',
+    required: ['tier_id', 'name', 'image_url', 'category', 'category_label', 'owned', 'next_price', 'revenue_per_cycle', 'cycle_seconds', 'income_per_hour', 'progress_seconds', 'ready', 'manager', 'card_level', 'max_card_level', 'card_price', 'doublings', 'quantity_doublings', 'card_doublings', 'practice_doublings', 'next_quantity_milestone', 'practice_correct', 'next_practice_milestone', 'starter'],
+    title: 'IndustryPublic'
 } as const;
 
 export const ItemCreateSchema = {
@@ -3416,98 +3641,44 @@ export const LikertItemSchema = {
     title: 'LikertItem'
 } as const;
 
-export const LiquidateRequestSchema = {
+export const ManagerPublicSchema = {
     properties: {
-        property_ids: {
-            items: {
-                type: 'string'
-            },
-            type: 'array',
-            title: 'Property Ids'
-        }
-    },
-    type: 'object',
-    required: ['property_ids'],
-    title: 'LiquidateRequest'
-} as const;
-
-export const LiquidateResponseSchema = {
-    properties: {
-        recovered: {
-            anyOf: [
-                {
-                    type: 'integer'
-                },
-                {
-                    type: 'string',
-                    pattern: '^-?[0-9]+$'
-                }
-            ],
-            title: 'Recovered'
-        },
-        new_cash: {
-            anyOf: [
-                {
-                    type: 'integer'
-                },
-                {
-                    type: 'string',
-                    pattern: '^-?[0-9]+$'
-                }
-            ],
-            title: 'New Cash'
-        },
-        bankruptcy_pending: {
-            type: 'boolean',
-            title: 'Bankruptcy Pending'
-        }
-    },
-    type: 'object',
-    required: ['recovered', 'new_cash', 'bankruptcy_pending'],
-    title: 'LiquidateResponse'
-} as const;
-
-export const LoadoutUpdateItemSchema = {
-    properties: {
-        slot_index: {
-            type: 'integer',
-            title: 'Slot Index'
-        },
         item_id: {
             type: 'string',
             format: 'uuid',
             title: 'Item Id'
+        },
+        name: {
+            type: 'string',
+            title: 'Name'
+        },
+        image_url: {
+            type: 'string',
+            title: 'Image Url'
         }
     },
     type: 'object',
-    required: ['slot_index', 'item_id'],
-    title: 'LoadoutUpdateItem'
+    required: ['item_id', 'name', 'image_url'],
+    title: 'ManagerPublic'
 } as const;
 
-export const LoadoutUpdateRequestSchema = {
+export const ManagerRequestSchema = {
     properties: {
-        items: {
-            items: {
-                '$ref': '#/components/schemas/LoadoutUpdateItem'
-            },
-            type: 'array',
-            title: 'Items'
-        },
-        expected_revision: {
+        item_id: {
             anyOf: [
                 {
-                    type: 'integer'
+                    type: 'string',
+                    format: 'uuid'
                 },
                 {
                     type: 'null'
                 }
             ],
-            title: 'Expected Revision'
+            title: 'Item Id'
         }
     },
     type: 'object',
-    required: ['items'],
-    title: 'LoadoutUpdateRequest'
+    title: 'ManagerRequest'
 } as const;
 
 export const MascotDisplayPublicSchema = {
@@ -3638,6 +3809,19 @@ export const ModeHalvesSchema = {
     type: 'object',
     required: ['mode', 'label', 'change'],
     title: 'ModeHalves'
+} as const;
+
+export const MoveRequestSchema = {
+    properties: {
+        expected_moves: {
+            type: 'integer',
+            minimum: 0,
+            title: 'Expected Moves'
+        }
+    },
+    type: 'object',
+    required: ['expected_moves'],
+    title: 'MoveRequest'
 } as const;
 
 export const MyAssignmentSchema = {
@@ -3860,25 +4044,6 @@ export const OAuthStartResponseSchema = {
     title: 'OAuthStartResponse'
 } as const;
 
-export const OwnedPropertyPublicSchema = {
-    properties: {
-        id: {
-            type: 'string',
-            title: 'Id'
-        },
-        tier: {
-            '$ref': '#/components/schemas/PropertyTierPublic'
-        },
-        purchased_at: {
-            type: 'string',
-            title: 'Purchased At'
-        }
-    },
-    type: 'object',
-    required: ['id', 'tier', 'purchased_at'],
-    title: 'OwnedPropertyPublic'
-} as const;
-
 export const PairedChangeSchema = {
     properties: {
         n: {
@@ -4073,60 +4238,6 @@ export const PendingStudentSchema = {
     title: 'PendingStudent'
 } as const;
 
-export const PermanentBoardEntrySchema = {
-    properties: {
-        rank: {
-            type: 'integer',
-            title: 'Rank'
-        },
-        user_id: {
-            type: 'string',
-            format: 'uuid',
-            title: 'User Id'
-        },
-        nickname: {
-            type: 'string',
-            title: 'Nickname'
-        },
-        score: {
-            type: 'string',
-            title: 'Score'
-        }
-    },
-    type: 'object',
-    required: ['rank', 'user_id', 'nickname', 'score'],
-    title: 'PermanentBoardEntry'
-} as const;
-
-export const PermanentBoardPublicSchema = {
-    properties: {
-        kind: {
-            type: 'string',
-            title: 'Kind'
-        },
-        entries: {
-            items: {
-                '$ref': '#/components/schemas/PermanentBoardEntry'
-            },
-            type: 'array',
-            title: 'Entries'
-        },
-        my_entry: {
-            anyOf: [
-                {
-                    '$ref': '#/components/schemas/PermanentBoardEntry'
-                },
-                {
-                    type: 'null'
-                }
-            ]
-        }
-    },
-    type: 'object',
-    required: ['kind', 'entries', 'my_entry'],
-    title: 'PermanentBoardPublic'
-} as const;
-
 export const PlayerShowcasePublicSchema = {
     properties: {
         player_id: {
@@ -4138,16 +4249,21 @@ export const PlayerShowcasePublicSchema = {
             type: 'string',
             title: 'Nickname'
         },
-        core_level: {
+        reputation: {
             type: 'integer',
-            title: 'Core Level'
+            title: 'Reputation',
+            default: 0
         },
-        active_loadout: {
-            items: {
-                '$ref': '#/components/schemas/ShowcaseEquipmentPublic'
-            },
-            type: 'array',
-            title: 'Active Loadout'
+        top_industry: {
+            anyOf: [
+                {
+                    type: 'string'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Top Industry'
         },
         showcases: {
             items: {
@@ -4190,7 +4306,7 @@ export const PlayerShowcasePublicSchema = {
         }
     },
     type: 'object',
-    required: ['player_id', 'nickname', 'core_level', 'active_loadout', 'showcases'],
+    required: ['player_id', 'nickname', 'showcases'],
     title: 'PlayerShowcasePublic'
 } as const;
 
@@ -4355,52 +4471,6 @@ export const PracticeVolumeSchema = {
     type: 'object',
     required: ['exam_people', 'practiced_people', 'median_answers', 'median_days', 'scenario_rounds'],
     title: 'PracticeVolume'
-} as const;
-
-export const PresetPublicSchema = {
-    properties: {
-        position: {
-            type: 'integer',
-            title: 'Position'
-        },
-        name: {
-            type: 'string',
-            title: 'Name'
-        },
-        item_ids: {
-            items: {
-                type: 'string'
-            },
-            type: 'array',
-            title: 'Item Ids'
-        }
-    },
-    type: 'object',
-    required: ['position', 'name', 'item_ids'],
-    title: 'PresetPublic'
-} as const;
-
-export const PresetRequestSchema = {
-    properties: {
-        name: {
-            type: 'string',
-            maxLength: 40,
-            minLength: 1,
-            title: 'Name'
-        },
-        item_ids: {
-            items: {
-                type: 'string',
-                format: 'uuid'
-            },
-            type: 'array',
-            maxItems: 6,
-            title: 'Item Ids'
-        }
-    },
-    type: 'object',
-    required: ['name', 'item_ids'],
-    title: 'PresetRequest'
 } as const;
 
 export const PretestAnswerSchema = {
@@ -4583,120 +4653,6 @@ export const PrivateUserCreateSchema = {
     type: 'object',
     required: ['email', 'password', 'full_name'],
     title: 'PrivateUserCreate'
-} as const;
-
-export const ProgressionSummaryPublicSchema = {
-    properties: {
-        core_level: {
-            type: 'integer',
-            title: 'Core Level'
-        },
-        growth_xp: {
-            type: 'string',
-            title: 'Growth Xp'
-        },
-        next_level_xp: {
-            type: 'string',
-            title: 'Next Level Xp'
-        },
-        growth_progress_percent: {
-            type: 'number',
-            title: 'Growth Progress Percent'
-        },
-        forge_energy: {
-            type: 'string',
-            title: 'Forge Energy'
-        },
-        active_slots: {
-            type: 'integer',
-            title: 'Active Slots'
-        },
-        max_active_slots: {
-            type: 'integer',
-            title: 'Max Active Slots'
-        },
-        has_sixth_slot_license: {
-            type: 'boolean',
-            title: 'Has Sixth Slot License'
-        },
-        blueprint_fragments: {
-            type: 'integer',
-            title: 'Blueprint Fragments'
-        },
-        breakthrough_blueprints: {
-            type: 'integer',
-            title: 'Breakthrough Blueprints',
-            default: 0
-        },
-        factors: {
-            additionalProperties: {
-                type: 'string'
-            },
-            type: 'object',
-            title: 'Factors'
-        },
-        next_objective: {
-            type: 'string',
-            title: 'Next Objective'
-        }
-    },
-    type: 'object',
-    required: ['core_level', 'growth_xp', 'next_level_xp', 'growth_progress_percent', 'forge_energy', 'active_slots', 'max_active_slots', 'has_sixth_slot_license', 'blueprint_fragments', 'factors', 'next_objective'],
-    title: 'ProgressionSummaryPublic'
-} as const;
-
-export const PropertiesListResponseSchema = {
-    properties: {
-        tiers: {
-            items: {
-                '$ref': '#/components/schemas/PropertyTierPublic'
-            },
-            type: 'array',
-            title: 'Tiers'
-        },
-        owned: {
-            items: {
-                '$ref': '#/components/schemas/OwnedPropertyPublic'
-            },
-            type: 'array',
-            title: 'Owned'
-        }
-    },
-    type: 'object',
-    required: ['tiers', 'owned'],
-    title: 'PropertiesListResponse'
-} as const;
-
-export const PropertyTierPublicSchema = {
-    properties: {
-        id: {
-            type: 'integer',
-            title: 'Id'
-        },
-        name: {
-            type: 'string',
-            title: 'Name'
-        },
-        svg_key: {
-            type: 'string',
-            title: 'Svg Key'
-        },
-        price: {
-            type: 'integer',
-            title: 'Price'
-        },
-        daily_income: {
-            type: 'integer',
-            title: 'Daily Income'
-        },
-        unlock_level: {
-            type: 'integer',
-            title: 'Unlock Level'
-        }
-    },
-    type: 'object',
-    required: ['id', 'name', 'svg_key', 'price', 'daily_income', 'unlock_level'],
-    title: 'PropertyTierPublic'
 } as const;
 
 export const QuizAnswerRequestSchema = {
@@ -5546,6 +5502,24 @@ export const RoundResultSchema = {
         daily_goal: {
             type: 'integer',
             title: 'Daily Goal'
+        },
+        boost_minutes: {
+            type: 'integer',
+            title: 'Boost Minutes',
+            default: 0
+        },
+        boost_cash: {
+            anyOf: [
+                {
+                    type: 'integer'
+                },
+                {
+                    type: 'string',
+                    pattern: '^-?[0-9]+$'
+                }
+            ],
+            title: 'Boost Cash',
+            default: 0
         }
     },
     type: 'object',
@@ -5930,38 +5904,6 @@ export const SeasonPublicSchema = {
     type: 'object',
     required: ['id', 'name', 'starts_at', 'ends_at', 'state', 'days_remaining'],
     title: 'SeasonPublic'
-} as const;
-
-export const ShowcaseEquipmentPublicSchema = {
-    properties: {
-        item_id: {
-            type: 'string',
-            format: 'uuid',
-            title: 'Item Id'
-        },
-        name: {
-            type: 'string',
-            title: 'Name'
-        },
-        family: {
-            type: 'string',
-            title: 'Family'
-        },
-        rank: {
-            type: 'integer',
-            title: 'Rank'
-        },
-        factors: {
-            additionalProperties: {
-                type: 'string'
-            },
-            type: 'object',
-            title: 'Factors'
-        }
-    },
-    type: 'object',
-    required: ['item_id', 'name', 'family', 'rank', 'factors'],
-    title: 'ShowcaseEquipmentPublic'
 } as const;
 
 export const ShowcasePositionPublicSchema = {

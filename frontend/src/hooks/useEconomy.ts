@@ -1,13 +1,5 @@
-import {
-  type QueryClient,
-  queryOptions,
-  useMutation,
-  useQuery,
-  useQueryClient,
-} from "@tanstack/react-query"
+import { queryOptions, useQuery } from "@tanstack/react-query"
 import { EconomyService } from "@/client"
-import useCustomToast from "./useCustomToast"
-import { HOME_SUMMARY_KEY } from "./useHomeSummary"
 
 // ── 錯誤處理輔助 ────────────────────────────────────────────────────────────────
 
@@ -21,16 +13,11 @@ export function extractErrorCode(err: unknown): string | undefined {
   return undefined
 }
 
-/** 房產買賣後要重讀的資料：經濟數字，以及跟著最高房產換圖的房間首頁。 */
-export function refreshAfterPropertyChange(queryClient: QueryClient) {
-  queryClient.invalidateQueries({ queryKey: ["economy"] })
-  queryClient.invalidateQueries({ queryKey: HOME_SUMMARY_KEY })
-}
-
 // ── 查詢 ──────────────────────────────────────────────────────────────────────
 // 查詢設定另外匯出，路由的 loader 預先載入時用同一把 key，進頁面就直接有資料。
+// 房產、收租、升級卡都在放置經營（`useEstate.ts`）。
 
-/** 當前使用者的經濟狀態（現金、等級、連勝天數、待領收益、破產旗標） */
+/** 當前使用者的錢、訓練等級與連續天數 */
 export const economyMeQuery = queryOptions({
   queryKey: ["economy", "me"],
   queryFn: () => EconomyService.readMe(),
@@ -38,87 +25,6 @@ export const economyMeQuery = queryOptions({
   refetchOnWindowFocus: true,
 })
 
-/** 所有房產等級清單 + 已擁有清單 */
-export const propertiesQuery = queryOptions({
-  queryKey: ["economy", "properties"],
-  queryFn: () => EconomyService.listProperties(),
-  staleTime: 30_000,
-  refetchOnWindowFocus: true,
-})
-
-/** 資產摘要（現金、房產總值、每日收益、總身家、持有數） */
-export const assetsQuery = queryOptions({
-  queryKey: ["economy", "assets"],
-  queryFn: () => EconomyService.getAssets(),
-  staleTime: 30_000,
-  refetchOnWindowFocus: true,
-})
-
 export function useEconomyMe() {
   return useQuery(economyMeQuery)
-}
-
-export function useProperties() {
-  return useQuery(propertiesQuery)
-}
-
-export function useAssets() {
-  return useQuery(assetsQuery)
-}
-
-// ── 變更 ──────────────────────────────────────────────────────────────────────
-
-/** 領取待領每日收益 */
-export function useClaimAccrual() {
-  const queryClient = useQueryClient()
-  return useMutation({
-    mutationFn: EconomyService.claim,
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["economy"] })
-    },
-  })
-}
-
-/** 購買房產等級 */
-export function useBuyProperty() {
-  const queryClient = useQueryClient()
-  const { showErrorToast } = useCustomToast()
-  return useMutation({
-    mutationFn: (tierId: number) => EconomyService.buyProperty({ tierId }),
-    onSuccess: () => refreshAfterPropertyChange(queryClient),
-    onError: (err: unknown) => {
-      const code = extractErrorCode(err)
-      const messages: Record<string, string> = {
-        insufficient_cash: "現金不足，無法購買",
-        level_required: "等級不足，尚未解鎖",
-        bankruptcy_pending: "請先處理破產（變賣資產）",
-      }
-      showErrorToast(
-        code && messages[code] ? messages[code] : "購買失敗，請重試",
-      )
-    },
-  })
-}
-
-/** 變賣房產（強制清算） */
-export function useLiquidate() {
-  const queryClient = useQueryClient()
-  const { showErrorToast } = useCustomToast()
-  return useMutation({
-    mutationFn: (propertyIds: string[]) =>
-      EconomyService.postLiquidate({
-        requestBody: { property_ids: propertyIds },
-      }),
-    onSuccess: () => refreshAfterPropertyChange(queryClient),
-    onError: (err: unknown) => {
-      const code = extractErrorCode(err)
-      const messages: Record<string, string> = {
-        empty_property_ids: "請先勾選要變賣的房產",
-        property_not_owned: "所選房產已變賣或不存在，請重新整理後再試",
-      }
-      showErrorToast(
-        code && messages[code] ? messages[code] : "變賣失敗，請重試",
-      )
-    },
-  })
 }
