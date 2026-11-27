@@ -125,6 +125,15 @@ pre-commit 有 `generate-frontend-sdk` hook，當 `backend/` 變更時會自動�
 對話歷史存在 `ScenarioSession.conversation_history`（JSON list），`role` 為 `"npc"` / `"player"`。
 設定集中在 `backend/app/scenario/config.py`：`MAX_TURNS=10`、`SCENARIO_DAILY_LIMIT_PER_TYPE=3`（練習重點那一類 `SCENARIO_DAILY_LIMIT_FOCUS=5`）、`SCAM_RATIO=0.5`。
 
+### 日常卡片流（2026-11 改版）— 一次一張卡、間隔重複，一樣無 AI
+
+`backend/app/cards/`、`api/routes/cards.py`，前端 `/learn`（`components/cards/`）。會逐步取代滑卡、訊息判讀、每日訓練。
+- 題庫是資料檔 `backend/content/cards/*.jsonl`（816 張，`tests/unit/test_content_cards.py` 守門），程式第一次用到才讀、留在記憶體，**改題庫要重啟後端**；映像要 `COPY ./backend/content`。只出 `pool='practice'`，年長者只出 `elder_ok`。
+- 出題時選項、句子、配對、步驟都換成「這一局才有效」的代號（伺服器金鑰的 HMAC，`grading.py`），前端看不出哪個是正解；判斷題固定「是詐騙」在左。
+- 牌局 `card_round` 照 `SwipeSession` 的防重送做法：只認發出去的卡、每張第一次的答案存快照，重送同答案回快照、換答案 400，結算只發一次。
+- 間隔重複 `card_progress`（Leitner，`srs.py`）：答對升一盒、間隔 1／3／7／14／30 天，答錯回第一盒隔天再出，第三盒算學會；「學會幾招」以原料句 `source_key` 計。發牌 `deal.py`：到期複習 → 新卡（練習重點比例、簡單的先出）→ 提早練，**同一句原料變出來的卡不會同一輪**。一般一輪 8 張、每日目標 20；年長者 3 張、目標 6。
+- 結算走 `economy.service` 與養成倍率（`source_kind="card"`），作答寫 `practice_answer`（`mode="card"`，共通類 `general` 不寫）。
+
 ### 每日訓練與排行榜（Lv.5 解鎖）— 題組的變形，一樣無 AI
 
 `backend/app/daily/`。**每日訓練是「所有人同一份題目」的題組**：

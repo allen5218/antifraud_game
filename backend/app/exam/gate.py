@@ -44,10 +44,16 @@ def retake_status(session: Session, user_id: uuid.UUID) -> ExamGate | None:
         )
         .order_by(col(PracticeAnswer.created_at).desc(), col(PracticeAnswer.id).desc())
     ).all()
-    swipe = sum(r.mode == "swipe" for r in rows)
-    quiz = sum(r.mode == "quiz" for r in rows)
+    # 日常卡片流取代了滑卡與訊息判讀：卡片先補滑卡的份，多的再補訊息判讀的份
+    cards = sum(r.mode == "card" for r in rows)
+    swipe_only = sum(r.mode == "swipe" for r in rows)
+    to_swipe = min(cards, max(0, RETAKE_SWIPE - swipe_only))
+    swipe = swipe_only + to_swipe
+    quiz = sum(r.mode == "quiz" for r in rows) + cards - to_swipe
     scenario = sum(r.mode == "scenario" for r in rows)
-    recent = [r.correct for r in rows if r.mode in ("swipe", "quiz")][:RETAKE_RECENT]
+    recent = [r.correct for r in rows if r.mode in ("swipe", "quiz", "card")][
+        :RETAKE_RECENT
+    ]
     waited = get_datetime_utc() >= attempt.completed_at + timedelta(
         hours=EXAM_RETAKE_WAIT_HOURS
     )

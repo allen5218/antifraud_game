@@ -365,6 +365,41 @@ def test_expiry_retake_focus_and_new_start_clears_gate(
     assert req(client, h, "get", "/practice/profile").json()["retake"] is None
 
 
+def test_card_answers_count_toward_retake_gate(client, normal_user_token_headers, db):
+    """日常卡片流取代滑卡與訊息判讀：卡片先補滑卡的份，多的補訊息判讀的份。"""
+    h = normal_user_token_headers
+    state = start(client, h)
+    row = attempt(db, state)
+    row.expires_at = datetime.now(timezone.utc) - timedelta(seconds=1)
+    db.add(row)
+    db.commit()
+    assert req(client, h, "get", "/exam/active").json() is None
+    row = attempt(db, state)
+    for mode, n in (("card", 10), ("scenario", 1)):
+        for _ in range(n):
+            db.add(
+                PracticeAnswer(
+                    user_id=row.user_id,
+                    mode=mode,
+                    fraud_type="investment",
+                    correct=True,
+                )
+            )
+    db.commit()
+    gate = req(client, h, "get", "/exam/status").json()["gate"]
+    assert gate["swipe"]["done"] == 6 and gate["quiz"]["done"] == 4
+    assert gate["recent"]["total"] == 10
+    assert gate["met"] is False
+    db.add(
+        PracticeAnswer(
+            user_id=row.user_id, mode="card", fraud_type="investment", correct=True
+        )
+    )
+    db.commit()
+    assert req(client, h, "get", "/exam/status").json()["gate"]["met"]
+    start(client, h)
+
+
 def test_exam_scenario_failure_voids_and_training_never_reveals(
     client, normal_user_token_headers, db, monkeypatch
 ):

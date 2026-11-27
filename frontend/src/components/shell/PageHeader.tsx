@@ -1,6 +1,7 @@
 import { Link } from "@tanstack/react-router"
 
 const TITLES: { prefix: string; title: string }[] = [
+  { prefix: "/learn", title: "練習" },
   { prefix: "/scenarios", title: "情境對抗" },
   { prefix: "/quick/swipe", title: "滑卡訓練" },
   { prefix: "/quick/quiz", title: "訊息判讀" },

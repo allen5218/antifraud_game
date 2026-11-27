@@ -206,6 +206,7 @@ describe("menuItems", () => {
       }),
     )
     expect(items.map((item) => item.id)).toEqual([
+      "learn",
       "phone",
       "tv",
       "letters",
@@ -217,6 +218,7 @@ describe("menuItems", () => {
       "tour",
     ])
     expect(items.map((item) => item.label)).toEqual([
+      "卡片練習",
       "情境對抗",
       "滑卡訓練",
       "訊息判讀",
@@ -232,6 +234,7 @@ describe("menuItems", () => {
     )
     expect(items.find((item) => item.id === "calendar")?.done).toBe(true)
     expect(items.find((item) => item.id === "phone")?.to).toBe("/scenarios")
+    expect(items.find((item) => item.id === "learn")?.to).toBe("/learn")
   })
 })
 

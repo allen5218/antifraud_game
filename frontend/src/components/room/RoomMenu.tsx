@@ -6,6 +6,7 @@ import {
   ClipboardList,
   Compass,
   GraduationCap,
+  Layers,
   Mail,
   MessageCircle,
   NotebookPen,
@@ -17,6 +18,7 @@ import {
 import type { MenuItem } from "./logic"
 
 export const MENU_ICONS = {
+  learn: Layers,
   phone: MessageCircle,
   tv: Tv,
   letters: Mail,
