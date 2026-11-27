@@ -303,7 +303,7 @@ def swipe_complete(
             RewardContext.source_id == swipe.id,
         )
     ).first() or create_reward_context(session, current_user.id, "swipe", swipe.id)
-    receipt, _ = settle_reward(
+    receipt = settle_reward(
         session,
         current_user,
         context,
@@ -1069,7 +1069,7 @@ def quiz_complete(
     # daily 固定獎勵不重複算倍率基礎
     mult_base_cash = cash - (DAILY_BONUS_CASH if quiz.daily_date is not None else 0)
     mult_base_xp = xp - (DAILY_BONUS_XP if quiz.daily_date is not None else 0)
-    receipt, _ = settle_reward(
+    receipt = settle_reward(
         session,
         current_user,
         context,

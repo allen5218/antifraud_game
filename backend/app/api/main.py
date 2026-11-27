@@ -7,7 +7,7 @@ from app.api.routes import (
     classes,
     daily,
     economy,
-    equipment,
+    estate,
     exam,
     home,
     invite,
@@ -48,6 +48,7 @@ api_router.include_router(mascot.router)
 api_router.include_router(home.router)
 api_router.include_router(onboarding.router)
 api_router.include_router(economy.router)
+api_router.include_router(estate.router)
 api_router.include_router(quick.router)
 api_router.include_router(cards.router)
 api_router.include_router(scenario.router)
@@ -62,7 +63,6 @@ api_router.include_router(admin_cohorts.router)
 api_router.include_router(admin_teachers.router)
 api_router.include_router(classes.router)
 api_router.include_router(progression.router)
-api_router.include_router(equipment.router)
 api_router.include_router(seasons.router)
 api_router.include_router(players.router)
 

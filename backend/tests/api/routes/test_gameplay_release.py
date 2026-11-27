@@ -12,27 +12,21 @@ from sqlmodel import Session, select
 from app.api.routes import quick
 from app.core.config import settings
 from app.core.db import engine
+from app.estate.config import SEASON_REPUTATION
+from app.estate.models import PlayerEstate
 from app.models import QuizSession, User
 from app.progression.collections import collection_summary
 from app.progression.models import (
     CompetitionEntry,
     CompetitionSeason,
     PlayerCollectible,
-    PlayerEquipment,
-    PlayerGrowth,
     PlayerUnlock,
     ProgressionLedger,
     RewardReceipt,
     SeasonAward,
 )
 from app.progression.seasons import close_expired_seasons
-from app.progression.service import (
-    create_reward_context,
-    get_or_create_growth,
-    get_player_blueprints,
-    get_utc_now,
-    settle_reward,
-)
+from app.progression.service import get_utc_now
 from tests.api.routes.test_quick_quiz import _correct_answer, _deal, _submit_answer
 from tests.api.routes.test_quick_swipe import _answer as swipe_answer
 from tests.api.routes.test_quick_swipe import _deal as swipe_deal
@@ -47,66 +41,15 @@ def player(client: TestClient, db: Session) -> tuple[dict[str, str], User]:
     email = random_email()
     headers = authentication_token_from_email(client=client, email=email, db=db)
     user = db.exec(select(User).where(User.email == email)).one()
-    get_or_create_growth(db, user.id)
-    db.commit()
     return headers, user
 
 
-def fund(db: Session, user: User, cash: int = 100000, energy: int = 10000) -> None:
+def fund(db: Session, user: User, cash: int = 100000) -> None:
     from app.economy.service import adjust_cash
 
     adjust_cash(user, cash - user.cash, reason="test_fixture")
-    growth = get_or_create_growth(db, user.id)
-    growth.forge_energy = energy
     db.add(user)
-    db.add(growth)
     db.commit()
-
-
-def test_pet_growth_idempotency_and_frozen_multiplier(
-    client: TestClient, db: Session
-) -> None:
-    headers, user = player(client, db)
-    fund(db, user)
-    summary = client.get(f"{API}/collections/me", headers=headers).json()
-    pet = next(a for a in summary["assets"] if a["kind"] == "pet")
-    request = {"key": str(uuid.uuid4()), "expected_level": 0}
-    path = f"{API}/collections/pet/{pet['target_id']}/upgrade"
-    first = client.post(path, headers=headers, json=request)
-    assert first.status_code == 200
-    repeat = client.post(path, headers=headers, json=request)
-    assert repeat.status_code == 200
-    assert (
-        next(a for a in repeat.json()["assets"] if a["target_id"] == pet["target_id"])[
-            "level"
-        ]
-        == 1
-    )
-    db.refresh(user)
-    assert user.cash == 99500
-    growth = db.get(PlayerGrowth, user.id)
-    db.refresh(growth)
-    assert growth.forge_energy == 9990
-    assert growth.lifetime_cash == 0
-    context = create_reward_context(db, user.id, "quiz", uuid.uuid4())
-    db.commit()
-    second = client.post(
-        path, headers=headers, json={"key": str(uuid.uuid4()), "expected_level": 1}
-    )
-    assert second.status_code == 200
-    from app.economy.service import adjust_cash
-
-    db.refresh(user)
-    adjust_cash(user, 100, reason="test_base_reward")
-    receipt, growth = settle_reward(
-        db, user, context, base_cash=100, base_xp=100, reason="test_frozen_pet"
-    )
-    db.commit()
-    assert receipt.factors["cash"] == "1.01"
-    assert receipt.final_rewards["cash_total"] == "101"
-    assert growth.lifetime_cash == 101
-    actual = client.get(f"{API}/progression/me", headers=headers).json()
-    assert actual["factors"]["cash"] == "1.02"
 
 
 def test_collection_visibility_ownership_and_no_private_account_fields(
@@ -153,48 +96,6 @@ def test_collection_visibility_ownership_and_no_private_account_fields(
     assert "hashed_password" not in public.text
 
 
-def test_presets_are_storage_not_extra_active_loadouts(
-    client: TestClient, db: Session
-) -> None:
-    headers, user = player(client, db)
-    fund(db, user)
-    catalog = client.get(f"{API}/equipment", headers=headers).json()
-    starter = catalog["items"][0]["id"]
-    unlocked = client.post(f"{API}/progression/unlocks/growth_lens", headers=headers)
-    assert unlocked.status_code == 200
-    growth_tool = unlocked.json()["item_id"]
-    for position, item in enumerate((starter, growth_tool)):
-        assert (
-            client.put(
-                f"{API}/collections/presets/{position}",
-                headers=headers,
-                json={"name": f"套裝 {position}", "item_ids": [item]},
-            ).status_code
-            == 200
-        )
-    assert client.get(f"{API}/equipment", headers=headers).json()["equipped_count"] == 0
-    assert (
-        client.post(f"{API}/collections/presets/1/apply", headers=headers).status_code
-        == 200
-    )
-    equipment = client.get(f"{API}/equipment", headers=headers).json()
-    assert [i["id"] for i in equipment["items"] if i["is_equipped"]] == [growth_tool]
-    assert (
-        client.post(f"{API}/collections/presets/0/apply", headers=headers).status_code
-        == 200
-    )
-    equipment = client.get(f"{API}/equipment", headers=headers).json()
-    assert [i["id"] for i in equipment["items"] if i["is_equipped"]] == [starter]
-    assert (
-        client.put(
-            f"{API}/collections/presets/2",
-            headers=headers,
-            json={"name": "越界", "item_ids": []},
-        ).status_code
-        == 400
-    )
-
-
 def test_actual_quiz_failure_rolls_back_real_settlement(
     client: TestClient, db: Session, monkeypatch: pytest.MonkeyPatch
 ) -> None:
@@ -235,8 +136,6 @@ def test_actual_quiz_failure_rolls_back_real_settlement(
         assert not check.exec(
             select(ProgressionLedger).where(ProgressionLedger.user_id == uid)
         ).all()
-        g = check.get(PlayerGrowth, uid)
-        assert (g.growth_xp, g.forge_energy, g.lifetime_cash) == (0, 0, 0)
     success = client.post(
         f"{API}/quick/quiz/complete", headers=headers, json={"session_id": session_id}
     )
@@ -280,9 +179,6 @@ def test_twenty_concurrent_swipe_completions_pay_once(
         receipt = check.exec(
             select(RewardReceipt).where(RewardReceipt.user_id == uid)
         ).one()
-        growth = check.get(PlayerGrowth, uid)
-        assert growth.growth_xp == int(receipt.final_rewards["growth_xp"])
-        assert growth.forge_energy == int(receipt.final_rewards["forge_energy"])
         assert check.get(User, uid).cash == 1000 + int(
             receipt.final_rewards["cash_total"]
         )
@@ -303,7 +199,7 @@ def test_legacy_client_cannot_spend_an_unsafe_balance(
     assert legacy.json()["detail"]["code"] == "client_upgrade_required"
 
 
-def test_season_concurrent_close_and_champion_tool_survive_new_period(
+def test_season_concurrent_close_pays_reputation_once(
     client: TestClient, db: Session
 ) -> None:
     headers, user = player(client, db)
@@ -349,8 +245,9 @@ def test_season_concurrent_close_and_champion_tool_survive_new_period(
             .tier
             == "tier_1"
         )
-        assert get_player_blueprints(check, uid) == 10
-        assert get_player_blueprints(check, uid, key="breakthrough_blueprints") == 2
+        estate = check.get(PlayerEstate, uid)
+        assert estate is not None
+        assert estate.reputation == SEASON_REPUTATION["tier_1"]
         assert (
             len(
                 check.exec(
@@ -359,24 +256,9 @@ def test_season_concurrent_close_and_champion_tool_survive_new_period(
             )
             == 4
         )
-    for _ in range(2):
-        response = client.post(
-            f"{API}/seasons/{sid}/awards/tool",
-            headers=headers,
-            json={"family": "growth_lens"},
-        )
-        assert response.status_code == 200
     with Session(engine) as check:
-        tools = check.exec(
-            select(PlayerEquipment).where(
-                PlayerEquipment.user_id == uid, PlayerEquipment.rank == 6
-            )
-        ).all()
-        assert len(tools) == 1
-        assert tools[0].rank_cap == 6
         saved = collection_summary(check, uid)
         assert len(saved.collectibles) == 4
     client.get(f"{API}/seasons/current", headers=headers).raise_for_status()
     after = client.get(f"{API}/collections/me", headers=headers).json()
     assert len(after["collectibles"]) == 4
-    assert after["tool_choices"] == []

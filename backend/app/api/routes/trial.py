@@ -14,6 +14,7 @@ from sqlmodel import Session, col, select
 
 from app.api.deps import CurrentUser, SessionDep
 from app.api.routes.admin_cohorts import cohort_rows
+from app.estate.service import bought_anything
 from app.models import (
     ExamAttempt,
     ExamBadge,
@@ -57,7 +58,8 @@ def survey_context(session: Session, user_id: uuid.UUID) -> SurveyContext:
     """作答者做過哪些事；問卷只問做過的（`questions_for`）。"""
     swipe, quiz, scenario = completed_rounds(session, user_id)
     purchased = (
-        session.exec(
+        bought_anything(session, user_id)
+        or session.exec(
             select(UserProperty.id).where(UserProperty.user_id == user_id)
         ).first()
         is not None

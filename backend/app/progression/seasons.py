@@ -3,7 +3,6 @@ from __future__ import annotations
 import logging
 import uuid
 from datetime import datetime, timedelta, timezone
-from decimal import Decimal
 from fractions import Fraction
 from typing import Any
 from zoneinfo import ZoneInfo
@@ -14,6 +13,7 @@ from sqlmodel import Session, col, select
 
 from app.daily.names import display_name
 from app.economy.service import lock_user
+from app.estate.config import SEASON_REPUTATION
 from app.models import QuizSession, User
 from app.progression.config import (
     CONFIG_VERSION,
@@ -24,7 +24,6 @@ from app.progression.config import (
     SEASON_SPEED_MIN_ACCURACY,
     SEASON_TIMEZONE,
 )
-from app.progression.math import calculate_power_points
 from app.progression.models import (
     CompetitionEntry,
     CompetitionSeason,
@@ -36,21 +35,12 @@ from app.progression.models import (
     SeasonBoardPublic,
     SeasonFinalRow,
 )
-from app.progression.service import (
-    add_player_blueprints,
-    get_player_blueprints,
-    get_utc_now,
-)
+from app.progression.service import get_utc_now, snapshot_percent
 
 logger = logging.getLogger(__name__)
 
-TIER_BLUEPRINTS: dict[str, int] = {
-    "tier_1": 10,
-    "tier_2": 8,
-    "tier_3": 6,
-    "tier_4": 4,
-    "tier_participation": 2,
-}
+# 依名次發的信譽（原本發槽位圖紙）
+TIER_REPUTATION: dict[str, int] = SEASON_REPUTATION
 
 TIER_PRIORITY: dict[str, int] = {
     "tier_1": 1,
@@ -68,6 +58,14 @@ TIER_TITLES: dict[str, str] = {
     "tier_4": "識詐專家",
     "tier_participation": "完賽榮譽",
 }
+
+
+def calculate_power_points(correct: int, total: int, factor: Fraction) -> int:
+    """每日訓練的當期養成競技積分：floor(1000 × 答對比例) × 開局鎖定的信譽倍率。"""
+    if total <= 0 or correct <= 0:
+        return 0
+    raw = (1000 * correct // total) * factor
+    return raw.numerator // raw.denominator
 
 
 def assign_award_tier(rank: int, is_qualified: bool) -> str:
@@ -192,15 +190,8 @@ def record_daily_competition_entry(
     if existing is not None:
         return existing
 
-    factors = context.factor_snapshot or {}
-    comp_factor_str = factors.get("competition", "1.0")
-    comp_factor = Decimal(comp_factor_str)
-
     power_points = calculate_power_points(
-        correct=correct,
-        total=total,
-        core_level=context.core_level,
-        competition_factor=comp_factor,
+        correct=correct, total=total, factor=snapshot_percent(context.factor_snapshot)
     )
 
     entry = CompetitionEntry(
@@ -436,8 +427,10 @@ def close_expired_seasons(
             if award is not None:
                 session.commit()
                 continue
-            count = TIER_BLUEPRINTS.get(tier, 0)
-            add_player_blueprints(session, user_id, count)
+            count = TIER_REPUTATION.get(tier, 0)
+            from app.estate.service import add_reputation
+
+            add_reputation(session, user, count)
             from app.progression.awards import grant_season_extras
 
             grant_season_extras(session, user_id, season_id, tier, final_rows)
@@ -469,10 +462,8 @@ def close_expired_seasons(
                     user_id=user_id,
                     event_key=f"season_award:{season_id}:{user_id}",
                     kind="season_award",
-                    amounts={"blueprints": str(count)},
-                    balance_after={
-                        "blueprints": str(get_player_blueprints(session, user_id))
-                    },
+                    amounts={"reputation": str(count)},
+                    balance_after={},
                 )
             )
             session.commit()
@@ -515,13 +506,13 @@ def get_player_season_award(
         )
     ).all()
 
-    blueprints = TIER_BLUEPRINTS.get(award.tier, 0)
+    reputation = TIER_REPUTATION.get(award.tier, 0)
     title = TIER_TITLES.get(award.tier)
 
     return {
         "season_id": str(award.season_id),
         "tier": award.tier,
-        "blueprints_awarded": blueprints,
+        "reputation_awarded": reputation,
         "title": title,
         "award_version": award.award_version,
         "state": award.state,

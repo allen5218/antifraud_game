@@ -3,7 +3,7 @@
 import type { CancelablePromise } from './core/CancelablePromise';
 import { OpenAPI } from './core/OpenAPI';
 import { request as __request } from './core/request';
-import type { AdminCohortsListCohortsResponse, AdminCohortsCreateCohortData, AdminCohortsCreateCohortResponse, AdminCohortsUpdateCohortData, AdminCohortsUpdateCohortResponse, AdminCohortsListMembersData, AdminCohortsListMembersResponse, AdminCohortsExportCohortData, AdminCohortsExportCohortResponse, AdminCohortsCohortProgressData, AdminCohortsCohortProgressResponse, AdminCohortsExportCohortSurveyData, AdminCohortsExportCohortSurveyResponse, AdminCohortsExportCohortExamData, AdminCohortsExportCohortExamResponse, AdminCohortsMemberDetailData, AdminCohortsMemberDetailResponse, AdminCohortsAnalyticsData, AdminCohortsAnalyticsResponse, AdminTeachersListTeachersData, AdminTeachersListTeachersResponse, AdminTeachersChangeTeacherData, AdminTeachersChangeTeacherResponse, BadgesOwnBadgesResponse, BadgesUpdateBadgeData, BadgesUpdateBadgeResponse, BadgesPublicBadgeData, BadgesPublicBadgeResponse, CardsCardSummaryResponse, CardsStartRoundData, CardsStartRoundResponse, CardsAnswerCardData, CardsAnswerCardResponse, CardsCompleteRoundData, CardsCompleteRoundResponse, ClassesReadMyClassesResponse, ClassesJoinClassData, ClassesJoinClassResponse, ClassesClaimMembershipData, ClassesClaimMembershipResponse, ClassesListClassesResponse, ClassesCreateClassData, ClassesCreateClassResponse, ClassesUpdateClassData, ClassesUpdateClassResponse, ClassesListMembersData, ClassesListMembersResponse, ClassesUpdateMemberData, ClassesUpdateMemberResponse, ClassesRemoveMemberData, ClassesRemoveMemberResponse, ClassesReadMemberData, ClassesReadMemberResponse, ClassesReadOverviewData, ClassesReadOverviewResponse, ClassesExportClassData, ClassesExportClassResponse, ClassesCreateAssignmentData, ClassesCreateAssignmentResponse, ClassesUpdateAssignmentData, ClassesUpdateAssignmentResponse, ClassesDeleteAssignmentData, ClassesDeleteAssignmentResponse, CollectionsReadCollectionsResponse, CollectionsUpgradeCollectionData, CollectionsUpgradeCollectionResponse, CollectionsConfigureDisplayData, CollectionsConfigureDisplayResponse, CollectionsSavePresetData, CollectionsSavePresetResponse, CollectionsApplyPresetData, CollectionsApplyPresetResponse, CollectionsPermanentBoardData, CollectionsPermanentBoardResponse, DailyDailyTodayResponse, EconomyReadMeResponse, EconomyPostSettleResponse, EconomyClaimResponse, EconomyListPropertiesResponse, EconomyBuyPropertyData, EconomyBuyPropertyResponse, EconomyGetAssetsResponse, EconomyPostLiquidateData, EconomyPostLiquidateResponse, EquipmentListEquipmentResponse, EquipmentUpdateLoadoutData, EquipmentUpdateLoadoutResponse, EquipmentUpgradeItemData, EquipmentUpgradeItemResponse, EquipmentBreakthroughItemData, EquipmentBreakthroughItemResponse, ExamReadStatusResponse, ExamStartData, ExamStartResponse, ExamActiveResponse, ExamHistoryResponse, ExamReadData, ExamReadResponse, ExamPretestData, ExamPretestResponse, ExamSwipeData, ExamSwipeResponse, ExamMessageData, ExamMessageResponse, ExamScenarioStartData, ExamScenarioStartResponse, ExamScenarioJudgeData, ExamScenarioJudgeResponse, ExamAbandonData, ExamAbandonResponse, HomeHomeSummaryResponse, InviteRedeemInviteData, InviteRedeemInviteResponse, InviteRedeemClassInviteData, InviteRedeemClassInviteResponse, ItemsReadItemsData, ItemsReadItemsResponse, ItemsCreateItemData, ItemsCreateItemResponse, ItemsReadItemData, ItemsReadItemResponse, ItemsUpdateItemData, ItemsUpdateItemResponse, ItemsDeleteItemData, ItemsDeleteItemResponse, LeaderboardReadLeaderboardData, LeaderboardReadLeaderboardResponse, LeaderboardUpdateNicknameData, LeaderboardUpdateNicknameResponse, LoginLoginAccessTokenData, LoginLoginAccessTokenResponse, LoginTestTokenResponse, LoginRecoverPasswordData, LoginRecoverPasswordResponse, LoginResetPasswordData, LoginResetPasswordResponse, LoginRecoverPasswordHtmlContentData, LoginRecoverPasswordHtmlContentResponse, LoginListProvidersResponse, LoginStartData, LoginStartResponse, LoginCallbackData, LoginCallbackResponse, MascotListMascotItemsResponse, MascotPurchaseItemData, MascotPurchaseItemResponse, MascotToggleEquipData, MascotToggleEquipResponse, MascotGetMyMascotResponse, OnboardingTourDoneResponse, OnboardingShopVisitedResponse, OnboardingClaimRewardResponse, PlayersGetPlayerShowcaseData, PlayersGetPlayerShowcaseResponse, PracticeReadProfileResponse, PretestGetPretestQuestionsResponse, PretestSubmitPretestData, PretestSubmitPretestResponse, PrivateCreateUserData, PrivateCreateUserResponse, ProgressionGetMyProgressionResponse, ProgressionGetRewardReceiptData, ProgressionGetRewardReceiptResponse, ProgressionPurchaseUnlockData, ProgressionPurchaseUnlockResponse, QuickSwipeDeckData, QuickSwipeDeckResponse, QuickSwipeAnswerData, QuickSwipeAnswerResponse, QuickSwipeCompleteData, QuickSwipeCompleteResponse, QuickQuizDeckData, QuickQuizDeckResponse, QuickQuizAnswerData, QuickQuizAnswerResponse, QuickQuizCompleteData, QuickQuizCompleteResponse, ScenarioInboxResponse, ScenarioCreateScenarioData, ScenarioCreateScenarioResponse, ScenarioReadScenarioData, ScenarioReadScenarioResponse, ScenarioSendMessageData, ScenarioSendMessageResponse, ScenarioJudgeScenarioData, ScenarioJudgeScenarioResponse, ScoreGetMyScoreResponse, SeasonsClaimChampionToolData, SeasonsClaimChampionToolResponse, SeasonsGetSeasonCurrentResponse, SeasonsGetBoardData, SeasonsGetBoardResponse, SeasonsGetMySeasonAwardData, SeasonsGetMySeasonAwardResponse, SeasonsTriggerCloseExpiredResponse, TeamReadBankResponse, TeamListCommentsData, TeamListCommentsResponse, TeamCreateCommentData, TeamCreateCommentResponse, TeamDeleteCommentData, TeamDeleteCommentResponse, TrialReadSurveyResponse, TrialSubmitSurveyData, TrialSubmitSurveyResponse, TrialStartSurveyResponse, UsersReadUsersData, UsersReadUsersResponse, UsersCreateUserData, UsersCreateUserResponse, UsersReadUserMeResponse, UsersDeleteUserMeResponse, UsersUpdateUserMeData, UsersUpdateUserMeResponse, UsersUpdatePasswordMeData, UsersUpdatePasswordMeResponse, UsersApplyTeacherMeData, UsersApplyTeacherMeResponse, UsersSetBirthYearMeData, UsersSetBirthYearMeResponse, UsersRegisterUserData, UsersRegisterUserResponse, UsersReadUserByIdData, UsersReadUserByIdResponse, UsersUpdateUserData, UsersUpdateUserResponse, UsersDeleteUserData, UsersDeleteUserResponse, UtilsTestEmailData, UtilsTestEmailResponse, UtilsHealthCheckResponse } from './types.gen';
+import type { AdminCohortsListCohortsResponse, AdminCohortsCreateCohortData, AdminCohortsCreateCohortResponse, AdminCohortsUpdateCohortData, AdminCohortsUpdateCohortResponse, AdminCohortsListMembersData, AdminCohortsListMembersResponse, AdminCohortsExportCohortData, AdminCohortsExportCohortResponse, AdminCohortsCohortProgressData, AdminCohortsCohortProgressResponse, AdminCohortsExportCohortSurveyData, AdminCohortsExportCohortSurveyResponse, AdminCohortsExportCohortExamData, AdminCohortsExportCohortExamResponse, AdminCohortsMemberDetailData, AdminCohortsMemberDetailResponse, AdminCohortsAnalyticsData, AdminCohortsAnalyticsResponse, AdminTeachersListTeachersData, AdminTeachersListTeachersResponse, AdminTeachersChangeTeacherData, AdminTeachersChangeTeacherResponse, BadgesOwnBadgesResponse, BadgesUpdateBadgeData, BadgesUpdateBadgeResponse, BadgesPublicBadgeData, BadgesPublicBadgeResponse, CardsCardSummaryResponse, CardsStartRoundData, CardsStartRoundResponse, CardsAnswerCardData, CardsAnswerCardResponse, CardsCompleteRoundData, CardsCompleteRoundResponse, ClassesReadMyClassesResponse, ClassesJoinClassData, ClassesJoinClassResponse, ClassesClaimMembershipData, ClassesClaimMembershipResponse, ClassesListClassesResponse, ClassesCreateClassData, ClassesCreateClassResponse, ClassesUpdateClassData, ClassesUpdateClassResponse, ClassesListMembersData, ClassesListMembersResponse, ClassesUpdateMemberData, ClassesUpdateMemberResponse, ClassesRemoveMemberData, ClassesRemoveMemberResponse, ClassesReadMemberData, ClassesReadMemberResponse, ClassesReadOverviewData, ClassesReadOverviewResponse, ClassesExportClassData, ClassesExportClassResponse, ClassesCreateAssignmentData, ClassesCreateAssignmentResponse, ClassesUpdateAssignmentData, ClassesUpdateAssignmentResponse, ClassesDeleteAssignmentData, ClassesDeleteAssignmentResponse, CollectionsReadCollectionsResponse, CollectionsConfigureDisplayData, CollectionsConfigureDisplayResponse, DailyDailyTodayResponse, EconomyReadMeResponse, EstateReadEstateResponse, EstateBuyIndustryData, EstateBuyIndustryResponse, EstateCollectRentData, EstateCollectRentResponse, EstateBuyUpgradeCardData, EstateBuyUpgradeCardResponse, EstateAssignManagerData, EstateAssignManagerResponse, EstateMoveHouseData, EstateMoveHouseResponse, EstateLegacyReportSeenResponse, EstateEstateBoardData, EstateEstateBoardResponse, ExamReadStatusResponse, ExamStartData, ExamStartResponse, ExamActiveResponse, ExamHistoryResponse, ExamReadData, ExamReadResponse, ExamPretestData, ExamPretestResponse, ExamSwipeData, ExamSwipeResponse, ExamMessageData, ExamMessageResponse, ExamScenarioStartData, ExamScenarioStartResponse, ExamScenarioJudgeData, ExamScenarioJudgeResponse, ExamAbandonData, ExamAbandonResponse, HomeHomeSummaryResponse, InviteRedeemInviteData, InviteRedeemInviteResponse, InviteRedeemClassInviteData, InviteRedeemClassInviteResponse, ItemsReadItemsData, ItemsReadItemsResponse, ItemsCreateItemData, ItemsCreateItemResponse, ItemsReadItemData, ItemsReadItemResponse, ItemsUpdateItemData, ItemsUpdateItemResponse, ItemsDeleteItemData, ItemsDeleteItemResponse, LeaderboardReadLeaderboardData, LeaderboardReadLeaderboardResponse, LeaderboardUpdateNicknameData, LeaderboardUpdateNicknameResponse, LoginLoginAccessTokenData, LoginLoginAccessTokenResponse, LoginTestTokenResponse, LoginRecoverPasswordData, LoginRecoverPasswordResponse, LoginResetPasswordData, LoginResetPasswordResponse, LoginRecoverPasswordHtmlContentData, LoginRecoverPasswordHtmlContentResponse, LoginListProvidersResponse, LoginStartData, LoginStartResponse, LoginCallbackData, LoginCallbackResponse, MascotListMascotItemsResponse, MascotPurchaseItemData, MascotPurchaseItemResponse, MascotToggleEquipData, MascotToggleEquipResponse, MascotGetMyMascotResponse, OnboardingTourDoneResponse, OnboardingShopVisitedResponse, OnboardingClaimRewardResponse, PlayersGetPlayerShowcaseData, PlayersGetPlayerShowcaseResponse, PracticeReadProfileResponse, PretestGetPretestQuestionsResponse, PretestSubmitPretestData, PretestSubmitPretestResponse, PrivateCreateUserData, PrivateCreateUserResponse, ProgressionGetRewardReceiptData, ProgressionGetRewardReceiptResponse, QuickSwipeDeckData, QuickSwipeDeckResponse, QuickSwipeAnswerData, QuickSwipeAnswerResponse, QuickSwipeCompleteData, QuickSwipeCompleteResponse, QuickQuizDeckData, QuickQuizDeckResponse, QuickQuizAnswerData, QuickQuizAnswerResponse, QuickQuizCompleteData, QuickQuizCompleteResponse, ScenarioInboxResponse, ScenarioCreateScenarioData, ScenarioCreateScenarioResponse, ScenarioReadScenarioData, ScenarioReadScenarioResponse, ScenarioSendMessageData, ScenarioSendMessageResponse, ScenarioJudgeScenarioData, ScenarioJudgeScenarioResponse, ScoreGetMyScoreResponse, SeasonsGetSeasonCurrentResponse, SeasonsGetBoardData, SeasonsGetBoardResponse, SeasonsGetMySeasonAwardData, SeasonsGetMySeasonAwardResponse, SeasonsTriggerCloseExpiredResponse, TeamReadBankResponse, TeamListCommentsData, TeamListCommentsResponse, TeamCreateCommentData, TeamCreateCommentResponse, TeamDeleteCommentData, TeamDeleteCommentResponse, TrialReadSurveyResponse, TrialSubmitSurveyData, TrialSubmitSurveyResponse, TrialStartSurveyResponse, UsersReadUsersData, UsersReadUsersResponse, UsersCreateUserData, UsersCreateUserResponse, UsersReadUserMeResponse, UsersDeleteUserMeResponse, UsersUpdateUserMeData, UsersUpdateUserMeResponse, UsersUpdatePasswordMeData, UsersUpdatePasswordMeResponse, UsersApplyTeacherMeData, UsersApplyTeacherMeResponse, UsersSetBirthYearMeData, UsersSetBirthYearMeResponse, UsersRegisterUserData, UsersRegisterUserResponse, UsersReadUserByIdData, UsersReadUserByIdResponse, UsersUpdateUserData, UsersUpdateUserResponse, UsersDeleteUserData, UsersDeleteUserResponse, UtilsTestEmailData, UtilsTestEmailResponse, UtilsHealthCheckResponse } from './types.gen';
 
 export class AdminCohortsService {
     /**
@@ -712,31 +712,6 @@ export class CollectionsService {
     }
     
     /**
-     * Upgrade Collection
-     * @param data The data for the request.
-     * @param data.kind
-     * @param data.targetId
-     * @param data.requestBody
-     * @returns CollectionsPublic Successful Response
-     * @throws ApiError
-     */
-    public static upgradeCollection(data: CollectionsUpgradeCollectionData): CancelablePromise<CollectionsUpgradeCollectionResponse> {
-        return __request(OpenAPI, {
-            method: 'POST',
-            url: '/api/v1/collections/{kind}/{target_id}/upgrade',
-            path: {
-                kind: data.kind,
-                target_id: data.targetId
-            },
-            body: data.requestBody,
-            mediaType: 'application/json',
-            errors: {
-                422: 'Validation Error'
-            }
-        });
-    }
-    
-    /**
      * Configure Display
      * @param data The data for the request.
      * @param data.action
@@ -753,69 +728,6 @@ export class CollectionsService {
             },
             body: data.requestBody,
             mediaType: 'application/json',
-            errors: {
-                422: 'Validation Error'
-            }
-        });
-    }
-    
-    /**
-     * Save Preset
-     * @param data The data for the request.
-     * @param data.position
-     * @param data.requestBody
-     * @returns CollectionsPublic Successful Response
-     * @throws ApiError
-     */
-    public static savePreset(data: CollectionsSavePresetData): CancelablePromise<CollectionsSavePresetResponse> {
-        return __request(OpenAPI, {
-            method: 'PUT',
-            url: '/api/v1/collections/presets/{position}',
-            path: {
-                position: data.position
-            },
-            body: data.requestBody,
-            mediaType: 'application/json',
-            errors: {
-                422: 'Validation Error'
-            }
-        });
-    }
-    
-    /**
-     * Apply Preset
-     * @param data The data for the request.
-     * @param data.position
-     * @returns CollectionsPublic Successful Response
-     * @throws ApiError
-     */
-    public static applyPreset(data: CollectionsApplyPresetData): CancelablePromise<CollectionsApplyPresetResponse> {
-        return __request(OpenAPI, {
-            method: 'POST',
-            url: '/api/v1/collections/presets/{position}/apply',
-            path: {
-                position: data.position
-            },
-            errors: {
-                422: 'Validation Error'
-            }
-        });
-    }
-    
-    /**
-     * Permanent Board
-     * @param data The data for the request.
-     * @param data.kind
-     * @returns PermanentBoardPublic Successful Response
-     * @throws ApiError
-     */
-    public static permanentBoard(data: CollectionsPermanentBoardData): CancelablePromise<CollectionsPermanentBoardResponse> {
-        return __request(OpenAPI, {
-            method: 'GET',
-            url: '/api/v1/collections/boards/{kind}',
-            path: {
-                kind: data.kind
-            },
             errors: {
                 422: 'Validation Error'
             }
@@ -841,7 +753,7 @@ export class DailyService {
 export class EconomyService {
     /**
      * Read Me
-     * Return current user's economy state (settles accrual first).
+     * 目前的錢、等級與連續天數。
      * @returns EconomyMeResponse Successful Response
      * @throws ApiError
      */
@@ -851,58 +763,55 @@ export class EconomyService {
             url: '/api/v1/economy/me'
         });
     }
-    
+}
+
+export class EstateService {
     /**
-     * Post Settle
-     * Settle pending accrual and return economy state.
-     * @returns EconomyMeResponse Successful Response
+     * Read Estate
+     * @returns EstatePublic Successful Response
      * @throws ApiError
      */
-    public static postSettle(): CancelablePromise<EconomyPostSettleResponse> {
-        return __request(OpenAPI, {
-            method: 'POST',
-            url: '/api/v1/economy/settle'
-        });
-    }
-    
-    /**
-     * Claim
-     * Settle accrual then move pending_accrual into cash.
-     * @returns EconomyMeResponse Successful Response
-     * @throws ApiError
-     */
-    public static claim(): CancelablePromise<EconomyClaimResponse> {
-        return __request(OpenAPI, {
-            method: 'POST',
-            url: '/api/v1/economy/settle/claim'
-        });
-    }
-    
-    /**
-     * List Properties
-     * Return all property tiers and the user's owned (unsold) properties.
-     * @returns PropertiesListResponse Successful Response
-     * @throws ApiError
-     */
-    public static listProperties(): CancelablePromise<EconomyListPropertiesResponse> {
+    public static readEstate(): CancelablePromise<EstateReadEstateResponse> {
         return __request(OpenAPI, {
             method: 'GET',
-            url: '/api/v1/economy/properties'
+            url: '/api/v1/estate'
         });
     }
     
     /**
-     * Buy Property
-     * Purchase one unit of the given property tier.
+     * Buy Industry
      * @param data The data for the request.
      * @param data.tierId
-     * @returns BuyPropertyResponse Successful Response
+     * @param data.requestBody
+     * @returns EstatePublic Successful Response
      * @throws ApiError
      */
-    public static buyProperty(data: EconomyBuyPropertyData): CancelablePromise<EconomyBuyPropertyResponse> {
+    public static buyIndustry(data: EstateBuyIndustryData): CancelablePromise<EstateBuyIndustryResponse> {
         return __request(OpenAPI, {
             method: 'POST',
-            url: '/api/v1/economy/properties/{tier_id}/buy',
+            url: '/api/v1/estate/industries/{tier_id}/buy',
+            path: {
+                tier_id: data.tierId
+            },
+            body: data.requestBody,
+            mediaType: 'application/json',
+            errors: {
+                422: 'Validation Error'
+            }
+        });
+    }
+    
+    /**
+     * Collect Rent
+     * @param data The data for the request.
+     * @param data.tierId
+     * @returns EstatePublic Successful Response
+     * @throws ApiError
+     */
+    public static collectRent(data: EstateCollectRentData): CancelablePromise<EstateCollectRentResponse> {
+        return __request(OpenAPI, {
+            method: 'POST',
+            url: '/api/v1/estate/industries/{tier_id}/collect',
             path: {
                 tier_id: data.tierId
             },
@@ -913,30 +822,20 @@ export class EconomyService {
     }
     
     /**
-     * Get Assets
-     * Return a summary of the user's assets.
-     * @returns AssetSummaryResponse Successful Response
-     * @throws ApiError
-     */
-    public static getAssets(): CancelablePromise<EconomyGetAssetsResponse> {
-        return __request(OpenAPI, {
-            method: 'GET',
-            url: '/api/v1/economy/assets'
-        });
-    }
-    
-    /**
-     * Post Liquidate
-     * Liquidate the given owned properties and recover a portion of their value.
+     * Buy Upgrade Card
      * @param data The data for the request.
+     * @param data.tierId
      * @param data.requestBody
-     * @returns LiquidateResponse Successful Response
+     * @returns EstatePublic Successful Response
      * @throws ApiError
      */
-    public static postLiquidate(data: EconomyPostLiquidateData): CancelablePromise<EconomyPostLiquidateResponse> {
+    public static buyUpgradeCard(data: EstateBuyUpgradeCardData): CancelablePromise<EstateBuyUpgradeCardResponse> {
         return __request(OpenAPI, {
             method: 'POST',
-            url: '/api/v1/economy/liquidate',
+            url: '/api/v1/estate/industries/{tier_id}/card',
+            path: {
+                tier_id: data.tierId
+            },
             body: data.requestBody,
             mediaType: 'application/json',
             errors: {
@@ -944,34 +843,22 @@ export class EconomyService {
             }
         });
     }
-}
-
-export class EquipmentService {
-    /**
-     * List Equipment
-     * 查詢當前玩家擁有的所有工具、當前生效槽位與強化狀態。
-     * @returns EquipmentCatalogPublic Successful Response
-     * @throws ApiError
-     */
-    public static listEquipment(): CancelablePromise<EquipmentListEquipmentResponse> {
-        return __request(OpenAPI, {
-            method: 'GET',
-            url: '/api/v1/equipment'
-        });
-    }
     
     /**
-     * Update Loadout
-     * 整套更新生效裝備，檢查容量與家族唯一性。
+     * Assign Manager
      * @param data The data for the request.
+     * @param data.tierId
      * @param data.requestBody
-     * @returns EquipmentCatalogPublic Successful Response
+     * @returns EstatePublic Successful Response
      * @throws ApiError
      */
-    public static updateLoadout(data: EquipmentUpdateLoadoutData): CancelablePromise<EquipmentUpdateLoadoutResponse> {
+    public static assignManager(data: EstateAssignManagerData): CancelablePromise<EstateAssignManagerResponse> {
         return __request(OpenAPI, {
             method: 'PUT',
-            url: '/api/v1/equipment/loadout',
+            url: '/api/v1/estate/industries/{tier_id}/manager',
+            path: {
+                tier_id: data.tierId
+            },
             body: data.requestBody,
             mediaType: 'application/json',
             errors: {
@@ -981,24 +868,18 @@ export class EquipmentService {
     }
     
     /**
-     * Upgrade Item
-     * 消耗金錢強化工具階數。
+     * Move House
      * @param data The data for the request.
-     * @param data.itemId
-     * @param data.xIdempotencyKey
-     * @returns EquipmentItemPublic Successful Response
+     * @param data.requestBody
+     * @returns EstatePublic Successful Response
      * @throws ApiError
      */
-    public static upgradeItem(data: EquipmentUpgradeItemData): CancelablePromise<EquipmentUpgradeItemResponse> {
+    public static moveHouse(data: EstateMoveHouseData): CancelablePromise<EstateMoveHouseResponse> {
         return __request(OpenAPI, {
             method: 'POST',
-            url: '/api/v1/equipment/{item_id}/upgrade',
-            path: {
-                item_id: data.itemId
-            },
-            headers: {
-                'X-Idempotency-Key': data.xIdempotencyKey
-            },
+            url: '/api/v1/estate/move',
+            body: data.requestBody,
+            mediaType: 'application/json',
             errors: {
                 422: 'Validation Error'
             }
@@ -1006,23 +887,30 @@ export class EquipmentService {
     }
     
     /**
-     * Breakthrough Item
-     * 消耗圖紙碎片與鍛造能量突破上限至 8 階。
-     * @param data The data for the request.
-     * @param data.itemId
-     * @param data.xIdempotencyKey
-     * @returns EquipmentItemPublic Successful Response
+     * Legacy Report Seen
+     * @returns EstatePublic Successful Response
      * @throws ApiError
      */
-    public static breakthroughItem(data: EquipmentBreakthroughItemData): CancelablePromise<EquipmentBreakthroughItemResponse> {
+    public static legacyReportSeen(): CancelablePromise<EstateLegacyReportSeenResponse> {
         return __request(OpenAPI, {
             method: 'POST',
-            url: '/api/v1/equipment/{item_id}/breakthrough',
+            url: '/api/v1/estate/legacy-report/seen'
+        });
+    }
+    
+    /**
+     * Estate Board
+     * @param data The data for the request.
+     * @param data.kind
+     * @returns EstateBoardPublic Successful Response
+     * @throws ApiError
+     */
+    public static estateBoard(data: EstateEstateBoardData): CancelablePromise<EstateEstateBoardResponse> {
+        return __request(OpenAPI, {
+            method: 'GET',
+            url: '/api/v1/estate/boards/{kind}',
             path: {
-                item_id: data.itemId
-            },
-            headers: {
-                'X-Idempotency-Key': data.xIdempotencyKey
+                kind: data.kind
             },
             errors: {
                 422: 'Validation Error'
@@ -1814,19 +1702,6 @@ export class PrivateService {
 
 export class ProgressionService {
     /**
-     * Get My Progression
-     * 查詢當前玩家的養成進度、核心等級、槽位數與各通道倍率。
-     * @returns ProgressionSummaryPublic Successful Response
-     * @throws ApiError
-     */
-    public static getMyProgression(): CancelablePromise<ProgressionGetMyProgressionResponse> {
-        return __request(OpenAPI, {
-            method: 'GET',
-            url: '/api/v1/progression/me'
-        });
-    }
-    
-    /**
      * Get Reward Receipt
      * 查閱首次結算產出的不可變獎勵收據（僅限擁有者查詢）。
      * @param data The data for the request.
@@ -1840,27 +1715,6 @@ export class ProgressionService {
             url: '/api/v1/progression/receipts/{receipt_id}',
             path: {
                 receipt_id: data.receiptId
-            },
-            errors: {
-                422: 'Validation Error'
-            }
-        });
-    }
-    
-    /**
-     * Purchase Unlock
-     * 啟用或兌換永久資格（如第 6 槽許可或解鎖新家族工具）。
-     * @param data The data for the request.
-     * @param data.unlockKey
-     * @returns unknown Successful Response
-     * @throws ApiError
-     */
-    public static purchaseUnlock(data: ProgressionPurchaseUnlockData): CancelablePromise<ProgressionPurchaseUnlockResponse> {
-        return __request(OpenAPI, {
-            method: 'POST',
-            url: '/api/v1/progression/unlocks/{unlock_key}',
-            path: {
-                unlock_key: data.unlockKey
             },
             errors: {
                 422: 'Validation Error'
@@ -2110,29 +1964,6 @@ export class ScoreService {
 }
 
 export class SeasonsService {
-    /**
-     * Claim Champion Tool
-     * @param data The data for the request.
-     * @param data.seasonId
-     * @param data.requestBody
-     * @returns string Successful Response
-     * @throws ApiError
-     */
-    public static claimChampionTool(data: SeasonsClaimChampionToolData): CancelablePromise<SeasonsClaimChampionToolResponse> {
-        return __request(OpenAPI, {
-            method: 'POST',
-            url: '/api/v1/seasons/{season_id}/awards/tool',
-            path: {
-                season_id: data.seasonId
-            },
-            body: data.requestBody,
-            mediaType: 'application/json',
-            errors: {
-                422: 'Validation Error'
-            }
-        });
-    }
-    
     /**
      * Get Season Current
      * 查詢當前 14 天競技賽季狀態與自己的參賽進度。

@@ -170,51 +170,6 @@ class EconomyMeResponse(BaseModel):
     xp: int
     level: int
     streak_days: int
-    pending_accrual: DecimalStr
-    bankruptcy_pending: bool
-
-
-class PropertyTierPublic(BaseModel):
-    id: int
-    name: str
-    svg_key: str
-    price: int
-    daily_income: int
-    unlock_level: int
-
-
-class OwnedPropertyPublic(BaseModel):
-    id: str
-    tier: PropertyTierPublic
-    purchased_at: str
-
-
-class PropertiesListResponse(BaseModel):
-    tiers: list[PropertyTierPublic]
-    owned: list[OwnedPropertyPublic]
-
-
-class AssetSummaryResponse(BaseModel):
-    cash: DecimalStr
-    property_value: int
-    daily_income: int
-    total_net_worth: DecimalStr
-    owned_count: int
-
-
-class BuyPropertyResponse(BaseModel):
-    property_id: str
-    new_cash: DecimalStr
-
-
-class LiquidateRequest(BaseModel):
-    property_ids: list[str]
-
-
-class LiquidateResponse(BaseModel):
-    recovered: DecimalStr
-    new_cash: DecimalStr
-    bankruptcy_pending: bool
 
 
 # ── Swipe（快速模式滑卡）─────────────────────────────────────

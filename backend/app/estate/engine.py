@@ -50,7 +50,8 @@ def card_price(spec: IndustrySpec, level: int) -> int | None:
     """升級卡從 level 張升到 level+1 張的價格；已經滿了回 None。"""
     if level >= MAX_CARD_LEVEL:
         return None
-    return spec.base_cost * CARD_PRICE_BASE * CARD_PRICE_GROWTH**level
+    price: int = spec.base_cost * CARD_PRICE_BASE * CARD_PRICE_GROWTH**level
+    return price
 
 
 def reached(milestones: tuple[int, ...], value: int) -> int:

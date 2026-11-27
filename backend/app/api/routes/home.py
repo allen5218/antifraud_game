@@ -1,7 +1,6 @@
 """房間首頁的唯讀摘要；不建立任何牌局，也不結算逾期檢測。"""
 
 from fastapi import APIRouter
-from sqlalchemy import func
 from sqlmodel import col, select
 
 from app.api.deps import CurrentUser, SessionDep
@@ -13,6 +12,7 @@ from app.core.pretest import latest_weakest_type
 from app.daily.dates import taipei_today
 from app.daily.results import DAILY_UNLOCK_LEVEL
 from app.economy.levels import level_of
+from app.estate.service import highest_owned_tier
 from app.exam.badges import list_badges
 from app.exam.config import EXAM_DAILY_LIMIT
 from app.exam.service import daily_used
@@ -22,7 +22,6 @@ from app.models import (
     ExamAttempt,
     FraudType,
     ScenarioSession,
-    UserProperty,
 )
 from app.onboarding.service import starter_tasks, tour_pending
 from app.schemas import HomeSummary, PracticeProfilePublic
@@ -40,15 +39,7 @@ def home_summary(session: SessionDep, current_user: CurrentUser) -> HomeSummary:
     ).first()
     profile = PracticeProfilePublic.model_validate(read_profile(session, current_user))
     gate = profile.retake.gate if profile.retake else None
-    room_stage = (
-        session.exec(
-            select(func.max(UserProperty.tier_id)).where(
-                UserProperty.user_id == current_user.id,
-                col(UserProperty.sold_at).is_(None),
-            )
-        ).one()
-        or 0
-    )
+    room_stage = highest_owned_tier(session, current_user.id)
     pending = 0
     for fraud_type in FraudType:
         latest = session.exec(

@@ -1106,6 +1106,12 @@ class ClassAssignment(SQLModel, table=True):
 
 
 # Register progression tables into SQLModel metadata
+# Register estate (放置經營) tables into SQLModel metadata
+from app.estate.models import (  # noqa: E402, F401
+    AssetTransfer,
+    EstateIndustry,
+    PlayerEstate,
+)
 from app.progression.models import (  # noqa: E402, F401
     CollectionGrowth,
     CompetitionEntry,

@@ -401,7 +401,7 @@ def judge_scenario(
                 RewardContext.source_id == sc.id,
             )
         ).first() or create_reward_context(session, current_user.id, "scenario", sc.id)
-        receipt, _ = settle_reward(
+        receipt = settle_reward(
             session,
             current_user,
             context,

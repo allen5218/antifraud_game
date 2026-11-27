@@ -5,6 +5,8 @@ from fastapi.testclient import TestClient
 from sqlmodel import Session, select
 
 from app.core.config import settings
+from app.estate.config import SEASON_REPUTATION
+from app.estate.models import PlayerEstate
 from app.models import QuizSession, User
 from app.progression.config import CONFIG_VERSION
 from app.progression.models import (
@@ -20,9 +22,15 @@ from app.progression.seasons import (
 )
 from app.progression.service import (
     create_reward_context,
-    get_player_blueprints,
     get_utc_now,
 )
+
+
+def get_player_reputation(db: Session, user_id: uuid.UUID) -> int:
+    """賽季獎改發信譽（原本是槽位圖紙）。"""
+    db.expire_all()
+    estate = db.get(PlayerEstate, user_id)
+    return estate.reputation if estate else 0
 
 
 def test_season_current_and_boards(
@@ -143,9 +151,9 @@ def test_season_close_awards_and_idempotency(client: TestClient, db: Session) ->
 
     db.commit()
 
-    u1_bp_before = get_player_blueprints(db, user1.id)
-    u2_bp_before = get_player_blueprints(db, user2.id)
-    u3_bp_before = get_player_blueprints(db, user3.id)
+    u1_bp_before = get_player_reputation(db, user1.id)
+    u2_bp_before = get_player_reputation(db, user2.id)
+    u3_bp_before = get_player_reputation(db, user3.id)
 
     # 執行關帳
     closed = close_expired_seasons(db, now=now)
@@ -160,16 +168,16 @@ def test_season_close_awards_and_idempotency(client: TestClient, db: Session) ->
     ).all()
     assert len(final_rows) >= 3
 
-    # User 1 應獲得 tier_1 獎勵（10 片圖紙與冠軍稱號）
-    u1_bp_after = get_player_blueprints(db, user1.id)
-    assert u1_bp_after == u1_bp_before + 10
+    # User 1 應獲得 tier_1 獎勵（信譽與冠軍稱號）
+    u1_bp_after = get_player_reputation(db, user1.id)
+    assert u1_bp_after == u1_bp_before + SEASON_REPUTATION["tier_1"]
 
-    # User 2 應獲得 tier_2 獎勵（8 片圖紙）
-    u2_bp_after = get_player_blueprints(db, user2.id)
-    assert u2_bp_after == u2_bp_before + 8
+    # User 2 應獲得 tier_2 獎勵（信譽）
+    u2_bp_after = get_player_reputation(db, user2.id)
+    assert u2_bp_after == u2_bp_before + SEASON_REPUTATION["tier_2"]
 
-    # User 3 未符資格不應得圖紙
-    u3_bp_after = get_player_blueprints(db, user3.id)
+    # User 3 未符資格不應得信譽
+    u3_bp_after = get_player_reputation(db, user3.id)
     assert u3_bp_after == u3_bp_before
 
     # 驗證 SeasonAward 記錄
@@ -186,9 +194,9 @@ def test_season_close_awards_and_idempotency(client: TestClient, db: Session) ->
     closed_again = close_expired_seasons(db, now=now)
     assert len(closed_again) == 0
 
-    # 圖紙數量保持一致，不被重複加發
-    assert get_player_blueprints(db, user1.id) == u1_bp_after
-    assert get_player_blueprints(db, user2.id) == u2_bp_after
+    # 信譽保持一致，不被重複加發
+    assert get_player_reputation(db, user1.id) == u1_bp_after
+    assert get_player_reputation(db, user2.id) == u2_bp_after
 
     # 測試 API 查詢個人領獎結果
     r_award = client.get(
@@ -198,7 +206,7 @@ def test_season_close_awards_and_idempotency(client: TestClient, db: Session) ->
     assert r_award.status_code == 200
     award_json = r_award.json()
     assert award_json["tier"] == "tier_1"
-    assert award_json["blueprints_awarded"] == 10
+    assert award_json["reputation_awarded"] == SEASON_REPUTATION["tier_1"]
     assert award_json["title"] == "識詐冠軍"
     assert len(award_json["final_rows"]) >= 1
 
@@ -377,8 +385,8 @@ def test_tied_players_get_same_award_tier(db: Session) -> None:
             )
     db.commit()
 
-    u1_bp_before = get_player_blueprints(db, u1.id)
-    u2_bp_before = get_player_blueprints(db, u2.id)
+    u1_bp_before = get_player_reputation(db, u1.id)
+    u2_bp_before = get_player_reputation(db, u2.id)
 
     # 關帳發獎
     close_expired_seasons(db, now=now)
@@ -396,10 +404,14 @@ def test_tied_players_get_same_award_tier(db: Session) -> None:
     ).first()
 
     assert a1 is not None and a2 is not None
-    # 兩者必須同屬 tier_1，圖紙數量均為 10 片
+    # 兩者必須同屬 tier_1，信譽一樣多
     assert a1.tier == a2.tier == "tier_1"
-    assert get_player_blueprints(db, u1.id) == u1_bp_before + 10
-    assert get_player_blueprints(db, u2.id) == u2_bp_before + 10
+    assert (
+        get_player_reputation(db, u1.id) == u1_bp_before + SEASON_REPUTATION["tier_1"]
+    )
+    assert (
+        get_player_reputation(db, u2.id) == u2_bp_before + SEASON_REPUTATION["tier_1"]
+    )
 
 
 def test_season_grace_period_enforced(db: Session) -> None:

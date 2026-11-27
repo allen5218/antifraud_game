@@ -9,7 +9,8 @@ from sqlmodel import select
 from app.core.config import settings
 from app.core.security import create_access_token
 from app.daily.dates import taipei_today
-from app.economy.service import add_xp
+from app.economy.service import add_xp, transfer_asset
+from app.estate.models import PlayerEstate
 from app.models import (
     DailyChallenge,
     DailyResult,
@@ -56,12 +57,14 @@ def test_summary_creates_no_rows_for_new_player(client, player, db):
         PracticeAnswer,
         PretestAttempt,
         UserOnboarding,
+        PlayerEstate,
     )
     before = [db.exec(select(func.count()).select_from(t)).one() for t in tables]
     for _ in range(2):
         body = summary(client, player)
+        # 每個人都有起家的那一間雅房
         assert body == {
-            "room_stage": 0,
+            "room_stage": 1,
             "mascot_image_url": "/assets/mascot/shiba/base.webp",
             "pretest_done": False,
             "inbox_pending": 5,
@@ -104,21 +107,16 @@ def test_room_stage_is_max_owned_tier(client, player, db):
     assert summary(client, player)["room_stage"] == 4
 
 
-def test_room_stage_after_liquidation(client, player, db):
+def test_room_stage_follows_estate_after_transfer(client, player, db):
     user, headers = player
-    low = UserProperty(user_id=user.id, tier_id=1)
-    high = UserProperty(user_id=user.id, tier_id=2)
-    db.add_all([low, high])
+    db.add(UserProperty(user_id=user.id, tier_id=2))
     db.commit()
+    # 換算成新制度之後，房間照經營裡擁有的最高一種
+    client.get(f"{API}/estate", headers=headers).raise_for_status()
     assert summary(client, player)["room_stage"] == 2
-    for prop, expected in ((high, 1), (low, 0)):
-        response = client.post(
-            f"{API}/economy/liquidate",
-            headers=headers,
-            json={"property_ids": [str(prop.id)]},
-        )
-        assert response.status_code == 200, response.text
-        assert summary(client, player)["room_stage"] == expected
+    transfer_asset(db, user, "property:2", units=1, reason="t", idempotency_key="r1")
+    db.commit()
+    assert summary(client, player)["room_stage"] == 1
 
 
 def test_daily_flags(client, player, db):

@@ -6,17 +6,13 @@ from sqlmodel import col, select
 
 from app.api.deps import SessionDep
 from app.daily.names import display_name
+from app.estate.config import INDUSTRY_BY_TIER
+from app.estate.service import highest_owned_tier, reputation_of
 from app.models import User
-from app.progression.math import compute_item_factors
 from app.progression.models import (
-    EquipmentDefinition,
     PlayerCollectible,
-    PlayerGrowth,
     PlayerShowcase,
     PlayerShowcasePublic,
-)
-from app.progression.service import (
-    get_active_loadout_items,
 )
 
 router = APIRouter(prefix="/players", tags=["players"])
@@ -32,8 +28,7 @@ def get_player_showcase(
     if user is None:
         raise HTTPException(404, {"code": "player_not_found"})
 
-    growth = session.get(PlayerGrowth, player_id)
-    loadout = get_active_loadout_items(session, player_id)
+    top = INDUSTRY_BY_TIER.get(highest_owned_tier(session, player_id))
     showcases = session.exec(
         select(PlayerShowcase)
         .where(
@@ -61,28 +56,12 @@ def get_player_showcase(
     return {
         "player_id": user.id,
         "nickname": display_name(user.id, user.nickname),
-        "core_level": growth.core_level if growth else 0,
+        "reputation": reputation_of(session, player_id),
+        "top_industry": top.name if top else None,
         "title": title.value if title else None,
         "pet_appearance": appearance.value if appearance else None,
         "collectibles": [
             {"item_key": c.item_key, "name": c.name, "kind": c.kind} for c in visible
-        ],
-        "active_loadout": [
-            {
-                "item_id": item["item_id"],
-                "name": definition.name,
-                "family": item["family"],
-                "rank": item["rank"],
-                "factors": {
-                    k: str(v)
-                    for k, v in compute_item_factors(
-                        item["family"], item["rank"]
-                    ).items()
-                },
-            }
-            for item in loadout
-            if (definition := session.get(EquipmentDefinition, item["definition_id"]))
-            is not None
         ],
         "showcases": [
             {"position": s.position, "collectible_id": s.collectible_id}

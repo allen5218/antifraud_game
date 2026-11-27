@@ -3,7 +3,7 @@
 - `GET  /cards/summary`：首頁要的統計（今日目標、連續天數、學會幾招、各類進度），唯讀
 - `POST /cards/rounds`：發一輪（年長者 3 張、其他 8 張），建立一次性牌局
 - `POST /cards/rounds/{id}/answer`：作答，第一次的答案存成快照，同時更新間隔重複進度
-- `POST /cards/rounds/{id}/complete`：結算發獎，重送原樣回傳
+- `POST /cards/rounds/{id}/complete`：結算發獎（另外讓經營加速），重送原樣回傳
 
 對錯只比對題庫裡寫好的答案（`app/cards/grading.py`），沒有 AI 呼叫。
 """
@@ -32,6 +32,7 @@ from app.core.fraud_types import FRAUD_TYPES
 from app.core.weakness import WEAKNESS_LABELS
 from app.daily.dates import TAIPEI, taipei_today
 from app.economy.service import add_xp, adjust_cash, lock_user, touch_streak
+from app.estate.service import practice_boost
 from app.exam.lifecycle import require_no_active_exam
 from app.models import CardProgress, CardRound, User
 from app.practice.service import practice_weights, queue_refresh, record_answers
@@ -103,6 +104,9 @@ class RoundResult(BaseModel):
     xp_earned: int
     today_done: int
     daily_goal: int
+    # 經營加速：每答對一張，所有產業立刻多賺幾分鐘的租金（年長者沒有經營，是 0）
+    boost_minutes: int = 0
+    boost_cash: DecimalStr = 0
 
 
 # ── 共用 ────────────────────────────────────────────────
@@ -341,10 +345,13 @@ def complete_round(
             RewardContext.source_id == card_round.id,
         )
     ).first() or create_reward_context(session, user.id, "card", card_round.id)
-    receipt, _ = settle_reward(
+    receipt = settle_reward(
         session, user, context, base_cash=cash, base_xp=xp, reason="card_reward"
     )
     cash_total = cash + int(receipt.final_rewards["cash_bonus"])
+    boost_seconds, boost_cash = practice_boost(
+        session, user, correct_count, source_key=f"card:{card_round.id}"
+    )
 
     # 練習重點只看五種詐騙；共通類（165、查證習慣）不算
     record_answers(
@@ -368,6 +375,8 @@ def complete_round(
         xp_earned=xp,
         today_done=_today_done(session, user.id),
         daily_goal=_goal(user),
+        boost_minutes=boost_seconds // 60,
+        boost_cash=boost_cash,
     )
     card_round.completed = True
     card_round.completed_at = datetime.now(timezone.utc)

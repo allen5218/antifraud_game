@@ -12,14 +12,6 @@ export type AnswerResponse = {
     weakness?: (WeaknessInfo | null);
 };
 
-export type AssetSummaryResponse = {
-    cash: (number | string);
-    property_value: number;
-    daily_income: number;
-    total_net_worth: (number | string);
-    owned_count: number;
-};
-
 export type AssignmentCreate = {
     kind: string;
     title?: (string | null);
@@ -60,6 +52,12 @@ export type AssignmentUpdate = {
     due_at?: (string | null);
 };
 
+export type AwayPublic = {
+    seconds: number;
+    earned: (number | string);
+    capped: boolean;
+};
+
 /**
  * 第一次進來補填出生年（西元）。
  */
@@ -76,9 +74,9 @@ export type Body_login_login_access_token = {
     client_secret?: (string | null);
 };
 
-export type BuyPropertyResponse = {
-    property_id: string;
-    new_cash: (number | string);
+export type BuyRequest = {
+    count?: number;
+    expected_owned: number;
 };
 
 /**
@@ -98,6 +96,10 @@ export type CardPublic = {
     right?: Array<Choice>;
 };
 
+export type CardRequest = {
+    expected_level: number;
+};
+
 export type CardSummary = {
     elder_mode: boolean;
     daily_goal: number;
@@ -107,10 +109,6 @@ export type CardSummary = {
     total: number;
     due_now: number;
     topics: Array<TopicProgress>;
-};
-
-export type ChampionToolChoice = {
-    family: string;
 };
 
 export type Choice = {
@@ -270,7 +268,6 @@ export type CollectionAction = {
 };
 
 export type CollectionsPublic = {
-    assets: Array<GrowthAsset>;
     collectibles: Array<CollectiblePublic>;
     titles: Array<{
         [key: string]: (string);
@@ -278,10 +275,6 @@ export type CollectionsPublic = {
     active_title: (string | null);
     active_appearance: (string | null);
     showcase_capacity: number;
-    presets: Array<PresetPublic>;
-    preset_capacity: number;
-    lifetime_cash: string;
-    tool_choices?: Array<(string)>;
 };
 
 export type ConfidenceShift = {
@@ -326,8 +319,6 @@ export type EconomyMeResponse = {
     xp: number;
     level: number;
     streak_days: number;
-    pending_accrual: (number | string);
-    bankruptcy_pending: boolean;
 };
 
 export type EffectAnalytics = {
@@ -338,35 +329,54 @@ export type EffectAnalytics = {
     volume: PracticeVolume;
 };
 
+export type ElderEstatePublic = {
+    home_name: string;
+    home_value: (number | string);
+    savings: (number | string);
+};
+
 export type EntryEffect = {
     total: PairedChange;
     by_type: Array<TypePair>;
     practiced_between: number;
 };
 
-export type EquipmentCatalogPublic = {
-    items: Array<EquipmentItemPublic>;
-    active_slots: number;
-    equipped_count: number;
-    revision: number;
+export type EstateBoardEntry = {
+    rank: number;
+    user_id: string;
+    nickname: string;
+    score: (number | string);
 };
 
-export type EquipmentItemPublic = {
-    id: string;
-    definition_id: string;
-    family: string;
-    name: string;
-    description: string;
-    rank: number;
-    rank_cap: number;
-    is_equipped: boolean;
-    slot_index?: (number | null);
-    upgrade_cost_cash?: (string | null);
-    breakthrough_cost_energy?: (string | null);
-    breakthrough_cost_blueprints?: (number | null);
-    can_upgrade?: boolean;
-    can_breakthrough?: boolean;
-    breakthrough_ticket_cost?: number;
+export type EstateBoardPublic = {
+    kind: string;
+    entries: Array<EstateBoardEntry>;
+    my_entry: (EstateBoardEntry | null);
+};
+
+export type EstatePublic = {
+    elder_mode: boolean;
+    server_time: string;
+    cash: (number | string);
+    total_assets: (number | string);
+    income_per_hour: (number | string);
+    reputation: (number | string);
+    reputation_percent: (number | string);
+    reputation_step_percent: number;
+    pending_reputation: (number | string);
+    next_reputation_at: (number | string);
+    lifetime_earnings: (number | string);
+    run_earnings: (number | string);
+    moves: number;
+    boost_minutes_per_correct: number;
+    offline_cap_hours: number;
+    quantity_milestones: Array<(number)>;
+    practice_milestones: Array<(number)>;
+    industries: Array<IndustryPublic>;
+    managers_available: Array<ManagerPublic>;
+    away: (AwayPublic | null);
+    legacy_lines: Array<(string)>;
+    elder?: (ElderEstatePublic | null);
 };
 
 export type ExamBadgePublic = {
@@ -604,18 +614,6 @@ export type FunnelStep = {
     count: number;
 };
 
-export type GrowthAsset = {
-    kind: 'house' | 'pet';
-    target_id: string;
-    name: string;
-    image_url: string;
-    level: number;
-    cash_cost: string;
-    energy_cost: string;
-};
-
-export type kind3 = 'house' | 'pet';
-
 export type HistogramBin = {
     label: string;
     count: number;
@@ -650,6 +648,33 @@ export type HomeSummary = {
 
 export type HTTPValidationError = {
     detail?: Array<ValidationError>;
+};
+
+export type IndustryPublic = {
+    tier_id: number;
+    name: string;
+    image_url: string;
+    category: string;
+    category_label: string;
+    owned: number;
+    next_price: (number | string);
+    revenue_per_cycle: (number | string);
+    cycle_seconds: number;
+    income_per_hour: (number | string);
+    progress_seconds: number;
+    ready: boolean;
+    manager: (ManagerPublic | null);
+    card_level: number;
+    max_card_level: number;
+    card_price: (number | string | null);
+    doublings: number;
+    quantity_doublings: number;
+    card_doublings: number;
+    practice_doublings: number;
+    next_quantity_milestone: (number | null);
+    practice_correct: number;
+    next_practice_milestone: (number | null);
+    starter: boolean;
 };
 
 export type ItemCreate = {
@@ -725,24 +750,14 @@ export type LikertItem = {
     not_asked?: number;
 };
 
-export type LiquidateRequest = {
-    property_ids: Array<(string)>;
-};
-
-export type LiquidateResponse = {
-    recovered: (number | string);
-    new_cash: (number | string);
-    bankruptcy_pending: boolean;
-};
-
-export type LoadoutUpdateItem = {
-    slot_index: number;
+export type ManagerPublic = {
     item_id: string;
+    name: string;
+    image_url: string;
 };
 
-export type LoadoutUpdateRequest = {
-    items: Array<LoadoutUpdateItem>;
-    expected_revision?: (number | null);
+export type ManagerRequest = {
+    item_id?: (string | null);
 };
 
 export type MascotDisplayPublic = {
@@ -780,6 +795,10 @@ export type ModeHalves = {
     mode: string;
     label: string;
     change: PairedChange;
+};
+
+export type MoveRequest = {
+    expected_moves: number;
 };
 
 export type MyAssignment = {
@@ -836,12 +855,6 @@ export type OAuthStartResponse = {
     state: string;
 };
 
-export type OwnedPropertyPublic = {
-    id: string;
-    tier: PropertyTierPublic;
-    purchased_at: string;
-};
-
 export type PairedChange = {
     n: number;
     before_mean: (number | null);
@@ -873,24 +886,11 @@ export type PendingStudent = {
     progress_text: string;
 };
 
-export type PermanentBoardEntry = {
-    rank: number;
-    user_id: string;
-    nickname: string;
-    score: string;
-};
-
-export type PermanentBoardPublic = {
-    kind: string;
-    entries: Array<PermanentBoardEntry>;
-    my_entry: (PermanentBoardEntry | null);
-};
-
 export type PlayerShowcasePublic = {
     player_id: string;
     nickname: string;
-    core_level: number;
-    active_loadout: Array<ShowcaseEquipmentPublic>;
+    reputation?: number;
+    top_industry?: (string | null);
     showcases: Array<ShowcasePositionPublic>;
     title?: (string | null);
     collectibles?: Array<{
@@ -938,17 +938,6 @@ export type PracticeVolume = {
     scenario_rounds: number;
 };
 
-export type PresetPublic = {
-    position: number;
-    name: string;
-    item_ids: Array<(string)>;
-};
-
-export type PresetRequest = {
-    name: string;
-    item_ids: Array<(string)>;
-};
-
 export type PretestAnswer = {
     question_id: string;
     selected_option: string;
@@ -990,37 +979,6 @@ export type PrivateUserCreate = {
     full_name: string;
     is_verified?: boolean;
     birth_year?: (number | null);
-};
-
-export type ProgressionSummaryPublic = {
-    core_level: number;
-    growth_xp: string;
-    next_level_xp: string;
-    growth_progress_percent: number;
-    forge_energy: string;
-    active_slots: number;
-    max_active_slots: number;
-    has_sixth_slot_license: boolean;
-    blueprint_fragments: number;
-    breakthrough_blueprints?: number;
-    factors: {
-        [key: string]: (string);
-    };
-    next_objective: string;
-};
-
-export type PropertiesListResponse = {
-    tiers: Array<PropertyTierPublic>;
-    owned: Array<OwnedPropertyPublic>;
-};
-
-export type PropertyTierPublic = {
-    id: number;
-    name: string;
-    svg_key: string;
-    price: number;
-    daily_income: number;
-    unlock_level: number;
 };
 
 export type QuizAnswerRequest = {
@@ -1227,6 +1185,8 @@ export type RoundResult = {
     xp_earned: number;
     today_done: number;
     daily_goal: number;
+    boost_minutes?: number;
+    boost_cash?: (number | string);
 };
 
 export type ScenarioDetail = {
@@ -1312,16 +1272,6 @@ export type SeasonPublic = {
     my_total_questions?: number;
 };
 
-export type ShowcaseEquipmentPublic = {
-    item_id: string;
-    name: string;
-    family: string;
-    rank: number;
-    factors: {
-        [key: string]: (string);
-    };
-};
-
 export type ShowcasePositionPublic = {
     position: number;
     collectible_id: string;
@@ -1388,7 +1338,7 @@ export type SurveyQuestionPublic = {
     other: boolean;
 };
 
-export type kind4 = 'consent' | 'single' | 'multi' | 'scale' | 'text';
+export type kind3 = 'consent' | 'single' | 'multi' | 'scale' | 'text';
 
 export type SwipeAnswerRequest = {
     session_id: string;
@@ -1942,85 +1892,59 @@ export type ClassesDeleteAssignmentResponse = (Message);
 
 export type CollectionsReadCollectionsResponse = (CollectionsPublic);
 
-export type CollectionsUpgradeCollectionData = {
-    kind: 'house' | 'pet';
-    requestBody: CollectionAction;
-    targetId: string;
-};
-
-export type CollectionsUpgradeCollectionResponse = (CollectionsPublic);
-
 export type CollectionsConfigureDisplayData = {
-    action: 'title' | 'appearance' | 'showcase' | 'showcase_slot' | 'preset_slot';
+    action: 'title' | 'appearance' | 'showcase';
     requestBody: CollectionAction;
 };
 
 export type CollectionsConfigureDisplayResponse = (CollectionsPublic);
 
-export type CollectionsSavePresetData = {
-    position: number;
-    requestBody: PresetRequest;
-};
-
-export type CollectionsSavePresetResponse = (CollectionsPublic);
-
-export type CollectionsApplyPresetData = {
-    position: number;
-};
-
-export type CollectionsApplyPresetResponse = (CollectionsPublic);
-
-export type CollectionsPermanentBoardData = {
-    kind: 'wealth' | 'houses' | 'pets';
-};
-
-export type CollectionsPermanentBoardResponse = (PermanentBoardPublic);
-
 export type DailyDailyTodayResponse = (DailyTodayResponse);
 
 export type EconomyReadMeResponse = (EconomyMeResponse);
 
-export type EconomyPostSettleResponse = (EconomyMeResponse);
+export type EstateReadEstateResponse = (EstatePublic);
 
-export type EconomyClaimResponse = (EconomyMeResponse);
-
-export type EconomyListPropertiesResponse = (PropertiesListResponse);
-
-export type EconomyBuyPropertyData = {
+export type EstateBuyIndustryData = {
+    requestBody: BuyRequest;
     tierId: number;
 };
 
-export type EconomyBuyPropertyResponse = (BuyPropertyResponse);
+export type EstateBuyIndustryResponse = (EstatePublic);
 
-export type EconomyGetAssetsResponse = (AssetSummaryResponse);
-
-export type EconomyPostLiquidateData = {
-    requestBody: LiquidateRequest;
+export type EstateCollectRentData = {
+    tierId: number;
 };
 
-export type EconomyPostLiquidateResponse = (LiquidateResponse);
+export type EstateCollectRentResponse = (EstatePublic);
 
-export type EquipmentListEquipmentResponse = (EquipmentCatalogPublic);
-
-export type EquipmentUpdateLoadoutData = {
-    requestBody: LoadoutUpdateRequest;
+export type EstateBuyUpgradeCardData = {
+    requestBody: CardRequest;
+    tierId: number;
 };
 
-export type EquipmentUpdateLoadoutResponse = (EquipmentCatalogPublic);
+export type EstateBuyUpgradeCardResponse = (EstatePublic);
 
-export type EquipmentUpgradeItemData = {
-    itemId: string;
-    xIdempotencyKey?: (string | null);
+export type EstateAssignManagerData = {
+    requestBody: ManagerRequest;
+    tierId: number;
 };
 
-export type EquipmentUpgradeItemResponse = (EquipmentItemPublic);
+export type EstateAssignManagerResponse = (EstatePublic);
 
-export type EquipmentBreakthroughItemData = {
-    itemId: string;
-    xIdempotencyKey?: (string | null);
+export type EstateMoveHouseData = {
+    requestBody: MoveRequest;
 };
 
-export type EquipmentBreakthroughItemResponse = (EquipmentItemPublic);
+export type EstateMoveHouseResponse = (EstatePublic);
+
+export type EstateLegacyReportSeenResponse = (EstatePublic);
+
+export type EstateEstateBoardData = {
+    kind: 'wealth' | 'reputation';
+};
+
+export type EstateEstateBoardResponse = (EstateBoardPublic);
 
 export type ExamReadStatusResponse = (ExamStatus);
 
@@ -2224,19 +2148,11 @@ export type PrivateCreateUserData = {
 
 export type PrivateCreateUserResponse = (UserPublic);
 
-export type ProgressionGetMyProgressionResponse = (ProgressionSummaryPublic);
-
 export type ProgressionGetRewardReceiptData = {
     receiptId: string;
 };
 
 export type ProgressionGetRewardReceiptResponse = (RewardReceiptPublic);
-
-export type ProgressionPurchaseUnlockData = {
-    unlockKey: string;
-};
-
-export type ProgressionPurchaseUnlockResponse = (unknown);
 
 export type QuickSwipeDeckData = {
     size?: number;
@@ -2303,15 +2219,6 @@ export type ScenarioJudgeScenarioData = {
 export type ScenarioJudgeScenarioResponse = (ScenarioJudgeResponse);
 
 export type ScoreGetMyScoreResponse = (unknown);
-
-export type SeasonsClaimChampionToolData = {
-    requestBody: ChampionToolChoice;
-    seasonId: string;
-};
-
-export type SeasonsClaimChampionToolResponse = ({
-    [key: string]: (string);
-});
 
 export type SeasonsGetSeasonCurrentResponse = (SeasonPublic);
 

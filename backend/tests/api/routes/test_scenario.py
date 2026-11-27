@@ -231,8 +231,6 @@ def test_message_turn_limit(
 def test_judge_report_scam_rewards(
     client: TestClient, db: Session, normal_user_token_headers: dict[str, str]
 ) -> None:
-    from app.progression.service import get_or_create_growth
-
     user = _test_user(db)
     # 共用測試使用者的 cash 可能被其他測試檔留在破產狀態(如 test_economy.py 最後一個
     # 測試刻意留 cash=-4400);此測試斷言 +50 後 triggers_forced_sell 為 False,
@@ -243,9 +241,6 @@ def test_judge_report_scam_rewards(
     db.commit()
     db.refresh(user)
     sc = _make_session(db, user, role="scam", tactics_seen=["greed"])
-    growth = get_or_create_growth(db, user.id)
-    income_before = growth.lifetime_cash
-    db.commit()
     cash_before, xp_before = user.cash, user.xp
     r = client.post(
         f"{settings.API_V1_STR}/scenario/{sc.id}/judge",
@@ -266,8 +261,6 @@ def test_judge_report_scam_rewards(
     db.refresh(user)
     assert user.cash == cash_before + 50
     assert user.xp == xp_before + 15
-    db.refresh(growth)
-    assert growth.lifetime_cash == income_before + 50
     db.refresh(sc)
     assert sc.status == ScenarioStatus.COMPLETED
     assert sc.outcome == "win_report"
@@ -278,9 +271,7 @@ def test_judge_report_scam_rewards(
     )
     assert replay.status_code == 400
     db.refresh(user)
-    db.refresh(growth)
     assert user.cash == cash_before + 50
-    assert growth.lifetime_cash == income_before + 50
 
 
 def test_judge_comply_scam_loses_and_can_trigger_forced_sell(

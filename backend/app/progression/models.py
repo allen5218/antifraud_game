@@ -473,56 +473,6 @@ class LoadoutPreset(SQLModel, table=True):
     )
 
 
-class ProgressionSummaryPublic(SQLModel):
-    core_level: int
-    growth_xp: str
-    next_level_xp: str
-    growth_progress_percent: float
-    forge_energy: str
-    active_slots: int
-    max_active_slots: int
-    has_sixth_slot_license: bool
-    blueprint_fragments: int
-    breakthrough_blueprints: int = 0
-    factors: dict[str, str]
-    next_objective: str
-
-
-class EquipmentItemPublic(SQLModel):
-    id: uuid.UUID
-    definition_id: str
-    family: str
-    name: str
-    description: str
-    rank: int
-    rank_cap: int
-    is_equipped: bool
-    slot_index: int | None = None
-    upgrade_cost_cash: str | None = None
-    breakthrough_cost_energy: str | None = None
-    breakthrough_cost_blueprints: int | None = None
-    can_upgrade: bool = False
-    can_breakthrough: bool = False
-    breakthrough_ticket_cost: int = 0
-
-
-class EquipmentCatalogPublic(SQLModel):
-    items: list[EquipmentItemPublic]
-    active_slots: int
-    equipped_count: int
-    revision: int
-
-
-class LoadoutUpdateItem(SQLModel):
-    slot_index: int
-    item_id: uuid.UUID
-
-
-class LoadoutUpdateRequest(SQLModel):
-    items: list[LoadoutUpdateItem]
-    expected_revision: int | None = None
-
-
 class RewardReceiptPublic(SQLModel):
     receipt_id: uuid.UUID
     source_kind: str
@@ -561,14 +511,6 @@ class SeasonBoardPublic(SQLModel):
     my_entry: LeaderboardEntryPublic | None = None
 
 
-class ShowcaseEquipmentPublic(SQLModel):
-    item_id: uuid.UUID
-    name: str
-    family: str
-    rank: int
-    factors: dict[str, str]
-
-
 class ShowcasePositionPublic(SQLModel):
     position: int
     collectible_id: str
@@ -577,8 +519,9 @@ class ShowcasePositionPublic(SQLModel):
 class PlayerShowcasePublic(SQLModel):
     player_id: uuid.UUID
     nickname: str
-    core_level: int
-    active_loadout: list[ShowcaseEquipmentPublic]
+    # 放置經營的信譽與擁有的最高一種產業（舊版是核心等級與生效配裝）
+    reputation: int = 0
+    top_industry: str | None = None
     showcases: list[ShowcasePositionPublic]
     title: str | None = None
     collectibles: list[dict[str, str]] = Field(default_factory=list)
