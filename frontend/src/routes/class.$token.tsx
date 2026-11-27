@@ -64,7 +64,7 @@ function JoinWithAccount({ token }: { token: string }) {
         加入
       </Button>
       <Link to="/" className="text-sm text-muted-foreground">
-        先不要，回房間
+        先不要，回首頁
       </Link>
     </Card>
   )

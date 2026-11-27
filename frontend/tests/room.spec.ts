@@ -4,6 +4,7 @@ import { randomEmail, randomPassword } from "./utils/random"
 import { logInUser, skipTour } from "./utils/user"
 
 // 用新帳號：共用的 superuser 會被其他測試改現金與房產，房間階段就不固定。
+// 2026-11 改版後首頁是練習，房間在分頁「經營」（/room）。
 // 新玩家固定 1,000 元，雅房剛好 1,000、貓 1,500，所以結果每次都一樣。
 test.describe("房間首頁", () => {
   test.use({
@@ -11,11 +12,16 @@ test.describe("房間首頁", () => {
     viewport: { width: 375, height: 667 },
   })
 
-  test("新玩家看到破舊房間與前測引導，進出手機回房間", async ({ page }) => {
+  test("新玩家看到破舊房間與前測引導，進出手機回首頁", async ({ page }) => {
     const email = randomEmail()
     const password = randomPassword()
     await createUser({ email, password })
     await logInUser(page, email, password)
+    // 首頁的提醒也帶去前測
+    await expect(
+      page.getByTestId("home-reminder").getByRole("link", { name: "開始" }),
+    ).toHaveAttribute("href", "/pretest")
+    await page.getByTestId("tab-room").click()
 
     await expect(page.getByTestId("room-bg")).toHaveAttribute(
       "src",
@@ -31,7 +37,7 @@ test.describe("房間首頁", () => {
 
     await page.getByTestId("hotspot-phone").click()
     await expect(page).toHaveURL(/\/scenarios/)
-    await page.getByRole("link", { name: "回房間" }).click()
+    await page.getByRole("link", { name: "回首頁" }).click()
     await expect(page.getByTestId("home-hero")).toBeVisible()
   })
 
@@ -40,6 +46,7 @@ test.describe("房間首頁", () => {
     const password = randomPassword()
     await createUser({ email, password })
     await logInUser(page, email, password)
+    await page.getByTestId("tab-room").click()
     await skipTour(page)
 
     await page.getByTestId("room-shop").click()
@@ -63,7 +70,8 @@ test.describe("房間首頁", () => {
     await room.getByRole("button", { name: "購買" }).click()
     await expect(room.getByText("已有")).toBeVisible()
 
-    await page.getByRole("link", { name: "回房間" }).click()
+    await page.getByRole("link", { name: "回首頁" }).click()
+    await page.getByTestId("tab-room").click()
     await expect(page.getByTestId("room-bg")).toHaveAttribute(
       "src",
       "/assets/room/1/bg.webp",

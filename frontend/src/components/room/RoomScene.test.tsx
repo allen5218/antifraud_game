@@ -113,6 +113,12 @@ async function renderScene(entry = "/") {
     path: "/",
     component: RoomScene,
   })
+  // 一般模式的房間在 /room（分頁「經營」），選單「重看導覽」也連到這裡
+  const room = createRoute({
+    getParentRoute: () => rootRoute,
+    path: "/room",
+    component: RoomScene,
+  })
   const scenarios = createRoute({
     getParentRoute: () => rootRoute,
     path: "/scenarios",
@@ -124,7 +130,7 @@ async function renderScene(entry = "/") {
     component: () => <p>進了前測</p>,
   })
   const router = createRouter({
-    routeTree: rootRoute.addChildren([home, scenarios, pretest]),
+    routeTree: rootRoute.addChildren([home, room, scenarios, pretest]),
     history: createMemoryHistory({ initialEntries: [entry] }),
   })
   await router.load()
@@ -135,7 +141,7 @@ async function renderScene(entry = "/") {
 
 test("房間鋪滿整個區塊，入口都在舞台上", async () => {
   await renderScene()
-  const hero = await screen.findByTestId("home-hero")
+  const hero = await screen.findByTestId("room-hero")
   // 不再限制成手機寬度：平板也鋪滿，比例由舞台處理
   expect(hero.className).not.toContain("max-w-md")
   const stage = screen.getByTestId("room-stage")

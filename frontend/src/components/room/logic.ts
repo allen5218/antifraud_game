@@ -20,6 +20,7 @@ export type MascotLine = {
 
 export type MenuTo =
   | "/"
+  | "/room"
   | "/learn"
   | "/scenarios"
   | "/quick/swipe"
@@ -395,7 +396,7 @@ export function menuItems(s: HomeSummary): MenuItem[] {
     label: "重看導覽",
     status: "家具和功能介紹",
     done: false,
-    to: "/",
+    to: "/room",
     search: { tour: 1 },
   })
   if (!s.exam_active_attempt_id) return items

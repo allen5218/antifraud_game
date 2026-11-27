@@ -80,7 +80,7 @@ export function QuizSummary({ result, onRestart, children }: QuizSummaryProps) {
         {earnedEnergy > 0n ? ` / +${formatMoney(earnedEnergy)} 能量` : ""}）
       </Link>
       <Link to="/" className="text-xs text-muted-foreground underline">
-        回房間
+        回首頁
       </Link>
     </div>
   )
