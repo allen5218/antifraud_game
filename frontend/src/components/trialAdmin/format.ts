@@ -69,14 +69,22 @@ export const EXAM_STATUS_LABELS: Record<string, string> = {
 export const EXAM_STAGE_LABELS: Record<string, string> = {
   pretest: "前測",
   swipe: "滑卡",
+  cards: "卡片題",
   message: "訊息判讀",
   scenario: "情境對抗",
 }
 
 export const PRACTICE_MODE_LABELS: Record<string, string> = {
+  card: "卡片練習",
   swipe: "滑卡",
   quiz: "訊息判讀",
   scenario: "情境對抗",
+}
+
+/** 檢測版本：改版（加卡片題、原題型砍半）前開考的是 1 */
+export const EXAM_VERSION_LABELS: Record<number, string> = {
+  1: "舊版",
+  2: "新版",
 }
 
 /** 問卷只問做過的事：沒被問到的人數另外寫，免得和「沒作答」混在一起 */

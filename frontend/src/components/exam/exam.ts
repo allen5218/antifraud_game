@@ -1,4 +1,5 @@
 import type {
+  ExamCardAnswer,
   ExamGate,
   ExamMessageAnswer,
   ExamPretestAnswer,
@@ -11,7 +12,18 @@ import { fraudTypeLabel } from "@/lib/fraudTypes"
 export type DraftAnswer =
   | ExamPretestAnswer
   | ExamSwipeAnswer
+  | ExamCardAnswer
   | ExamMessageAnswer
+
+/** 每一關畫面上的名稱 */
+export const STAGE_LABELS: Record<ExamState["stage"], string> = {
+  pretest: "前測",
+  swipe: "滑卡",
+  cards: "卡片題",
+  message: "訊息判讀",
+  scenario: "情境對抗",
+  done: "結果",
+}
 /** 給玩家看的模式與類型。綜合檢測前測還沒定類型時，只寫「綜合檢測」。 */
 export function examKindLabel(
   mode: string,
@@ -110,6 +122,18 @@ export function readDraft(state: ExamState): DraftAnswer[] {
         return (
           answer.card_id === item.id &&
           typeof answer.guess_is_scam === "boolean"
+        )
+      }
+      if (state.stage === "cards" && "card_key" in item && "ids" in answer) {
+        const valid = new Set([
+          ...(item.choices ?? []).map((c) => c.id),
+          ...(item.right ?? []).map((c) => c.id),
+        ])
+        return (
+          answer.card_key === item.card_key &&
+          answer.ids.length > 0 &&
+          new Set(answer.ids).size === answer.ids.length &&
+          answer.ids.every((id) => valid.has(id))
         )
       }
       if (

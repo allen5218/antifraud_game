@@ -902,6 +902,8 @@ class ExamAttempt(SQLModel, table=True):
     id: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True)
     user_id: uuid.UUID = Field(foreign_key="user.id", ondelete="CASCADE", index=True)
     mode: str = Field(max_length=16)
+    # 題目與配分的版本（`app/exam/config.py` 的 VERSIONS）；改版前的卷都是 1
+    version: int = Field(default=1, sa_column_kwargs={"server_default": "1"})
     fraud_type: str | None = Field(default=None, max_length=32)
     status: str = Field(default="active", max_length=16)
     stage: str = Field(default="pretest", max_length=16)

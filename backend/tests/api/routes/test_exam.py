@@ -10,6 +10,8 @@ import pytest
 from sqlalchemy import text
 from sqlmodel import delete, select
 
+from app.cards.bank import load_bank
+from app.cards.grading import SINGLE_ANSWER_KINDS, correct_answer
 from app.core.cases import (
     get_case,
     list_published_for_quiz,
@@ -17,6 +19,7 @@ from app.core.cases import (
     pick_case,
 )
 from app.core.config import settings
+from app.exam.material import card_round_id
 from app.models import (
     Cohort,
     ExamAttempt,
@@ -127,10 +130,31 @@ def attempt(db, state):
     return row
 
 
+def card_ids(row, item, wrong=False):
+    """照卡片題庫的正解作答；wrong 時故意答錯（單選換一個、排序倒過來）。"""
+    card = load_bank()[item["card_key"]]
+    right = correct_answer(card_round_id(row.id), card)
+    if not wrong:
+        return right if card.kind not in SINGLE_ANSWER_KINDS else right[:1]
+    if card.kind in SINGLE_ANSWER_KINDS:
+        public = item["public"]["choices"]
+        return [next(c["id"] for c in public if c["id"] not in right)]
+    return right[::-1]
+
+
 def submit(client, h, db, state, stage, wrong=False):
+    row = attempt(db, state)
+    # 新版在滑卡和訊息判讀之間有卡片題；只想測訊息判讀的測試順手先交卡片題
+    if stage == "message" and row.stage == "cards":
+        state, _ = submit(client, h, db, state, "cards", wrong)
+        row = attempt(db, state)
     answers = []
-    for item in attempt(db, state).items[stage]:
-        if stage == "pretest":
+    for item in row.items[stage]:
+        if stage == "cards":
+            answers.append(
+                {"card_key": item["card_key"], "ids": card_ids(row, item, wrong)}
+            )
+        elif stage == "pretest":
             answers.append(
                 {"question_id": item["id"], "selected_option": item["correct_option"]}
             )
@@ -198,7 +222,9 @@ def test_cohort_exam_csv_full_workflow(client, superuser_token_headers, db, mode
         assert response.status_code == 200, response.text
         rows = list(csv.DictReader(io.StringIO(response.content.decode("utf-8-sig"))))
         assert len(rows) == sum(len(items) for items in row.items.values())
-        assert len(rows) == (30 if mode == "comprehensive" else 17)
+        # 新版：前測 10＋滑卡 2＋卡片 5＋訊息 3＋情境 1；專項 滑卡 2＋卡片 5＋訊息 5＋情境 2
+        assert len(rows) == (21 if mode == "comprehensive" else 14)
+        assert {item["exam_version"] for item in rows} == {"2"}
         assert {item["correct"] for item in rows} == {"true"}
         assert {item["mode"] for item in rows} == {mode}
         assert {item["fraud_type"] for item in rows} == {row.fraud_type}
@@ -218,6 +244,12 @@ def test_cohort_exam_csv_full_workflow(client, superuser_token_headers, db, mode
                 assert item["is_scam"] == ""
             elif item["stage"] == "swipe":
                 assert item["item_key"].startswith("exam-swipe-")
+            elif item["stage"] == "cards":
+                assert load_bank()[item["item_key"]].pool == "exam"
+                assert item["answer"]
+                assert item["is_scam"] == (
+                    "" if item["item_kind"] != "judge" else item["is_scam"]
+                )
             else:
                 assert item["item_key"].startswith("pytest-exam-")
         response = req(
@@ -234,6 +266,81 @@ def test_cohort_exam_csv_full_workflow(client, superuser_token_headers, db, mode
         db.execute(delete(User).where(User.cohort_id == uuid.UUID(cohort["id"])))
         db.execute(delete(Cohort).where(Cohort.id == uuid.UUID(cohort["id"])))
         db.commit()
+
+
+@pytest.mark.parametrize("mode", ["comprehensive", "specialized"])
+def test_card_stage_hides_answers_and_checks_tokens(
+    client, normal_user_token_headers, db, mode
+):
+    h = normal_user_token_headers
+    state = start(client, h, mode)
+    want = (
+        ["pretest", "swipe", "cards", "message", "scenario"]
+        if mode == "comprehensive"
+        else ["swipe", "cards", "message", "scenario"]
+    )
+    assert state["progress"]["stages"] == want
+    if mode == "comprehensive":
+        state, _ = submit(client, h, db, state, "pretest")
+    state, _ = submit(client, h, db, state, "swipe")
+    assert state["stage"] == "cards"
+    row = attempt(db, state)
+    assert row.version == 2
+    items = state["stage_items"]
+    assert len(items) == 5
+    assert len({load_bank()[i["card_key"]].source_key for i in items}) == 5
+    assert all(load_bank()[i["card_key"]].pool == "exam" for i in items)
+    assert all(load_bank()[i["card_key"]].fraud_type == row.fraud_type for i in items)
+    text_dump = json.dumps(items)
+    assert "correct" not in text_dump and "explanation" not in text_dump
+    assert "suspicious" not in text_dump and "weakness_tag" not in text_dump
+    # 代號只在這份卷有效：亂填、重複都擋
+    bad = [{"card_key": i["card_key"], "ids": ["0"]} for i in items]
+    r = req(client, h, "post", f"/exam/{state['id']}/cards", {"answers": bad})
+    assert r.status_code == 400 and r.json()["detail"]["code"] == "invalid_exam_answers"
+    partial = [
+        {"card_key": i["card_key"], "ids": card_ids(row, i)} for i in row.items["cards"]
+    ][:4]
+    r = req(client, h, "post", f"/exam/{state['id']}/cards", {"answers": partial})
+    assert r.status_code == 400
+    state, answers = submit(client, h, db, state, "cards", wrong=True)
+    assert state["stage"] == "message"
+    row = attempt(db, state)
+    assert row.stage_scores["card"] == 0
+    assert all(a["correct"] is False for a in row.answers["cards"].values())
+    # 重送同樣的答案回原狀態；換答案擋下
+    r = req(client, h, "post", f"/exam/{state['id']}/cards", {"answers": answers})
+    assert r.status_code == 200 and r.json()["stage"] == "message"
+    fixed = [
+        {"card_key": i["card_key"], "ids": card_ids(row, i)} for i in row.items["cards"]
+    ]
+    r = req(client, h, "post", f"/exam/{state['id']}/cards", {"answers": fixed})
+    assert r.json()["detail"]["code"] == "exam_stage_already_answered"
+    # 卡片題作答不寫練習紀錄，也不動日常卡片的間隔重複
+    assert not db.exec(
+        select(PracticeAnswer).where(PracticeAnswer.user_id == row.user_id)
+    ).all()
+
+
+def test_old_version_attempt_keeps_old_stages_and_scores(
+    client, normal_user_token_headers, db
+):
+    """改版前開考、還沒考完的卷：照舊版的關卡與配分考完。"""
+    h = normal_user_token_headers
+    state = start(client, h)
+    row = attempt(db, state)
+    row.version = 1
+    row.items = {k: v for k, v in row.items.items() if k != "cards"}
+    db.add(row)
+    db.commit()
+    r = req(client, h, "get", "/exam/active").json()
+    assert r["progress"]["stages"] == ["swipe", "message", "scenario"]
+    state, _ = submit(client, h, db, r, "swipe")
+    assert state["stage"] == "message"
+    # 這份卷是新版素材（滑卡 1+1），配分照舊版：每張 4 分
+    assert attempt(db, state).stage_scores["swipe"] == 8
+    r = req(client, h, "post", f"/exam/{state['id']}/cards", {"answers": []})
+    assert r.status_code == 400
 
 
 def test_practice_reads_exclude_exam(client, normal_user_token_headers, db):
@@ -266,7 +373,8 @@ def test_full_exam_and_first_badge_only(client, normal_user_token_headers, db, m
     state = finish(client, h, db, initial)
     result = state["result"]
     assert result["total_score"] == 100 and result["passed"]
-    assert result["weakness_score"] == (70 if mode == "comprehensive" else 100)
+    # 新版綜合檢測：前測 20 分，後面幾關 80 分
+    assert result["weakness_score"] == (80 if mode == "comprehensive" else 100)
     assert result["reward"] == (
         {"cash": 5000, "xp": 300}
         if mode == "comprehensive"

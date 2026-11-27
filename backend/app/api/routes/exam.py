@@ -11,6 +11,7 @@ from app.schemas import (
     ExamBadgePublic,
     ExamBadgeUpdate,
     ExamBadgeVerification,
+    ExamCardRequest,
     ExamHistoryItem,
     ExamMessageRequest,
     ExamPretestRequest,
@@ -92,6 +93,22 @@ def swipe(
         current_user.id,
         attempt_id,
         "swipe",
+        [a.model_dump(mode="json") for a in payload.answers],
+    )
+
+
+@router.post("/{attempt_id}/cards", response_model=ExamState)
+def cards(
+    attempt_id: uuid.UUID,
+    payload: ExamCardRequest,
+    session: SessionDep,
+    current_user: CurrentUser,
+) -> ExamState:
+    return service.submit_stage(
+        session,
+        current_user.id,
+        attempt_id,
+        "cards",
         [a.model_dump(mode="json") for a in payload.answers],
     )
 

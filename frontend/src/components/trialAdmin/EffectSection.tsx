@@ -1,3 +1,4 @@
+import { Fragment } from "react"
 import {
   CartesianGrid,
   Legend,
@@ -266,7 +267,9 @@ export function EffectSection({
   effect: EffectAnalytics
   survey: SurveyAnalytics
 }) {
-  const { exam, entry, repeat, practice, volume } = effect
+  const { exams, entry, practice, volume } = effect
+  // 新舊版檢測的關卡與題數不同，各畫一組；範圍內只有一版就不標版本
+  const tagVersion = exams.length > 1
   const practiced = practice.curve[0]?.people ?? 0
   const modeN = Math.max(0, ...practice.modes.map((m) => m.change.n))
   const tagMax = Math.max(
@@ -289,26 +292,51 @@ export function EffectSection({
   const conf = survey.confidence
   return (
     <div className="grid gap-3 lg:grid-cols-2">
-      <EffectCard
-        title="檢測：前測關到後三關"
-        note="每人第一次考完的綜合檢測。前測關挑出最弱的一類，後面三關只考這一類。最弱的一類本來就是前測挑出來的，後面的題型也不同，所以分數回升不全是練習的效果。"
-        n={exam.change.n}
-      >
-        <SingleRows
-          firstIsBefore
-          rows={exam.stages.map((s) => ({
-            key: s.key,
-            label: s.label,
-            value: s.accuracy,
-            hint: `${s.people} 人、${s.items} 題`,
-          }))}
-        />
-        <Summary change={exam.change} unit="%" />
-      </EffectCard>
+      {exams.map(({ version, label, pretest_items, exam, repeat }) => (
+        <Fragment key={version}>
+          <EffectCard
+            title={`檢測：前測關到後面幾關${tagVersion ? `（${label}）` : ""}`}
+            note={`每人第一次考完的綜合檢測。前測關 ${pretest_items} 題，挑出最弱的一類，後面幾關只考這一類。最弱的一類本來就是前測挑出來的，後面的題型也不同，所以分數回升不全是練習的效果。`}
+            n={exam.change.n}
+          >
+            <SingleRows
+              firstIsBefore
+              rows={exam.stages.map((s) => ({
+                key: s.key,
+                label: s.label,
+                value: s.accuracy,
+                hint: `${s.people} 人、${s.items} 題`,
+              }))}
+            />
+            <Summary change={exam.change} unit="%" />
+          </EffectCard>
+
+          <EffectCard
+            title={`考兩次以上的人${tagVersion ? `（${label}）` : ""}`}
+            note="第一次和最近一次正常交卷的綜合檢測，只和同一版比。"
+            n={repeat.people + repeat.failed_first}
+          >
+            {repeat.people > 0 && (
+              <>
+                <p className="text-xs text-muted-foreground">
+                  前測關答對題數（{pretest_items} 題）
+                </p>
+                <Summary change={repeat.pretest} unit=" 題" />
+                <p className="text-xs text-muted-foreground">檢測分數</p>
+                <Summary change={repeat.score} unit=" 分" />
+              </>
+            )}
+            <p className="text-sm">
+              第一次沒過 {repeat.failed_first} 人，其中再考 {repeat.retook}{" "}
+              人、之後通過 {repeat.retake_passed} 人。
+            </p>
+          </EffectCard>
+        </Fragment>
+      ))}
 
       <EffectCard
         title="入門前測到綜合檢測的前測關"
-        note={`兩份同一個題庫、同樣的抽法（五類各 4 題）。只算先做入門前測、之後考綜合檢測的人；兩次中間有練習的 ${entry.practiced_between} 人。`}
+        note={`兩份同一個題庫，比答對率（入門前測五類各 4 題；綜合檢測的前測關舊版各 4 題、新版各 2 題）。只算先做入門前測、之後考綜合檢測的人；兩次中間有練習的 ${entry.practiced_between} 人。`}
         n={entry.total.n}
       >
         <Summary change={entry.total} unit="%" />
@@ -327,29 +355,8 @@ export function EffectSection({
       </EffectCard>
 
       <EffectCard
-        title="考兩次以上的人"
-        note="第一次和最近一次正常交卷的綜合檢測。"
-        n={repeat.people + repeat.failed_first}
-      >
-        {repeat.people > 0 && (
-          <>
-            <p className="text-xs text-muted-foreground">
-              前測關答對題數（20 題）
-            </p>
-            <Summary change={repeat.pretest} unit=" 題" />
-            <p className="text-xs text-muted-foreground">檢測分數</p>
-            <Summary change={repeat.score} unit=" 分" />
-          </>
-        )}
-        <p className="text-sm">
-          第一次沒過 {repeat.failed_first} 人，其中再考 {repeat.retook}{" "}
-          人、之後通過 {repeat.retake_passed} 人。
-        </p>
-      </EffectCard>
-
-      <EffectCard
         title="日常練習：起點到之後"
-        note="起點是入門前測，沒做入門前測的用綜合檢測的前測關；之後是滑卡、訊息判讀、情境對抗的練習。每類把所有人的題目合起來算。"
+        note="起點是入門前測，沒做入門前測的用綜合檢測的前測關；之後是卡片、滑卡、訊息判讀、情境對抗的練習。每類把所有人的題目合起來算。"
         n={practiced}
       >
         <Legend2 before="起點" after="之後的練習" />
@@ -393,7 +400,7 @@ export function EffectSection({
       </EffectCard>
 
       <EffectCard
-        title="三種練習：前半到後半"
+        title="各種練習：前半到後半"
         note="每人每種練習至少 4 題才算，比較前半和後半的答對率。"
         n={modeN}
       >

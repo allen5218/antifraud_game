@@ -29,41 +29,61 @@ function change(n: number, before: number | null, after: number | null) {
 function effect(n: number): EffectAnalytics {
   const pct = n ? 50 : null
   return {
-    exam: {
-      stages: [
-        {
-          key: "pretest_weakest",
-          label: "前測關（最弱一類）",
-          accuracy: n ? 25 : null,
-          people: n,
-          items: n * 4,
+    exams: [
+      {
+        version: 2,
+        label: "新版檢測",
+        pretest_items: 10,
+        exam: {
+          stages: [
+            {
+              key: "pretest_weakest",
+              label: "前測關（最弱一類）",
+              accuracy: n ? 25 : null,
+              people: n,
+              items: n * 4,
+            },
+            {
+              key: "swipe",
+              label: "滑卡",
+              accuracy: pct,
+              people: n,
+              items: n * 2,
+            },
+            {
+              key: "cards",
+              label: "卡片題",
+              accuracy: pct,
+              people: n,
+              items: n * 5,
+            },
+            {
+              key: "message",
+              label: "訊息判讀",
+              accuracy: pct,
+              people: n,
+              items: n * 5,
+            },
+            {
+              key: "scenario",
+              label: "情境對抗",
+              accuracy: pct,
+              people: n,
+              items: n,
+            },
+          ],
+          change: n ? change(n, 25, 80) : change(0, null, null),
         },
-        { key: "swipe", label: "滑卡", accuracy: pct, people: n, items: n * 4 },
-        {
-          key: "message",
-          label: "訊息判讀",
-          accuracy: pct,
-          people: n,
-          items: n * 5,
+        repeat: {
+          people: 0,
+          pretest: change(0, null, null),
+          score: change(0, null, null),
+          failed_first: 0,
+          retook: 0,
+          retake_passed: 0,
         },
-        {
-          key: "scenario",
-          label: "情境對抗",
-          accuracy: pct,
-          people: n,
-          items: n,
-        },
-      ],
-      change: n ? change(n, 25, 80) : change(0, null, null),
-    },
-    repeat: {
-      people: 0,
-      pretest: change(0, null, null),
-      score: change(0, null, null),
-      failed_first: 0,
-      retook: 0,
-      retake_passed: 0,
-    },
+      },
+    ],
     entry: {
       total: n ? change(n, 50, 75) : change(0, null, null),
       by_type: TYPES.map((t) => ({
@@ -100,6 +120,7 @@ function effect(n: number): EffectAnalytics {
         second_half: 0,
       })),
       modes: [
+        { mode: "card", label: "卡片練習", change: change(0, null, null) },
         { mode: "swipe", label: "滑卡", change: change(0, null, null) },
         { mode: "quiz", label: "訊息判讀", change: change(0, null, null) },
         { mode: "scenario", label: "情境對抗", change: change(0, null, null) },
@@ -125,7 +146,9 @@ const survey: SurveyAnalytics = {
 
 test("有資料時寫出前後的答對率", () => {
   render(<EffectSection effect={effect(8)} survey={survey} />)
-  expect(screen.getByText("檢測：前測關到後三關")).toBeTruthy()
+  // 只有一版時標題不標版本
+  expect(screen.getByText("檢測：前測關到後面幾關")).toBeTruthy()
+  expect(screen.getByText("卡片題")).toBeTruthy()
   expect(screen.getByText("平均 25% → 80%，8 人裡 8 人進步")).toBeTruthy()
   expect(screen.getByText("平均 50% → 75%，8 人裡 8 人進步")).toBeTruthy()
 })
@@ -139,4 +162,24 @@ test("沒有資料時每張卡都寫還沒有資料", () => {
 test("人數少於 5 標示只供參考", () => {
   render(<EffectSection effect={effect(3)} survey={survey} />)
   expect(screen.getAllByText("人數少，只供參考。").length).toBeGreaterThan(0)
+})
+
+test("範圍內有新舊兩版檢測時各畫一組，前測題數照各版", () => {
+  const data = effect(8)
+  const [current] = data.exams
+  data.exams = [
+    current,
+    {
+      ...current,
+      version: 1,
+      label: "舊版檢測",
+      pretest_items: 20,
+      repeat: { ...current.repeat, people: 2, pretest: change(2, 12, 15) },
+    },
+  ]
+  render(<EffectSection effect={data} survey={survey} />)
+  expect(screen.getByText("檢測：前測關到後面幾關（新版檢測）")).toBeTruthy()
+  expect(screen.getByText("檢測：前測關到後面幾關（舊版檢測）")).toBeTruthy()
+  expect(screen.getByText("考兩次以上的人（舊版檢測）")).toBeTruthy()
+  expect(screen.getByText("前測關答對題數（20 題）")).toBeTruthy()
 })

@@ -13,6 +13,7 @@ import {
   EXAM_MODE_LABELS,
   EXAM_STAGE_LABELS,
   EXAM_STATUS_LABELS,
+  EXAM_VERSION_LABELS,
   PRACTICE_MODE_LABELS,
   seconds,
   taipeiTime,
@@ -93,6 +94,7 @@ function Exams({ detail }: { detail: ParticipantDetail }) {
           <p className="font-medium">
             {EXAM_MODE_LABELS[e.mode] ?? e.mode}
             {e.fraud_type ? `・${fraudTypeLabel(e.fraud_type)}` : ""}・
+            {EXAM_VERSION_LABELS[e.version] ?? `第 ${e.version} 版`}・
             {EXAM_STATUS_LABELS[e.status] ?? e.status}
             {e.counted ? "" : "（不算次數）"}
           </p>

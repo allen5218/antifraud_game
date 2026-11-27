@@ -7,7 +7,8 @@ from sqlmodel import Session, col, select
 
 from app.core.cases import get_case_keys
 from app.exam.badges import badge_name
-from app.exam.scoring import round_score, tactics_fraction
+from app.exam.config import ALL_STAGES
+from app.exam.scoring import item_key, round_score, tactics_fraction
 from app.models import ExamAttempt, ExamBadge, SwipeCard, User
 from app.trial.audience import Group, group_filter
 
@@ -16,6 +17,8 @@ EXAM_EXPORT_FIELDS = (
     "participant_code",
     "attempt_id",
     "mode",
+    # 檢測版本：1 是改版前（前測 20 題），2 是加了卡片題的新版；兩版的題數與配分不同
+    "exam_version",
     "fraud_type",
     "status",
     "counted",
@@ -57,11 +60,16 @@ def cohort_exam_summaries(
             row.update(
                 first_exam_at=created_at.isoformat(),
                 first_exam_mode=mode,
+                first_exam_version=attempt.version,
                 first_exam_fraud_type=attempt.fraud_type or "",
                 first_exam_status=status,
                 first_exam_score=round_score(total_score),
                 # 綜合檢測的前測關和入門前測同題庫、同抽法，可以直接比較
                 first_exam_pretest_correct=sum(attempt.pretest_by_type.values())
+                if mode == "comprehensive"
+                else "",
+                # 前測關的題數跟著版本（舊版 20 題、新版 10 題），答對題數要配著看
+                first_exam_pretest_total=len(attempt.items.get("pretest", []))
                 if mode == "comprehensive"
                 else "",
             )
@@ -98,27 +106,40 @@ def empty_exam_summary() -> CsvRow:
         "badges": "",
         "first_exam_at": "",
         "first_exam_mode": "",
+        "first_exam_version": "",
         "first_exam_fraud_type": "",
         "first_exam_status": "",
         "first_exam_score": "",
         "first_exam_pretest_correct": "",
+        "first_exam_pretest_total": "",
         "best_exam_score": "",
         "exam_completed": "false",
         "exam_seconds": "",
     }
 
 
+def card_answer_text(item: dict[str, Any], ids: list[str]) -> str:
+    """卡片題玩家選了哪些（照送出的順序）；代號換回出題時的選項文字。"""
+    public = item.get("public", {})
+    texts = {
+        str(c["id"]): str(c["text"])
+        for part in ("choices", "right")
+        for c in public.get(part, [])
+    }
+    return "；".join(texts.get(i, i) for i in ids)
+
+
 def item_answer(
     stage: str, index: int, item: dict[str, Any], answers: dict[str, Any]
 ) -> tuple[str, str]:
-    key = (
-        str(index) if stage == "scenario" else str(item.get("item_id", item.get("id")))
-    )
+    key = str(index) if stage == "scenario" else item_key(stage, item)
     if key not in answers:
         return "", ""
     answer = answers[key]
     if stage == "scenario":
         return str(answer["action"]), str(answer["correct"]).lower()
+    if stage == "cards":
+        return card_answer_text(item, answer["ids"]), str(answer["correct"]).lower()
     if stage == "pretest":
         return str(answer), str(answer == item["correct_option"]).lower()
     if item.get("kind") == "tactics":
@@ -170,6 +191,7 @@ def build_exam_export_rows(session: Session, cohort_id: uuid.UUID) -> list[CsvRo
             "participant_code": participant_code or "",
             "attempt_id": str(attempt.id),
             "mode": attempt.mode,
+            "exam_version": attempt.version,
             "fraud_type": attempt.fraud_type or "",
             "status": attempt.status,
             "counted": str(attempt.counted).lower(),
@@ -185,16 +207,18 @@ def build_exam_export_rows(session: Session, cohort_id: uuid.UUID) -> list[CsvRo
             "total_score": round_score(attempt.total_score),
             "passed": str(attempt.passed).lower(),
         }
-        for stage in ("pretest", "swipe", "message", "scenario"):
+        for stage in ALL_STAGES:
             for index, item in enumerate(attempt.items.get(stage, [])):
                 if stage == "pretest":
-                    item_key = str(item["id"])
+                    key = str(item["id"])
                 elif stage == "swipe":
-                    item_key = item.get("seed_key") or swipe_keys.get(
+                    key = item.get("seed_key") or swipe_keys.get(
                         str(item["id"]), str(item["id"])
                     )
+                elif stage == "cards":
+                    key = str(item["card_key"])
                 else:
-                    item_key = (
+                    key = (
                         item.get("case_key")
                         or item.get("case", {}).get("case_key")
                         or case_keys.get(int(item["case_id"]), str(item["case_id"]))
@@ -211,7 +235,7 @@ def build_exam_export_rows(session: Session, cohort_id: uuid.UUID) -> list[CsvRo
                         "stage": stage,
                         "item_index": index + 1,
                         "item_kind": str(item.get("kind", stage)),
-                        "item_key": str(item_key),
+                        "item_key": str(key),
                         "is_scam": ""
                         if stage == "pretest" or truth is None
                         else str(truth).lower(),

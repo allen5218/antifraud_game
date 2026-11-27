@@ -13,6 +13,8 @@ from pydantic import (
     WithJsonSchema,
 )
 
+from app.cards.grading import CardPublic
+
 
 def _decimal_integer(value: Any) -> int:
     if isinstance(value, int) and not isinstance(value, bool):
@@ -583,7 +585,7 @@ class NicknameResponse(BaseModel):
 # ── 檢測：公開結構只列安全欄位，與伺服器快照分開 ─────────────
 
 ExamMode = Literal["comprehensive", "specialized"]
-ExamStage = Literal["pretest", "swipe", "message", "scenario", "done"]
+ExamStage = Literal["pretest", "swipe", "cards", "message", "scenario", "done"]
 ExamStatusValue = Literal["active", "completed", "expired", "abandoned", "voided"]
 ExamTag = Literal[
     "time_pressure", "authority", "greed", "social_proof", "trust_building"
@@ -620,6 +622,8 @@ class ExamMessageItem(BaseModel):
 class ExamProgress(BaseModel):
     stage_index: int
     stage_count: int
+    # 這份卷的關卡順序（依檢測版本，不含結束）；畫面照這份畫進度條
+    stages: list[ExamStage]
 
 
 class ExamScenario(BaseModel):
@@ -655,6 +659,8 @@ class ExamResult(BaseModel):
     mode: ExamMode
     fraud_type: str
     pretest_by_type: dict[str, int] | None
+    # 前測每一類幾題（舊版 4、新版 2）；改版前存下的結果沒有這欄
+    pretest_per_type: int | None = None
     weakness_score: int
     weakness_max: int
     missed_tactics: list[str]
@@ -669,7 +675,8 @@ class ExamState(BaseModel):
     stage: ExamStage
     fraud_type: str | None
     expires_at: datetime
-    stage_items: list[ExamPretestItem | ExamSwipeItem | ExamMessageItem]
+    # 卡片題（stage = cards）直接用日常卡片的畫面資料，選項是這份卷才有效的代號
+    stage_items: list[ExamPretestItem | ExamSwipeItem | CardPublic | ExamMessageItem]
     progress: ExamProgress
     scenario: ExamScenario | None
     result: ExamResult | None
@@ -703,6 +710,19 @@ class ExamSwipeAnswer(BaseModel):
 
 class ExamSwipeRequest(BaseModel):
     answers: list[ExamSwipeAnswer] = Field(max_length=6)
+
+
+class ExamCardAnswer(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+    card_key: str = Field(max_length=64)
+    # 和日常卡片一樣：單選題一個代號，排序題、配對題照順序列出全部代號
+    ids: list[Annotated[str, StringConstraints(max_length=32)]] = Field(
+        min_length=1, max_length=10
+    )
+
+
+class ExamCardRequest(BaseModel):
+    answers: list[ExamCardAnswer] = Field(max_length=10)
 
 
 class ExamMessageAnswer(BaseModel):
